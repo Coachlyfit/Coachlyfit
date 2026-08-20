@@ -28,7 +28,9 @@ function checkin(overrides: Partial<CheckinRow> & { checkin_date: string }): Che
     reviewed_by: null,
     decision: null,
     adjustments: null,
+    adjustment_applied_at: null,
     coach_reply: null,
+    coach_seen_at: null,
     ...overrides,
   };
 }

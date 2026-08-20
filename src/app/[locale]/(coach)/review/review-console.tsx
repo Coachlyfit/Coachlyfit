@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Moon, Scale, Dumbbell, Gauge, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,9 +14,11 @@ import { SaveConfirmedMark } from "@/components/brand/save-confirmed-mark";
 import { formatDate, formatNumber } from "@/lib/format";
 import { tintFor } from "@/lib/tint";
 import { cn } from "@/lib/utils";
-import type { AppLocale } from "@/domain/locale";
+import { pickLocale, type AppLocale } from "@/domain/locale";
+import type { StructuredAdjustment } from "@/domain/progress/review.service";
 import { Link } from "@/i18n/navigation";
-import { submitReviewAction } from "./actions";
+import { listActiveProgramItemsAction } from "../programs/actions";
+import { submitReviewAction, markCheckinSeenAction } from "./actions";
 
 export type ReviewPhoto = { url: string; date: string; weight: number | null };
 export type ReviewPose = "front" | "side" | "back";
@@ -43,6 +46,51 @@ type Decision = "keep" | "adjust" | "call";
 const ADJUSTMENT_KEYS = ["reduceLoad", "extraWarmup", "removeMovement", "extraRestDay"] as const;
 const REPLY_CHIP_KEYS = ["encouragement", "nextWeek", "call"] as const;
 const POSES: ReviewPose[] = ["front", "side", "back"];
+const PERCENT_OPTIONS = [10, 15, 20, 25, 30] as const;
+
+type ActiveProgramItem = Awaited<ReturnType<typeof listActiveProgramItemsAction>>[number];
+
+function toggleInSet<T>(setter: (updater: (prev: Set<T>) => Set<T>) => void, value: T) {
+  setter((prev) => {
+    const next = new Set(prev);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    return next;
+  });
+}
+
+/** Checkbox list for picking specific program_items — shared UI between
+ * reduceLoad's optional narrowing and removeMovement's required picker.
+ * Each caller owns its own selection state, so checking both adjustments
+ * at once doesn't conflate "exercises to reduce load on" with "exercises
+ * to remove". */
+function ExerciseMultiSelect({
+  locale,
+  items,
+  loading,
+  selected,
+  onToggle,
+}: {
+  locale: AppLocale;
+  items: ActiveProgramItem[];
+  loading: boolean;
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+}) {
+  const t = useTranslations("review.adjustments");
+  if (loading) return <p className="text-xs text-warning-tint-foreground/70">{t("loadingExercises")}</p>;
+  if (items.length === 0) return <p className="text-xs text-warning-tint-foreground/70">{t("noExercises")}</p>;
+  return (
+    <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md border border-warning-tint-foreground/20 p-2">
+      {items.map((item) => (
+        <label key={item.id} className="flex items-center gap-2 text-xs text-warning-tint-foreground">
+          <Checkbox checked={selected.has(item.id)} onCheckedChange={() => onToggle(item.id)} />
+          {pickLocale(item.exercises, locale)}
+        </label>
+      ))}
+    </div>
+  );
+}
 
 function adherenceOutOf10(value: number | null): number | null {
   return value == null ? null : Math.round(value / 10);
@@ -187,6 +235,10 @@ function ReviewEntryPanel({
   const tErrors = useTranslations("review.errors");
   const [decision, setDecision] = useState<Decision>("keep");
   const [adjustments, setAdjustments] = useState<Set<string>>(new Set());
+  const [reduceLoadPercent, setReduceLoadPercent] = useState<number>(20);
+  const [reduceLoadItemIds, setReduceLoadItemIds] = useState<Set<string>>(new Set());
+  const [showReduceLoadPicker, setShowReduceLoadPicker] = useState(false);
+  const [removeMovementItemIds, setRemoveMovementItemIds] = useState<Set<string>>(new Set());
   const [reply, setReply] = useState("");
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -199,28 +251,52 @@ function ReviewEntryPanel({
   const activePose = pose && availablePoses.includes(pose) ? pose : (availablePoses[0] ?? null);
   const photoPair = activePose ? entry.photos[activePose] : undefined;
 
+  // Read receipt — fires once per checkin on mount, no loading state, no
+  // blocking of render. Idempotent server-side (mark_checkin_seen only sets
+  // coach_seen_at on the first call), so nothing guards against re-firing.
+  useEffect(() => {
+    markCheckinSeenAction(entry.checkinId);
+  }, [entry.checkinId]);
+
+  const needsActiveExercises = adjustments.has("reduceLoad") || adjustments.has("removeMovement");
+  const { data: activeItems, isPending: exercisesLoading } = useQuery({
+    queryKey: ["review", "active-program-items", entry.clientId],
+    queryFn: () => listActiveProgramItemsAction(entry.clientId),
+    enabled: needsActiveExercises,
+  });
+
   function toggleAdjustment(key: string) {
-    setAdjustments((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+    toggleInSet(setAdjustments, key);
   }
 
   function appendChip(text: string) {
     setReply((prev) => (prev.trim() ? `${prev}\n\n${text}` : text));
   }
 
+  const removeMovementBlocked = adjustments.has("removeMovement") && removeMovementItemIds.size === 0;
+
+  function buildStructuredAdjustments(): StructuredAdjustment[] {
+    const list: StructuredAdjustment[] = [];
+    if (adjustments.has("reduceLoad")) {
+      list.push({ key: "reduceLoad", percent: reduceLoadPercent, itemIds: [...reduceLoadItemIds] });
+    }
+    if (adjustments.has("removeMovement")) {
+      list.push({ key: "removeMovement", itemIds: [...removeMovementItemIds] });
+    }
+    if (adjustments.has("extraWarmup")) list.push({ key: "extraWarmup" });
+    if (adjustments.has("extraRestDay")) list.push({ key: "extraRestDay" });
+    return list;
+  }
+
   function onSubmit() {
-    if (!reply.trim()) return;
+    if (!reply.trim() || (decision === "adjust" && removeMovementBlocked)) return;
     setFormError(null);
     const formData = new FormData();
     formData.set("checkinId", entry.checkinId);
     formData.set("decision", decision);
     formData.set("coachReply", reply.trim());
     if (decision === "adjust") {
-      for (const key of adjustments) formData.append("adjustments", key);
+      formData.set("adjustments", JSON.stringify(buildStructuredAdjustments()));
     }
     startTransition(async () => {
       const result = await submitReviewAction(locale, formData);
@@ -463,10 +539,66 @@ function ReviewEntryPanel({
                   {t("adjustments.title")}
                 </p>
                 {ADJUSTMENT_KEYS.map((key) => (
-                  <label key={key} className="flex items-center gap-2.5 text-sm text-warning-tint-foreground">
-                    <Checkbox checked={adjustments.has(key)} onCheckedChange={() => toggleAdjustment(key)} />
-                    {t(`adjustments.options.${key}`)}
-                  </label>
+                  <div key={key} className="flex flex-col gap-2">
+                    <label className="flex items-center gap-2.5 text-sm text-warning-tint-foreground">
+                      <Checkbox checked={adjustments.has(key)} onCheckedChange={() => toggleAdjustment(key)} />
+                      {t(`adjustments.options.${key}`)}
+                    </label>
+
+                    {key === "reduceLoad" && adjustments.has("reduceLoad") && (
+                      <div className="ms-6 flex flex-col gap-2 border-s border-warning-tint-foreground/20 ps-3">
+                        <label className="flex items-center gap-2 text-xs text-warning-tint-foreground">
+                          {t("adjustments.percentLabel")}
+                          <select
+                            value={reduceLoadPercent}
+                            onChange={(e) => setReduceLoadPercent(Number(e.target.value))}
+                            className="rounded-md border border-warning-tint-foreground/30 bg-background px-2 py-1 text-xs"
+                          >
+                            {PERCENT_OPTIONS.map((p) => (
+                              <option key={p} value={p}>
+                                {p}%
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowReduceLoadPicker((v) => !v)}
+                          className="text-start text-xs font-medium text-warning-tint-foreground underline underline-offset-2"
+                        >
+                          {reduceLoadItemIds.size === 0
+                            ? t("adjustments.wholeProgram")
+                            : t("adjustments.exercisesSelected", { count: reduceLoadItemIds.size })}
+                          {" · "}
+                          {t("adjustments.pickExercises")}
+                        </button>
+                        {showReduceLoadPicker && (
+                          <ExerciseMultiSelect
+                            locale={locale}
+                            items={activeItems ?? []}
+                            loading={exercisesLoading}
+                            selected={reduceLoadItemIds}
+                            onToggle={(id) => toggleInSet(setReduceLoadItemIds, id)}
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {key === "removeMovement" && adjustments.has("removeMovement") && (
+                      <div className="ms-6 flex flex-col gap-2 border-s border-warning-tint-foreground/20 ps-3">
+                        <ExerciseMultiSelect
+                          locale={locale}
+                          items={activeItems ?? []}
+                          loading={exercisesLoading}
+                          selected={removeMovementItemIds}
+                          onToggle={(id) => toggleInSet(setRemoveMovementItemIds, id)}
+                        />
+                        {removeMovementBlocked && (
+                          <p className="text-xs text-destructive">{t("adjustments.removeMovementHint")}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -505,7 +637,12 @@ function ReviewEntryPanel({
               <SaveConfirmedMark show label={t("submit.sent")} />
             </div>
           ) : (
-            <Button type="button" size="lg" disabled={pending || !reply.trim()} onClick={onSubmit}>
+            <Button
+              type="button"
+              size="lg"
+              disabled={pending || !reply.trim() || (decision === "adjust" && removeMovementBlocked)}
+              onClick={onSubmit}
+            >
               {reply.trim() ? t("submit.send") : t("submit.sendDefault")}
             </Button>
           )}

@@ -8,6 +8,20 @@ import { reviewSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
 
+// `adjustments` is a JSON-encoded StructuredAdjustment[] in one FormData
+// field — same pattern as parseSetsField in programs/actions.ts. A parse
+// failure falls through as `undefined`; reviewSchema's shape check catches
+// anything that doesn't fit from there.
+function parseAdjustmentsField(formData: FormData): unknown {
+  const raw = formData.get("adjustments");
+  if (typeof raw !== "string") return undefined;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
 /** Clears one check-in from the review queue: records the coach's decision
  * (review_checkin RPC — see 20260804000001_checkin_review.sql for why a
  * raw update isn't used) and sends the reply through the existing
@@ -15,11 +29,10 @@ type ActionResult = { error: string } | void;
  * WhatsApp gateway wired up in this codebase, so the reply lands wherever
  * every other coach message does, not as a separate channel. */
 export async function submitReviewAction(locale: string, formData: FormData): Promise<ActionResult> {
-  const adjustments = formData.getAll("adjustments").map(String);
   const parsed = reviewSchema.safeParse({
     checkinId: formData.get("checkinId"),
     decision: formData.get("decision"),
-    adjustments: adjustments.length ? adjustments : undefined,
+    adjustments: parseAdjustmentsField(formData),
     coachReply: formData.get("coachReply"),
   });
   if (!parsed.success) return { error: "invalid_input" };
@@ -49,4 +62,21 @@ export async function submitReviewAction(locale: string, formData: FormData): Pr
 
   revalidatePath(`/${locale}/review`);
   revalidatePath(`/${locale}/dashboard`);
+}
+
+/** Fire-and-forget read receipt: called from a useEffect on mount in
+ * ReviewEntryPanel, not from a form submit — no revalidatePath, since
+ * `coach_seen_at` isn't rendered anywhere on this page, and failures are
+ * swallowed since a missed read receipt isn't worth surfacing as an error. */
+export async function markCheckinSeenAction(checkinId: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  try {
+    await new ReviewService(supabase).markSeen(checkinId);
+  } catch (error) {
+    console.error("markCheckinSeenAction failed", error);
+  }
 }

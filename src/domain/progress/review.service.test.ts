@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ReviewService } from "./review.service";
+import { ReviewService, type StructuredAdjustment } from "./review.service";
 
 type Call = { method: string; args: unknown[] };
 
@@ -75,9 +75,10 @@ describe("ReviewService", () => {
     const { db, rpcCalls } = fakeDb([], { data: reviewed, error: null });
     const service = new ReviewService(db as never);
 
+    const adjustments: StructuredAdjustment[] = [{ key: "reduceLoad", percent: 20, itemIds: ["item-1"] }];
     const result = await service.reviewCheckin("checkin-1", {
       decision: "adjust",
-      adjustments: ["نزّل وزن السكوات ٢٠٪"],
+      adjustments,
       coachReply: "تمام يا سارة",
     });
 
@@ -87,7 +88,7 @@ describe("ReviewService", () => {
         args: {
           p_checkin_id: "checkin-1",
           p_decision: "adjust",
-          p_adjustments: ["نزّل وزن السكوات ٢٠٪"],
+          p_adjustments: [{ key: "reduceLoad", percent: 20, itemIds: ["item-1"] }],
           p_coach_reply: "تمام يا سارة",
         },
       },
@@ -100,5 +101,42 @@ describe("ReviewService", () => {
     const service = new ReviewService(db as never);
 
     await expect(service.reviewCheckin("checkin-1", { decision: "keep" })).rejects.toThrow("Coach only.");
+  });
+
+  it("lists pending adjustments for a client, unapplied only", async () => {
+    const rows = [{ id: "checkin-1", client_id: "c1", decision: "adjust", adjustment_applied_at: null }];
+    const { db, calls, fromCalls } = fakeDb(rows);
+    const service = new ReviewService(db as never);
+
+    const result = await service.listPendingAdjustments("c1");
+
+    expect(fromCalls).toEqual(["checkins"]);
+    expect(calls).toContainEqual({ method: "eq", args: ["client_id", "c1"] });
+    expect(calls).toContainEqual({ method: "eq", args: ["decision", "adjust"] });
+    expect(calls).toContainEqual({ method: "is", args: ["adjustment_applied_at", null] });
+    expect(calls).toContainEqual({ method: "order", args: ["checkin_date", { ascending: false }] });
+    expect(result).toBe(rows);
+  });
+
+  it("marks a checkin's adjustment applied via RPC", async () => {
+    const updated = { id: "checkin-1", adjustment_applied_at: "2026-08-20T00:00:00Z" };
+    const { db, rpcCalls } = fakeDb([], { data: updated, error: null });
+    const service = new ReviewService(db as never);
+
+    const result = await service.markAdjustmentApplied("checkin-1");
+
+    expect(rpcCalls).toEqual([{ fn: "mark_checkin_adjustment_applied", args: { p_checkin_id: "checkin-1" } }]);
+    expect(result).toBe(updated);
+  });
+
+  it("marks a checkin seen via RPC", async () => {
+    const updated = { id: "checkin-1", coach_seen_at: "2026-08-20T00:00:00Z" };
+    const { db, rpcCalls } = fakeDb([], { data: updated, error: null });
+    const service = new ReviewService(db as never);
+
+    const result = await service.markSeen("checkin-1");
+
+    expect(rpcCalls).toEqual([{ fn: "mark_checkin_seen", args: { p_checkin_id: "checkin-1" } }]);
+    expect(result).toBe(updated);
   });
 });
