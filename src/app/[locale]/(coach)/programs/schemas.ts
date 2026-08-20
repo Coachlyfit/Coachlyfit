@@ -22,13 +22,23 @@ export const daySchema = z.object({
   label_en: z.string().max(60).optional().or(z.literal("")),
 });
 
+// z.coerce.number() runs Number(value) BEFORE the nullable/optional checks,
+// and Number("") is 0, not NaN — so an empty number input silently coerces
+// to 0 instead of "unset". That's wrong for weight (0kg reads as a real
+// prescribed load, not bodyweight) and for rest_seconds (0s reads as "no
+// rest", not "use the exercise's default"). Preprocessing "" -> undefined
+// first lets `.optional()` short-circuit before coercion ever runs.
+function optionalCoercedNumber<S extends z.ZodTypeAny>(schema: S) {
+  return z.preprocess((v) => (v === "" || v === null ? undefined : v), schema);
+}
+
 // One prescribed set — reps/weight/rest, individually editable. weight is
 // nullable (bodyweight exercises); rest_seconds nullable so a set can leave
 // the exercise's default rest unset rather than forcing 0.
 export const setInputSchema = z.object({
   reps: z.coerce.number().int().min(1).max(100),
-  weight: z.coerce.number().min(0).max(1000).nullable().optional(),
-  rest_seconds: z.coerce.number().int().min(0).max(900).nullable().optional(),
+  weight: optionalCoercedNumber(z.coerce.number().min(0).max(1000).nullable().optional()),
+  rest_seconds: optionalCoercedNumber(z.coerce.number().int().min(0).max(900).nullable().optional()),
 });
 
 export const progressionRuleSchema = z.enum(["none", "plus_2_5kg_week", "plus_5kg_week", "plus_1_rep_week"]);
