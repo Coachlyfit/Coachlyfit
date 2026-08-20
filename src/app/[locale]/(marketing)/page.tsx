@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { Hero } from "@/components/marketing/hero";
 import { AppPreview } from "@/components/marketing/app-preview";
-import { ProblemSection, Faq } from "@/components/marketing/marketing-sections";
+import { StatsBand, ProblemSection, Coaches, Faq } from "@/components/marketing/marketing-sections";
 import { FeatureSections } from "@/components/marketing/feature-sections";
 import { ArabicFirst } from "@/components/marketing/arabic-first";
 import { PricingSection } from "@/components/marketing/pricing-section";
@@ -45,9 +45,11 @@ export default function MarketingHome() {
     <>
       <Hero />
       <AppPreview />
+      <StatsBand />
       <ProblemSection />
       <FeatureSections />
       <ArabicFirst />
+      <Coaches />
       <PricingSection />
       <Faq />
       <FinalCta />

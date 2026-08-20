@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 // Every nav link is a same-page anchor, so there's no drawer below md — the
 // links collapse and the CTA, which is the only one that matters on a phone,
 // stays visible.
-const ANCHORS = ["features", "pricing", "faq"] as const;
+const ANCHORS = ["features", "pricing", "coaches", "faq"] as const;
 
 export function Navbar() {
   const t = useTranslations("marketing.nav");

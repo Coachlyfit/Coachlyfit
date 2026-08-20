@@ -31,9 +31,12 @@ export function Hero() {
             {t("cta")}
           </Link>
           <a
-            href="#pricing"
-            className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-14 px-6 text-base")}
+            href="#features"
+            className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-14 gap-2.5 px-6 text-base")}
           >
+            <svg viewBox="0 0 9 11" className="h-3.5 w-3" fill="currentColor" aria-hidden="true">
+              <path d="M0 0 L9 5.5 L0 11 Z" />
+            </svg>
             {t("ctaSecondary")}
           </a>
         </div>

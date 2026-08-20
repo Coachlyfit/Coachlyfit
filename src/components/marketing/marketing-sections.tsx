@@ -1,13 +1,90 @@
 import { useTranslations } from "next-intl";
 
 /**
- * Two small sections that share nothing but their shape — a heading plus a
- * list of text blocks. Kept in one file rather than two ~35-line ones.
+ * The small marketing sections — each is a heading plus a list of text blocks
+ * and nothing more. Kept in one file rather than four ~35-line ones.
  */
 const EYEBROW = "font-mono text-[11px] font-medium uppercase tracking-[0.13em] text-primary";
 
 const PROBLEM_CARDS = ["excel", "whatsapp", "notes"] as const;
 const FAQ_ITEMS = ["a", "b", "c", "d", "e"] as const;
+
+// `speed` is the design's accent figure. text-sidebar-ring (#fb923c in both
+// themes) rather than text-sidebar-primary: the latter is #c2410c in light
+// mode, ~2.8:1 on this navy ground.
+const STATS = [
+  { key: "coaches", accent: false },
+  { key: "clients", accent: false },
+  { key: "countries", accent: false },
+  { key: "speed", accent: true },
+] as const;
+
+const COACHES = [
+  { key: "a", tint: "bg-tint-1" },
+  { key: "b", tint: "bg-tint-2" },
+] as const;
+
+/**
+ * Deliberately not aria-hidden, unlike the dashboard/form mocks: these are
+ * real claims about the product, not decorative furniture.
+ */
+export function StatsBand() {
+  const t = useTranslations("marketing.stats");
+
+  return (
+    <section className="bg-sidebar py-7 text-sidebar-foreground">
+      <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-8 px-4 text-center sm:grid-cols-4">
+        {STATS.map(({ key, accent }) => (
+          <div key={key}>
+            <div
+              className={`font-mono text-[30px] font-semibold tracking-[-0.02em] ${
+                accent ? "text-sidebar-ring" : ""
+              }`}
+            >
+              {t(`items.${key}.value`)}
+            </div>
+            <div className="mt-1.5 text-[12.5px] text-sidebar-foreground/60">{t(`items.${key}.label`)}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function Coaches() {
+  const t = useTranslations("marketing.coaches");
+
+  return (
+    <section id="coaches" className="bg-muted/40 py-20 sm:py-22">
+      <div className="mx-auto max-w-[1200px] px-4">
+        <h2 className="max-w-[26ch] text-balance text-2xl font-semibold leading-tight tracking-[-0.025em] md:text-[34px]">
+          {t("title")}
+        </h2>
+        <div className="mt-10 grid gap-5 lg:grid-cols-2">
+          {COACHES.map(({ key, tint }) => (
+            <figure key={key} className="m-0 rounded-2xl bg-card p-7 ring-1 ring-foreground/10">
+              <blockquote className="text-pretty text-[17px] leading-relaxed">{t(`items.${key}.quote`)}</blockquote>
+              <figcaption className="mt-6 flex items-center gap-3.5">
+                {/* Initials rather than a photo — the design ships an empty
+                    image slot, and a stock headshot would say less. */}
+                <div
+                  className={`flex size-13 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white ${tint}`}
+                  aria-hidden="true"
+                >
+                  {t(`items.${key}.initial`)}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold">{t(`items.${key}.name`)}</div>
+                  <div className="mt-0.5 text-[12.5px] text-muted-foreground">{t(`items.${key}.meta`)}</div>
+                </div>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export function ProblemSection() {
   const t = useTranslations("marketing.problem");

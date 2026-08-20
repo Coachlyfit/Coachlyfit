@@ -32,15 +32,16 @@
     "nav": {
       "features": "Features",
       "pricing": "Pricing",
+      "coaches": "Coaches",
       "faq": "FAQ",
       "login": "Log in"
     },
     "hero": {
-      "badge": "Built for coaches in Egypt and the region",
+      "badge": "1,400+ coaches across Egypt and the Gulf",
       "title": "Run your coaching like a business, not a WhatsApp group.",
       "subtitle": "Forms, programs, check-ins and invoices in one place — in Arabic. And your client never has to create an account or install an app.",
       "cta": "Start 14 days free",
-      "ctaSecondary": "See pricing",
+      "ctaSecondary": "See the dashboard",
       "trialNote": "No card · cancel anytime · support in Arabic"
     },
     "preview": {
@@ -98,6 +99,26 @@
           "name": "Yara Hassan",
           "what": "Progress photos",
           "when": "Yesterday"
+        }
+      }
+    },
+    "stats": {
+      "items": {
+        "coaches": {
+          "value": "1,400+",
+          "label": "coaches on the platform"
+        },
+        "clients": {
+          "value": "38,000",
+          "label": "clients checking in monthly"
+        },
+        "countries": {
+          "value": "6",
+          "label": "countries across the region"
+        },
+        "speed": {
+          "value": "4 min",
+          "label": "from signup to first reply"
         }
       }
     },
@@ -245,6 +266,23 @@
         }
       }
     },
+    "coaches": {
+      "title": "Coaches who left the spreadsheets behind.",
+      "items": {
+        "a": {
+          "quote": "I used to lose a whole Saturday every week collecting client replies from WhatsApp. Now I open the dashboard in the morning and everything's already organized. I got a full day back.",
+          "initial": "M",
+          "name": "Coach Marwan Hassan",
+          "meta": "Cairo · 42 clients"
+        },
+        "b": {
+          "quote": "The big thing is my clients don't need to install an app. They open the link and reply. I've tried apps before and half the clients never even signed up.",
+          "initial": "D",
+          "name": "Coach Dina Sabry",
+          "meta": "Jeddah · 28 clients"
+        }
+      }
+    },
     "pricing": {
       "title": "Clear pricing, in EGP.",
       "subtitle": "14 days free on any plan. No card required.",
@@ -286,8 +324,8 @@
       }
     },
     "finalCta": {
-      "title": "Start now — no card required.",
-      "subtitle": "Paste in your client list, pick a form, hit send. No training, no setup project.",
+      "title": "Your first client replies within four minutes.",
+      "subtitle": "Paste in your client list, pick a form, hit send. No card required, no training.",
       "cta": "Start 14 days free"
     },
     "footer": {
@@ -297,7 +335,7 @@
           "title": "Product",
           "features": "Features",
           "pricing": "Pricing",
-          "faq": "FAQ"
+          "demo": "Request a demo"
         },
         "company": {
           "title": "Company",

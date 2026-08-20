@@ -34,7 +34,7 @@ export function AppPreview() {
 
   return (
     <div className="mx-auto mt-14 hidden max-w-[1200px] px-4 sm:block" aria-hidden="true">
-      <div className="overflow-hidden rounded-t-2xl border border-b-0 border-border">
+      <div className="overflow-hidden rounded-t-2xl border border-b-0 border-border shadow-[0_-2px_60px_-20px_rgba(15,23,42,0.3)]">
         {/* Browser chrome. The traffic lights stay start-anchored so they
             mirror with the URL bar rather than splitting across the corners. */}
         <div className="flex h-9 items-center gap-1.5 border-b border-border bg-muted px-3.5">
