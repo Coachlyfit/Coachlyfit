@@ -17,8 +17,9 @@ export function LocaleSwitcher() {
     <Button
       type="button"
       variant="outline"
+      size="icon-sm"
       aria-label={t("language")}
-      className="w-28"
+      className="font-mono text-[11px] font-semibold uppercase"
       onClick={() => router.replace(pathname, { locale: other })}
     >
       {locale}
