@@ -26,7 +26,16 @@
     "admin": "الإدارة",
     "plan": "البرنامج",
     "coach": "الكابتن",
-    "inbox": "الرسائل"
+    "inbox": "الرسائل",
+    "diets": "التغذية",
+    "feedback": "الملاحظات"
+  },
+  "palette": {
+    "navigation": "التنقل",
+    "clients": "العملاء",
+    "placeholder": "دوّر أو روح لصفحة...",
+    "empty": "مفيش نتايج",
+    "trigger": "دوّر"
   },
   "marketing": {
     "nav": {
@@ -387,6 +396,7 @@
       "title": "شيك على إيميلك",
       "body": "بعتنالك رابط تأكيد. اضغط عليه عشان تفعّل حسابك."
     },
+    "poweredBy": "بدعم من Coachly Fit",
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
       "invalid_credentials": "الإيميل أو الباسورد غلط.",
@@ -435,7 +445,87 @@
     "businessName": "اسم نشاطك التجاري",
     "email": "الإيميل",
     "locale": "لغة الواجهة",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "checkinTemplateTitle": "استمارة تلقائية",
+    "checkinTemplateHint": "لما مدة الخطة تخلص، ابعت للعميل الاستمارة دي تلقائيًا.",
+    "checkinTemplateNone": "بدون — من غير إرسال تلقائي",
+    "checkinTemplateSaved": "اتحفظ.",
+    "checkinTemplateError": "مقدرناش نحفظ. جرب تاني.",
+    "packages": {
+      "title": "الباقات",
+      "add": "ضيف باقة",
+      "nameAr": "الاسم (عربي)",
+      "nameEn": "الاسم (إنجليزي)",
+      "duration": "المدة",
+      "durationDays": "{count} يوم",
+      "price": "السعر",
+      "egp": "جنيه",
+      "submit": "حفظ",
+      "empty": "لسه مفيش باقات. ضيف واحدة عشان تقدر تشترك العملاء فيها.",
+      "confirmDeleteTitle": "تمسح الباقة دي؟",
+      "delete": "امسح"
+    },
+    "paymentMethods": {
+      "title": "طرق الدفع",
+      "add": "ضيف طريقة",
+      "nameAr": "الاسم (عربي)",
+      "nameEn": "الاسم (إنجليزي)",
+      "submit": "حفظ",
+      "empty": "لسه مفيش طرق دفع. ضيف الطرق اللي بتقبل بيها فلوس من العملاء.",
+      "confirmDeleteTitle": "تمسح طريقة الدفع دي؟",
+      "delete": "امسح"
+    },
+    "errors": {
+      "not_found_or_forbidden": "مقدرناش نلاقي الحاجة دي، أو معندكش صلاحية.",
+      "update_failed": "مقدرناش نحفظ. جرّب تاني.",
+      "slug_taken": "الرابط ده متاخد — جرب واحد تاني.",
+      "package_in_use": "فيه عميل مشترك في الباقة دي، فممكنش تمسحها.",
+      "payment_method_in_use": "فيه معاملة مسجلة بطريقة الدفع دي، فممكنش تمسحها.",
+      "invalid_input": "يرجى التحقق من النموذج والمحاولة مرة أخرى.",
+      "not_authenticated": "يرجى تسجيل الدخول مرة أخرى.",
+      "metric_already_exists": "لديك بالفعل مقياس بنفس الاسم تقريبًا."
+    },
+    "customMetrics": {
+      "title": "مقاييس مخصصة",
+      "add": "إضافة مقياس",
+      "nameAr": "الاسم (عربي)",
+      "nameEn": "الاسم (إنجليزي)",
+      "unit": "الوحدة",
+      "unitPlaceholder": "مثال: سم، كجم، %",
+      "submit": "حفظ",
+      "empty": "لا توجد مقاييس مخصصة بعد. أضف واحدًا ليتمكن العملاء من تسجيله ضمن التقدم.",
+      "confirmDeleteTitle": "حذف هذا المقياس؟",
+      "delete": "حذف"
+    },
+    "team": {
+      "title": "الفريق",
+      "add": "ادعُ عضو",
+      "emailLabel": "الإيميل",
+      "submit": "ابعت الدعوة",
+      "empty": "لسه مفيش أعضاء في الفريق. ادعُ حد يشاركك الوصول لنشاطك.",
+      "statusPending": "معلّق",
+      "statusAccepted": "نشط",
+      "linkTitle": "شارك الرابط ده",
+      "linkBody": "أي حد معاه الرابط ده يقدر ينضم لفريقك. بيشتغل مرة واحدة بس.",
+      "copy": "انسخ الرابط",
+      "copied": "اتنسخ",
+      "done": "تمام",
+      "confirmDeleteTitle": "تشيل عضو الفريق ده؟",
+      "delete": "شيل"
+    },
+    "portal": {
+      "title": "رابط البورتال",
+      "description": "شارك الرابط ده مع عملاءك عشان يشوفوا اسم نشاطك انت، مش احنا.",
+      "slugLabel": "رابطك",
+      "slugHint": "حروف إنجليزي صغيرة وأرقام وشرطات بس. لحد 40 حرف.",
+      "slugFormat": "حروف إنجليزي صغيرة وأرقام وشرطات بس، لحد 40 حرف.",
+      "save": "حفظ",
+      "saved": "اتحفظ.",
+      "urlLabel": "الرابط اللي هتشاركه",
+      "copy": "انسخ الرابط",
+      "copied": "اتنسخ",
+      "qrAlt": "كود QR لرابط البورتال بتاعك"
+    }
   },
   "clients": {
     "title": "العملاء",
@@ -492,6 +582,67 @@
       "email_taken": "فيه حساب متسجل بالإيميل ده خلاص.",
       "invalid_invite": "الدعوة دي مبقتش شغالة. اطلب من مدربك رابط جديد.",
       "not_found_or_forbidden": "مش لاقيه، أو مفيش صلاحية."
+    },
+    "billing": {
+      "subscription": {
+        "title": "الاشتراك",
+        "none": "لسه مفيش اشتراك.",
+        "dateRange": "{start} – {end}",
+        "egp": "جنيه",
+        "freeze": "جمّد",
+        "unfreeze": "شغّل تاني",
+        "cancel": "الغي",
+        "confirmCancelTitle": "تلغي الاشتراك ده؟",
+        "confirmCancelBody": "العميل هيفضل معاه وصول لحد ما تقرّر غير كده — الإلغا بس بيوقف الدفع.",
+        "status": {
+          "active": "شغّال",
+          "expired": "منتهي",
+          "frozen": "مجمّد",
+          "canceled": "ملغي"
+        },
+        "confirmCancelAction": "الغي الاشتراك"
+      },
+      "startSubscription": {
+        "title": "ابدأ اشتراك",
+        "package": "الباقة",
+        "endDate": "تاريخ النهاية",
+        "submit": "ابدأ"
+      },
+      "recordTransaction": {
+        "title": "سجّل دفعة",
+        "amount": "المبلغ (جنيه)",
+        "method": "طريقة الدفع",
+        "date": "التاريخ",
+        "proof": "إثبات الدفع (اختياري)",
+        "proofUpload": "ارفع إثبات",
+        "proofAttached": "اتضاف",
+        "uploading": "بيترفع...",
+        "submit": "حفظ"
+      },
+      "transactions": {
+        "title": "المعاملات",
+        "empty": "لسه مفيش معاملات مسجّلة.",
+        "date": "التاريخ",
+        "method": "الطريقة",
+        "amount": "المبلغ",
+        "egp": "جنيه",
+        "viewProof": "شوف الإثبات"
+      },
+      "errors": {
+        "invalid_input": "راجع البيانات وجرّب تاني.",
+        "not_authenticated": "سجّل الدخول تاني.",
+        "not_found_or_forbidden": "مقدرناش نلاقي الحاجة دي، أو معندكش صلاحية.",
+        "file_too_large": "الملف لازم يكون أقل من ١٠ ميجا.",
+        "invalid_file": "اختار صورة أو ملف PDF.",
+        "upload_failed": "مقدرناش نرفع الملف. جرّب تاني."
+      }
+    },
+    "observations": {
+      "title": "ملاحظات",
+      "empty": "لا توجد ملاحظات بعد.",
+      "add": "إضافة ملاحظة",
+      "placeholder": "اكتب ملاحظة خاصة عن هذا العميل...",
+      "submit": "حفظ"
     }
   },
   "join": {
@@ -505,6 +656,9 @@
       "email": "الإيميل",
       "password": "الباسورد",
       "submit": "إنشاء حساب"
+    },
+    "team": {
+      "heading": "اتدعيت تنضم لفريق تدريب"
     }
   },
   "client": {
@@ -603,6 +757,12 @@
         "body": "كابتنك هيشوفها قريب.",
         "close": "تمام"
       }
+    },
+    "diet": {
+      "title": "التغذية",
+      "noPlan": "لسه مفيش خطة تغذية",
+      "noPlanBody": "الكابتن لسه ما حددش خطة تغذية.",
+      "quantityUnit": "{quantity} {unit}"
     }
   },
   "inbox": {
@@ -613,6 +773,17 @@
     "send": "ابعت",
     "clientList": {
       "empty": "مفيش عملاء لسه."
+    },
+    "broadcast": {
+      "trigger": "بث لكل العملاء",
+      "title": "ابعت رسالة لكل العملاء النشطين",
+      "placeholder": "اكتب رسالة تتبعت لكل عميل نشط…",
+      "submit": "ابعت للكل",
+      "success": "اتبعتت لكل عميل نشط."
+    },
+    "errors": {
+      "invalid_input": "راجع الرسالة وجرّب تاني.",
+      "no_recipients": "لسه معندكش عملاء نشطين."
     }
   },
   "forms": {
@@ -1150,6 +1321,14 @@
           "amount": "المبلغ (جنيه)"
         }
       }
+    },
+    "feedback": {
+      "title": "ملاحظات المدربين",
+      "empty": "لسه مفيش ملاحظات.",
+      "table": {
+        "body": "الملاحظة",
+        "date": "التاريخ"
+      }
     }
   },
   "notifications": {
@@ -1468,6 +1647,121 @@
       "save_failed": "حصل خطأ. جرّب تاني.",
       "no_rows": "مفيش صفوف صحيحة. راجع البيانات اللي لصقتها.",
       "template_failed": "معرفناش نعمل النموذج. جرّب تاني."
+    }
+  },
+  "diets": {
+    "title": "خطط التغذية",
+    "new": "خطة جديدة",
+    "allTab": "الكل",
+    "templatesTab": "القوالب",
+    "assignedTab": "المعينة",
+    "empty": {
+      "title": "لسه مفيش خطط تغذية",
+      "description": "ابني خطة مرة واحدة وطبّقها على أي عدد من العملاء."
+    },
+    "table": {
+      "name": "الاسم",
+      "client": "العميل",
+      "dates": "التواريخ",
+      "created": "تاريخ الإنشاء"
+    },
+    "template": "قالب",
+    "dateRange": "{start} – {end}",
+    "ongoing": "مستمر",
+    "createDialog": {
+      "title": "خطة تغذية جديدة",
+      "nameAr": "الاسم (عربي)",
+      "nameEn": "الاسم (إنجليزي)",
+      "client": "العميل",
+      "clientNone": "من غير عميل — احفظها كقالب",
+      "startDate": "تاريخ البداية",
+      "endDate": "تاريخ النهاية (اختياري)",
+      "submit": "اعمل"
+    },
+    "assignTemplateDialog": {
+      "title": "عيّن القالب ده",
+      "description": "هيعمل نسخة من الخطة دي للعميل اللي هتختاره — القالب نفسه بيفضل زي ما هو.",
+      "client": "العميل",
+      "submit": "عيّن"
+    },
+    "deletePlan": "امسح الخطة",
+    "confirmDeletePlanTitle": "تمسح الخطة دي؟",
+    "confirmDeletePlanBody": "هيمسح كل الوجبات والأطعمة اللي فيها. مينفعش ترجع فيها.",
+    "assignedToClients": {
+      "title": "متعيّنة لـ {count} عميل"
+    },
+    "builder": {
+      "addMeal": "ضيف وجبة",
+      "editMeal": "عدّل الوجبة",
+      "addFood": "ضيف طعام",
+      "noMeals": "لسه مفيش وجبات.",
+      "noItems": "لسه مفيش أطعمة في الوجبة دي.",
+      "deleteMeal": "امسح الوجبة",
+      "confirmDeleteMealTitle": "تمسح الوجبة دي؟",
+      "confirmDeleteMealBody": "هيمسح كل الأطعمة اللي فيها. مينفعش ترجع فيها.",
+      "quantityUnit": "{quantity} {unit}",
+      "untitledMeal": "وجبة"
+    },
+    "mealDialog": {
+      "addTitle": "ضيف وجبة",
+      "editTitle": "عدّل الوجبة",
+      "labelAr": "التسمية (عربي، اختياري)",
+      "labelEn": "التسمية (إنجليزي، اختياري)",
+      "submit": "حفظ"
+    },
+    "itemDialog": {
+      "addTitle": "ضيف طعام",
+      "editTitle": "عدّل الطعام",
+      "food": "الطعام",
+      "searchPlaceholder": "دوّر على طعام...",
+      "loading": "بدوّر...",
+      "noResults": "مفيش أطعمة مطابقة.",
+      "quantity": "الكمية",
+      "unit": "الوحدة",
+      "submit": "حفظ"
+    },
+    "macros": {
+      "title": "إجمالي الخطة",
+      "empty": "ضيف أطعمة عشان تشوف الإجمالي.",
+      "kcal": "سعرة",
+      "protein": "بروتين",
+      "carbs": "كربوهيدرات",
+      "fat": "دهون"
+    },
+    "foodSidebar": {
+      "title": "ضيف طعام",
+      "searchPlaceholder": "دوّر على طعام...",
+      "loading": "بدوّر...",
+      "noResults": "مفيش أطعمة مطابقة.",
+      "allCategories": "الكل"
+    },
+    "errors": {
+      "invalid_input": "راجع البيانات وجرّب تاني.",
+      "not_authenticated": "سجّل الدخول تاني.",
+      "not_found_or_forbidden": "مينفعش تعدّل الخطة دي.",
+      "end_date_before_start_date": "تاريخ النهاية لازم يكون بعد تاريخ البداية.",
+      "unknown": "حصل خطأ. جرّب تاني."
+    }
+  },
+  "print": {
+    "button": "طباعة",
+    "preparedFor": "معدّة لـ {name}",
+    "set": "مجموعة",
+    "reps": "تكرار",
+    "weight": "وزن",
+    "rest": "راحة",
+    "quantity": "الكمية",
+    "planTotals": "إجمالي الخطة"
+  },
+  "feedback": {
+    "trigger": "ابعت ملاحظة",
+    "title": "شاركنا رأيك",
+    "placeholder": "اكتب ملاحظتك أو اقتراحك هنا...",
+    "submit": "ابعت",
+    "success": "وصلت! شكرًا على وقتك.",
+    "errors": {
+      "invalid_input": "راجع رسالتك وجرّب تاني.",
+      "not_authenticated": "سجّل الدخول تاني."
     }
   }
 }

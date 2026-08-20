@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { MessagesService } from "./messages.service";
 
 // Resolves which side of the conversation the caller is, and their own
@@ -14,7 +15,9 @@ async function callerContext(supabase: Awaited<ReturnType<typeof createClient>>,
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
   if (profile?.role === "coach") {
-    return { coachId: user.id, clientId, role: "coach" as const };
+    const coachId = await resolveCoachId(supabase);
+    if (!coachId) return null;
+    return { coachId, clientId, role: "coach" as const };
   }
   if (profile?.role === "client") {
     const { data: client } = await supabase
@@ -51,4 +54,30 @@ export async function markThreadReadAction(clientId: string) {
   const ctx = await callerContext(supabase, clientId);
   if (!ctx) return;
   await new MessagesService(supabase).markThreadRead(clientId, ctx.role);
+}
+
+// Coach-only — not clientId-scoped like callerContext, so resolved separately.
+export async function sendBroadcastAction(body: string): Promise<{ error: string } | void> {
+  const trimmed = body.trim();
+  if (!trimmed || trimmed.length > 2000) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role !== "coach") return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  const { data: clients } = await supabase.from("clients").select("id").eq("coach_id", coachId).eq("status", "active");
+  if (!clients || clients.length === 0) return { error: "no_recipients" };
+
+  await new MessagesService(supabase).broadcast(
+    coachId,
+    clients.map((c) => c.id),
+    trimmed,
+  );
 }

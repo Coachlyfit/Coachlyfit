@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { AdminSidebar } from "@/components/dashboard/admin-sidebar";
-import { Topbar } from "@/components/dashboard/topbar";
+import { AdminTopbar } from "@/components/dashboard/admin-topbar";
 
 /** Mirrors the (coach) layout — same getUser()-not-getSession() reasoning,
  * same roleHome bounce. Note this guard does NOT cover the admin server
@@ -35,7 +35,7 @@ export default async function AdminLayout({
     <div className="console flex min-h-dvh bg-background text-foreground">
       <AdminSidebar />
       <div className="flex flex-1 flex-col">
-        <Topbar locale={locale} fullName={profile.full_name} />
+        <AdminTopbar locale={locale} fullName={profile.full_name} />
         {/* Console register (design system §00/§04/§07/§08): mono-dominant,
             uppercase labels, tight radii, 40px rows. Section headings and
             table components under admin/** opt into these utilities

@@ -13,7 +13,12 @@ function fakeSupabase(rows: unknown[] = []) {
         }),
         insert: (payload: unknown) => {
           inserts.push({ table, payload });
-          return { select: () => ({ single: async () => ({ data: { id: "msg-1", ...(payload as object) }, error: null }) }) };
+          return {
+            select: () => ({ single: async () => ({ data: { id: "msg-1", ...(payload as object) }, error: null }) }),
+            // Real supabase-js query builders are thenable on their own (no .select()
+            // needed) — broadcast() awaits the insert directly, so the fake must be too.
+            then: (resolve: (result: { data: null; error: null }) => unknown) => resolve({ data: null, error: null }),
+          };
         },
         update: (payload: unknown) => {
           const filters: [string, unknown][] = [];
@@ -70,6 +75,18 @@ describe("MessagesService", () => {
       ["client_id", "client-1"],
       ["sender_role", "coach"],
       ["read_at", null],
+    ]);
+  });
+
+  it("broadcast bulk-inserts one row per client in a single insert call", async () => {
+    const { db, inserts } = fakeSupabase();
+    await new MessagesService(db).broadcast("coach-1", ["client-1", "client-2"], "hi all");
+
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0].table).toBe("messages");
+    expect(inserts[0].payload).toEqual([
+      { coach_id: "coach-1", client_id: "client-1", sender_role: "coach", body: "hi all" },
+      { coach_id: "coach-1", client_id: "client-2", sender_role: "coach", body: "hi all" },
     ]);
   });
 });
