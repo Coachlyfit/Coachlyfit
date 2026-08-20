@@ -1,6 +1,6 @@
 {
   // base theme the customizations layer on top of
-  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.colorTheme": "Dark Modern",
 
   "workbench.colorCustomizations": {
     // surfaces
