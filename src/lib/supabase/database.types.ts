@@ -298,6 +298,8 @@ export type Database = {
           coach_notes_ar: string | null
           coach_notes_en: string | null
           created_at: string
+          cues_ar: string[] | null
+          cues_en: string[] | null
           equipment: string | null
           id: string
           image_url: string | null
@@ -314,6 +316,8 @@ export type Database = {
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
           created_at?: string
+          cues_ar?: string[] | null
+          cues_en?: string[] | null
           equipment?: string | null
           id?: string
           image_url?: string | null
@@ -330,6 +334,8 @@ export type Database = {
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
           created_at?: string
+          cues_ar?: string[] | null
+          cues_en?: string[] | null
           equipment?: string | null
           id?: string
           image_url?: string | null
@@ -638,6 +644,42 @@ export type Database = {
             columns: ["current_version_id"]
             isOneToOne: false
             referencedRelation: "form_template_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impersonation_log: {
+        Row: {
+          admin_id: string
+          coach_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          admin_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          admin_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impersonation_log_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "impersonation_log_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
         ]
@@ -1518,6 +1560,8 @@ export type Database = {
           coach_id: string
           created_at: string
           current_period_end: string
+          mrr_egp: number
+          phone: string
           status: string
           tier_key: string
           trial_ends_at: string
@@ -1526,6 +1570,7 @@ export type Database = {
       admin_metrics: { Args: never; Returns: Json }
       admin_promote_exercise: { Args: { p_id: string }; Returns: undefined }
       admin_promote_food: { Args: { p_id: string }; Returns: undefined }
+      begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
       record_payment: {
         Args: {

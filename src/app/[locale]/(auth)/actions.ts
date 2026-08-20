@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { loginSchema, signupCoachSchema, phoneSchema, verifyOtpSchema } from "./schemas";
@@ -35,6 +36,10 @@ export async function signInAction(
     .eq("id", data.user.id)
     .single();
 
+  // Defensive, same reasoning as /auth/confirm's else-branch: a real
+  // password login must never inherit a stale impersonation banner from an
+  // earlier session on this browser.
+  (await cookies()).delete("impersonating");
   redirect(roleHome(locale, profile?.role));
 }
 

@@ -1,19 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
-import { RecordPaymentDialog } from "./record-payment-dialog";
+import { CoachesTable } from "./coaches-table";
 
 type AdminMetrics = {
   mrr_egp: number;
@@ -118,40 +109,7 @@ export default async function AdminHomePage({
           <CardTitle className="text-base">{tCoaches("title")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{tCoaches("table.business")}</TableHead>
-                <TableHead>{tCoaches("table.tier")}</TableHead>
-                <TableHead>{tCoaches("table.status")}</TableHead>
-                <TableHead>{tCoaches("table.clients")}</TableHead>
-                <TableHead>{tCoaches("table.period")}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(coaches ?? []).map((coach) => (
-                <TableRow key={coach.coach_id}>
-                  <TableCell className="font-medium">{coach.business_name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{coach.tier_key}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={coach.status === "active" ? "default" : "secondary"}>
-                      {tCoaches(`status.${coach.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="tabular-nums">{coach.client_count}</TableCell>
-                  <TableCell className="tabular-nums text-muted-foreground">
-                    {coach.current_period_end ? formatDate(coach.current_period_end, locale) : "—"}
-                  </TableCell>
-                  <TableCell>
-                    <RecordPaymentDialog locale={locale} coachId={coach.coach_id} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <CoachesTable locale={locale} coaches={coaches ?? []} />
         </CardContent>
       </Card>
     </div>

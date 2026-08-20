@@ -96,6 +96,15 @@ export function ExerciseFields({
         <Label htmlFor={id("instructions_en")}>{t("instructionsEn")}</Label>
         <Textarea id={id("instructions_en")} dir="ltr" rows={3} {...register("instructions_en")} />
       </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("cues_ar")}>{t("cuesAr")}</Label>
+        <Textarea id={id("cues_ar")} dir="rtl" rows={3} placeholder={t("cuesPlaceholder")} {...register("cues_ar")} />
+        <p className="text-xs text-muted-foreground">{t("cuesHint")}</p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("cues_en")}>{t("cuesEn")}</Label>
+        <Textarea id={id("cues_en")} dir="ltr" rows={3} placeholder={t("cuesPlaceholder")} {...register("cues_en")} />
+      </div>
       {showCoachNotes && (
         <>
           <div className="flex flex-col gap-2">

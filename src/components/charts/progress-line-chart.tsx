@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
@@ -46,7 +46,7 @@ export function ProgressLineChart({
 
   return (
     <ChartContainer config={config} className="h-64 w-full">
-      <LineChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
         <XAxis
           dataKey="date"
@@ -70,15 +70,17 @@ export function ProgressLineChart({
             />
           }
         />
-        <Line
+        <Area
           type="monotone"
           dataKey={key}
           stroke={color}
-          strokeWidth={2}
+          strokeWidth={2.5}
+          fill={color}
+          fillOpacity={0.08}
           dot={{ r: 3 }}
           isAnimationActive={!reduceMotion}
         />
-      </LineChart>
+      </AreaChart>
     </ChartContainer>
   );
 }

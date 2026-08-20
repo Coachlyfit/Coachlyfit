@@ -56,7 +56,11 @@ export async function addBodyMetricAction(locale: string, formData: FormData): P
   revalidatePath(`/${locale}/c/progress`);
 }
 
-export async function addProgressPhotoAction(locale: string, storagePath: string): Promise<ActionResult> {
+export async function addProgressPhotoAction(
+  locale: string,
+  storagePath: string,
+  pose?: "front" | "side" | "back"
+): Promise<ActionResult> {
   const supabase = await createClient();
   const client = await currentClientRow(supabase);
   if (!client) return { error: "not_authenticated" };
@@ -70,6 +74,8 @@ export async function addProgressPhotoAction(locale: string, storagePath: string
   await new ProgressService(supabase).addMedia(client.coach_id, client.id, {
     storage_path: storagePath,
     kind: "photo",
+    pose,
   });
   revalidatePath(`/${locale}/c/progress`);
+  revalidatePath(`/${locale}/c/checkin`);
 }

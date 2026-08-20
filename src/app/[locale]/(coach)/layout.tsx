@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
+import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
 
 export default async function CoachLayout({
   children,
@@ -37,10 +39,13 @@ export default async function CoachLayout({
     .single();
   if (!coach?.onboarding_completed_at) redirect(`/${locale}/onboarding`);
 
+  const impersonating = (await cookies()).get("impersonating")?.value === "1";
+
   return (
     <div className="flex min-h-dvh">
       <Sidebar />
       <div className="flex flex-1 flex-col">
+        {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
         <Topbar locale={locale} fullName={profile.full_name} />
         <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 md:pb-6">
           {children}

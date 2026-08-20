@@ -487,16 +487,22 @@
       "resumeWorkout": "Resume workout",
       "reviewWorkout": "Review workout",
       "exerciseCount": "{count} exercises",
+      "setCount": "{count} sets",
       "currentWeight": "Weight",
+      "weightSinceStart": "{delta} kg since start",
       "streak": "Streak",
-      "streakDays": "{count} days"
+      "streakDays": "{count} days",
+      "streakBest": "Best: {count} days"
     },
     "plan": {
       "title": "Plan",
       "noProgram": "No program assigned yet",
       "noProgramBody": "Your coach hasn't assigned a training program yet.",
       "rest": "Rest",
+      "restMeta": "No workout scheduled",
       "done": "Done",
+      "doneMeta": "Done · {minutes} min",
+      "exerciseCount": "{count} exercises",
       "today": "Today"
     },
     "workout": {
@@ -510,7 +516,8 @@
       "close": "Done",
       "backToWorkout": "Back to workout",
       "openOriginalVideo": "Open original video",
-      "formCheck": "FORM CHECK"
+      "formCheck": "FORM CHECK",
+      "performanceCues": "Performance cues"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -810,6 +817,10 @@
       "imageUrl": "Image / GIF URL",
       "instructionsAr": "Instructions (Arabic)",
       "instructionsEn": "Instructions (English)",
+      "cuesAr": "Coaching cues (Arabic)",
+      "cuesEn": "Coaching cues (English)",
+      "cuesPlaceholder": "One cue per line",
+      "cuesHint": "Shown as a numbered list on the client's form-check screen.",
       "coachNotesAr": "Your coaching notes (Arabic)",
       "coachNotesEn": "Your coaching notes (English)",
       "submit": "Add exercise",
@@ -901,6 +912,19 @@
   },
   "admin": {
     "title": "Admin",
+    "impersonation": {
+      "action": "Impersonate",
+      "confirmTitle": "Impersonate this coach?",
+      "confirmBody": "You'll sign in as them, with full read/write access to their account. This is logged. Sign out to return to your own admin session.",
+      "banner": "You're viewing this account as {name}, signed in by an admin.",
+      "stop": "Sign out",
+      "errors": {
+        "forbidden": "Admin only.",
+        "not_found": "That coach no longer exists.",
+        "no_email": "This account has no email on file — can't sign in as them.",
+        "unknown": "Something went wrong. Please try again."
+      }
+    },
     "library": {
       "title": "Global Library",
       "description": "Curate the official exercise and food database every coach sees.",
@@ -937,10 +961,30 @@
     },
     "coaches": {
       "title": "Coaches",
+      "search": "Name, phone, or ID",
+      "filterLabel": "Filter by segment",
+      "shownCount": "{shown} of {total}",
+      "segments": {
+        "all": "All",
+        "atRisk": "At risk",
+        "trialing": "Trial",
+        "starter": "Starter",
+        "pro": "Pro",
+        "elite": "Elite"
+      },
+      "health": {
+        "good": "Good",
+        "atRisk": "At risk",
+        "stalled": "Stalled",
+        "trial": "Trial",
+        "none": "—"
+      },
       "table": {
         "business": "Business",
         "tier": "Tier",
         "status": "Status",
+        "mrr": "MRR · EGP",
+        "health": "Health",
         "clients": "Clients",
         "period": "Period ends",
         "joined": "Joined"
@@ -972,6 +1016,23 @@
         "invalid_input": "Please check the form and try again.",
         "forbidden": "Admin only.",
         "not_found": "No subscription found for that coach."
+      },
+      "detail": {
+        "joined": "Joined {date}",
+        "risk": {
+          "pastDue": "Payment past due",
+          "canceled": "Subscription canceled",
+          "trialEndingSoon": "Trial ends in {days}d",
+          "good": "Good standing"
+        },
+        "billing": {
+          "title": "Billing history",
+          "empty": "No payments recorded yet.",
+          "date": "Recorded",
+          "period": "Period",
+          "method": "Method",
+          "amount": "Amount (EGP)"
+        }
       }
     }
   },
@@ -1001,9 +1062,13 @@
       "weight": "Weight (kg)",
       "mood": "Mood (1-5)",
       "energy": "Energy (1-5)",
-      "adherence": "Adherence (%)",
+      "adherence": "Adherence (1-10)",
       "sleepHours": "Sleep (hours)",
+      "photos": "Progress photos",
+      "photoFront": "Front",
+      "photoSide": "Side",
       "notes": "Notes",
+      "chooseAdherence": "Choose your adherence",
       "submit": "Save check-in",
       "submitted": "Check-in saved."
     },
@@ -1030,7 +1095,12 @@
       "alt": "Progress photo from {date}",
       "emptyTitle": "No photos yet",
       "emptyClient": "Add a photo each week — the change is easier to see than to feel.",
-      "emptyCoach": "This client hasn't added progress photos."
+      "emptyCoach": "This client hasn't added progress photos.",
+      "pose": {
+        "front": "Front",
+        "side": "Side",
+        "back": "Back"
+      }
     },
     "chart": {
       "empty": "No data yet.",

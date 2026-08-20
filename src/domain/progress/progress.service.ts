@@ -26,6 +26,7 @@ export type MediaInput = {
   storage_path: string;
   kind: "photo" | "video" | "file";
   checkin_id?: string | null;
+  pose?: "front" | "side" | "back" | null;
 };
 
 /** Path convention enforced by the progress_media_* storage policies:

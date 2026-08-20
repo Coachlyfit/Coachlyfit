@@ -66,6 +66,23 @@ export function checkinStreak(checkins: CheckinRow[], today: Date): number {
   return streak;
 }
 
+/** The longest run of consecutive check-in days anywhere in the history,
+ * not just the current one — "your best streak was 18 days" needs the
+ * whole timeline, not a walk backward from today like checkinStreak. Sorts
+ * once, then a single forward pass. */
+export function longestStreak(checkins: CheckinRow[]): number {
+  const dates = [...new Set(checkins.map((c) => c.checkin_date))].sort();
+  if (dates.length === 0) return 0;
+
+  let longest = 1;
+  let current = 1;
+  for (let i = 1; i < dates.length; i++) {
+    current = addDays(dates[i - 1], 1) === dates[i] ? current + 1 : 1;
+    longest = Math.max(longest, current);
+  }
+  return longest;
+}
+
 /** Mean adherence across the given rows, rounded to a whole percent. Rows
  * with a null adherence are excluded from both the numerator and the
  * denominator — a skipped field is unknown, not zero. Takes just the

@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 
-export type TimelinePhoto = { id: string; url: string; createdAt: string };
+export type TimelinePhoto = { id: string; url: string; createdAt: string; pose?: string | null };
 
 /** Chronological grid, not a before/after slider — first and last photo
  * are both visible without configuring a comparator. `emptyAction` is the
@@ -38,9 +38,12 @@ export async function PhotoTimeline({
             alt={t("alt", { date: formatDate(photo.createdAt, locale) })}
             loading="lazy"
             decoding="async"
-            className="aspect-square w-full rounded-md object-cover"
+            className="aspect-[3/4] w-full rounded-md object-cover"
           />
           <figcaption className="text-center text-xs text-muted-foreground tabular-nums">
+            {photo.pose === "front" || photo.pose === "side" || photo.pose === "back"
+              ? `${t(`pose.${photo.pose}`)} · `
+              : ""}
             {formatDate(photo.createdAt, locale, { month: "short", day: "numeric" })}
           </figcaption>
         </figure>

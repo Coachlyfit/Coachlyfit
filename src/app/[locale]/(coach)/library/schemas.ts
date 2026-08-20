@@ -10,6 +10,11 @@ export const createExerciseSchema = z.object({
   image_url: z.string().url().optional().or(z.literal("")),
   instructions_ar: z.string().max(2000).optional(),
   instructions_en: z.string().max(2000).optional(),
+  // One cue per line — split into exercises.cues_ar/cues_en at the action
+  // boundary, not validated as an array here since the field is a plain
+  // textarea.
+  cues_ar: z.string().max(1000).optional(),
+  cues_en: z.string().max(1000).optional(),
   coach_notes_ar: z.string().max(2000).optional(),
   coach_notes_en: z.string().max(2000).optional(),
   // Only ever set by the clone flow (prefilled, not user-typed) and stripped

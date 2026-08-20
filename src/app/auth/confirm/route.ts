@@ -1,7 +1,17 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+
+// Readable (not httpOnly) so the coach layout's client-side banner can show
+// "you're impersonating" without a round trip — this cookie carries no
+// authority of its own, it's purely a display hint. The real audit trail is
+// impersonation_log, written inside begin_impersonation() before this route
+// ever runs. Short-lived: a stale banner outliving the session it describes
+// would be misleading.
+const IMPERSONATING_COOKIE = "impersonating";
+const IMPERSONATING_MAX_AGE_S = 60 * 60 * 4;
 
 // Locale-agnostic on purpose: this is the fixed URL a real Supabase
 // project's confirmation email points to (via emailRedirectTo), so it must
@@ -13,6 +23,7 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/ar/dashboard";
   const inviteToken = searchParams.get("invite_token");
+  const impersonating = searchParams.get("impersonating") === "1";
 
   if (tokenHash && type) {
     const supabase = await createClient();
@@ -28,6 +39,19 @@ export async function GET(request: NextRequest) {
         if (acceptError) {
           redirect(`/ar/join/${inviteToken}?error=invalid_invite`);
         }
+      }
+      const cookieStore = await cookies();
+      if (impersonating) {
+        cookieStore.set(IMPERSONATING_COOKIE, "1", {
+          maxAge: IMPERSONATING_MAX_AGE_S,
+          path: "/",
+          sameSite: "lax",
+        });
+      } else {
+        // Defensive: any other confirm-route sign-in (a real magic link,
+        // once/if that ever ships) must not inherit a stale "1" from an
+        // earlier impersonation session on this device.
+        cookieStore.delete(IMPERSONATING_COOKIE);
       }
       redirect(next);
     }

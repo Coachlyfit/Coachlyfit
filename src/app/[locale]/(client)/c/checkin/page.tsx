@@ -16,7 +16,7 @@ export default async function ClientCheckinPage({
   } = await supabase.auth.getUser();
   const { data: clientRow } = await supabase
     .from("clients")
-    .select("id, coaches(business_name)")
+    .select("id, coach_id, coaches(business_name)")
     .eq("profile_id", user!.id)
     .single();
 
@@ -29,6 +29,8 @@ export default async function ClientCheckinPage({
       today={todayIso}
       existing={existing}
       businessName={clientRow?.coaches?.business_name ?? ""}
+      coachId={clientRow?.coach_id ?? ""}
+      clientId={clientRow?.id ?? ""}
     />
   );
 }

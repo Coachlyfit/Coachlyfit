@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ApertureSweep } from "@/components/brand/aperture-sweep";
 import { CheckinForm } from "../progress/checkin-form";
 import type { AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
@@ -15,11 +16,15 @@ export function CheckinStackClient({
   today,
   existing,
   businessName,
+  coachId,
+  clientId,
 }: {
   locale: AppLocale;
   today: string;
   existing: Checkin | null;
   businessName: string;
+  coachId: string;
+  clientId: string;
 }) {
   const t = useTranslations("client.checkin");
   const router = useRouter();
@@ -28,15 +33,16 @@ export function CheckinStackClient({
 
   if (done) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-background px-8 py-10 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-[#0F172A] px-8 py-10 text-center text-[#E2E8F0]">
+        <ApertureSweep size={104} className="text-[#E2E8F0]" />
         <div>
-          <p className="text-xl font-semibold">{t("doneTitle")}</p>
-          <p className="mt-2.5 max-w-xs text-sm leading-relaxed text-muted-foreground">{t("doneBody")}</p>
+          <p className="text-xl font-semibold text-[#F8FAFC]">{t("doneTitle")}</p>
+          <p className="mt-2.5 max-w-xs text-[13.5px] leading-relaxed text-[#94A3B8]">{t("doneBody")}</p>
         </div>
         <button
           type="button"
           onClick={() => router.push("/c")}
-          className="flex h-12 items-center rounded-[11px] bg-primary px-7 text-sm font-semibold text-primary-foreground"
+          className="flex h-12 items-center rounded-[11px] border border-[#334155] px-7 text-sm font-semibold text-[#E2E8F0]"
         >
           {t("close")}
         </button>
@@ -62,7 +68,14 @@ export function CheckinStackClient({
       </div>
 
       <div className="flex-1 px-5 py-5">
-        <CheckinForm locale={locale} today={today} existing={existing} onSubmitted={() => setDone(true)} />
+        <CheckinForm
+          locale={locale}
+          today={today}
+          existing={existing}
+          coachId={coachId}
+          clientId={clientId}
+          onSubmitted={() => setDone(true)}
+        />
       </div>
     </div>
   );

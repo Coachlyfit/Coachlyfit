@@ -17,7 +17,7 @@ export default async function WorkoutSessionPage({
 
   const { data: day } = await supabase
     .from("program_days")
-    .select("*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url))")
+    .select("*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en))")
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })
     .maybeSingle();

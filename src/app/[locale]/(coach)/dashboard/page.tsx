@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { ClipboardCheck, ChevronRight, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +39,7 @@ export default async function DashboardPage({
     { count: recentSubmissionCount },
     { data: recentSubmissions },
     { data: payments },
+    { count: pendingReviewCount },
   ] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", user!.id).single(),
     supabase.from("clients").select("id", { count: "exact", head: true }).neq("status", "archived"),
@@ -65,6 +67,7 @@ export default async function DashboardPage({
       .from("payments")
       .select("amount_egp")
       .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+    supabase.from("checkins").select("id", { count: "exact", head: true }).is("reviewed_at", null),
   ]);
 
   const tier = subscription?.subscription_tiers;
@@ -116,6 +119,23 @@ export default async function DashboardPage({
           </CardContent>
         </Card>
       </div>
+
+      {!!pendingReviewCount && (
+        <Link
+          href="/review"
+          className="flex items-center gap-3 rounded-lg border border-warning-tint-foreground/30 bg-warning-tint px-4 py-3 text-warning-tint-foreground hover:bg-warning-tint/80"
+        >
+          <ClipboardCheck className="size-5 shrink-0" aria-hidden="true" />
+          <p className="flex-1 text-sm font-medium">
+            {t("pendingReview", { count: pendingReviewCount })}
+          </p>
+          {locale === "ar" ? (
+            <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
+          ) : (
+            <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
+          )}
+        </Link>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
         <Card className="overflow-hidden py-0">

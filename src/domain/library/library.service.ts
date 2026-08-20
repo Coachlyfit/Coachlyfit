@@ -29,6 +29,8 @@ export type CreateExerciseInput = {
   image_url?: string;
   instructions_ar?: string;
   instructions_en?: string;
+  cues_ar?: string[];
+  cues_en?: string[];
   coach_notes_ar?: string;
   coach_notes_en?: string;
   /** Set once at creation (the clone flow) — updateExercise strips it back

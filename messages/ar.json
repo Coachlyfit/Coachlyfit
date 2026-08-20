@@ -487,16 +487,22 @@
       "resumeWorkout": "كمّل التمرين",
       "reviewWorkout": "راجع التمرين",
       "exerciseCount": "{count} تمارين",
+      "setCount": "{count} مجموعة",
       "currentWeight": "الوزن",
+      "weightSinceStart": "{delta} كجم من البداية",
       "streak": "السلسلة",
-      "streakDays": "{count} يوم"
+      "streakDays": "{count} يوم",
+      "streakBest": "أطول سلسلة: {count} يوم"
     },
     "plan": {
       "title": "البرنامج",
       "noProgram": "لسه معندكش برنامج",
       "noProgramBody": "الكابتن لسه معينلكش برنامج تدريبي.",
       "rest": "راحة",
+      "restMeta": "مفيش تمرين مجدول",
       "done": "خلصت",
+      "doneMeta": "خلصت · {minutes} دقيقة",
+      "exerciseCount": "{count} تمارين",
       "today": "النهاردة"
     },
     "workout": {
@@ -510,7 +516,8 @@
       "close": "تمام",
       "backToWorkout": "رجوع للتمرين",
       "openOriginalVideo": "افتح الفيديو الأصلي",
-      "formCheck": "شيك على الأداء"
+      "formCheck": "شيك على الأداء",
+      "performanceCues": "نقط الأداء"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
@@ -810,6 +817,10 @@
       "imageUrl": "رابط الصورة / الـ GIF",
       "instructionsAr": "التعليمات (عربي)",
       "instructionsEn": "التعليمات (إنجليزي)",
+      "cuesAr": "نقط الأداء (عربي)",
+      "cuesEn": "نقط الأداء (إنجليزي)",
+      "cuesPlaceholder": "نقطة في كل سطر",
+      "cuesHint": "بتظهر كقائمة مرقمة في شاشة تشييك الأداء عند العميل.",
       "coachNotesAr": "ملاحظاتك كمدرب (عربي)",
       "coachNotesEn": "ملاحظاتك كمدرب (إنجليزي)",
       "submit": "ضيف التمرين",
@@ -901,6 +912,19 @@
   },
   "admin": {
     "title": "الإدارة",
+    "impersonation": {
+      "action": "ادخل كأنك المدرب",
+      "confirmTitle": "تدخل كأنك المدرب ده؟",
+      "confirmBody": "هتدخل بحسابه، وليك صلاحية كاملة قراءة وكتابة. ده بيتسجل. سجّل خروج عشان ترجع لحساب الإدارة بتاعك.",
+      "banner": "بتشوف الحساب ده كـ {name}، دخلت بيه من حساب إدارة.",
+      "stop": "سجّل خروج",
+      "errors": {
+        "forbidden": "للمشرفين بس.",
+        "not_found": "المدرب ده مش موجود.",
+        "no_email": "الحساب ده معندوش إيميل مسجل — مينفعش تدخل بيه.",
+        "unknown": "حصل خطأ. جرّب تاني."
+      }
+    },
     "library": {
       "title": "المكتبة العامة",
       "description": "إدارة قاعدة التمارين والأطعمة الرسمية اللي كل المدربين بيشوفوها.",
@@ -937,10 +961,30 @@
     },
     "coaches": {
       "title": "المدربون",
+      "search": "الاسم، الموبايل، أو المعرّف",
+      "filterLabel": "فلترة حسب الفئة",
+      "shownCount": "{shown} من {total}",
+      "segments": {
+        "all": "الكل",
+        "atRisk": "محتاج متابعة",
+        "trialing": "تجربة",
+        "starter": "Starter",
+        "pro": "Pro",
+        "elite": "Elite"
+      },
+      "health": {
+        "good": "تمام",
+        "atRisk": "محتاج متابعة",
+        "stalled": "متوقف",
+        "trial": "تجربة",
+        "none": "—"
+      },
       "table": {
         "business": "النشاط التجاري",
         "tier": "الباقة",
         "status": "الحالة",
+        "mrr": "دخل شهري · ج.م",
+        "health": "الحالة الصحية",
         "clients": "العملاء",
         "period": "نهاية الفترة",
         "joined": "تاريخ الانضمام"
@@ -972,6 +1016,23 @@
         "invalid_input": "راجع البيانات وجرّب تاني.",
         "forbidden": "للمشرفين بس.",
         "not_found": "مفيش اشتراك للمدرب ده."
+      },
+      "detail": {
+        "joined": "انضم في {date}",
+        "risk": {
+          "pastDue": "متأخر في السداد",
+          "canceled": "الاشتراك اتلغى",
+          "trialEndingSoon": "التجربة بتخلص خلال {days} يوم",
+          "good": "الوضع تمام"
+        },
+        "billing": {
+          "title": "سجل الدفعات",
+          "empty": "مفيش دفعات مسجلة لسه.",
+          "date": "اتسجلت في",
+          "period": "الفترة",
+          "method": "طريقة الدفع",
+          "amount": "المبلغ (جنيه)"
+        }
       }
     }
   },
@@ -1001,9 +1062,13 @@
       "weight": "الوزن (كجم)",
       "mood": "المزاج (1-5)",
       "energy": "الطاقة (1-5)",
-      "adherence": "الالتزام (%)",
+      "adherence": "الالتزام (1-10)",
       "sleepHours": "ساعات النوم",
+      "photos": "صور التقدّم",
+      "photoFront": "أمامي",
+      "photoSide": "جانبي",
       "notes": "ملاحظات",
+      "chooseAdherence": "اختار نسبة الالتزام",
       "submit": "احفظ المتابعة",
       "submitted": "اتحفظت المتابعة."
     },
@@ -1030,7 +1095,12 @@
       "alt": "صورة تقدّم بتاريخ {date}",
       "emptyTitle": "مفيش صور لسه",
       "emptyClient": "ضيف صورة كل أسبوع — التغيير بيبان أوضح ما هو مِحَسّ.",
-      "emptyCoach": "العميل ده لسه مضافش صور تقدّم."
+      "emptyCoach": "العميل ده لسه مضافش صور تقدّم.",
+      "pose": {
+        "front": "أمامي",
+        "side": "جانبي",
+        "back": "خلفي"
+      }
     },
     "chart": {
       "empty": "مفيش بيانات لسه.",

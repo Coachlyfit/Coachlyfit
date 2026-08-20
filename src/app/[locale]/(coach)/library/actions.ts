@@ -8,6 +8,19 @@ import { createExerciseSchema, createFoodSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
 
+// The form is one cue per line (a plain textarea, not a dynamic list UI);
+// exercises.cues_ar/cues_en are text[] — this is the one place that shape
+// changes, so both createExerciseAction and updateExerciseAction go through
+// it rather than each re-deriving the split/trim/filter rules.
+export function linesToArray(value: string | undefined): string[] | undefined {
+  if (!value) return undefined;
+  const lines = value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return lines.length > 0 ? lines : undefined;
+}
+
 export async function searchExercisesAction(params: LibraryQuery = {}) {
   const supabase = await createClient();
   return new LibraryService(supabase).searchExercises(params);
@@ -40,6 +53,8 @@ export async function createExerciseAction(locale: string, formData: FormData): 
     image_url: formData.get("image_url") || undefined,
     instructions_ar: formData.get("instructions_ar") || undefined,
     instructions_en: formData.get("instructions_en") || undefined,
+    cues_ar: formData.get("cues_ar") || undefined,
+    cues_en: formData.get("cues_en") || undefined,
     coach_notes_ar: formData.get("coach_notes_ar") || undefined,
     coach_notes_en: formData.get("coach_notes_en") || undefined,
     // Present only on the clone flow — the dialog hides this field entirely
@@ -54,12 +69,14 @@ export async function createExerciseAction(locale: string, formData: FormData): 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { video_url, image_url, ...input } = parsed.data;
+  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
   try {
     await new LibraryService(supabase).createExercise(user.id, {
       ...input,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
+      cues_ar: linesToArray(cues_ar),
+      cues_en: linesToArray(cues_en),
     });
   } catch (error) {
     // 23505 here means the coach already has a clone of this global — see
@@ -118,6 +135,8 @@ export async function updateExerciseAction(
     image_url: formData.get("image_url") || undefined,
     instructions_ar: formData.get("instructions_ar") || undefined,
     instructions_en: formData.get("instructions_en") || undefined,
+    cues_ar: formData.get("cues_ar") || undefined,
+    cues_en: formData.get("cues_en") || undefined,
     coach_notes_ar: formData.get("coach_notes_ar") || undefined,
     coach_notes_en: formData.get("coach_notes_en") || undefined,
   });
@@ -129,12 +148,14 @@ export async function updateExerciseAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { video_url, image_url, ...input } = parsed.data;
+  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
   try {
     const updated = await new LibraryService(supabase).updateExercise(id, {
       ...input,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
+      cues_ar: linesToArray(cues_ar),
+      cues_en: linesToArray(cues_en),
     });
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (error) {
