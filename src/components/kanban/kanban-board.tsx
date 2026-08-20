@@ -1,7 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { DndContext, useDraggable, useDroppable, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 
 export type KanbanColumn = { key: string; label: string };
@@ -26,6 +34,12 @@ export function KanbanBoard<T extends { id: string }>({
   renderCard: (item: T) => ReactNode;
   emptyLabel: string;
 }) {
+  // A short press-and-hold before a drag starts so a plain vertical/horizontal
+  // swipe on mobile scrolls the column/board instead of picking up a card.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+  );
+
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over) return;
@@ -35,8 +49,8 @@ export function KanbanBoard<T extends { id: string }>({
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:snap-none">
         {columns.map((col) => {
           const columnItems = items.filter((item) => getGroup(item) === col.key);
           return (
@@ -72,17 +86,21 @@ function KanbanColumnDroppable({
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
     <div
-      ref={setNodeRef}
       className={cn(
-        "flex w-64 shrink-0 flex-col gap-2 rounded-lg border border-border bg-muted/30 p-2 transition-colors",
+        "flex w-[78vw] max-w-72 shrink-0 snap-start flex-col rounded-lg border border-border bg-muted/30 transition-colors sm:w-64",
         isOver && "bg-muted"
       )}
     >
-      <div className="flex items-center justify-between px-1 text-sm font-medium text-muted-foreground">
+      <div className="flex items-center justify-between px-2 pt-2 text-sm font-medium text-muted-foreground">
         <span>{label}</span>
         <span className="tabular-nums">{count}</span>
       </div>
-      {children}
+      <div
+        ref={setNodeRef}
+        className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto overscroll-contain p-2 md:max-h-[65vh]"
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -107,9 +125,8 @@ function KanbanCardDraggable({
       style={style}
       {...(disabled ? {} : { ...listeners, ...attributes })}
       className={cn(
-        "touch-none",
         isDragging && "z-10 opacity-50",
-        disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing"
+        disabled ? "cursor-default" : "cursor-grab touch-pan-y active:cursor-grabbing"
       )}
     >
       {children}

@@ -2,20 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { LibraryService, type LibrarySource } from "@/domain/library/library.service";
+import { LibraryService, type LibraryQuery } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
 import { createExerciseSchema, createFoodSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
 
-export async function searchExercisesAction(query: string, source: LibrarySource = "all") {
+export async function searchExercisesAction(params: LibraryQuery = {}) {
   const supabase = await createClient();
-  return new LibraryService(supabase).searchExercises(query, source);
+  return new LibraryService(supabase).searchExercises(params);
 }
 
-export async function searchFoodsAction(query: string, source: LibrarySource = "all") {
+export async function searchFoodsAction(params: LibraryQuery = {}) {
   const supabase = await createClient();
-  return new LibraryService(supabase).searchFoods(query, source);
+  return new LibraryService(supabase).searchFoods(params);
 }
 
 export async function createExerciseAction(locale: string, formData: FormData): Promise<ActionResult> {

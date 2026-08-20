@@ -8,26 +8,42 @@ import { Button } from "@/components/ui/button";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { searchFoodsAction } from "./actions";
 
-type Food = Awaited<ReturnType<typeof searchFoodsAction>>[number];
+type Food = Awaited<ReturnType<typeof searchFoodsAction>>["rows"][number];
 
 export function FoodCard({
   food,
   locale,
   onDelete,
+  variant = "default",
 }: {
   food: Food;
   locale: AppLocale;
   onDelete: () => void;
+  /** "compact" drops macros and actions — used for kanban cards. */
+  variant?: "default" | "compact";
 }) {
   const t = useTranslations("library");
   const tFood = useTranslations("library.food");
+
+  if (variant === "compact") {
+    return (
+      <Card size="sm">
+        <CardContent className="flex flex-col gap-0.5 p-2.5">
+          <p className="line-clamp-2 text-sm font-medium">{pickLocale(food, locale)}</p>
+          <p className="text-xs text-muted-foreground">
+            {food.serving_label} · {food.kcal} {tFood("kcal")}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardContent className="flex flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-medium">{pickLocale(food, locale)}</p>
-          <Badge variant={food.coach_id ? "secondary" : "outline"}>
+          <p className="line-clamp-2 font-medium">{pickLocale(food, locale)}</p>
+          <Badge variant={food.coach_id ? "secondary" : "outline"} className="shrink-0">
             {food.coach_id ? t("mine") : t("official")}
           </Badge>
         </div>

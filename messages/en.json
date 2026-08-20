@@ -772,6 +772,33 @@
     },
     "watchVideo": "Watch video",
     "notDraggable": "Global entries can't be moved",
+    "pagination": {
+      "range": "{from}–{to} of {total}",
+      "prev": "Previous page",
+      "next": "Next page"
+    },
+    "filters": {
+      "group": "Muscle group",
+      "allGroups": "All muscle groups",
+      "category": "Category",
+      "allCategories": "All categories"
+    },
+    "media": {
+      "play": "Play video",
+      "image": "Image",
+      "video": "Video",
+      "link": "Link",
+      "none": "No media"
+    },
+    "columns": {
+      "name": "Name",
+      "group": "Group",
+      "equipment": "Equipment",
+      "media": "Media",
+      "serving": "Serving",
+      "macros": "Macros",
+      "source": "Source"
+    },
     "exercise": {
       "add": "Add exercise",
       "nameAr": "Name (Arabic)",
@@ -835,6 +862,7 @@
       "mine": "My Exercises"
     },
     "emptyStates": {
+      "clearFilter": "Clear filter",
       "searchAll": "Search all exercises",
       "searchMine": "Search my exercises",
       "mineNoneHint": "Anything you create is private to you and stays out of the shared library.",

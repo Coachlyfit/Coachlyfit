@@ -772,6 +772,33 @@
     },
     "watchVideo": "شوف الفيديو",
     "notDraggable": "العناصر العامة منقلش",
+    "pagination": {
+      "range": "{from}–{to} من {total}",
+      "prev": "الصفحة السابقة",
+      "next": "الصفحة الجاية"
+    },
+    "filters": {
+      "group": "المجموعة العضلية",
+      "allGroups": "كل المجموعات",
+      "category": "الفئة",
+      "allCategories": "كل الفئات"
+    },
+    "media": {
+      "play": "شغّل الفيديو",
+      "image": "صورة",
+      "video": "فيديو",
+      "link": "رابط",
+      "none": "من غير وسائط"
+    },
+    "columns": {
+      "name": "الاسم",
+      "group": "المجموعة",
+      "equipment": "المعدات",
+      "media": "الوسائط",
+      "serving": "الحصة",
+      "macros": "العناصر الغذائية",
+      "source": "المصدر"
+    },
     "exercise": {
       "add": "ضيف تمرين",
       "nameAr": "الاسم (عربي)",
@@ -835,6 +862,7 @@
       "mine": "تماريني"
     },
     "emptyStates": {
+      "clearFilter": "امسح الفلتر",
       "searchAll": "دوّر في كل التمارين",
       "searchMine": "دوّر في تماريني",
       "mineNoneHint": "كل حاجة تعملها بتفضل خاصة بيك ومتظهرش في المكتبة المشتركة.",

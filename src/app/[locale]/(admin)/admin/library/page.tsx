@@ -17,8 +17,8 @@ export default async function AdminLibraryPage({
   // admin_read_all makes this return every coach's rows too, which is the
   // point — the admin needs them to find promotion candidates.
   const [initialExercises, initialFoods] = await Promise.all([
-    library.searchExercises(""),
-    library.searchFoods(""),
+    library.searchExercises({ pageSize: 24 }),
+    library.searchFoods({ pageSize: 24 }),
   ]);
 
   return (

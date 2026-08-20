@@ -1,40 +1,41 @@
 import { describe, expect, it } from "vitest";
 import { LibraryService } from "./library.service";
 
-function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }]) {
+function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }], total = rows.length) {
   const filters: string[] = [];
   // Source-filter calls, recorded as "is:coach_id=null" / "not:coach_id is null"
   // so a test can assert which predicate the service chose.
   const sourceFilters: string[] = [];
+  const groupFilters: string[] = [];
+  const ranges: [number, number][] = [];
 
-  // The search chain is select().order().limit() then optionally .is()/.not()
-  // /.or(), any of which can be the last link — so every link is both
-  // thenable and chainable.
+  // The search chain is select(_, {count}).order().order() then optionally
+  // .is()/.not()/.eq()/.or(), ending in .range() — the one link that actually
+  // resolves, matching how supabase-js only executes on the terminal call.
   function query() {
-    const chain = Promise.resolve({ data: rows, error: null }) as Promise<{
-      data: unknown[];
-      error: null;
-    }> & {
-      or: (filter: string) => typeof chain;
-      is: (column: string, value: null) => typeof chain;
-      not: (column: string, op: string, value: null) => typeof chain;
-      limit: (count: number) => typeof chain;
+    const chain = {
+      order: () => chain,
+      or: (filter: string) => {
+        filters.push(filter);
+        return chain;
+      },
+      is: (column: "coach_id", value: null) => {
+        sourceFilters.push(`is:${column}=${value}`);
+        return chain;
+      },
+      not: (column: "coach_id", op: string, value: null) => {
+        sourceFilters.push(`not:${column} ${op} ${value}`);
+        return chain;
+      },
+      eq: (column: string, value: string) => {
+        groupFilters.push(`eq:${column}=${value}`);
+        return chain;
+      },
+      range: async (from: number, to: number) => {
+        ranges.push([from, to]);
+        return { data: rows, count: total, error: null };
+      },
     };
-
-    chain.or = (filter) => {
-      filters.push(filter);
-      return chain;
-    };
-    chain.is = (column, value) => {
-      sourceFilters.push(`is:${column}=${value}`);
-      return chain;
-    };
-    chain.not = (column, op, value) => {
-      sourceFilters.push(`not:${column} ${op} ${value}`);
-      return chain;
-    };
-    chain.limit = () => chain;
-
     return chain;
   }
 
@@ -48,7 +49,7 @@ function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }]) {
   const db = {
     from(table: string) {
       return {
-        select: () => ({ order: () => query() }),
+        select: () => query(),
         insert: (payload: unknown) => {
           inserts.push({ table, payload });
           return { select: () => ({ single: async () => ({ data: { id: "new-1", ...(payload as object) }, error: null }) }) };
@@ -65,21 +66,21 @@ function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }]) {
     },
   };
 
-  return { db: db as never, filters, sourceFilters, inserts, updates, deletes };
+  return { db: db as never, filters, sourceFilters, groupFilters, ranges, inserts, updates, deletes };
 }
 
 describe("LibraryService", () => {
   it("searches exercises across both name columns", async () => {
     const { db, filters } = fakeSupabase([{ id: "1", name_en: "Squat" }]);
-    const result = await new LibraryService(db).searchExercises("squat");
+    const result = await new LibraryService(db).searchExercises({ query: "squat" });
 
-    expect(result).toHaveLength(1);
+    expect(result.rows).toHaveLength(1);
     expect(filters[0]).toBe("name_ar.ilike.%squat%,name_en.ilike.%squat%");
   });
 
   it("strips PostgREST filter-syntax characters out of the search term itself", async () => {
     const { db, filters } = fakeSupabase([]);
-    await new LibraryService(db).searchExercises("3,5(kg)%test");
+    await new LibraryService(db).searchExercises({ query: "3,5(kg)%test" });
 
     // The wrapper legitimately adds its own "," (or-separator) and "%"
     // (ilike wildcards) — what must NOT happen is the user's own
@@ -91,7 +92,7 @@ describe("LibraryService", () => {
 
   it("skips the or() filter entirely for an empty search", async () => {
     const { db, filters } = fakeSupabase([{ id: "1" }]);
-    await new LibraryService(db).searchExercises("   ");
+    await new LibraryService(db).searchExercises({ query: "   " });
     expect(filters).toHaveLength(0);
   });
 
@@ -140,19 +141,19 @@ describe("LibraryService", () => {
   describe("source filter", () => {
     it("adds no predicate for 'all' — RLS already scopes to global + own", async () => {
       const { db, sourceFilters } = fakeSupabase([]);
-      await new LibraryService(db).searchExercises("", "all");
+      await new LibraryService(db).searchExercises({ source: "all" });
       expect(sourceFilters).toHaveLength(0);
     });
 
     it("'global' narrows to the platform-curated rows", async () => {
       const { db, sourceFilters } = fakeSupabase([]);
-      await new LibraryService(db).searchExercises("", "global");
+      await new LibraryService(db).searchExercises({ source: "global" });
       expect(sourceFilters).toEqual(["is:coach_id=null"]);
     });
 
     it("'mine' narrows by coach_id IS NOT NULL and never by a caller-supplied id", async () => {
       const { db, sourceFilters } = fakeSupabase([]);
-      await new LibraryService(db).searchExercises("", "mine");
+      await new LibraryService(db).searchExercises({ source: "mine" });
       // No `coach_id = <id>` clause: read_own_and_global already makes a
       // visible non-global row mean "mine", so the client never gets to
       // assert whose rows these are.
@@ -161,15 +162,90 @@ describe("LibraryService", () => {
 
     it("composes the source filter with the search term", async () => {
       const { db, sourceFilters, filters } = fakeSupabase([]);
-      await new LibraryService(db).searchExercises("press", "mine");
+      await new LibraryService(db).searchExercises({ query: "press", source: "mine" });
       expect(sourceFilters).toEqual(["not:coach_id is null"]);
       expect(filters[0]).toBe("name_ar.ilike.%press%,name_en.ilike.%press%");
     });
 
     it("applies to foods identically", async () => {
       const { db, sourceFilters } = fakeSupabase([]);
-      await new LibraryService(db).searchFoods("", "global");
+      await new LibraryService(db).searchFoods({ source: "global" });
       expect(sourceFilters).toEqual(["is:coach_id=null"]);
+    });
+  });
+
+  describe("group filter", () => {
+    it("narrows exercises by muscle_group", async () => {
+      const { db, groupFilters } = fakeSupabase([]);
+      await new LibraryService(db).searchExercises({ group: "legs" });
+      expect(groupFilters).toEqual(["eq:muscle_group=legs"]);
+    });
+
+    it("narrows foods by category", async () => {
+      const { db, groupFilters } = fakeSupabase([]);
+      await new LibraryService(db).searchFoods({ group: "protein" });
+      expect(groupFilters).toEqual(["eq:category=protein"]);
+    });
+
+    it("is skipped entirely when null", async () => {
+      const { db, groupFilters } = fakeSupabase([]);
+      await new LibraryService(db).searchExercises({ group: null });
+      expect(groupFilters).toHaveLength(0);
+    });
+  });
+
+  describe("pagination", () => {
+    it("ranges by (page - 1) * pageSize, and reports total from the count", async () => {
+      const { db, ranges } = fakeSupabase([{ id: "1" }, { id: "2" }], undefined, 47);
+      const result = await new LibraryService(db).searchExercises({ page: 3, pageSize: 10 });
+
+      expect(ranges).toEqual([[20, 29]]);
+      expect(result).toMatchObject({ total: 47, page: 3, pageSize: 10 });
+    });
+
+    it("defaults to page 1 at the default page size", async () => {
+      const { db, ranges } = fakeSupabase([]);
+      const result = await new LibraryService(db).searchExercises({});
+      expect(ranges).toEqual([[0, 23]]);
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(24);
+    });
+
+    it("clamps pageSize into [1, 100] instead of trusting the caller", async () => {
+      const { db: dbHigh, ranges: rangesHigh } = fakeSupabase([]);
+      await new LibraryService(dbHigh).searchExercises({ page: 1, pageSize: 500 });
+      expect(rangesHigh).toEqual([[0, 99]]);
+
+      const { db: dbLow, ranges: rangesLow } = fakeSupabase([]);
+      await new LibraryService(dbLow).searchExercises({ page: 1, pageSize: 0 });
+      expect(rangesLow).toEqual([[0, 0]]);
+    });
+
+    it("retries once at page 1 when the offset is past the last row (PGRST103)", async () => {
+      const calls: [number, number][] = [];
+      const db = {
+        from: () => ({
+          select: () => {
+            const chain = {
+              order: () => chain,
+              range: async (from: number, to: number) => {
+                calls.push([from, to]);
+                if (from > 0) return { data: null, count: null, error: { code: "PGRST103" } };
+                return { data: [{ id: "1" }], count: 1, error: null };
+              },
+            };
+            return chain;
+          },
+        }),
+      };
+
+      const result = await new LibraryService(db as never).searchExercises({ page: 9, pageSize: 10 });
+
+      expect(calls).toEqual([
+        [80, 89],
+        [0, 9],
+      ]);
+      expect(result).toMatchObject({ rows: [{ id: "1" }], total: 1, page: 1 });
     });
   });
 

@@ -17,10 +17,28 @@ export type CreateExerciseInput = {
  * the impossible state (visibility GLOBAL + a coach_id). */
 export type LibrarySource = "all" | "global" | "mine";
 
-// Bounds the payload, not the scan (the ilike OR-filter can't use
-// exercises_search_idx, which is a trigram index on the concatenated name
-// expression). ponytail: keyset pagination when a real library exceeds this.
-const SEARCH_LIMIT = 200;
+export type LibraryQuery = {
+  query?: string;
+  source?: LibrarySource;
+  /** `muscle_group` for exercises, `category` for foods. Null = every group. */
+  group?: string | null;
+  /** 1-based. */
+  page?: number;
+  pageSize?: number;
+};
+
+export type LibraryPage<T> = { rows: T[]; total: number; page: number; pageSize: number };
+
+const DEFAULT_PAGE_SIZE = 24;
+// Caps what one request can pull regardless of what a caller asks for — the
+// page size reaches this layer from the client, so it is an input bound, not
+// a UI preference.
+const MAX_PAGE_SIZE = 100;
+
+// PostgREST's code for "Requested range not satisfiable": the offset is past
+// the last row. Happens when the row a coach was looking at gets deleted and
+// the page they're on no longer exists.
+const RANGE_NOT_SATISFIABLE = "PGRST103";
 
 export type CreateFoodInput = {
   name_ar: string;
@@ -55,30 +73,71 @@ function applySource<Q extends { is: (c: "coach_id", v: null) => Q; not: (c: "co
   return q;
 }
 
+function normalizePaging(params: Pick<LibraryQuery, "page" | "pageSize">) {
+  const page = Math.max(1, Math.floor(params.page ?? 1));
+  const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(params.pageSize ?? DEFAULT_PAGE_SIZE)));
+  return { page, pageSize };
+}
+
+type PagedResult<T> = PromiseLike<{ data: T[] | null; count: number | null; error: { code?: string } | null }>;
+
+/** Runs a range-limited query and, if the offset lands past the last row
+ * (PGRST103 — e.g. the coach was on page 5 and a row got deleted), retries
+ * once at page 1 instead of surfacing an error for a page that no longer
+ * exists. */
+async function runPaged<T>(
+  build: (page: number) => PagedResult<T>,
+  page: number,
+  pageSize: number
+): Promise<LibraryPage<T>> {
+  let effectivePage = page;
+  let { data, count, error } = await build(effectivePage);
+  if (error?.code === RANGE_NOT_SATISFIABLE && effectivePage !== 1) {
+    effectivePage = 1;
+    ({ data, count, error } = await build(effectivePage));
+  }
+  if (error) throw error;
+  return { rows: data ?? [], total: count ?? 0, page: effectivePage, pageSize };
+}
+
 /** Global (admin-curated, coach_id null) + per-coach exercise and food
  * entries. Reused by the coach's library page and, later, the forms
  * builder's exercise_ref/food_ref field pickers — see build plan Phase 5. */
 export class LibraryService {
   constructor(private db: SupabaseClient<Database>) {}
 
-  async searchExercises(query: string, source: LibrarySource = "all"): Promise<Exercise[]> {
-    let q = this.db.from("exercises").select("*").order("name_en").limit(SEARCH_LIMIT);
-    q = applySource(q, source);
-    const term = sanitizeSearchTerm(query);
-    if (term) q = q.or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%`);
-    const { data, error } = await q;
-    if (error) throw error;
-    return data;
+  async searchExercises(params: LibraryQuery = {}): Promise<LibraryPage<Exercise>> {
+    const { page, pageSize } = normalizePaging(params);
+    const build = (p: number) => {
+      let q = this.db
+        .from("exercises")
+        .select("*", { count: "exact" })
+        .order("name_en")
+        .order("id");
+      q = applySource(q, params.source ?? "all");
+      if (params.group) q = q.eq("muscle_group", params.group);
+      const term = sanitizeSearchTerm(params.query ?? "");
+      if (term) q = q.or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%`);
+      return q.range((p - 1) * pageSize, p * pageSize - 1);
+    };
+    return runPaged(build, page, pageSize);
   }
 
-  async searchFoods(query: string, source: LibrarySource = "all"): Promise<Food[]> {
-    let q = this.db.from("foods").select("*").order("name_en").limit(SEARCH_LIMIT);
-    q = applySource(q, source);
-    const term = sanitizeSearchTerm(query);
-    if (term) q = q.or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%`);
-    const { data, error } = await q;
-    if (error) throw error;
-    return data;
+  async searchFoods(params: LibraryQuery = {}): Promise<LibraryPage<Food>> {
+    const { page, pageSize } = normalizePaging(params);
+    const build = (p: number) => {
+      let q = this.db
+        .from("foods")
+        .select("*", { count: "exact" })
+        .order("name_en")
+        .order("id");
+      q = applySource(q, params.source ?? "all");
+      if (params.group) q = q.eq("category", params.group);
+      const term = sanitizeSearchTerm(params.query ?? "");
+      if (term) q = q.or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%`);
+      return q.range((p - 1) * pageSize, p * pageSize - 1);
+    };
+    return runPaged(build, page, pageSize);
   }
 
   async createExercise(coachId: string, input: CreateExerciseInput) {

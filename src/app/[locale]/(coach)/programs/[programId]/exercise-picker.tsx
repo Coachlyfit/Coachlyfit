@@ -24,10 +24,11 @@ export function ExercisePicker({
   const [query, setQuery] = useState("");
   const debounced = useDebouncedValue(query, 300);
 
-  const { data: exercises } = useQuery({
+  const { data } = useQuery({
     queryKey: ["programs", "exercise-picker", debounced],
-    queryFn: () => searchExercisesAction(debounced, "all"),
+    queryFn: () => searchExercisesAction({ query: debounced, source: "all", pageSize: 50 }),
   });
+  const exercises = data?.rows;
 
   return (
     <div className="flex flex-col gap-2">

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { LibraryService, type LibrarySource } from "@/domain/library/library.service";
+import { LibraryService, type LibraryQuery, type LibraryPage } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
@@ -32,18 +32,22 @@ async function requireAdmin(): Promise<
   return { supabase };
 }
 
-export async function adminSearchExercisesAction(query: string, source: LibrarySource = "all") {
-  const { supabase, error } = await requireAdmin();
-  // Read-only and consumed by react-query, so it returns an empty list
-  // rather than an error shape; a non-admin can't reach the page anyway.
-  if (error || !supabase) return [];
-  return new LibraryService(supabase).searchExercises(query, source);
+function emptyPage(params: LibraryQuery): LibraryPage<never> {
+  return { rows: [], total: 0, page: params.page ?? 1, pageSize: params.pageSize ?? 24 };
 }
 
-export async function adminSearchFoodsAction(query: string, source: LibrarySource = "all") {
+export async function adminSearchExercisesAction(params: LibraryQuery = {}) {
   const { supabase, error } = await requireAdmin();
-  if (error || !supabase) return [];
-  return new LibraryService(supabase).searchFoods(query, source);
+  // Read-only and consumed by react-query, so it returns an empty page
+  // rather than an error shape; a non-admin can't reach the page anyway.
+  if (error || !supabase) return emptyPage(params);
+  return new LibraryService(supabase).searchExercises(params);
+}
+
+export async function adminSearchFoodsAction(params: LibraryQuery = {}) {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return emptyPage(params);
+  return new LibraryService(supabase).searchFoods(params);
 }
 
 export async function createGlobalExerciseAction(

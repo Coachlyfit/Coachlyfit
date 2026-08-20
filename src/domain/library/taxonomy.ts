@@ -29,3 +29,10 @@ export const FOOD_CATEGORIES = [
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
 export type FoodCategory = (typeof FOOD_CATEGORIES)[number];
+
+/** muscle_group has no DB constraint (see above), so a value read back from
+ * the database can be free text a coach typed before this vocabulary existed
+ * — guards every `tGroups(...)` call against a missing translation key. */
+export function isKnownMuscleGroup(value: string | null | undefined): value is MuscleGroup {
+  return !!value && (MUSCLE_GROUPS as readonly string[]).includes(value);
+}

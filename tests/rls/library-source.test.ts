@@ -72,32 +72,40 @@ describe("library source isolation", () => {
   it("a new coach exercise is private — coach B never sees it under any source", async () => {
     const libraryB = new LibraryService(coachB.client);
     for (const source of ["all", "global", "mine"] as const) {
-      const rows = await libraryB.searchExercises("", source);
+      const { rows } = await libraryB.searchExercises({ source });
       expect(rows.map((r) => r.id)).not.toContain(exerciseA.id);
     }
   });
 
   it("'mine' returns only the caller's own rows, with no coach id passed in", async () => {
-    const rows = await new LibraryService(coachA.client).searchExercises("", "mine");
+    const { rows } = await new LibraryService(coachA.client).searchExercises({ source: "mine" });
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.every((r) => r.coach_id === coachA.userId)).toBe(true);
     expect(rows.map((r) => r.id)).toContain(exerciseA.id);
   });
 
   it("'global' returns only platform rows, and both coaches see the same ones", async () => {
-    const [globalA, globalB] = await Promise.all([
-      new LibraryService(coachA.client).searchExercises("", "global"),
-      new LibraryService(coachB.client).searchExercises("", "global"),
+    const [globalAPage, globalBPage] = await Promise.all([
+      new LibraryService(coachA.client).searchExercises({ source: "global" }),
+      new LibraryService(coachB.client).searchExercises({ source: "global" }),
     ]);
+    const globalA = globalAPage.rows;
+    const globalB = globalBPage.rows;
     expect(globalA.every((r) => r.coach_id === null)).toBe(true);
     expect(globalA.map((r) => r.id).sort()).toEqual(globalB.map((r) => r.id).sort());
   });
 
   it("search composes with the source filter", async () => {
-    const mine = await new LibraryService(coachA.client).searchExercises("press", "mine");
+    const { rows: mine } = await new LibraryService(coachA.client).searchExercises({
+      query: "press",
+      source: "mine",
+    });
     expect(mine.map((r) => r.id)).toContain(exerciseA.id);
 
-    const global = await new LibraryService(coachA.client).searchExercises("press", "global");
+    const { rows: global } = await new LibraryService(coachA.client).searchExercises({
+      query: "press",
+      source: "global",
+    });
     expect(global.map((r) => r.id)).not.toContain(exerciseA.id);
     expect(global.every((r) => r.coach_id === null)).toBe(true);
   });
@@ -132,7 +140,7 @@ describe("library source isolation", () => {
 
 describe("admin library permissions", () => {
   it("admin sees every coach's rows (needed to find promotion candidates)", async () => {
-    const rows = await new LibraryService(admin.client).searchExercises("", "all");
+    const { rows } = await new LibraryService(admin.client).searchExercises({ source: "all" });
     expect(rows.map((r) => r.id)).toContain(exerciseA.id);
   });
 
@@ -203,7 +211,7 @@ describe("promotion", () => {
   });
 
   it("makes it visible to a different coach", async () => {
-    const rows = await new LibraryService(coachB.client).searchExercises("", "global");
+    const { rows } = await new LibraryService(coachB.client).searchExercises({ source: "global" });
     expect(rows.map((r) => r.id)).toContain(promoted.id);
   });
 
