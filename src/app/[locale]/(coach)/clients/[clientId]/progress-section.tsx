@@ -103,6 +103,8 @@ export async function ProgressSection({
           locale={locale}
           emptyTitle={tPhotos("emptyTitle")}
           emptyDescription={tPhotos("emptyCoach")}
+          deletable
+          clientId={clientId}
         />
       </div>
 

@@ -133,6 +133,22 @@ export class ProgressService {
     return data;
   }
 
+  /** Coach-only (see coach_delete policy, 20260810000001_media_coach_delete.sql
+   * — client_own is scoped to the client's own id, so this never succeeds
+   * as the client). Deletes the DB row and its storage object together;
+   * `.delete().select()` returns the deleted row so the storage path is
+   * available without a separate read. Returns false on an RLS no-op
+   * (already deleted, or not this coach's row) rather than throwing. */
+  async deleteMedia(mediaId: string): Promise<boolean> {
+    const { data, error } = await this.db.from("media").delete().eq("id", mediaId).select("storage_path");
+    if (error) throw error;
+    if (data.length === 0) return false;
+
+    const { error: storageError } = await this.db.storage.from(PROGRESS_BUCKET).remove([data[0].storage_path]);
+    if (storageError) throw storageError;
+    return true;
+  }
+
   /** Signs a batch of storage paths for browser display — the bucket is
    * private, so there is no public URL to fall back to. Paths that fail to
    * sign are dropped from the result rather than throwing, so one dead
