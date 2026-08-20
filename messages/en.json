@@ -748,6 +748,7 @@
       "editTitle": "Edit exercise",
       "exercise": "Exercise",
       "searchPlaceholder": "Search exercises...",
+      "loading": "Searching...",
       "noResults": "No exercises match.",
       "sets": "Sets",
       "reps": "Reps",
