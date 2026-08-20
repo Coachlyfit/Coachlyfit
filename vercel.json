@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/billing-lifecycle",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

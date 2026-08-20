@@ -1,0 +1,121 @@
+"use client";
+
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/format";
+import type { AppLocale } from "@/domain/locale";
+import type { Database } from "@/lib/supabase/database.types";
+import { listThreadAction, sendMessageAction, markThreadReadAction } from "@/domain/messages/messages-actions";
+import { cn } from "@/lib/utils";
+
+type Message = Database["public"]["Tables"]["messages"]["Row"];
+
+// No Realtime precedent in this codebase (see the migration comment) and a
+// coach/client chat doesn't need sub-second delivery — polling on the same
+// interval NotificationBell already establishes for "new since I last
+// looked" data.
+const POLL_INTERVAL_MS = 10_000;
+
+export function MessageThread({
+  clientId,
+  viewerRole,
+  locale,
+}: {
+  clientId: string;
+  viewerRole: "coach" | "client";
+  locale: AppLocale;
+}) {
+  const t = useTranslations("inbox");
+  const queryClient = useQueryClient();
+  const [pending, startTransition] = useTransition();
+  const [draft, setDraft] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const queryKey = ["messages", clientId];
+  const { data: messages = [] } = useQuery({
+    queryKey,
+    queryFn: () => listThreadAction(clientId),
+    refetchInterval: POLL_INTERVAL_MS,
+  });
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [messages.length]);
+
+  useEffect(() => {
+    markThreadReadAction(clientId);
+  }, [clientId]);
+
+  function onSend() {
+    const body = draft.trim();
+    if (!body) return;
+    setDraft("");
+    startTransition(async () => {
+      await sendMessageAction(clientId, body);
+      queryClient.invalidateQueries({ queryKey });
+    });
+  }
+
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+        {messages.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">{t("emptyThread")}</p>
+        ) : (
+          messages.map((message: Message) => {
+            const isOwn = message.sender_role === viewerRole;
+            return (
+              <div key={message.id} className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
+                <div
+                  className={cn(
+                    "max-w-[78%] rounded-2xl px-3.5 py-2.5",
+                    isOwn
+                      ? "rounded-ee-sm bg-sidebar text-sidebar-foreground"
+                      : "rounded-ss-sm border border-border bg-card"
+                  )}
+                >
+                  <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">{message.body}</p>
+                  <p
+                    className={cn(
+                      "mt-1 font-mono text-[9.5px]",
+                      isOwn ? "text-sidebar-foreground/60" : "text-muted-foreground"
+                    )}
+                  >
+                    {formatDate(message.created_at, locale, { timeStyle: "short", dateStyle: undefined })}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={bottomRef} />
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              onSend();
+            }
+          }}
+          placeholder={t("placeholder")}
+          className="h-11 flex-1 rounded-full border border-border bg-card px-4 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+        <Button
+          size="icon"
+          className="size-11 shrink-0 rounded-full"
+          disabled={pending || !draft.trim()}
+          onClick={onSend}
+          aria-label={t("send")}
+        >
+          <Send className="size-4 rtl:-scale-x-100" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
+  );
+}

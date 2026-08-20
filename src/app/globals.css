@@ -1,0 +1,286 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  /* Semantic status colors, kept separate from shadcn's accent/destructive
+     so charts and badges never fall back to raw hex in components. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  /* Tint pairs — chip/pill backgrounds + on-tint foreground, design system
+     §06. Distinct from success/warning/destructive above: those are solid
+     fills and small-text colors; these are always used together as a pair
+     for status pills, never as standalone text on the page background. */
+  --color-success-tint: var(--success-tint);
+  --color-success-tint-foreground: var(--success-tint-foreground);
+  --color-warning-tint: var(--warning-tint);
+  --color-warning-tint-foreground: var(--warning-tint-foreground);
+  --color-destructive-tint: var(--destructive-tint);
+  --color-destructive-tint-foreground: var(--destructive-tint-foreground);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-tint-foreground: var(--accent-tint-foreground);
+  /* Client avatar tints — design system §01. Assigned by client index,
+     never chosen; the same client gets the same tint in the sidebar, the
+     queue and the invoice. Not brand colors — avatars only. */
+  --color-tint-1: var(--tint-1);
+  --color-tint-2: var(--tint-2);
+  --color-tint-3: var(--tint-3);
+  --color-tint-4: var(--tint-4);
+  --color-tint-5: var(--tint-5);
+  --color-tint-6: var(--tint-6);
+  --color-tint-7: var(--tint-7);
+  --color-tint-8: var(--tint-8);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Elevation — design system §03. Level 0 (the default) is a hairline
+     only, no shadow; cards use `ring-1 ring-foreground/10`, not these.
+     Reserve level 1/2 for floating/overlay surfaces (popovers, dialogs). */
+  --shadow-elevation-1: 0 12px 28px -14px rgb(15 23 42 / .28);
+  --shadow-elevation-2: 0 22px 50px -20px rgb(15 23 42 / .4);
+}
+
+/*
+ * Navy chrome + energetic accent.
+ * primary = CTA fill (energetic accent), sidebar-* = navy chrome.
+ * Contrast checked against WCAG AA (4.5:1 normal text):
+ *   - primary #C2410C + white text passes. #EA580C would NOT pass as a
+ *     fill (reserved for borders/large text/graphics only, never text fill).
+ *   - dark primary #FB923C is light, so it's paired with dark text, not white.
+ *   - muted-foreground #64748B on white/#F8FAFC is 4.76:1 — passes AA for
+ *     body text but is deliberately not used for anything smaller. Design
+ *     system §01: #94A3B8 (2.56:1) is the failure this token replaces;
+ *     #475569 (7.58:1) was safer but is reserved for dark-ground text only
+ *     (2.36:1 on navy — structure there, never text).
+ *   - warning #F59E0B is 2.15:1 on white — a fill/graphic color only, never
+ *     text. Anywhere warning needs to be read as text, use warning-tint /
+ *     warning-tint-foreground (6.4–7:1) instead. See checkin-hero.tsx and
+ *     billing/page.tsx.
+ */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #c2410c;
+  --primary-foreground: #ffffff;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --muted: #e8ecf1;
+  --muted-foreground: #64748b;
+  --accent: #e2e8f0;
+  --accent-foreground: #0f172a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --success-tint: #dcfce7;
+  --success-tint-foreground: #166534;
+  --warning-tint: #fef3c7;
+  --warning-tint-foreground: #92400e;
+  --destructive-tint: #fee2e2;
+  --destructive-tint-foreground: #991b1b;
+  --accent-tint: #ffedd5;
+  --accent-tint-foreground: #9a3412;
+  --tint-1: #7c3aed;
+  --tint-2: #0ea5e9;
+  --tint-3: #c2410c;
+  --tint-4: #0d9488;
+  --tint-5: #db2777;
+  --tint-6: #4f46e5;
+  --tint-7: #b45309;
+  --tint-8: #0f766e;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f172a;
+  --chart-1: #c2410c;
+  --chart-2: #16a34a;
+  --chart-3: #f59e0b;
+  --chart-4: #0369a1;
+  --chart-5: #475569;
+  --radius: 0.625rem;
+  --sidebar: #0f172a;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #c2410c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #fb923c;
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #e2e8f0;
+  --card: #0f172a;
+  --card-foreground: #e2e8f0;
+  --popover: #0f172a;
+  --popover-foreground: #e2e8f0;
+  --primary: #fb923c;
+  --primary-foreground: #431407;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #e2e8f0;
+  --destructive: #f87171;
+  --destructive-foreground: #450a0a;
+  --success: #4ade80;
+  --success-foreground: #052e16;
+  --warning: #fbbf24;
+  --warning-foreground: #451a03;
+  /* Tint pairs on dark grounds use rgba fills + the 400-weight solids as
+     foreground — design system §06: "the 600s go muddy below 4:1" here. */
+  --success-tint: rgba(22, 163, 74, .15);
+  --success-tint-foreground: #4ade80;
+  --warning-tint: rgba(245, 158, 11, .15);
+  --warning-tint-foreground: #fbbf24;
+  --destructive-tint: rgba(220, 38, 38, .15);
+  --destructive-tint-foreground: #f87171;
+  --accent-tint: rgba(234, 88, 12, .15);
+  --accent-tint-foreground: #fb923c;
+  --tint-1: #7c3aed;
+  --tint-2: #0ea5e9;
+  --tint-3: #c2410c;
+  --tint-4: #0d9488;
+  --tint-5: #db2777;
+  --tint-6: #4f46e5;
+  --tint-7: #b45309;
+  --tint-8: #0f766e;
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #fb923c;
+  --chart-1: #fb923c;
+  --chart-2: #4ade80;
+  --chart-3: #fbbf24;
+  --chart-4: #38bdf8;
+  --chart-5: #94a3b8;
+  --sidebar: #020617;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #fb923c;
+  --sidebar-primary-foreground: #431407;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #fb923c;
+}
+
+/* Console register — design system §00/§04/§07/§08. "Pick one register per
+ * surface, never mix." Applied to the (admin) route group's content area
+ * only (the sidebar chrome is already dark by its own tokens; this class
+ * covers the main content). Always dark regardless of the app's light/dark
+ * theme, same reasoning as `--sidebar`: an internal ops tool doesn't follow
+ * the coach's theme preference. `--muted-foreground` here is the console
+ * value from the spec's contrast table (#94A3B8, 6.96:1 on navy), distinct
+ * from the product-register `--muted-foreground` above. */
+.console {
+  --background: #020617;
+  --foreground: #e2e8f0;
+  --card: #0f172a;
+  --card-foreground: #e2e8f0;
+  --popover: #0f172a;
+  --popover-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --border: rgba(226, 232, 240, .08);
+  --input: rgba(226, 232, 240, .14);
+  --radius: 0.375rem;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Arabic script needs more leading than Latin at the same point size. */
+  html[lang="ar"] body {
+    line-height: 1.7;
+  }
+  html[lang="en"] body {
+    line-height: 1.5;
+  }
+  /* Prices, weights, macros, dates: never let digits jitter a column. */
+  .tabular-nums,
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Respect the OS setting globally: tw-animate-css and the Base UI
+     primitives both animate via CSS, so this one query covers every
+     transition in the app without touching a component. 0.01ms rather than
+     0s/none — Base UI primitives unmount on animation end, and a duration
+     of exactly none can skip firing that event, leaving dialogs open. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    /* Carve-out for the brand mark (ApertureSweep/MarkLoader,
+       src/components/brand/*): the motion spec calls for a deliberate
+       120ms cross-fade to rest instead of an instant pop, unlike every
+       other transition in the app. The sweep/pulse animations themselves
+       are still skipped — those are driven from JS via matchMedia, not
+       CSS, so this override only affects the initial appear. */
+    [data-brand-mark],
+    [data-brand-mark] * {
+      transition-duration: 120ms !important;
+    }
+  }
+}

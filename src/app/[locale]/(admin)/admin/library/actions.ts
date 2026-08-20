@@ -1,0 +1,187 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { LibraryService, type LibrarySource } from "@/domain/library/library.service";
+import { libraryErrorKey } from "@/domain/library/errors";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
+import { createExerciseSchema, createFoodSchema } from "@/app/[locale]/(coach)/library/schemas";
+
+type ActionResult = { error: string } | void;
+
+/** The (admin) layout guard does NOT cover these — a server action is an
+ * individually addressable POST endpoint. RLS and the definer functions are
+ * the real authority; this just fails fast with a usable message. */
+async function requireAdmin(): Promise<
+  { supabase: SupabaseClient<Database>; error?: never } | { supabase?: never; error: string }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (profile?.role !== "admin") return { error: "forbidden" };
+
+  return { supabase };
+}
+
+export async function adminSearchExercisesAction(query: string, source: LibrarySource = "all") {
+  const { supabase, error } = await requireAdmin();
+  // Read-only and consumed by react-query, so it returns an empty list
+  // rather than an error shape; a non-admin can't reach the page anyway.
+  if (error || !supabase) return [];
+  return new LibraryService(supabase).searchExercises(query, source);
+}
+
+export async function adminSearchFoodsAction(query: string, source: LibrarySource = "all") {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return [];
+  return new LibraryService(supabase).searchFoods(query, source);
+}
+
+export async function createGlobalExerciseAction(
+  locale: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = createExerciseSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+    muscle_group: formData.get("muscle_group") || undefined,
+    equipment: formData.get("equipment") || undefined,
+    video_url: formData.get("video_url") || undefined,
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const { video_url, ...input } = parsed.data;
+  try {
+    await new LibraryService(supabase).createGlobalExercise({
+      ...input,
+      video_url: video_url || undefined,
+    });
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidatePath(`/${locale}/admin/library`);
+}
+
+export async function createGlobalFoodAction(
+  locale: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = createFoodSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+    serving_label: formData.get("serving_label"),
+    category: formData.get("category"),
+    kcal: formData.get("kcal"),
+    protein_g: formData.get("protein_g") || 0,
+    carb_g: formData.get("carb_g") || 0,
+    fat_g: formData.get("fat_g") || 0,
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  try {
+    await new LibraryService(supabase).createGlobalFood(parsed.data);
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidatePath(`/${locale}/admin/library`);
+}
+
+export async function updateGlobalExerciseAction(
+  locale: string,
+  id: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = createExerciseSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+    muscle_group: formData.get("muscle_group") || undefined,
+    equipment: formData.get("equipment") || undefined,
+    video_url: formData.get("video_url") || undefined,
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const { video_url, ...input } = parsed.data;
+  try {
+    // admin_update_global is qualified `coach_id is null`, so an attempt to
+    // edit a coach's private row matches 0 rows and lands here as false.
+    const updated = await new LibraryService(supabase).updateExercise(id, {
+      ...input,
+      video_url: video_url || undefined,
+    });
+    if (!updated) return { error: "not_found_or_forbidden" };
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidatePath(`/${locale}/admin/library`);
+}
+
+export async function deleteGlobalExerciseAction(locale: string, id: string): Promise<ActionResult> {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  try {
+    const deleted = await new LibraryService(supabase).deleteExercise(id);
+    if (!deleted) return { error: "not_found_or_forbidden" };
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidatePath(`/${locale}/admin/library`);
+}
+
+export async function deleteGlobalFoodAction(locale: string, id: string): Promise<ActionResult> {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  try {
+    const deleted = await new LibraryService(supabase).deleteFood(id);
+    if (!deleted) return { error: "not_found_or_forbidden" };
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidatePath(`/${locale}/admin/library`);
+}
+
+export async function promoteExerciseAction(locale: string, id: string): Promise<ActionResult> {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  try {
+    await new LibraryService(supabase).promoteExercise(id);
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  // The promoted row is now global, so it changes what every coach sees.
+  revalidatePath(`/${locale}/admin/library`);
+  revalidatePath(`/${locale}/library`);
+}
+
+export async function promoteFoodAction(locale: string, id: string): Promise<ActionResult> {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  try {
+    await new LibraryService(supabase).promoteFood(id);
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidatePath(`/${locale}/admin/library`);
+  revalidatePath(`/${locale}/library`);
+}

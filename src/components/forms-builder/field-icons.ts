@@ -1,0 +1,35 @@
+import {
+  Type,
+  AlignLeft,
+  Hash,
+  ChevronDownSquare,
+  ListChecks,
+  CircleDot,
+  CheckSquare,
+  Calendar,
+  Gauge,
+  Image,
+  Paperclip,
+  Heading,
+  Dumbbell,
+  Apple,
+  type LucideIcon,
+} from "lucide-react";
+import type { FieldType } from "@/domain/forms/schema";
+
+export const FIELD_ICONS: Record<FieldType, LucideIcon> = {
+  text: Type,
+  textarea: AlignLeft,
+  number: Hash,
+  select: ChevronDownSquare,
+  multiselect: ListChecks,
+  radio: CircleDot,
+  checkbox: CheckSquare,
+  date: Calendar,
+  scale: Gauge,
+  photo: Image,
+  file: Paperclip,
+  section: Heading,
+  exercise_ref: Dumbbell,
+  food_ref: Apple,
+};

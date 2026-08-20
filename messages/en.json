@@ -1,0 +1,1135 @@
+{
+  "common": {
+    "appName": "Coachly",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "more": "More",
+    "signOut": "Sign out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "programs": "Programs",
+    "forms": "Forms",
+    "library": "Exercise & Food Library",
+    "progress": "Progress",
+    "billing": "Billing",
+    "settings": "Settings",
+    "admin": "Admin",
+    "plan": "Plan",
+    "coach": "Coach",
+    "inbox": "Inbox"
+  },
+  "marketing": {
+    "nav": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "login": "Log in"
+    },
+    "hero": {
+      "badge": "Built for coaches in Egypt and the region",
+      "title": "Run your coaching like a business, not a WhatsApp group.",
+      "subtitle": "Forms, programs, check-ins and invoices in one place — in Arabic. And your client never has to create an account or install an app.",
+      "cta": "Start 14 days free",
+      "ctaSecondary": "See pricing",
+      "trialNote": "No card · cancel anytime · support in Arabic"
+    },
+    "preview": {
+      "alt": "A preview of the Coachlyfit dashboard",
+      "url": "app.coachlyfit.com",
+      "sidebar": {
+        "dashboard": "Dashboard",
+        "clients": "Clients",
+        "clientsCount": "42",
+        "forms": "Forms",
+        "formsCount": "7",
+        "programs": "Programs",
+        "invoices": "Invoices"
+      },
+      "kpi": {
+        "clients": {
+          "label": "Clients",
+          "value": "42"
+        },
+        "pending": {
+          "label": "Pending",
+          "value": "7"
+        },
+        "mrr": {
+          "label": "MRR",
+          "value": "63,400"
+        },
+        "adherence": {
+          "label": "Adherence",
+          "value": "84%"
+        }
+      },
+      "queueTitle": "Needs your review",
+      "rows": {
+        "a": {
+          "initial": "S",
+          "name": "Sara Abdelrahman",
+          "what": "Week 12 check-in",
+          "when": "9:41 AM"
+        },
+        "b": {
+          "initial": "N",
+          "name": "Nour El-Shazly",
+          "what": "Week 18 check-in",
+          "when": "8:20 AM"
+        },
+        "c": {
+          "initial": "T",
+          "name": "Tarek El-Sherif",
+          "what": "Pain report",
+          "when": "Yesterday"
+        },
+        "d": {
+          "initial": "Y",
+          "name": "Yara Hassan",
+          "what": "Progress photos",
+          "when": "Yesterday"
+        }
+      }
+    },
+    "problem": {
+      "eyebrow": "The problem",
+      "title": "Your work is split across three tools that don't talk to each other.",
+      "subtitle": "And the more clients you take on, the faster admin time grows compared to what you earn.",
+      "cards": {
+        "excel": {
+          "label": "EXCEL",
+          "title": "The program spreadsheet",
+          "body": "A copy per client, and every edit has to be made in ten places. Nobody opens it on a phone."
+        },
+        "whatsapp": {
+          "label": "WHATSAPP",
+          "title": "Photos, measurements, numbers",
+          "body": "Buried in a 300-message thread. Try comparing this week's photo to last month's — good luck."
+        },
+        "notes": {
+          "label": "NOTES",
+          "title": "Who paid and who didn't",
+          "body": "In a notebook, or in your head. You find the lapsed subscription two months after it expired."
+        }
+      }
+    },
+    "featureSections": {
+      "forms": {
+        "eyebrow": "Forms",
+        "title": "Build the form once, send it to anyone.",
+        "body": "Drag in the fields you want — weight, an adherence scale, progress photos, any question at all. Your client opens a link on their phone, answers in two minutes, and the response lands with you straight away.",
+        "bullets": {
+          "a": "No account and no app for the client",
+          "b": "Progress photos line up side by side automatically",
+          "c": "Ready-made templates for intake, check-ins and diet"
+        }
+      },
+      "progress": {
+        "eyebrow": "Progress",
+        "title": "See who's on track and who needs you — without asking.",
+        "body": "Every answer becomes a point on the chart. The client who missed two weeks rises to the top on their own, and everyone else keeps moving without you chasing them.",
+        "bullets": {
+          "a": "Weight, measurements and photos on one timeline",
+          "b": "An alert when someone falls behind — before they drop off",
+          "c": "Private notes on every client, visible only to you"
+        }
+      },
+      "invoices": {
+        "eyebrow": "Invoices",
+        "title": "A proper invoice, and nobody slips through.",
+        "body": "Monthly subscriptions that renew themselves, with reminders sent over WhatsApp. In Egyptian pounds, Saudi riyals and dirhams.",
+        "bullets": {
+          "a": "PDF invoices with your name and logo on them",
+          "b": "InstaPay, Fawry and Visa",
+          "c": "A monthly income report your accountant can use"
+        }
+      },
+      "formsMock": {
+        "title": "Weekly check-in form",
+        "addField": "+ Field",
+        "required": "Required",
+        "fields": {
+          "a": {
+            "label": "Current weight",
+            "type": "Number"
+          },
+          "b": {
+            "label": "Diet adherence",
+            "type": "Scale"
+          },
+          "c": {
+            "label": "Hours of sleep",
+            "type": "Number"
+          },
+          "d": {
+            "label": "Progress photos",
+            "type": "Photo"
+          },
+          "e": {
+            "label": "Notes for your coach",
+            "type": "Text"
+          }
+        }
+      },
+      "progressMock": {
+        "initial": "S",
+        "name": "Sara Abdelrahman",
+        "meta": "Weight loss · Week 12",
+        "delta": "−6.4",
+        "axisStart": "Week 1",
+        "axisMid": "Week 6",
+        "axisEnd": "Week 12",
+        "stats": {
+          "workouts": {
+            "value": "4/4",
+            "label": "Workouts"
+          },
+          "adherence": {
+            "value": "92%",
+            "label": "Adherence"
+          },
+          "sleep": {
+            "value": "6.8h",
+            "label": "Sleep"
+          }
+        }
+      },
+      "invoiceMock": {
+        "heading": "Invoice",
+        "number": "INV-2026-0184",
+        "lines": {
+          "a": {
+            "item": "Custom training program + meal plan · 3 months",
+            "amount": "3,600.00"
+          },
+          "b": {
+            "item": "Weekly check-ins · 12 sessions",
+            "amount": "900.00"
+          }
+        },
+        "totalLabel": "Total due",
+        "totalAmount": "4,500.00",
+        "currency": "EGP"
+      }
+    },
+    "arabicFirst": {
+      "eyebrow": "Arabic from the start",
+      "title": "Not a foreign tool that got translated.",
+      "subtitle": "Right-to-left layout, numbers and dates written correctly, and forms that read the way you actually speak. Your clients won't feel like they're filling in a translated document.",
+      "cards": {
+        "rtl": {
+          "title": "RTL",
+          "body": "A native Arabic layout, not one mirrored under protest"
+        },
+        "currency": {
+          "title": "EGP SAR AED",
+          "body": "Regional currencies and the ways people pay with them"
+        },
+        "whatsapp": {
+          "title": "WhatsApp",
+          "body": "Everything arrives on the channel your clients are already on"
+        },
+        "english": {
+          "title": "EN",
+          "body": "Full English whenever your client prefers it"
+        }
+      }
+    },
+    "pricing": {
+      "title": "Clear pricing, in EGP.",
+      "subtitle": "14 days free on any plan. No card required.",
+      "perMonth": "EGP / month",
+      "mostPopular": "Most popular",
+      "cta": "Start the trial",
+      "clientLimit": "Up to {max} clients",
+      "unlimitedClients": "Unlimited clients",
+      "features": {
+        "forms_builder": "Custom forms builder",
+        "custom_library": "Your own exercise & food library",
+        "priority_support": "Priority support",
+        "white_label": "Your logo on invoices"
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "items": {
+        "a": {
+          "q": "Does my client need to install an app?",
+          "a": "No. They get a link over WhatsApp, open it in their browser, and answer. No account, no download — which is the single biggest reason our response rates are high."
+        },
+        "b": {
+          "q": "Can I move my clients over from a spreadsheet?",
+          "a": "Yes. Paste the list exactly as it is — missing details, mixed-up columns and all — and we'll match the columns and show you the result before anything is imported."
+        },
+        "c": {
+          "q": "How do I get paid?",
+          "a": "InstaPay, Fawry or Visa. Money goes straight to your account, and we don't take a cut of what your clients pay you."
+        },
+        "d": {
+          "q": "What if I have more clients than my plan allows?",
+          "a": "You can move up a plan at any time and the difference is prorated across the remaining days. If your studio is bigger than the top plan, talk to us."
+        },
+        "e": {
+          "q": "Where are client photos stored?",
+          "a": "Encrypted, and visible only to you. A client can ask for them to be deleted at any time, and they really are deleted within 24 hours."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Start now — no card required.",
+      "subtitle": "Paste in your client list, pick a form, hit send. No training, no setup project.",
+      "cta": "Start 14 days free"
+    },
+    "footer": {
+      "tagline": "Client management for coaches in Egypt and the region.",
+      "columns": {
+        "product": {
+          "title": "Product",
+          "features": "Features",
+          "pricing": "Pricing",
+          "faq": "FAQ"
+        },
+        "company": {
+          "title": "Company",
+          "about": "About Coachlyfit",
+          "blog": "Blog",
+          "careers": "Careers"
+        },
+        "contact": {
+          "title": "Contact",
+          "whatsapp": "WhatsApp support",
+          "email": "hello@coachlyfit.com",
+          "instagram": "Instagram"
+        }
+      },
+      "location": "Cairo, Egypt",
+      "rights": "© {year} Coachlyfit",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Welcome back.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log in",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Start your free trial"
+    },
+    "signup": {
+      "title": "Start your free trial",
+      "subtitle": "14 days free, no card required.",
+      "fullName": "Full name",
+      "businessName": "Business name",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "phoneTab": "Phone",
+      "emailTab": "Email",
+      "phone": "Mobile number",
+      "otpLabel": "The code you received",
+      "otpSend": "Send code",
+      "otpSubmit": "Confirm and continue"
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "body": "We sent you a confirmation link. Click it to activate your account."
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "invalid_credentials": "Incorrect email or password.",
+      "email_taken": "An account with this email already exists.",
+      "signup_failed": "Something went wrong. Please try again.",
+      "confirmation_failed": "This confirmation link is invalid or has expired.",
+      "otp_send_failed": "Couldn't send the code. Please try again.",
+      "otp_invalid": "That code isn't right. Please try again.",
+      "otp_expired": "This code has expired. Request a new one.",
+      "phone_taken": "An account with this number already exists."
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {name}",
+    "activeClients": "Active clients",
+    "plan": "Plan",
+    "trialEndsAt": "Trial ends",
+    "renewsAt": "Renews",
+    "clientLimit": "of {max} on your plan",
+    "status": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "canceled": "Canceled"
+    },
+    "kpi": {
+      "clients": "Active clients",
+      "submissions": "Recent submissions",
+      "submissionsWindow": "Last 7 days",
+      "mrr": "MRR · EGP"
+    },
+    "queue": {
+      "title": "Recent submissions",
+      "empty": "No submissions yet.",
+      "viewAll": "View all"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "empty": "Nothing yet."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "businessName": "Business name",
+    "email": "Email",
+    "locale": "Interface language",
+    "signOut": "Sign out"
+  },
+  "clients": {
+    "title": "Clients",
+    "invite": "Invite client",
+    "empty": "No clients yet. Invite your first one to get started.",
+    "noResults": "No matches",
+    "noResultsHint": "Try a different name or clear the filter.",
+    "searchPlaceholder": "Search by name...",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "late": "Late"
+    },
+    "countLabel": "{shown} of {total}",
+    "table": {
+      "name": "Name",
+      "contact": "Contact",
+      "status": "Status",
+      "joined": "Joined",
+      "adherence": "Adherence",
+      "lastActivity": "Last activity"
+    },
+    "status": {
+      "invited": "Invited",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "dialog": {
+      "title": "Invite a client",
+      "subtitle": "Create their profile, then share the link below with them.",
+      "displayName": "Name",
+      "email": "Email (optional)",
+      "phone": "Phone (optional)",
+      "submit": "Create invite",
+      "linkTitle": "Share this link",
+      "linkBody": "Anyone with this link can join as this client. It works once.",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "whatsapp": "Share on WhatsApp",
+      "done": "Done"
+    },
+    "regenerate": "Get new link",
+    "workouts": {
+      "title": "Recent workouts",
+      "empty": "No logged workouts yet.",
+      "completed": "Completed",
+      "inProgress": "In progress"
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "client_limit_reached": "You've reached your plan's client limit. Upgrade to add more.",
+      "not_authenticated": "Please log in again.",
+      "signup_failed": "Something went wrong. Please try again.",
+      "email_taken": "An account with this email already exists.",
+      "invalid_invite": "This invite is no longer valid. Ask your coach for a new link."
+    }
+  },
+  "join": {
+    "invalid": {
+      "title": "This link isn't valid",
+      "body": "It may have expired or already been used. Ask your coach for a new one."
+    },
+    "form": {
+      "invitedBy": "{business} invited you to join",
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create account"
+    }
+  },
+  "client": {
+    "welcome": "Welcome, {name}",
+    "coachedBy": "You're training with {business}",
+    "home": "Home",
+    "today": {
+      "weekProgress": "Week {n} of {total}",
+      "weekLine": "One more workout today, plus your weekly check-in.",
+      "weekLineDone": "You finished today's workout. Weekly check-in left.",
+      "checkinBanner": "Weekly check-in is waiting",
+      "checkinBannerMeta": "{count} questions · 2 minutes",
+      "todayWorkout": "TODAY",
+      "restDay": "Rest day",
+      "restDayBody": "No workout scheduled today. Recovery counts too.",
+      "noProgram": "No program assigned yet",
+      "noProgramBody": "Your coach hasn't assigned a training program yet.",
+      "startWorkout": "Start workout",
+      "resumeWorkout": "Resume workout",
+      "reviewWorkout": "Review workout",
+      "exerciseCount": "{count} exercises",
+      "currentWeight": "Weight",
+      "streak": "Streak",
+      "streakDays": "{count} days"
+    },
+    "plan": {
+      "title": "Plan",
+      "noProgram": "No program assigned yet",
+      "noProgramBody": "Your coach hasn't assigned a training program yet.",
+      "rest": "Rest",
+      "done": "Done",
+      "today": "Today"
+    },
+    "workout": {
+      "setsDone": "{done} / {total} sets",
+      "finish": "Finish workout",
+      "finishDone": "Workout finished",
+      "skipRest": "Skip",
+      "watchForm": "Watch form check",
+      "doneTitle": "Workout logged",
+      "doneBody": "You logged {sets} sets in {duration}. Your coach will see the result.",
+      "close": "Done",
+      "backToWorkout": "Back to workout",
+      "openOriginalVideo": "Open original video",
+      "formCheck": "FORM CHECK"
+    },
+    "checkin": {
+      "backTitle": "Weekly check-in",
+      "submit": "Send to {business}",
+      "chooseAdherence": "Choose your adherence",
+      "doneTitle": "Sent to your coach",
+      "doneBody": "They'll review it and reply within 24 hours. You can carry on with your day.",
+      "close": "Done"
+    }
+  },
+  "inbox": {
+    "title": "Inbox",
+    "empty": "No conversations yet.",
+    "emptyThread": "No messages yet. Say hello.",
+    "placeholder": "Type a message…",
+    "send": "Send",
+    "clientList": {
+      "empty": "No clients yet."
+    }
+  },
+  "forms": {
+    "title": "Forms",
+    "newTemplate": "New form",
+    "empty": "No forms yet. Build your first one.",
+    "kinds": {
+      "intake": "Intake",
+      "workout": "Workout",
+      "diet": "Diet",
+      "checkin": "Check-in",
+      "custom": "Custom"
+    },
+    "table": {
+      "name": "Name",
+      "kind": "Type",
+      "updated": "Last updated"
+    },
+    "createDialog": {
+      "title": "New form",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "kind": "Type",
+      "submit": "Create"
+    },
+    "builder": {
+      "title": "Form builder",
+      "palette": "Add field",
+      "canvasEmpty": "Drag fields here to build your form.",
+      "preview": "Preview",
+      "publish": "Publish",
+      "published": "Published",
+      "publishedAt": "Published · version {version}",
+      "autosaved": "Draft auto-saved",
+      "fieldTypes": {
+        "text": "Short text",
+        "textarea": "Long text",
+        "number": "Number",
+        "select": "Dropdown",
+        "multiselect": "Multi-select",
+        "radio": "Single choice",
+        "checkbox": "Checkbox",
+        "date": "Date",
+        "scale": "Scale (1–5)",
+        "photo": "Photo",
+        "file": "File",
+        "section": "Section heading",
+        "exercise_ref": "Exercise reference",
+        "food_ref": "Food reference"
+      },
+      "inspector": {
+        "title": "Field settings",
+        "empty": "Select a field to edit it.",
+        "labelAr": "Label (Arabic)",
+        "labelEn": "Label (English)",
+        "helpAr": "Help text (Arabic)",
+        "helpEn": "Help text (English)",
+        "required": "Required",
+        "options": "Options",
+        "addOption": "Add option",
+        "optionValue": "Value",
+        "optionLabelAr": "Label (Arabic)",
+        "optionLabelEn": "Label (English)",
+        "min": "Min",
+        "max": "Max",
+        "step": "Step",
+        "unit": "Unit",
+        "visibleIf": "Show only if",
+        "visibleIfNone": "Always visible",
+        "visibleIfField": "Field",
+        "visibleIfOp": "Condition",
+        "visibleIfValue": "Value",
+        "deleteField": "Delete field"
+      }
+    },
+    "assign": {
+      "title": "Assign to a client",
+      "client": "Client",
+      "dueAt": "Due date (optional)",
+      "submit": "Assign",
+      "assigned": "Assigned."
+    },
+    "submissions": {
+      "title": "Submissions",
+      "empty": "No submissions yet.",
+      "table": {
+        "client": "Client",
+        "form": "Form",
+        "submittedAt": "Submitted"
+      },
+      "view": "View"
+    },
+    "fill": {
+      "submit": "Submit",
+      "submitted": "Submitted — thank you!",
+      "chooseFile": "Choose file",
+      "intro": {
+        "eyebrow": "{coach} sent you {form}",
+        "body": "Your answers go straight to {coach} and shape next week's plan.",
+        "questionCount": "{count} questions, {requiredCount} required",
+        "duration": "About {minutes} min",
+        "resume": "You can stop and finish later",
+        "cta": "Let's start",
+        "privacy": "Only {coach} can see your answers"
+      },
+      "step": {
+        "next": "Next",
+        "back": "Back",
+        "of": "{current} / {total}"
+      },
+      "photo": {
+        "hint": "Stand the same way as last week",
+        "skip": "Skip",
+        "retake": "Retake"
+      },
+      "review": {
+        "title": "Review before you send",
+        "subtitle": "You can edit any answer",
+        "edit": "Edit",
+        "photosCount": "{count} photos",
+        "submit": "Send to {coach}"
+      },
+      "done": {
+        "title": "Sent to {coach}",
+        "body": "They'll review it and reply within 24 hours.\nNext check-in is next Friday.",
+        "seenNow": "Seen just now",
+        "close": "Done"
+      }
+    },
+    "clientList": {
+      "title": "Forms",
+      "pending": "Pending",
+      "completed": "Completed",
+      "empty": "No forms assigned yet.",
+      "dueAt": "Due {date}"
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "publish_failed": "Couldn't publish this form. Please try again.",
+      "submit_failed": "Couldn't submit this form. Please try again.",
+      "not_found": "This form could not be found."
+    }
+  },
+  "programs": {
+    "title": "Programs",
+    "new": "New program",
+    "allTab": "All",
+    "templatesTab": "Templates",
+    "assignedTab": "Assigned",
+    "empty": {
+      "title": "No programs yet",
+      "description": "Build a program once and apply it to any number of clients.",
+      "cta": "Start a new program"
+    },
+    "table": {
+      "name": "Name",
+      "client": "Client",
+      "dates": "Dates",
+      "created": "Created"
+    },
+    "template": "Template",
+    "dateRange": "{start} – {end}",
+    "ongoing": "Ongoing",
+    "createDialog": {
+      "title": "New program",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "client": "Client",
+      "clientNone": "No client — save as a template",
+      "startDate": "Start date",
+      "endDate": "End date (optional)",
+      "submit": "Create"
+    },
+    "editDialog": {
+      "title": "Edit program",
+      "submit": "Save"
+    },
+    "assignTemplateDialog": {
+      "title": "Assign this template",
+      "description": "Creates a copy of this program for the client you pick — the template stays unchanged.",
+      "client": "Client",
+      "submit": "Assign"
+    },
+    "deleteProgram": "Delete program",
+    "confirmDeleteProgramTitle": "Delete this program?",
+    "confirmDeleteProgramBody": "This deletes every day and exercise in it. This can't be undone.",
+    "builder": {
+      "addDay": "Add day",
+      "editDay": "Edit day",
+      "addExercise": "Add exercise",
+      "noDays": "No training days yet.",
+      "noItems": "No exercises in this day yet.",
+      "dayN": "Day {n}",
+      "setsReps": "{sets} × {reps}",
+      "rest": "{seconds}s rest",
+      "deleteDay": "Delete day",
+      "confirmDeleteDayTitle": "Delete this day?",
+      "confirmDeleteDayBody": "This deletes every exercise in it. This can't be undone."
+    },
+    "dayDialog": {
+      "addTitle": "Add day",
+      "editTitle": "Edit day",
+      "labelAr": "Label (Arabic, optional)",
+      "labelEn": "Label (English, optional)",
+      "submit": "Save"
+    },
+    "itemDialog": {
+      "addTitle": "Add exercise",
+      "editTitle": "Edit exercise",
+      "exercise": "Exercise",
+      "searchPlaceholder": "Search exercises...",
+      "noResults": "No exercises match.",
+      "sets": "Sets",
+      "reps": "Reps",
+      "restSeconds": "Rest (seconds, optional)",
+      "notesAr": "Notes (Arabic, optional)",
+      "notesEn": "Notes (English, optional)",
+      "submit": "Save"
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "not_found_or_forbidden": "You can't change this program.",
+      "end_date_before_start_date": "End date can't be before the start date.",
+      "unknown": "Something went wrong. Please try again."
+    }
+  },
+  "library": {
+    "title": "Exercise & Food Library",
+    "tabs": {
+      "exercises": "Exercises",
+      "foods": "Foods"
+    },
+    "search": "Search by name...",
+    "empty": "No results.",
+    "view": {
+      "list": "List",
+      "card": "Card",
+      "kanban": "Kanban",
+      "label": "View"
+    },
+    "watchVideo": "Watch video",
+    "notDraggable": "Global entries can't be moved",
+    "exercise": {
+      "add": "Add exercise",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "muscleGroup": "Muscle group",
+      "equipment": "Equipment",
+      "videoUrl": "Video link (YouTube or Vimeo)",
+      "submit": "Add exercise"
+    },
+    "food": {
+      "add": "Add food",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "servingLabel": "Serving size",
+      "category": "Category",
+      "kcal": "Calories",
+      "protein": "Protein (g)",
+      "carbs": "Carbs (g)",
+      "fat": "Fat (g)",
+      "submit": "Add food"
+    },
+    "muscleGroups": {
+      "chest": "Chest",
+      "back": "Back",
+      "legs": "Legs",
+      "shoulders": "Shoulders",
+      "arms": "Arms",
+      "core": "Core",
+      "glutes": "Glutes",
+      "cardio": "Cardio",
+      "full_body": "Full body",
+      "other": "Other"
+    },
+    "foodCategories": {
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fats": "Fats",
+      "vegetables": "Vegetables",
+      "fruits": "Fruits",
+      "dairy": "Dairy",
+      "other": "Other"
+    },
+    "delete": "Delete",
+    "deleteConfirmTitle": "Delete this entry?",
+    "deleteConfirmBody": "This can't be undone.",
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "in_use": "This entry is used in a plan and can't be deleted.",
+      "not_found_or_forbidden": "You can't change this entry.",
+      "forbidden": "You don't have permission to do that.",
+      "already_global": "This entry is already in the global library.",
+      "unknown": "Something went wrong. Please try again."
+    },
+    "official": "Official",
+    "mine": "Mine",
+    "source": {
+      "label": "Source",
+      "all": "All",
+      "global": "Exercise Library",
+      "mine": "My Exercises"
+    },
+    "emptyStates": {
+      "searchAll": "Search all exercises",
+      "searchMine": "Search my exercises",
+      "mineNoneHint": "Anything you create is private to you and stays out of the shared library.",
+      "globalNoMatchHint": "You can add it to your own exercises instead.",
+      "exercises": {
+        "mineNone": "You haven't created any exercises yet.",
+        "mineNoMatch": "No exercises of yours match \"{query}\".",
+        "globalNoMatch": "No official exercise matches \"{query}\"."
+      },
+      "foods": {
+        "mineNone": "You haven't created any foods yet.",
+        "mineNoMatch": "No foods of yours match \"{query}\".",
+        "globalNoMatch": "No official food matches \"{query}\"."
+      }
+    }
+  },
+  "admin": {
+    "title": "Admin",
+    "library": {
+      "title": "Global Library",
+      "description": "Curate the official exercise and food database every coach sees.",
+      "source": {
+        "label": "Source",
+        "all": "All",
+        "global": "Global",
+        "mine": "Coach-created"
+      },
+      "owner": "Owner",
+      "globalOwner": "Platform",
+      "coachOwner": "Coach",
+      "promote": "Promote to global",
+      "promoteConfirmTitle": "Promote to the global library?",
+      "promoteConfirmBody": "This entry becomes official and visible to every coach. Its author keeps using it but can no longer edit or delete it, and will be notified.",
+      "promoted": "Promoted to the global library.",
+      "edit": "Edit",
+      "editGlobal": "Edit global entry",
+      "addGlobal": "Add global exercise",
+      "addGlobalFood": "Add global food",
+      "created": "Added to the global library.",
+      "updated": "Saved.",
+      "deleted": "Deleted.",
+      "emptyGlobal": "No global entries yet.",
+      "emptyCoach": "No coach-created entries."
+    },
+    "metrics": {
+      "mrr": "MRR",
+      "churnRate": "Churn rate",
+      "active": "Active",
+      "trialing": "Trialing",
+      "pastDue": "Past due",
+      "canceled": "Canceled"
+    },
+    "coaches": {
+      "title": "Coaches",
+      "table": {
+        "business": "Business",
+        "tier": "Tier",
+        "status": "Status",
+        "clients": "Clients",
+        "period": "Period ends",
+        "joined": "Joined"
+      },
+      "recordPayment": "Record payment",
+      "recordPaymentDialog": {
+        "title": "Record a payment",
+        "amount": "Amount (EGP)",
+        "method": "Method",
+        "reference": "Reference (optional)",
+        "periodStart": "Period start",
+        "periodEnd": "Period end",
+        "submit": "Record payment",
+        "recorded": "Payment recorded."
+      },
+      "status": {
+        "trialing": "Trial",
+        "active": "Active",
+        "past_due": "Past due",
+        "canceled": "Canceled"
+      },
+      "methods": {
+        "instapay": "InstaPay",
+        "bank_transfer": "Bank transfer",
+        "vodafone_cash": "Vodafone Cash",
+        "cash": "Cash"
+      },
+      "errors": {
+        "invalid_input": "Please check the form and try again.",
+        "forbidden": "Admin only.",
+        "not_found": "No subscription found for that coach."
+      }
+    }
+  },
+  "notifications": {
+    "label": "Notifications",
+    "empty": "Nothing new.",
+    "markAllRead": "Mark all as read",
+    "exercise_promoted": "\"{name}\" was added to the global Exercise Library.",
+    "food_promoted": "\"{name}\" was added to the global Food Library.",
+    "new_message": "You have a new message.",
+    "unknown": "You have a new notification."
+  },
+  "progress": {
+    "title": "Progress",
+    "hero": {
+      "title": "Today",
+      "doneToday": "Checked in today",
+      "notDoneToday": "You haven't checked in yet today",
+      "currentWeight": "Current weight",
+      "noWeight": "No weight logged yet",
+      "streak": "{count} day streak",
+      "streakNone": "Check in today to start a streak",
+      "adherence": "Adherence"
+    },
+    "checkin": {
+      "title": "Today's check-in",
+      "weight": "Weight (kg)",
+      "mood": "Mood (1-5)",
+      "energy": "Energy (1-5)",
+      "adherence": "Adherence (%)",
+      "sleepHours": "Sleep (hours)",
+      "notes": "Notes",
+      "submit": "Save check-in",
+      "submitted": "Check-in saved."
+    },
+    "stats": {
+      "lastCheckin": "Last check-in",
+      "never": "Never",
+      "streak": "Streak",
+      "days": "{count} days",
+      "adherence": "Adherence",
+      "weightTrend": "Weight trend",
+      "noData": "—"
+    },
+    "range": {
+      "label": "Date range",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "all": "All"
+    },
+    "photos": {
+      "title": "Progress photos",
+      "add": "Add photo",
+      "uploading": "Uploading…",
+      "alt": "Progress photo from {date}",
+      "emptyTitle": "No photos yet",
+      "emptyClient": "Add a photo each week — the change is easier to see than to feel.",
+      "emptyCoach": "This client hasn't added progress photos."
+    },
+    "chart": {
+      "empty": "No data yet.",
+      "emptyTitle": "No data in this range",
+      "emptyClient": "Save a check-in and your chart starts here.",
+      "emptyCoach": "No check-ins in the selected range. Try a wider range.",
+      "weightTitle": "Weight",
+      "moodTitle": "Mood",
+      "energyTitle": "Energy",
+      "adherenceTitle": "Adherence"
+    },
+    "metrics": {
+      "title": "Body measurements",
+      "add": "Add measurement",
+      "metric": "Measurement",
+      "value": "Value",
+      "unit": "Unit",
+      "takenOn": "Date",
+      "submit": "Add",
+      "emptyTitle": "No measurements yet",
+      "emptyDescription": "Add a waist or body-fat measurement to track it over time.",
+      "presets": {
+        "waist_cm": "Waist",
+        "chest_cm": "Chest",
+        "arm_cm": "Arm",
+        "hip_cm": "Hip",
+        "body_fat_pct": "Body fat %"
+      }
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "upload_failed": "Couldn't upload that photo. Try again.",
+      "file_too_large": "Photo must be under 10 MB.",
+      "invalid_file": "Choose an image file."
+    }
+  },
+  "billing": {
+    "title": "Billing",
+    "currentPlan": "Current plan",
+    "status": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Past due",
+      "canceled": "Canceled"
+    },
+    "pastDueNotice": "Your last payment is overdue. Contact us to keep your account active.",
+    "canceledNotice": "Your subscription has been canceled. Contact us to reactivate.",
+    "trialEndsAt": "Trial ends",
+    "renewsAt": "Renews",
+    "clientLimit": "{count} of {max} clients used",
+    "priceMonthly": "{price} EGP / month",
+    "paidThisMonth": "Paid · this month",
+    "totalPaid": "Total paid",
+    "history": {
+      "title": "Payment history",
+      "empty": "No payments recorded yet.",
+      "table": {
+        "date": "Date",
+        "amount": "Amount",
+        "method": "Method",
+        "period": "Period"
+      },
+      "methods": {
+        "instapay": "InstaPay",
+        "bank_transfer": "Bank transfer",
+        "vodafone_cash": "Vodafone Cash",
+        "cash": "Cash"
+      }
+    }
+  },
+  "onboarding": {
+    "kicker": "Step {step} of {total}",
+    "steps": {
+      "trainingMode": "How you train",
+      "import": "Import clients",
+      "mapping": "Match columns",
+      "template": "Starter form",
+      "send": "First send",
+      "done": "Dashboard"
+    },
+    "trainingMode": {
+      "title": "How do you train?",
+      "subtitle": "This picks the forms and programs we set up for you. You can change it later.",
+      "options": {
+        "online": {
+          "title": "Online only",
+          "body": "All clients remote, followed up through forms and video"
+        },
+        "hybrid": {
+          "title": "Online and in-person",
+          "body": "A mix — gym and online clients together"
+        },
+        "in_person": {
+          "title": "In-person only",
+          "body": "All training happens at the gym; the app handles follow-up and billing"
+        }
+      }
+    },
+    "import": {
+      "title": "Bring your clients",
+      "subtitle": "Most coaches keep their list in Excel or Notes. Paste it exactly as it is.",
+      "placeholder": "Name\tPhone\tGoal\tFee",
+      "parsed": "Found {rows} rows · {cols} columns",
+      "empty": "No data yet"
+    },
+    "mapping": {
+      "title": "Match the columns",
+      "subtitle": "We guessed the mapping from the shape of your data. Fix anything that's wrong.",
+      "fields": {
+        "name": "Name",
+        "phone": "Mobile number",
+        "goal": "Goal",
+        "fee": "Monthly fee",
+        "skip": "Ignore column"
+      },
+      "submit": "Import {count} clients"
+    },
+    "template": {
+      "title": "Choose a starter form",
+      "subtitle": "Ready to go. You can edit it in the builder afterward.",
+      "options": {
+        "intake": "Intake form",
+        "checkin": "Weekly check-in",
+        "diet": "Diet diary"
+      }
+    },
+    "send": {
+      "title": "Send the first check-in",
+      "subtitle": "Choose who gets it now. The rest can wait until their programs are ready.",
+      "whatsapp": "Send on WhatsApp",
+      "messageBody": "Hey! This is your weekly check-in from your coach.\n\n5 questions, two minutes, no account needed:\n{joinUrl}",
+      "submit": "Send to {count} clients"
+    },
+    "done": {
+      "title": "You're live.",
+      "subtitle": "Everything else — programs, billing — you can set up at your own pace.",
+      "clients": "Clients imported",
+      "sent": "Invites sent",
+      "cta": "Go to dashboard"
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "save_failed": "Something went wrong. Please try again.",
+      "no_rows": "No valid rows found. Check the pasted data.",
+      "template_failed": "Couldn't create the template. Please try again."
+    }
+  }
+}
