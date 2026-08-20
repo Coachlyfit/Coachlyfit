@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { nextStatus, type SubscriptionLike } from "@/domain/billing/lifecycle";
+import { shouldTriggerCheckin } from "@/domain/programs/lifecycle";
 
 // Runs daily via Vercel Cron (see vercel.ts). Uses the admin (service_role)
 // client deliberately — this is a trusted internal job authenticated by
@@ -28,5 +29,50 @@ export async function GET(request: NextRequest) {
     await supabase.from("subscriptions").update({ status: next }).eq("id", id);
   }
 
-  return NextResponse.json({ checked: subscriptions?.length ?? 0, transitioned: transitions.length });
+  // Plan lifecycle: a program past its end_date auto-sends the coach's
+  // designated check-in form, closing the loop that otherwise depends on
+  // the coach remembering. `checkin_triggered_at is null` bounds the scan to
+  // programs not yet processed; shouldTriggerCheckin (not the SQL filter)
+  // is the actual "is this due" decision, so the date logic lives in one
+  // place. A coach with no default_checkin_template_id configured still
+  // gets checkin_triggered_at stamped, so the row drops out of future scans
+  // instead of being retried forever — no auto-send is the expected
+  // behavior for a coach who hasn't set one up, not an error.
+  const { data: candidates, error: programsError } = await supabase
+    .from("programs")
+    .select("id, client_id, end_date, checkin_triggered_at, coaches(default_checkin_template_id)")
+    .not("client_id", "is", null)
+    .not("end_date", "is", null)
+    .is("checkin_triggered_at", null);
+  if (programsError) return NextResponse.json({ error: programsError.message }, { status: 500 });
+
+  let checkinsTriggered = 0;
+  for (const program of candidates ?? []) {
+    if (!shouldTriggerCheckin(program, now)) continue;
+
+    const templateId = program.coaches?.default_checkin_template_id;
+    if (templateId) {
+      const { data: template } = await supabase
+        .from("form_templates")
+        .select("coach_id, current_version_id")
+        .eq("id", templateId)
+        .maybeSingle();
+      if (template?.current_version_id) {
+        await supabase.from("form_assignments").insert({
+          coach_id: template.coach_id,
+          client_id: program.client_id!,
+          template_version_id: template.current_version_id,
+        });
+        checkinsTriggered++;
+      }
+    }
+
+    await supabase.from("programs").update({ checkin_triggered_at: now.toISOString() }).eq("id", program.id);
+  }
+
+  return NextResponse.json({
+    checked: subscriptions?.length ?? 0,
+    transitioned: transitions.length,
+    checkinsTriggered,
+  });
 }
