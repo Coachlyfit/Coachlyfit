@@ -54,7 +54,7 @@ export function Topbar({ locale, fullName }: { locale: string; fullName: string 
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
-              onSelect={() => signOutAction(locale)}
+              onClick={() => signOutAction(locale)}
             >
               <LogOut className="size-4" />
               {tCommon("signOut")}
