@@ -1,8 +1,24 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
-type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
-type Food = Database["public"]["Tables"]["foods"]["Row"];
+// Read shape: the base Row plus what only the exercises_visible/foods_visible
+// views add (20260805000001_library_clone.sql) — the cloned-from row's own
+// name (so "Based on" survives a rename) and my_clone_id (whether the caller
+// has already cloned this row). The generated view Row type marks every
+// column nullable (views don't carry NOT NULL metadata), which would make
+// `name_ar`/`name_en` etc. optional for callers like pickLocale that assume
+// they're always present on a row that came back at all — .returns<T>() below
+// re-asserts the base table's real nullability instead of the view's.
+type Exercise = Database["public"]["Tables"]["exercises"]["Row"] & {
+  source_name_ar: string | null;
+  source_name_en: string | null;
+  my_clone_id: string | null;
+};
+type Food = Database["public"]["Tables"]["foods"]["Row"] & {
+  source_name_ar: string | null;
+  source_name_en: string | null;
+  my_clone_id: string | null;
+};
 
 export type CreateExerciseInput = {
   name_ar: string;
@@ -10,6 +26,15 @@ export type CreateExerciseInput = {
   muscle_group?: string;
   equipment?: string;
   video_url?: string;
+  image_url?: string;
+  instructions_ar?: string;
+  instructions_en?: string;
+  coach_notes_ar?: string;
+  coach_notes_en?: string;
+  /** Set once at creation (the clone flow) — updateExercise strips it back
+   * out of any later edit payload, so provenance can't be rewritten after
+   * the fact. */
+  source_exercise_id?: string;
 };
 
 /** Which half of the library to show. Derived from `coach_id is null`, not
@@ -49,6 +74,11 @@ export type CreateFoodInput = {
   carb_g: number;
   fat_g: number;
   category: string;
+  notes_ar?: string;
+  notes_en?: string;
+  /** Same rule as CreateExerciseInput.source_exercise_id — set once, stripped
+   * out on every subsequent update. */
+  source_food_id?: string;
 };
 
 // `,()` are PostgREST's or()-filter list/grouping syntax — stripping them
@@ -63,14 +93,22 @@ function sanitizeSearchTerm(query: string) {
  * already makes "a non-global row I can see" mean exactly "my row", so the
  * caller never has to hand us a coach id — which would be an authorization
  * decision taken client-side. For an admin (admin_read_all) the same filter
- * reads as "every coach-created row", which is what the admin UI wants. */
-function applySource<Q extends { is: (c: "coach_id", v: null) => Q; not: (c: "coach_id", op: "is", v: null) => Q }>(
-  q: Q,
-  source: LibrarySource
-): Q {
+ * reads as "every coach-created row", which is what the admin UI wants.
+ *
+ * "all" used to mean no predicate at all. Now that a global can have a
+ * coach's clone sitting next to it, "all" means every row minus the globals
+ * the caller has already cloned — my_clone_id is null for every row except
+ * a global with a clone, so this is the one predicate that de-dupes without
+ * needing a caller-supplied id either. */
+function applySource<
+  Q extends {
+    is: (c: "coach_id" | "my_clone_id", v: null) => Q;
+    not: (c: "coach_id", op: "is", v: null) => Q;
+  },
+>(q: Q, source: LibrarySource): Q {
   if (source === "global") return q.is("coach_id", null);
   if (source === "mine") return q.not("coach_id", "is", null);
-  return q;
+  return q.is("my_clone_id", null);
 }
 
 function normalizePaging(params: Pick<LibraryQuery, "page" | "pageSize">) {
@@ -106,11 +144,14 @@ async function runPaged<T>(
 export class LibraryService {
   constructor(private db: SupabaseClient<Database>) {}
 
+  // Reads go through exercises_visible/foods_visible (20260805000001), not
+  // the base table — that's what adds my_clone_id and source_name_*. Writes
+  // below stay on the base table; the view is select-only.
   async searchExercises(params: LibraryQuery = {}): Promise<LibraryPage<Exercise>> {
     const { page, pageSize } = normalizePaging(params);
     const build = (p: number) => {
       let q = this.db
-        .from("exercises")
+        .from("exercises_visible")
         .select("*", { count: "exact" })
         .order("name_en")
         .order("id");
@@ -118,7 +159,10 @@ export class LibraryService {
       if (params.group) q = q.eq("muscle_group", params.group);
       const term = sanitizeSearchTerm(params.query ?? "");
       if (term) q = q.or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%`);
-      return q.range((p - 1) * pageSize, p * pageSize - 1);
+      // .returns<T>() has to be the true last call in the chain (supabase-js
+      // narrows its return type to drop the filter methods once called) —
+      // hence it's on .range() here, not up by .select() with the others.
+      return q.range((p - 1) * pageSize, p * pageSize - 1).returns<Exercise[]>();
     };
     return runPaged(build, page, pageSize);
   }
@@ -127,7 +171,7 @@ export class LibraryService {
     const { page, pageSize } = normalizePaging(params);
     const build = (p: number) => {
       let q = this.db
-        .from("foods")
+        .from("foods_visible")
         .select("*", { count: "exact" })
         .order("name_en")
         .order("id");
@@ -135,9 +179,25 @@ export class LibraryService {
       if (params.group) q = q.eq("category", params.group);
       const term = sanitizeSearchTerm(params.query ?? "");
       if (term) q = q.or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%`);
-      return q.range((p - 1) * pageSize, p * pageSize - 1);
+      return q.range((p - 1) * pageSize, p * pageSize - 1).returns<Food[]>();
     };
     return runPaged(build, page, pageSize);
+  }
+
+  /** Used by "Edit my version" on a global card that's already been cloned:
+   * my_clone_id names the clone's row but not its (possibly renamed) fields,
+   * so the edit dialog needs a fresh read of the clone itself before it can
+   * prefill. Same view as search, no paging — a single row by id. */
+  async getExercise(id: string): Promise<Exercise | null> {
+    const { data, error } = await this.db.from("exercises_visible").select("*").eq("id", id).returns<Exercise[]>();
+    if (error) throw error;
+    return data[0] ?? null;
+  }
+
+  async getFood(id: string): Promise<Food | null> {
+    const { data, error } = await this.db.from("foods_visible").select("*").eq("id", id).returns<Food[]>();
+    if (error) throw error;
+    return data[0] ?? null;
   }
 
   async createExercise(coachId: string, input: CreateExerciseInput) {
@@ -162,15 +222,25 @@ export class LibraryService {
 
   /** Admin edit of a global row, or a coach editing their own. Neither is
    * checked here — RLS decides, and an unauthorized update simply matches 0
-   * rows. Callers that need to tell "forbidden" from "no-op" should re-read. */
+   * rows. Callers that need to tell "forbidden" from "no-op" should re-read.
+   *
+   * source_exercise_id is dropped from the payload even if a caller passes
+   * one: provenance is set once, at creation (the clone flow), and is not
+   * meant to be user-editable afterwards — stripping it here rather than
+   * just omitting it from the edit form means a crafted payload can't
+   * rewrite "Based on" after the fact. */
   async updateExercise(id: string, input: CreateExerciseInput): Promise<boolean> {
-    const { data, error } = await this.db.from("exercises").update(input).eq("id", id).select("id");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to drop it from patch
+    const { source_exercise_id: _sourceExerciseId, ...patch } = input;
+    const { data, error } = await this.db.from("exercises").update(patch).eq("id", id).select("id");
     if (error) throw error;
     return data.length > 0;
   }
 
   async updateFood(id: string, input: CreateFoodInput): Promise<boolean> {
-    const { data, error } = await this.db.from("foods").update(input).eq("id", id).select("id");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to drop it from patch
+    const { source_food_id: _sourceFoodId, ...patch } = input;
+    const { data, error } = await this.db.from("foods").update(patch).eq("id", id).select("id");
     if (error) throw error;
     return data.length > 0;
   }

@@ -60,17 +60,21 @@ export async function createGlobalExerciseAction(
     muscle_group: formData.get("muscle_group") || undefined,
     equipment: formData.get("equipment") || undefined,
     video_url: formData.get("video_url") || undefined,
+    image_url: formData.get("image_url") || undefined,
+    instructions_ar: formData.get("instructions_ar") || undefined,
+    instructions_en: formData.get("instructions_en") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { video_url, ...input } = parsed.data;
+  const { video_url, image_url, ...input } = parsed.data;
   try {
     await new LibraryService(supabase).createGlobalExercise({
       ...input,
       video_url: video_url || undefined,
+      image_url: image_url || undefined,
     });
   } catch (err) {
     return { error: libraryErrorKey(err) };
@@ -116,19 +120,23 @@ export async function updateGlobalExerciseAction(
     muscle_group: formData.get("muscle_group") || undefined,
     equipment: formData.get("equipment") || undefined,
     video_url: formData.get("video_url") || undefined,
+    image_url: formData.get("image_url") || undefined,
+    instructions_ar: formData.get("instructions_ar") || undefined,
+    instructions_en: formData.get("instructions_en") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { video_url, ...input } = parsed.data;
+  const { video_url, image_url, ...input } = parsed.data;
   try {
     // admin_update_global is qualified `coach_id is null`, so an attempt to
     // edit a coach's private row matches 0 rows and lands here as false.
     const updated = await new LibraryService(supabase).updateExercise(id, {
       ...input,
       video_url: video_url || undefined,
+      image_url: image_url || undefined,
     });
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (err) {

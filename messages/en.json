@@ -380,6 +380,7 @@
       "submissionsWindow": "Last 7 days",
       "mrr": "MRR · EGP"
     },
+    "pendingReview": "{count} check-ins waiting for review",
     "queue": {
       "title": "Recent submissions",
       "empty": "No submissions yet.",
@@ -806,7 +807,15 @@
       "muscleGroup": "Muscle group",
       "equipment": "Equipment",
       "videoUrl": "Video link (YouTube or Vimeo)",
-      "submit": "Add exercise"
+      "imageUrl": "Image / GIF URL",
+      "instructionsAr": "Instructions (Arabic)",
+      "instructionsEn": "Instructions (English)",
+      "coachNotesAr": "Your coaching notes (Arabic)",
+      "coachNotesEn": "Your coaching notes (English)",
+      "submit": "Add exercise",
+      "cloneTitle": "Customize exercise",
+      "editTitle": "Edit exercise",
+      "save": "Save"
     },
     "food": {
       "add": "Add food",
@@ -818,7 +827,12 @@
       "protein": "Protein (g)",
       "carbs": "Carbs (g)",
       "fat": "Fat (g)",
-      "submit": "Add food"
+      "notesAr": "Your notes / serving guidance (Arabic)",
+      "notesEn": "Your notes / serving guidance (English)",
+      "submit": "Add food",
+      "cloneTitle": "Customize food",
+      "editTitle": "Edit food",
+      "save": "Save"
     },
     "muscleGroups": {
       "chest": "Chest",
@@ -851,10 +865,16 @@
       "not_found_or_forbidden": "You can't change this entry.",
       "forbidden": "You don't have permission to do that.",
       "already_global": "This entry is already in the global library.",
+      "already_cloned": "You already have your own version of this entry.",
       "unknown": "Something went wrong. Please try again."
     },
     "official": "Official",
     "mine": "Mine",
+    "customized": "Customized",
+    "basedOn": "Based on: {name}",
+    "clone": "Clone & Customize",
+    "editMyVersion": "Edit my version",
+    "edit": "Edit",
     "source": {
       "label": "Source",
       "all": "All",
@@ -1080,6 +1100,99 @@
         "vodafone_cash": "Vodafone Cash",
         "cash": "Cash"
       }
+    }
+  },
+  "review": {
+    "title": "Check-in review",
+    "close": "Close",
+    "counter": "{current} of {total} · {remaining} left",
+    "keyboardHint": "Use arrow keys to navigate",
+    "prev": "Previous",
+    "next": "Next",
+    "emptyTitle": "All caught up",
+    "emptyDescription": "No check-ins waiting for review.",
+    "flag": {
+      "needsAttention": "Needs attention"
+    },
+    "stats": {
+      "weight": "Weight",
+      "adherence": "Adherence",
+      "sleep": "Sleep",
+      "workouts": "Workouts",
+      "deltaFromLast": "{delta} from last week",
+      "avgLabel": "avg {avg}/10",
+      "workoutsWindow": "last 7 days"
+    },
+    "photos": {
+      "title": "Photo comparison",
+      "pose": {
+        "front": "Front",
+        "side": "Side",
+        "back": "Back"
+      },
+      "modeSlider": "Compare",
+      "modeSide": "Side by side",
+      "empty": "Not enough photos yet to compare.",
+      "dragHint": "Drag to compare"
+    },
+    "note": {
+      "title": "Client's note",
+      "empty": "No note this week.",
+      "similarTitle": "Said this before"
+    },
+    "decision": {
+      "title": "Program decision",
+      "keep": {
+        "title": "Keep the program as-is",
+        "sub": "Continue the same week"
+      },
+      "adjust": {
+        "title": "Adjust the program",
+        "sub": "Changes for next week"
+      },
+      "call": {
+        "title": "Needs a call",
+        "sub": "This one is bigger than a written reply"
+      }
+    },
+    "adjustments": {
+      "title": "Adjustments",
+      "options": {
+        "reduceLoad": "Reduce training load this week",
+        "extraWarmup": "Add extra warm-up time",
+        "removeMovement": "Temporarily remove a specific movement",
+        "extraRestDay": "Add a rest day"
+      }
+    },
+    "reply": {
+      "title": "Your reply",
+      "placeholder": "Write your reply to {name}…",
+      "deliveryNote": "Delivered to the client in the app",
+      "chips": {
+        "encouragement": {
+          "label": "Encouragement",
+          "text": "Great work this week — keep doing exactly what you're doing."
+        },
+        "nextWeek": {
+          "label": "Next week",
+          "text": "Stay focused next week, and message me if anything comes up."
+        },
+        "call": {
+          "label": "Call",
+          "text": "Let's talk for 5 minutes, easier than writing. Send me a time that works."
+        }
+      }
+    },
+    "submit": {
+      "sendDefault": "Write your reply first",
+      "send": "Send and continue",
+      "sent": "Sent",
+      "skip": "Leave for later"
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "review_failed": "Couldn't save that review. Try again."
     }
   },
   "onboarding": {

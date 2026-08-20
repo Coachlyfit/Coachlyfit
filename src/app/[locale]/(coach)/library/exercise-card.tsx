@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Dumbbell, Film, Play, Trash2 } from "lucide-react";
+import { Copy, Dumbbell, Film, Pencil, Play, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,11 +17,22 @@ export function ExerciseCard({
   exercise,
   locale,
   onDelete,
+  onClone,
+  onEdit,
+  onEditMyClone,
   variant = "default",
 }: {
   exercise: Exercise;
   locale: AppLocale;
   onDelete: () => void;
+  /** Global card, not yet cloned. */
+  onClone: () => void;
+  /** The coach's own row (a clone or a plain private addition). */
+  onEdit: () => void;
+  /** Global card the coach already cloned — my_clone_id names the row but
+   * not its (possibly renamed) fields, so the parent re-fetches it before
+   * opening the edit dialog. */
+  onEditMyClone: () => void;
   /** "compact" drops media and actions — used for kanban cards, where 60+
    * items per column would otherwise make the column as tall as the page. */
   variant?: "default" | "compact";
@@ -33,6 +44,12 @@ export function ExerciseCard({
     ? tGroups(exercise.muscle_group)
     : exercise.muscle_group;
   const meta = [groupLabel, exercise.equipment].filter(Boolean).join(" · ");
+  // A clone that's been promoted to global (coach_id -> null) keeps its
+  // source_exercise_id, but there's no coach left to have "customized" it
+  // from the viewer's perspective — so the badge/attribution only shows
+  // while the row is still coach-owned.
+  const isCustomized = !!exercise.coach_id && !!exercise.source_exercise_id;
+  const badgeLabel = !exercise.coach_id ? t("official") : isCustomized ? t("customized") : t("mine");
 
   if (variant === "compact") {
     return (
@@ -45,7 +62,7 @@ export function ExerciseCard({
     );
   }
 
-  const media = resolveExerciseMedia(exercise.video_url);
+  const media = resolveExerciseMedia(exercise.image_url || exercise.video_url);
 
   return (
     <Card className="pt-0">
@@ -54,9 +71,14 @@ export function ExerciseCard({
         <div className="flex items-start justify-between gap-2">
           <p className="line-clamp-2 font-medium">{name}</p>
           <Badge variant={exercise.coach_id ? "secondary" : "outline"} className="shrink-0">
-            {exercise.coach_id ? t("mine") : t("official")}
+            {badgeLabel}
           </Badge>
         </div>
+        {isCustomized && (
+          <p className="text-xs text-muted-foreground">
+            {t("basedOn", { name: pickLocale(exercise, locale, "source_name") })}
+          </p>
+        )}
         {meta && <p className="text-sm text-muted-foreground">{meta}</p>}
         {media?.kind === "link" && (
           <a
@@ -68,17 +90,37 @@ export function ExerciseCard({
             {t("watchVideo")}
           </a>
         )}
-        {exercise.coach_id && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="self-end text-destructive hover:text-destructive"
-            onClick={onDelete}
-          >
-            <Trash2 className="size-4" />
-            {t("delete")}
-          </Button>
-        )}
+        <div className="flex justify-end gap-1">
+          {!exercise.coach_id ? (
+            exercise.my_clone_id ? (
+              <Button variant="ghost" size="sm" onClick={onEditMyClone}>
+                <Pencil className="size-4" />
+                {t("editMyVersion")}
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={onClone}>
+                <Copy className="size-4" />
+                {t("clone")}
+              </Button>
+            )
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" onClick={onEdit}>
+                <Pencil className="size-4" />
+                {t("edit")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={onDelete}
+              >
+                <Trash2 className="size-4" />
+                {t("delete")}
+              </Button>
+            </>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

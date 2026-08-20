@@ -4,22 +4,36 @@ import { LibraryService } from "./library.service";
 function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }], total = rows.length) {
   const filters: string[] = [];
   // Source-filter calls, recorded as "is:coach_id=null" / "not:coach_id is null"
-  // so a test can assert which predicate the service chose.
+  // / "is:my_clone_id=null" so a test can assert which predicate the service
+  // chose.
   const sourceFilters: string[] = [];
   const groupFilters: string[] = [];
   const ranges: [number, number][] = [];
+  // Which table/view each .from() call targeted — searchExercises/searchFoods
+  // read exercises_visible/foods_visible (20260805000001), writes stay on
+  // the base table.
+  const fromCalls: string[] = [];
 
-  // The search chain is select(_, {count}).order().order() then optionally
-  // .is()/.not()/.eq()/.or(), ending in .range() — the one link that actually
-  // resolves, matching how supabase-js only executes on the terminal call.
+  // The search chain is select(_, {count}).returns().order().order() then
+  // optionally .is()/.not()/.eq()/.or(), ending in .range() — the one link
+  // that actually resolves, matching how supabase-js only executes on the
+  // terminal call. .returns() is a type-only cast at runtime — it just
+  // returns the same chain unchanged.
   function query() {
     const chain = {
+      // Lets a chain that ends in .eq()/.returns() (no .range()) resolve
+      // directly — getExercise/getFood do this, unlike the paged searches
+      // below which always terminate in .range(). Same pattern as
+      // review.service.test.ts's fakeDb.
+      then: (resolve: (v: { data: unknown[]; count: number; error: null }) => void) =>
+        resolve({ data: rows, count: total, error: null }),
+      returns: () => chain,
       order: () => chain,
       or: (filter: string) => {
         filters.push(filter);
         return chain;
       },
-      is: (column: "coach_id", value: null) => {
+      is: (column: "coach_id" | "my_clone_id", value: null) => {
         sourceFilters.push(`is:${column}=${value}`);
         return chain;
       },
@@ -31,9 +45,17 @@ function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }], tota
         groupFilters.push(`eq:${column}=${value}`);
         return chain;
       },
-      range: async (from: number, to: number) => {
+      // Real .range() returns a builder that's both directly awaitable AND
+      // has one more .returns<T>() to chain — the service always calls the
+      // latter (it's the type-cast that has to be the true last call in a
+      // real supabase-js chain), so this needs to support both shapes.
+      range: (from: number, to: number) => {
         ranges.push([from, to]);
-        return { data: rows, count: total, error: null };
+        const result = { data: rows, count: total, error: null };
+        return {
+          returns: () => Promise.resolve(result),
+          then: (resolve: (v: typeof result) => void) => resolve(result),
+        };
       },
     };
     return chain;
@@ -48,6 +70,7 @@ function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }], tota
 
   const db = {
     from(table: string) {
+      fromCalls.push(table);
       return {
         select: () => query(),
         insert: (payload: unknown) => {
@@ -66,7 +89,7 @@ function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }], tota
     },
   };
 
-  return { db: db as never, filters, sourceFilters, groupFilters, ranges, inserts, updates, deletes };
+  return { db: db as never, filters, sourceFilters, groupFilters, ranges, fromCalls, inserts, updates, deletes };
 }
 
 describe("LibraryService", () => {
@@ -124,6 +147,63 @@ describe("LibraryService", () => {
     expect(inserts[0].payload).toMatchObject({ coach_id: "coach-1", kcal: 200, category: "carbs" });
   });
 
+  it("createExercise forwards source_exercise_id — the clone flow's provenance", async () => {
+    const { db, inserts } = fakeSupabase([]);
+    await new LibraryService(db).createExercise("coach-1", {
+      name_ar: "قرفصاء",
+      name_en: "Squat",
+      source_exercise_id: "global-1",
+    });
+
+    expect(inserts[0].payload).toMatchObject({ coach_id: "coach-1", source_exercise_id: "global-1" });
+  });
+
+  it("createFood forwards source_food_id the same way", async () => {
+    const { db, inserts } = fakeSupabase([]);
+    await new LibraryService(db).createFood("coach-1", {
+      name_ar: "أرز",
+      name_en: "Rice",
+      serving_label: "1 cup",
+      kcal: 200,
+      protein_g: 4,
+      carb_g: 45,
+      fat_g: 0.5,
+      category: "carbs",
+      source_food_id: "global-food-1",
+    });
+
+    expect(inserts[0].payload).toMatchObject({ coach_id: "coach-1", source_food_id: "global-food-1" });
+  });
+
+  it("updateExercise strips source_exercise_id — provenance isn't user-editable after creation", async () => {
+    const { db, updates } = fakeSupabase([]);
+    await new LibraryService(db).updateExercise("ex-1", {
+      name_ar: "قرفصاء",
+      name_en: "Squat",
+      source_exercise_id: "attacker-supplied",
+    });
+
+    expect(updates[0].payload).not.toHaveProperty("source_exercise_id");
+    expect(updates[0].payload).toMatchObject({ name_en: "Squat" });
+  });
+
+  it("updateFood strips source_food_id the same way", async () => {
+    const { db, updates } = fakeSupabase([]);
+    await new LibraryService(db).updateFood("food-1", {
+      name_ar: "أرز",
+      name_en: "Rice",
+      serving_label: "1 cup",
+      kcal: 200,
+      protein_g: 4,
+      carb_g: 45,
+      fat_g: 0.5,
+      category: "carbs",
+      source_food_id: "attacker-supplied",
+    });
+
+    expect(updates[0].payload).not.toHaveProperty("source_food_id");
+  });
+
   it("updateExerciseGroup moves an exercise to a new muscle-group column", async () => {
     const { db, updates } = fakeSupabase([]);
     await new LibraryService(db).updateExerciseGroup("ex-1", "back");
@@ -138,14 +218,39 @@ describe("LibraryService", () => {
     expect(updates[0]).toEqual({ table: "foods", payload: { category: "protein" } });
   });
 
-  describe("source filter", () => {
-    it("adds no predicate for 'all' — RLS already scopes to global + own", async () => {
-      const { db, sourceFilters } = fakeSupabase([]);
-      await new LibraryService(db).searchExercises({ source: "all" });
-      expect(sourceFilters).toHaveLength(0);
+  it("reads from the exercises_visible/foods_visible views, not the base tables", async () => {
+    const { db: dbEx, fromCalls: fromEx } = fakeSupabase([]);
+    await new LibraryService(dbEx).searchExercises();
+    expect(fromEx).toEqual(["exercises_visible"]);
+
+    const { db: dbFood, fromCalls: fromFood } = fakeSupabase([]);
+    await new LibraryService(dbFood).searchFoods();
+    expect(fromFood).toEqual(["foods_visible"]);
+  });
+
+  describe("getExercise / getFood", () => {
+    it("reads a single row by id from the view, for \"Edit my version\"", async () => {
+      const { db, fromCalls } = fakeSupabase([{ id: "ex-1", name_en: "Squat" }]);
+      const result = await new LibraryService(db).getExercise("ex-1");
+      expect(fromCalls).toEqual(["exercises_visible"]);
+      expect(result).toEqual({ id: "ex-1", name_en: "Squat" });
     });
 
-    it("'global' narrows to the platform-curated rows", async () => {
+    it("returns null when nothing matches", async () => {
+      const { db } = fakeSupabase([]);
+      expect(await new LibraryService(db).getExercise("missing")).toBeNull();
+      expect(await new LibraryService(db).getFood("missing")).toBeNull();
+    });
+  });
+
+  describe("source filter", () => {
+    it("'all' hides a global the caller has already cloned, via my_clone_id", async () => {
+      const { db, sourceFilters } = fakeSupabase([]);
+      await new LibraryService(db).searchExercises({ source: "all" });
+      expect(sourceFilters).toEqual(["is:my_clone_id=null"]);
+    });
+
+    it("'global' narrows to the platform-curated rows and sends no my_clone_id predicate", async () => {
       const { db, sourceFilters } = fakeSupabase([]);
       await new LibraryService(db).searchExercises({ source: "global" });
       expect(sourceFilters).toEqual(["is:coach_id=null"]);
@@ -228,10 +333,21 @@ describe("LibraryService", () => {
           select: () => {
             const chain = {
               order: () => chain,
-              range: async (from: number, to: number) => {
+              // applySource's default ("all") now always calls .is() —
+              // see the source-filter tests above.
+              is: () => chain,
+              // See fakeSupabase's range() above for why this returns a
+              // returns()-able thenable instead of a bare Promise.
+              range: (from: number, to: number) => {
                 calls.push([from, to]);
-                if (from > 0) return { data: null, count: null, error: { code: "PGRST103" } };
-                return { data: [{ id: "1" }], count: 1, error: null };
+                const result =
+                  from > 0
+                    ? { data: null, count: null, error: { code: "PGRST103" } }
+                    : { data: [{ id: "1" }], count: 1, error: null };
+                return {
+                  returns: () => Promise.resolve(result),
+                  then: (resolve: (v: typeof result) => void) => resolve(result),
+                };
               },
             };
             return chain;

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Dumbbell, Film, Image as ImageIcon, Link2, Minus, Trash2 } from "lucide-react";
+import { Copy, Dumbbell, Film, Image as ImageIcon, Link2, Minus, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,13 +23,15 @@ import { KanbanBoard } from "@/components/kanban/kanban-board";
 import {
   searchExercisesAction,
   searchFoodsAction,
+  getExerciseAction,
+  getFoodAction,
   deleteExerciseAction,
   deleteFoodAction,
   moveExerciseAction,
   moveFoodAction,
 } from "./actions";
-import { AddExerciseDialog } from "./add-exercise-dialog";
-import { AddFoodDialog } from "./add-food-dialog";
+import { ExerciseDialog } from "./exercise-dialog";
+import { FoodDialog } from "./food-dialog";
 import { ExerciseCard } from "./exercise-card";
 import { FoodCard } from "./food-card";
 import { SourceFilter } from "./source-filter";
@@ -38,8 +40,18 @@ import { ViewSwitcher, type LibraryView } from "./view-switcher";
 
 type ExercisePage = Awaited<ReturnType<typeof searchExercisesAction>>;
 type FoodPage = Awaited<ReturnType<typeof searchFoodsAction>>;
+type Exercise = ExercisePage["rows"][number];
+type Food = FoodPage["rows"][number];
 
 type PendingDelete = { kind: "exercise" | "food"; id: string };
+
+// Drives the controlled clone/edit dialog. "clone" prefills from the global
+// row already in hand; "edit" prefills from the coach's own row — which,
+// for "Edit my version" on a global card, isn't in hand yet (the card only
+// carries my_clone_id) and gets fetched first, see startEditMyExerciseClone.
+type Editing =
+  | { kind: "exercise"; mode: "clone" | "edit"; item: Exercise }
+  | { kind: "food"; mode: "clone" | "edit"; item: Food };
 
 const LIST_KANBAN_PAGE_SIZE = 24;
 const KANBAN_PAGE_SIZE = 48;
@@ -73,6 +85,7 @@ export function LibraryClient({
   const [pageExercise, setPageExercise] = useState(1);
   const [pageFood, setPageFood] = useState(1);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [editing, setEditing] = useState<Editing | null>(null);
   const debouncedSearch = useDebouncedValue(search, 300);
   const queryClient = useQueryClient();
 
@@ -175,6 +188,20 @@ export function LibraryClient({
     // tErrors.has() guards against a Postgres code we haven't mapped —
     // next-intl would otherwise render the raw key.
     toast.error(tErrors.has(key) ? tErrors(key) : tErrors("unknown"));
+  }
+
+  // "Edit my version" on a global card only has my_clone_id — the clone's
+  // own (possibly renamed) fields need a fresh read before the dialog can
+  // prefill from them, unlike clone/edit-own which already have the full
+  // row in hand.
+  async function startEditMyExerciseClone(cloneId: string) {
+    const clone = await getExerciseAction(cloneId);
+    if (clone) setEditing({ kind: "exercise", mode: "edit", item: clone });
+  }
+
+  async function startEditMyFoodClone(cloneId: string) {
+    const clone = await getFoodAction(cloneId);
+    if (clone) setEditing({ kind: "food", mode: "edit", item: clone });
   }
 
   async function onConfirmDelete() {
@@ -292,9 +319,9 @@ export function LibraryClient({
             )}
             <ViewSwitcher value={view} onChange={updateView} />
             {tab === "exercises" ? (
-              <AddExerciseDialog locale={locale} onCreated={invalidate} />
+              <ExerciseDialog locale={locale} mode="create" onSaved={invalidate} />
             ) : (
-              <AddFoodDialog locale={locale} onCreated={invalidate} />
+              <FoodDialog locale={locale} mode="create" onSaved={invalidate} />
             )}
           </div>
         </div>
@@ -331,6 +358,7 @@ export function LibraryClient({
                       const groupLabel = isKnownMuscleGroup(ex.muscle_group)
                         ? tGroups(ex.muscle_group)
                         : ex.muscle_group;
+                      const isCustomized = !!ex.coach_id && !!ex.source_exercise_id;
                       return (
                         <TableRow key={ex.id}>
                           <TableCell className="max-w-56 truncate font-medium">
@@ -347,23 +375,53 @@ export function LibraryClient({
                             {ex.equipment || "—"}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
-                            {mediaIndicator(ex.video_url)}
+                            {mediaIndicator(ex.image_url || ex.video_url)}
                           </TableCell>
                           <TableCell>
                             <Badge variant={ex.coach_id ? "secondary" : "outline"}>
-                              {ex.coach_id ? t("mine") : t("official")}
+                              {!ex.coach_id ? t("official") : isCustomized ? t("customized") : t("mine")}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            {ex.coach_id && (
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label={t("delete")}
-                                onClick={() => setPendingDelete({ kind: "exercise", id: ex.id })}
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
+                          <TableCell className="flex justify-end gap-1">
+                            {!ex.coach_id ? (
+                              ex.my_clone_id ? (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("editMyVersion")}
+                                  onClick={() => startEditMyExerciseClone(ex.my_clone_id!)}
+                                >
+                                  <Pencil className="size-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("clone")}
+                                  onClick={() => setEditing({ kind: "exercise", mode: "clone", item: ex })}
+                                >
+                                  <Copy className="size-4" />
+                                </Button>
+                              )
+                            ) : (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("edit")}
+                                  onClick={() => setEditing({ kind: "exercise", mode: "edit", item: ex })}
+                                >
+                                  <Pencil className="size-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("delete")}
+                                  onClick={() => setPendingDelete({ kind: "exercise", id: ex.id })}
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </>
                             )}
                           </TableCell>
                         </TableRow>
@@ -379,6 +437,9 @@ export function LibraryClient({
                       exercise={ex}
                       locale={locale}
                       onDelete={() => setPendingDelete({ kind: "exercise", id: ex.id })}
+                      onClone={() => setEditing({ kind: "exercise", mode: "clone", item: ex })}
+                      onEdit={() => setEditing({ kind: "exercise", mode: "edit", item: ex })}
+                      onEditMyClone={() => startEditMyExerciseClone(ex.my_clone_id!)}
                     />
                   ))}
                 </div>
@@ -396,7 +457,17 @@ export function LibraryClient({
                     }
                     invalidate();
                   }}
-                  renderCard={(ex) => <ExerciseCard exercise={ex} locale={locale} onDelete={() => {}} variant="compact" />}
+                  renderCard={(ex) => (
+                    <ExerciseCard
+                      exercise={ex}
+                      locale={locale}
+                      onDelete={() => {}}
+                      onClone={() => {}}
+                      onEdit={() => {}}
+                      onEditMyClone={() => {}}
+                      variant="compact"
+                    />
+                  )}
                   emptyLabel={t("empty")}
                 />
               )}
@@ -438,40 +509,73 @@ export function LibraryClient({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {foods.map((food) => (
-                      <TableRow key={food.id}>
-                        <TableCell className="max-w-56 truncate font-medium">
-                          {pickLocale(food, locale)}
-                        </TableCell>
-                        <TableCell className="hidden text-muted-foreground sm:table-cell">
-                          {food.serving_label}
-                        </TableCell>
-                        <TableCell className="tabular-nums">{food.kcal}</TableCell>
-                        <TableCell className="hidden text-xs tabular-nums text-muted-foreground md:table-cell">
-                          {food.protein_g}P · {food.carb_g}C · {food.fat_g}F
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <Badge variant="outline">{tCategories(food.category)}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={food.coach_id ? "secondary" : "outline"}>
-                            {food.coach_id ? t("mine") : t("official")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {food.coach_id && (
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={t("delete")}
-                              onClick={() => setPendingDelete({ kind: "food", id: food.id })}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {foods.map((food) => {
+                      const isCustomized = !!food.coach_id && !!food.source_food_id;
+                      return (
+                        <TableRow key={food.id}>
+                          <TableCell className="max-w-56 truncate font-medium">
+                            {pickLocale(food, locale)}
+                          </TableCell>
+                          <TableCell className="hidden text-muted-foreground sm:table-cell">
+                            {food.serving_label}
+                          </TableCell>
+                          <TableCell className="tabular-nums">{food.kcal}</TableCell>
+                          <TableCell className="hidden text-xs tabular-nums text-muted-foreground md:table-cell">
+                            {food.protein_g}P · {food.carb_g}C · {food.fat_g}F
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <Badge variant="outline">{tCategories(food.category)}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={food.coach_id ? "secondary" : "outline"}>
+                              {!food.coach_id ? t("official") : isCustomized ? t("customized") : t("mine")}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="flex justify-end gap-1">
+                            {!food.coach_id ? (
+                              food.my_clone_id ? (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("editMyVersion")}
+                                  onClick={() => startEditMyFoodClone(food.my_clone_id!)}
+                                >
+                                  <Pencil className="size-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("clone")}
+                                  onClick={() => setEditing({ kind: "food", mode: "clone", item: food })}
+                                >
+                                  <Copy className="size-4" />
+                                </Button>
+                              )
+                            ) : (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("edit")}
+                                  onClick={() => setEditing({ kind: "food", mode: "edit", item: food })}
+                                >
+                                  <Pencil className="size-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={t("delete")}
+                                  onClick={() => setPendingDelete({ kind: "food", id: food.id })}
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : view === "card" ? (
@@ -482,6 +586,9 @@ export function LibraryClient({
                       food={food}
                       locale={locale}
                       onDelete={() => setPendingDelete({ kind: "food", id: food.id })}
+                      onClone={() => setEditing({ kind: "food", mode: "clone", item: food })}
+                      onEdit={() => setEditing({ kind: "food", mode: "edit", item: food })}
+                      onEditMyClone={() => startEditMyFoodClone(food.my_clone_id!)}
                     />
                   ))}
                 </div>
@@ -499,7 +606,17 @@ export function LibraryClient({
                     }
                     invalidate();
                   }}
-                  renderCard={(food) => <FoodCard food={food} locale={locale} onDelete={() => {}} variant="compact" />}
+                  renderCard={(food) => (
+                    <FoodCard
+                      food={food}
+                      locale={locale}
+                      onDelete={() => {}}
+                      onClone={() => {}}
+                      onEdit={() => {}}
+                      onEditMyClone={() => {}}
+                      variant="compact"
+                    />
+                  )}
                   emptyLabel={t("empty")}
                 />
               )}
@@ -514,6 +631,37 @@ export function LibraryClient({
           />
         </TabsContent>
       </Tabs>
+
+      {editing?.kind === "exercise" && (
+        <ExerciseDialog
+          // key remounts the form so defaultValues track the selected row —
+          // same reasoning as the admin GlobalExerciseDialog.
+          key={`${editing.mode}-${editing.item.id}`}
+          locale={locale}
+          mode={editing.mode}
+          item={editing.item}
+          open
+          onOpenChange={(open) => !open && setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            invalidate();
+          }}
+        />
+      )}
+      {editing?.kind === "food" && (
+        <FoodDialog
+          key={`${editing.mode}-${editing.item.id}`}
+          locale={locale}
+          mode={editing.mode}
+          item={editing.item}
+          open
+          onOpenChange={(open) => !open && setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            invalidate();
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={pendingDelete !== null}

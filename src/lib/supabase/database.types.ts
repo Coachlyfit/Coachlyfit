@@ -85,40 +85,55 @@ export type Database = {
       checkins: {
         Row: {
           adherence: number | null
+          adjustments: Json | null
           checkin_date: string
           client_id: string
           coach_id: string
+          coach_reply: string | null
           created_at: string
+          decision: string | null
           energy: number | null
           id: string
           mood: number | null
           notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           sleep_hours: number | null
           weight: number | null
         }
         Insert: {
           adherence?: number | null
+          adjustments?: Json | null
           checkin_date?: string
           client_id: string
           coach_id: string
+          coach_reply?: string | null
           created_at?: string
+          decision?: string | null
           energy?: number | null
           id?: string
           mood?: number | null
           notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sleep_hours?: number | null
           weight?: number | null
         }
         Update: {
           adherence?: number | null
+          adjustments?: Json | null
           checkin_date?: string
           client_id?: string
           coach_id?: string
+          coach_reply?: string | null
           created_at?: string
+          decision?: string | null
           energy?: number | null
           id?: string
           mood?: number | null
           notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           sleep_hours?: number | null
           weight?: number | null
         }
@@ -128,6 +143,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkins_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
           {
@@ -273,38 +295,50 @@ export type Database = {
       exercises: {
         Row: {
           coach_id: string | null
+          coach_notes_ar: string | null
+          coach_notes_en: string | null
           created_at: string
           equipment: string | null
           id: string
+          image_url: string | null
           instructions_ar: string | null
           instructions_en: string | null
           muscle_group: string | null
           name_ar: string
           name_en: string
+          source_exercise_id: string | null
           video_url: string | null
         }
         Insert: {
           coach_id?: string | null
+          coach_notes_ar?: string | null
+          coach_notes_en?: string | null
           created_at?: string
           equipment?: string | null
           id?: string
+          image_url?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
           muscle_group?: string | null
           name_ar: string
           name_en: string
+          source_exercise_id?: string | null
           video_url?: string | null
         }
         Update: {
           coach_id?: string | null
+          coach_notes_ar?: string | null
+          coach_notes_en?: string | null
           created_at?: string
           equipment?: string | null
           id?: string
+          image_url?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
           muscle_group?: string | null
           name_ar?: string
           name_en?: string
+          source_exercise_id?: string | null
           video_url?: string | null
         }
         Relationships: [
@@ -313,6 +347,20 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_source_exercise_id_fkey"
+            columns: ["source_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_source_exercise_id_fkey"
+            columns: ["source_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises_visible"
             referencedColumns: ["id"]
           },
         ]
@@ -328,8 +376,11 @@ export type Database = {
           kcal: number
           name_ar: string
           name_en: string
+          notes_ar: string | null
+          notes_en: string | null
           protein_g: number
           serving_label: string
+          source_food_id: string | null
         }
         Insert: {
           carb_g?: number
@@ -341,8 +392,11 @@ export type Database = {
           kcal: number
           name_ar: string
           name_en: string
+          notes_ar?: string | null
+          notes_en?: string | null
           protein_g?: number
           serving_label?: string
+          source_food_id?: string | null
         }
         Update: {
           carb_g?: number
@@ -354,8 +408,11 @@ export type Database = {
           kcal?: number
           name_ar?: string
           name_en?: string
+          notes_ar?: string | null
+          notes_en?: string | null
           protein_g?: number
           serving_label?: string
+          source_food_id?: string | null
         }
         Relationships: [
           {
@@ -363,6 +420,20 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foods_source_food_id_fkey"
+            columns: ["source_food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foods_source_food_id_fkey"
+            columns: ["source_food_id"]
+            isOneToOne: false
+            referencedRelation: "foods_visible"
             referencedColumns: ["id"]
           },
         ]
@@ -756,6 +827,7 @@ export type Database = {
           created_at: string
           id: string
           kind: string
+          pose: string | null
           storage_path: string
         }
         Insert: {
@@ -765,6 +837,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind: string
+          pose?: string | null
           storage_path: string
         }
         Update: {
@@ -774,6 +847,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          pose?: string | null
           storage_path?: string
         }
         Relationships: [
@@ -1350,8 +1424,86 @@ export type Database = {
         ]
       }
     }
+    // Hand-authored to match 20260805000001_library_clone.sql pending a real
+    // `supabase gen types` run (no reachable DB from this session — see
+    // memory/no_supabase_project_yet.md). Regenerate and diff against this
+    // once DB access is available; view columns are nullable per the CLI's
+    // usual view-typing convention regardless of the base table's NOT NULLs.
     Views: {
-      [_ in never]: never
+      exercises_visible: {
+        Row: {
+          coach_id: string | null
+          coach_notes_ar: string | null
+          coach_notes_en: string | null
+          created_at: string | null
+          equipment: string | null
+          id: string | null
+          image_url: string | null
+          instructions_ar: string | null
+          instructions_en: string | null
+          muscle_group: string | null
+          my_clone_id: string | null
+          name_ar: string | null
+          name_en: string | null
+          source_exercise_id: string | null
+          source_name_ar: string | null
+          source_name_en: string | null
+          video_url: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_source_exercise_id_fkey"
+            columns: ["source_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      foods_visible: {
+        Row: {
+          carb_g: number | null
+          category: string | null
+          coach_id: string | null
+          created_at: string | null
+          fat_g: number | null
+          id: string | null
+          kcal: number | null
+          my_clone_id: string | null
+          name_ar: string | null
+          name_en: string | null
+          notes_ar: string | null
+          notes_en: string | null
+          protein_g: number | null
+          serving_label: string | null
+          source_food_id: string | null
+          source_name_ar: string | null
+          source_name_en: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "foods_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foods_source_food_id_fkey"
+            columns: ["source_food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invite: {
@@ -1386,6 +1538,32 @@ export type Database = {
           p_reference?: string
         }
         Returns: string
+      }
+      review_checkin: {
+        Args: {
+          p_adjustments?: Json
+          p_checkin_id: string
+          p_coach_reply?: string
+          p_decision: string
+        }
+        Returns: {
+          adherence: number | null
+          adjustments: Json | null
+          checkin_date: string
+          client_id: string
+          coach_id: string
+          coach_reply: string | null
+          created_at: string
+          decision: string | null
+          energy: number | null
+          id: string
+          mood: number | null
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sleep_hours: number | null
+          weight: number | null
+        }
       }
     }
     Enums: {
