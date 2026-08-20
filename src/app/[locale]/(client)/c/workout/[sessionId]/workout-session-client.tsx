@@ -10,16 +10,30 @@ import { ExerciseVideoSheet } from "@/components/workout/exercise-video-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { logSetAction, completeSessionAction } from "@/domain/workouts/workouts-actions";
+import { projectSetsForWeek, type ProgressionRule } from "@/domain/programs/progression";
 import { cn } from "@/lib/utils";
 
+type ProgramItemSetRow = Database["public"]["Tables"]["program_item_sets"]["Row"];
 type ProgramItem = Database["public"]["Tables"]["program_items"]["Row"] & {
   exercises: Pick<
     Database["public"]["Tables"]["exercises"]["Row"],
     "id" | "name_ar" | "name_en" | "muscle_group" | "video_url" | "cues_ar" | "cues_en"
   >;
+  program_item_sets: ProgramItemSetRow[]; // must already be ordered by set_index
 };
 type ProgramDay = Database["public"]["Tables"]["program_days"]["Row"] & { program_items: ProgramItem[] };
 type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
+
+/** min-max reps across a projected set list, formatted like the old
+ * program_items.reps range string ("8-12" or "10") — display-only, purely
+ * cosmetic continuity with the previous header line. */
+function repsRangeLabel(sets: { reps: number }[]): string {
+  if (sets.length === 0) return "";
+  const reps = sets.map((s) => s.reps);
+  const min = Math.min(...reps);
+  const max = Math.max(...reps);
+  return min === max ? String(min) : `${min}-${max}`;
+}
 
 function mmss(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
@@ -38,12 +52,16 @@ function setKey(programItemId: string, setIndex: number): string {
 export function WorkoutSessionClient({
   locale,
   day,
+  week,
   sessionId,
   initialSetLogs,
   alreadyCompleted,
 }: {
   locale: AppLocale;
   day: ProgramDay;
+  /** Which week's progression to project — see program-cycle.ts's
+   * weekIndexForDate, resolved server-side from the program's start_date. */
+  week: number;
   sessionId: string;
   initialSetLogs: WorkoutSetLog[];
   alreadyCompleted: boolean;
@@ -63,7 +81,13 @@ export function WorkoutSessionClient({
   const [videoExercise, setVideoExercise] = useState<ProgramItem["exercises"] | null>(null);
   const [restDuration, setRestDuration] = useState(90);
 
-  const totalSets = day.program_items.reduce((sum, item) => sum + item.sets, 0);
+  const projectedByItem = new Map(
+    day.program_items.map((item) => [
+      item.id,
+      projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week),
+    ])
+  );
+  const totalSets = day.program_items.reduce((sum, item) => sum + item.program_item_sets.length, 0);
   const doneCount = logs.size;
   const allDone = totalSets > 0 && doneCount === totalSets;
 
@@ -76,14 +100,13 @@ export function WorkoutSessionClient({
     return () => clearInterval(id);
   }, [done]);
 
-  async function toggleSet(item: ProgramItem, setIndex: number) {
+  async function toggleSet(item: ProgramItem, setIndex: number, prescribedReps: number) {
     const key = setKey(item.id, setIndex);
     if (logs.has(key)) return; // sets are logged once, not un-toggled — matches server-authored history
-    const [minReps] = item.reps.split(/[-–]/).map((s) => parseInt(s.trim(), 10));
     const log = await logSetAction(sessionId, {
       program_item_id: item.id,
       set_index: setIndex,
-      reps: Number.isFinite(minReps) ? minReps : null,
+      reps: prescribedReps,
     });
     if (!log) return;
     setLogs((prev) => new Map(prev).set(key, log));
@@ -157,7 +180,9 @@ export function WorkoutSessionClient({
       )}
 
       <div className="flex flex-col gap-3.5 px-5 py-4">
-        {day.program_items.map((item) => (
+        {day.program_items.map((item) => {
+          const displaySets = projectedByItem.get(item.id) ?? [];
+          return (
           <div key={item.id} className="rounded-2xl bg-[#0F172A] p-4">
             <div className="mb-3.5 flex items-center gap-3">
               <button
@@ -175,7 +200,7 @@ export function WorkoutSessionClient({
                 </p>
                 <div className="mt-1 flex items-center gap-2.5">
                   <span className="font-mono text-[11px] text-[#64748B]">
-                    {item.sets} × {item.reps}
+                    {displaySets.length} × {repsRangeLabel(displaySets)}
                   </span>
                   {item.exercises.video_url && (
                     <button
@@ -190,28 +215,31 @@ export function WorkoutSessionClient({
               </div>
             </div>
             <div className="flex gap-2.5">
-              {Array.from({ length: item.sets }, (_, i) => {
+              {displaySets.map((set, i) => {
                 const log = logs.get(setKey(item.id, i));
                 const on = log != null;
                 return (
                   <button
                     key={i}
                     type="button"
-                    onClick={() => toggleSet(item, i)}
+                    onClick={() => toggleSet(item, i, set.reps)}
                     disabled={on}
                     className={cn(
                       "flex h-13 flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
                       on ? "border-primary bg-primary text-primary-foreground" : "border-[#1E293B] text-[#64748B]"
                     )}
                   >
-                    <span className="font-mono text-sm font-semibold">{log?.weight ?? item.reps.split(/[-–]/)[0]}</span>
-                    <span className="font-mono text-[9px] tracking-wider">{log?.reps ?? "rep"}</span>
+                    <span className="font-mono text-sm font-semibold">
+                      {log?.weight ?? set.weight ?? t("bodyweight")}
+                    </span>
+                    <span className="font-mono text-[9px] tracking-wider">{log?.reps ?? set.reps}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
 
         <button
           type="button"

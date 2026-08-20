@@ -452,7 +452,8 @@
       "not_authenticated": "سجّل الدخول تاني.",
       "signup_failed": "حصل خطأ. جرّب تاني.",
       "email_taken": "فيه حساب متسجل بالإيميل ده خلاص.",
-      "invalid_invite": "الدعوة دي مبقتش شغالة. اطلب من مدربك رابط جديد."
+      "invalid_invite": "الدعوة دي مبقتش شغالة. اطلب من مدربك رابط جديد.",
+      "not_found_or_forbidden": "مش لاقيه، أو مفيش صلاحية."
     }
   },
   "join": {
@@ -517,7 +518,8 @@
       "backToWorkout": "رجوع للتمرين",
       "openOriginalVideo": "افتح الفيديو الأصلي",
       "formCheck": "شيك على الأداء",
-      "performanceCues": "نقط الأداء"
+      "performanceCues": "نقط الأداء",
+      "bodyweight": "وزن الجسم"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
@@ -526,6 +528,43 @@
       "doneTitle": "وصلت لكابتنك",
       "doneBody": "هيراجعها ويرد عليك خلال ٢٤ ساعة. تقدر تكمّل يومك.",
       "close": "تمام"
+    },
+    "checkinWizard": {
+      "intro": {
+        "eyebrow": "متابعة النهاردة",
+        "body": "كام سؤال بسيط لـ{business} — هتاخد دقيقتين بس.",
+        "questionCount": "{count} أسئلة بسيطة",
+        "duration": "{minutes} دقيقة تقريبًا",
+        "cta": "ابدأ المتابعة",
+        "privacy": "إجاباتك بتتشاف من {business} بس"
+      },
+      "step": {
+        "next": "التالي",
+        "back": "رجوع",
+        "of": "{current} / {total}"
+      },
+      "photo": {
+        "hint": "وقف زي المرة اللي فاتت بالظبط",
+        "skip": "تخطّي",
+        "retake": "إعادة",
+        "captureLabel": "التقط الصورة",
+        "cameraUnavailable": "الكاميرا مش متاحة — اختار صورة بدالها",
+        "added": "اتضافت",
+        "skipped": "اتخطّت",
+        "uploading": "بترفع…"
+      },
+      "review": {
+        "title": "راجع قبل ما تبعت",
+        "subtitle": "تقدر تعدّل أي إجابة",
+        "edit": "تعديل",
+        "noPhotos": "مفيش صور مضافة",
+        "submit": "ابعت لـ{business}"
+      },
+      "done": {
+        "title": "وصلت لكابتنك",
+        "body": "كابتنك هيشوفها قريب.",
+        "close": "تمام"
+      }
     }
   },
   "inbox": {
@@ -723,6 +762,19 @@
     "deleteProgram": "امسح البرنامج",
     "confirmDeleteProgramTitle": "تمسح البرنامج ده؟",
     "confirmDeleteProgramBody": "هيمسح كل الأيام والتمارين اللي فيه. مينفعش ترجع فيها.",
+    "pendingAdjustments": {
+      "title": "جاية من المراجعة الأسبوعية",
+      "reduceLoad": "قلّل الحمل {percent}٪",
+      "reduceLoadWholeProgram": "قلّل الحمل {percent}٪ على كل البرنامج",
+      "removeMovement": "استبعد {count} تمرين",
+      "extraWarmup": "زوّد وقت الإحماء",
+      "extraRestDay": "ضيف يوم راحة",
+      "apply": "طبّق",
+      "applied": "اتطبّق"
+    },
+    "assignedToClients": {
+      "title": "متعيّن لـ {count} عميل"
+    },
     "builder": {
       "addDay": "ضيف يوم",
       "editDay": "عدّل اليوم",
@@ -734,7 +786,11 @@
       "rest": "راحة {seconds} ثانية",
       "deleteDay": "امسح اليوم",
       "confirmDeleteDayTitle": "تمسح اليوم ده؟",
-      "confirmDeleteDayBody": "هيمسح كل التمارين اللي فيه. مينفعش ترجع فيها."
+      "confirmDeleteDayBody": "هيمسح كل التمارين اللي فيه. مينفعش ترجع فيها.",
+      "week": "الأسبوع {n}",
+      "weekReadOnlyHint": "للعرض فقط — ارجع للأسبوع ١ عشان تعدّل",
+      "bodyweight": "وزن الجسم",
+      "setLine": "{reps} تكرار"
     },
     "dayDialog": {
       "addTitle": "ضيف يوم",
@@ -751,11 +807,32 @@
       "loading": "بدوّر...",
       "noResults": "مفيش تمارين مطابقة.",
       "sets": "المجموعات",
+      "setN": "مجموعة {index}",
       "reps": "التكرارات",
+      "weight": "الوزن (كجم، اختياري)",
       "restSeconds": "الراحة (ثواني، اختياري)",
+      "addSet": "ضيف مجموعة",
+      "removeSet": "احذف",
+      "progressionRule": "التدرّج الأسبوعي",
+      "progressionNone": "بدون — نفس الوزن كل أسبوع",
+      "progressionPlus25": "+٢.٥ كجم كل أسبوع",
+      "progressionPlus5": "+٥ كجم كل أسبوع",
+      "progressionPlus1Rep": "+تكرار واحد كل أسبوع",
       "notesAr": "ملاحظات (عربي، اختياري)",
       "notesEn": "ملاحظات (إنجليزي، اختياري)",
       "submit": "حفظ"
+    },
+    "volume": {
+      "title": "الحجم الأسبوعي",
+      "empty": "ضيف تمارين عشان تشوف الحجم لكل عضلة."
+    },
+    "exerciseSidebar": {
+      "title": "ضيف تمرين",
+      "searchPlaceholder": "دوّر على تمرين...",
+      "loading": "بدوّر...",
+      "noResults": "مفيش تمارين مطابقة.",
+      "allGroups": "الكل",
+      "dayFallback": "يوم {n}"
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
@@ -1101,7 +1178,11 @@
         "front": "أمامي",
         "side": "جانبي",
         "back": "خلفي"
-      }
+      },
+      "delete": "امسح الصورة",
+      "deleteConfirmTitle": "تمسح الصورة دي؟",
+      "deleteConfirmBody": "هتتشال عندك وعند العميل. مينفعش ترجع فيها.",
+      "deleted": "اتمسحت الصورة"
     },
     "chart": {
       "empty": "مفيش بيانات لسه.",
@@ -1233,7 +1314,14 @@
         "extraWarmup": "زيادة وقت الإحماء",
         "removeMovement": "استبعاد حركة معينة مؤقتًا",
         "extraRestDay": "إضافة يوم راحة"
-      }
+      },
+      "percentLabel": "قلّل بمقدار",
+      "wholeProgram": "كل البرنامج الحالي",
+      "pickExercises": "أو اختار تمارين معينة",
+      "loadingExercises": "بيحمّل التمارين...",
+      "noExercises": "مفيش برنامج نشط للعميل ده.",
+      "removeMovementHint": "اختار تمرين واحد على الأقل عشان تستبعده.",
+      "exercisesSelected": "اتختار {count} تمرين"
     },
     "reply": {
       "title": "ردّك",

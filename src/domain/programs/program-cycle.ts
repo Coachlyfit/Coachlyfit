@@ -35,6 +35,20 @@ export function dayIndicesForWeek(startDate: string, cycleLength: number, weekSt
   });
 }
 
+/** 1-based training week for a calendar date, used by the client workout
+ * runner to pick which week's progression projection to show. Distinct from
+ * `dayIndexForDate`: that maps date -> which day of the split repeats; this
+ * maps date -> which week of progression applies. Clamps at `maxWeeks` (the
+ * design caps the selector at 12) rather than progressing forever, and
+ * returns 1 for a date before the program started (same "show week 1" floor
+ * `dayIndexForDate` would need if it didn't return null). */
+export function weekIndexForDate(startDate: string, targetDate: string, maxWeeks = 12): number {
+  const daysSinceStart = Math.floor((toUtcDate(targetDate) - toUtcDate(startDate)) / 86_400_000);
+  if (daysSinceStart < 0) return 1;
+  const week = Math.floor(daysSinceStart / 7) + 1;
+  return Math.min(week, maxWeeks);
+}
+
 /** ISO date (YYYY-MM-DD) of the Saturday on/before `isoDate` — this region's
  * week start (matches the design's week ordering: Sat...Fri). JS
  * `getUTCDay()` is 0=Sunday, so Saturday is 6; the `+1) % 7` rotates the

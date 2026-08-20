@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayIndexForDate, dayIndicesForWeek, startOfWeekSaturday } from "./program-cycle";
+import { dayIndexForDate, dayIndicesForWeek, startOfWeekSaturday, weekIndexForDate } from "./program-cycle";
 
 describe("dayIndexForDate", () => {
   it("day 1 lands exactly on start_date", () => {
@@ -30,6 +30,25 @@ describe("dayIndicesForWeek", () => {
 
   it("returns null for dates before the program started", () => {
     expect(dayIndicesForWeek("2026-08-03", 3, "2026-08-01")).toEqual([null, null, 1, 2, 3, 1, 2]);
+  });
+});
+
+describe("weekIndexForDate", () => {
+  it("week 1 covers start_date through 6 days later", () => {
+    expect(weekIndexForDate("2026-08-01", "2026-08-01")).toBe(1);
+    expect(weekIndexForDate("2026-08-01", "2026-08-07")).toBe(1);
+  });
+
+  it("rolls over to week 2 on day 7 since start", () => {
+    expect(weekIndexForDate("2026-08-01", "2026-08-08")).toBe(2);
+  });
+
+  it("clamps to maxWeeks instead of progressing forever", () => {
+    expect(weekIndexForDate("2026-08-01", "2027-01-01", 12)).toBe(12);
+  });
+
+  it("floors to week 1 for a date before the program started", () => {
+    expect(weekIndexForDate("2026-08-01", "2026-07-01")).toBe(1);
   });
 });
 

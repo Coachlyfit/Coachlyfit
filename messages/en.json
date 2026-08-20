@@ -452,7 +452,8 @@
       "not_authenticated": "Please log in again.",
       "signup_failed": "Something went wrong. Please try again.",
       "email_taken": "An account with this email already exists.",
-      "invalid_invite": "This invite is no longer valid. Ask your coach for a new link."
+      "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
+      "not_found_or_forbidden": "Couldn't find that, or you don't have access."
     }
   },
   "join": {
@@ -517,7 +518,8 @@
       "backToWorkout": "Back to workout",
       "openOriginalVideo": "Open original video",
       "formCheck": "FORM CHECK",
-      "performanceCues": "Performance cues"
+      "performanceCues": "Performance cues",
+      "bodyweight": "BW"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -526,6 +528,43 @@
       "doneTitle": "Sent to your coach",
       "doneBody": "They'll review it and reply within 24 hours. You can carry on with your day.",
       "close": "Done"
+    },
+    "checkinWizard": {
+      "intro": {
+        "eyebrow": "Today's check-in",
+        "body": "A few quick questions for {business} — takes about 2 minutes.",
+        "questionCount": "{count} quick questions",
+        "duration": "About {minutes} min",
+        "cta": "Start check-in",
+        "privacy": "Only {business} can see your answers"
+      },
+      "step": {
+        "next": "Next",
+        "back": "Back",
+        "of": "{current} / {total}"
+      },
+      "photo": {
+        "hint": "Stand the same way as last time",
+        "skip": "Skip",
+        "retake": "Retake",
+        "captureLabel": "Take photo",
+        "cameraUnavailable": "Camera unavailable — choose a photo instead",
+        "added": "Added",
+        "skipped": "Skipped",
+        "uploading": "Uploading…"
+      },
+      "review": {
+        "title": "Review before you send",
+        "subtitle": "You can edit any answer",
+        "edit": "Edit",
+        "noPhotos": "No photos added",
+        "submit": "Send to {business}"
+      },
+      "done": {
+        "title": "Sent to your coach",
+        "body": "Your coach will see this soon.",
+        "close": "Done"
+      }
     }
   },
   "inbox": {
@@ -723,6 +762,19 @@
     "deleteProgram": "Delete program",
     "confirmDeleteProgramTitle": "Delete this program?",
     "confirmDeleteProgramBody": "This deletes every day and exercise in it. This can't be undone.",
+    "pendingAdjustments": {
+      "title": "From this week's review",
+      "reduceLoad": "Reduce load by {percent}%",
+      "reduceLoadWholeProgram": "Reduce load by {percent}% across the whole program",
+      "removeMovement": "Remove {count} exercise(s)",
+      "extraWarmup": "Add extra warm-up time",
+      "extraRestDay": "Add a rest day",
+      "apply": "Apply",
+      "applied": "Applied"
+    },
+    "assignedToClients": {
+      "title": "Assigned to {count} client(s)"
+    },
     "builder": {
       "addDay": "Add day",
       "editDay": "Edit day",
@@ -734,7 +786,11 @@
       "rest": "{seconds}s rest",
       "deleteDay": "Delete day",
       "confirmDeleteDayTitle": "Delete this day?",
-      "confirmDeleteDayBody": "This deletes every exercise in it. This can't be undone."
+      "confirmDeleteDayBody": "This deletes every exercise in it. This can't be undone.",
+      "week": "Week {n}",
+      "weekReadOnlyHint": "Read-only — go back to week 1 to edit",
+      "bodyweight": "BW",
+      "setLine": "{reps} reps"
     },
     "dayDialog": {
       "addTitle": "Add day",
@@ -751,11 +807,32 @@
       "loading": "Searching...",
       "noResults": "No exercises match.",
       "sets": "Sets",
+      "setN": "Set {index}",
       "reps": "Reps",
-      "restSeconds": "Rest (seconds, optional)",
+      "weight": "Weight (kg, optional)",
+      "restSeconds": "Rest (sec, optional)",
+      "addSet": "Add set",
+      "removeSet": "Remove",
+      "progressionRule": "Week-over-week progression",
+      "progressionNone": "None — same every week",
+      "progressionPlus25": "+2.5kg per week",
+      "progressionPlus5": "+5kg per week",
+      "progressionPlus1Rep": "+1 rep per week",
       "notesAr": "Notes (Arabic, optional)",
       "notesEn": "Notes (English, optional)",
       "submit": "Save"
+    },
+    "volume": {
+      "title": "Weekly volume",
+      "empty": "Add exercises to see volume by muscle group."
+    },
+    "exerciseSidebar": {
+      "title": "Add exercise",
+      "searchPlaceholder": "Search exercises...",
+      "loading": "Searching...",
+      "noResults": "No exercises match.",
+      "allGroups": "All",
+      "dayFallback": "Day {n}"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -1101,7 +1178,11 @@
         "front": "Front",
         "side": "Side",
         "back": "Back"
-      }
+      },
+      "delete": "Delete photo",
+      "deleteConfirmTitle": "Delete this photo?",
+      "deleteConfirmBody": "This removes it for both of you. This can't be undone.",
+      "deleted": "Photo deleted"
     },
     "chart": {
       "empty": "No data yet.",
@@ -1233,7 +1314,14 @@
         "extraWarmup": "Add extra warm-up time",
         "removeMovement": "Temporarily remove a specific movement",
         "extraRestDay": "Add a rest day"
-      }
+      },
+      "percentLabel": "Reduce by",
+      "wholeProgram": "Whole active program",
+      "pickExercises": "Or pick specific exercises",
+      "loadingExercises": "Loading exercises...",
+      "noExercises": "No active program for this client.",
+      "removeMovementHint": "Pick at least one exercise to remove.",
+      "exercisesSelected": "{count} exercises selected"
     },
     "reply": {
       "title": "Your reply",
