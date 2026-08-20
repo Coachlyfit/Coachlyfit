@@ -167,8 +167,8 @@ function DayCard({
               <Pencil className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={onEditDay}>{t("editDay")}</DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onSelect={onDeleteDay}>
+              <DropdownMenuItem onClick={onEditDay}>{t("editDay")}</DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={onDeleteDay}>
                 {t("deleteDay")}
               </DropdownMenuItem>
             </DropdownMenuContent>
