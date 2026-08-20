@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toEmbedUrl } from "./video-embed";
+import { toEmbedUrl, resolveExerciseMedia } from "./video-embed";
 
 describe("toEmbedUrl", () => {
   it("converts a youtube watch URL", () => {
@@ -26,5 +26,49 @@ describe("toEmbedUrl", () => {
 
   it("returns null for a malformed URL instead of throwing", () => {
     expect(toEmbedUrl("not a url")).toBeNull();
+  });
+});
+
+describe("resolveExerciseMedia", () => {
+  it("returns null for a missing url", () => {
+    expect(resolveExerciseMedia(null)).toBeNull();
+    expect(resolveExerciseMedia(undefined)).toBeNull();
+  });
+
+  it("classifies a youtube link as embed", () => {
+    expect(resolveExerciseMedia("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toEqual({
+      kind: "embed",
+      src: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    });
+  });
+
+  it("classifies a raw gif url as image — the openGym seed shape", () => {
+    expect(
+      resolveExerciseMedia("https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/exercise.gif")
+    ).toEqual({
+      kind: "image",
+      src: "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/exercise.gif",
+    });
+  });
+
+  it("classifies other image extensions as image", () => {
+    expect(resolveExerciseMedia("https://example.com/a.PNG")?.kind).toBe("image");
+    expect(resolveExerciseMedia("https://example.com/a.webp")?.kind).toBe("image");
+  });
+
+  it("falls back to link for an unrecognized url", () => {
+    expect(resolveExerciseMedia("https://example.com/watch/12")).toEqual({
+      kind: "link",
+      src: "https://example.com/watch/12",
+    });
+  });
+
+  it("rejects a non-http(s) scheme instead of handing it to an iframe/img src", () => {
+    expect(resolveExerciseMedia("javascript:alert(1)")).toBeNull();
+    expect(resolveExerciseMedia("data:text/html,<script>alert(1)</script>")).toBeNull();
+  });
+
+  it("returns null for a malformed url", () => {
+    expect(resolveExerciseMedia("not a url")).toBeNull();
   });
 });

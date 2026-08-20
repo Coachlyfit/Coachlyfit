@@ -11,5 +11,10 @@ export function libraryErrorKey(error: unknown): string {
   // 22023 invalid_parameter_value — "already global" / "not found" from the
   // promote functions.
   if (code === "22023") return "already_global";
+  // 23505 unique_violation — exercises_coach_source_uniq / foods_coach_source_uniq
+  // (20260805000001_library_clone.sql): a coach cloning a global they've
+  // already cloned. The UI should offer "Edit my version" instead of hitting
+  // this, but a second tab / race can still get here.
+  if (code === "23505") return "already_cloned";
   return "unknown";
 }

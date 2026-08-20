@@ -5,7 +5,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ScaleButtons } from "@/components/ui/scale-buttons";
 import type { FormField } from "@/domain/forms/schema";
 import type { LibraryRefOption } from "@/domain/forms/library-refs";
 import { NumericPad } from "./numeric-pad";
@@ -50,32 +50,11 @@ export function StepFieldInput({
   if (field.type === "scale") {
     const min = field.min ?? 1;
     const max = field.max ?? 5;
-    const values = Array.from({ length: max - min + 1 }, (_, i) => min + i);
     return (
       <Controller
         name={field.id}
         control={control}
-        render={({ field: f }) => (
-          <div className="flex flex-col gap-2.5">
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {values.map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => f.onChange(v)}
-                  className={cn(
-                    "flex h-13 min-w-13 flex-1 items-center justify-center rounded-[9px] border font-mono text-sm font-semibold transition-colors",
-                    f.value === v
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        render={({ field: f }) => <ScaleButtons value={f.value} onChange={f.onChange} min={min} max={max} />}
       />
     );
   }

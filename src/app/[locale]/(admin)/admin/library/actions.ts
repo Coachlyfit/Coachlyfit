@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { LibraryService, type LibrarySource } from "@/domain/library/library.service";
+import { LibraryService, type LibraryQuery, type LibraryPage } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { createExerciseSchema, createFoodSchema } from "@/app/[locale]/(coach)/library/schemas";
+import { linesToArray } from "@/app/[locale]/(coach)/library/lines-to-array";
 
 type ActionResult = { error: string } | void;
 
@@ -32,18 +33,22 @@ async function requireAdmin(): Promise<
   return { supabase };
 }
 
-export async function adminSearchExercisesAction(query: string, source: LibrarySource = "all") {
-  const { supabase, error } = await requireAdmin();
-  // Read-only and consumed by react-query, so it returns an empty list
-  // rather than an error shape; a non-admin can't reach the page anyway.
-  if (error || !supabase) return [];
-  return new LibraryService(supabase).searchExercises(query, source);
+function emptyPage(params: LibraryQuery): LibraryPage<never> {
+  return { rows: [], total: 0, page: params.page ?? 1, pageSize: params.pageSize ?? 24 };
 }
 
-export async function adminSearchFoodsAction(query: string, source: LibrarySource = "all") {
+export async function adminSearchExercisesAction(params: LibraryQuery = {}) {
   const { supabase, error } = await requireAdmin();
-  if (error || !supabase) return [];
-  return new LibraryService(supabase).searchFoods(query, source);
+  // Read-only and consumed by react-query, so it returns an empty page
+  // rather than an error shape; a non-admin can't reach the page anyway.
+  if (error || !supabase) return emptyPage(params);
+  return new LibraryService(supabase).searchExercises(params);
+}
+
+export async function adminSearchFoodsAction(params: LibraryQuery = {}) {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return emptyPage(params);
+  return new LibraryService(supabase).searchFoods(params);
 }
 
 export async function createGlobalExerciseAction(
@@ -56,17 +61,25 @@ export async function createGlobalExerciseAction(
     muscle_group: formData.get("muscle_group") || undefined,
     equipment: formData.get("equipment") || undefined,
     video_url: formData.get("video_url") || undefined,
+    image_url: formData.get("image_url") || undefined,
+    instructions_ar: formData.get("instructions_ar") || undefined,
+    instructions_en: formData.get("instructions_en") || undefined,
+    cues_ar: formData.get("cues_ar") || undefined,
+    cues_en: formData.get("cues_en") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { video_url, ...input } = parsed.data;
+  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
   try {
     await new LibraryService(supabase).createGlobalExercise({
       ...input,
       video_url: video_url || undefined,
+      image_url: image_url || undefined,
+      cues_ar: linesToArray(cues_ar),
+      cues_en: linesToArray(cues_en),
     });
   } catch (err) {
     return { error: libraryErrorKey(err) };
@@ -112,19 +125,27 @@ export async function updateGlobalExerciseAction(
     muscle_group: formData.get("muscle_group") || undefined,
     equipment: formData.get("equipment") || undefined,
     video_url: formData.get("video_url") || undefined,
+    image_url: formData.get("image_url") || undefined,
+    instructions_ar: formData.get("instructions_ar") || undefined,
+    instructions_en: formData.get("instructions_en") || undefined,
+    cues_ar: formData.get("cues_ar") || undefined,
+    cues_en: formData.get("cues_en") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { video_url, ...input } = parsed.data;
+  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
   try {
     // admin_update_global is qualified `coach_id is null`, so an attempt to
     // edit a coach's private row matches 0 rows and lands here as false.
     const updated = await new LibraryService(supabase).updateExercise(id, {
       ...input,
       video_url: video_url || undefined,
+      image_url: image_url || undefined,
+      cues_ar: linesToArray(cues_ar),
+      cues_en: linesToArray(cues_en),
     });
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (err) {

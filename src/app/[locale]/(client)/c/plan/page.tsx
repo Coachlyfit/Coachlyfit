@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -60,18 +60,21 @@ export default async function ClientPlanPage({
     ).filter(([, session]) => session?.completed_at != null)
   );
 
+  const TodayMark = locale === "ar" ? ChevronLeft : ChevronRight;
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
 
       <div className="flex flex-col gap-3">
         {days.map(({ date, day, isRest, isToday }) => {
-          const done = day ? sessionsByDayId.has(day.id) : false;
+          const session = day ? sessionsByDayId.get(day.id) : undefined;
+          const done = session != null;
           const content = (
             <div
               className={cn(
                 "flex min-h-11 items-center gap-3.5 rounded-2xl border px-4 py-4",
-                isToday ? "border-warning-tint bg-warning-tint" : "border-border bg-card"
+                isToday ? "border-warning-tint bg-warning-tint" : isRest ? "border-border bg-muted" : "border-border bg-card"
               )}
             >
               <div className="flex w-9.5 shrink-0 flex-col items-center text-center">
@@ -87,15 +90,17 @@ export default async function ClientPlanPage({
                 <p className={cn("text-[13.5px] font-semibold", isRest && "text-muted-foreground")}>
                   {isRest ? t("rest") : pickLocale(day!, locale, "label") || t("today")}
                 </p>
-                {!isRest && day && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {day.program_items.length}
-                  </p>
-                )}
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {isRest
+                    ? t("restMeta")
+                    : done
+                      ? t("doneMeta", { minutes: Math.round((session!.duration_seconds ?? 0) / 60) })
+                      : t("exerciseCount", { count: day!.program_items.length })}
+                </p>
               </div>
               {done && <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden="true" />}
               {isToday && !done && !isRest && (
-                <span className="shrink-0 text-sm text-warning-tint-foreground">{t("today")}</span>
+                <TodayMark className="size-4 shrink-0 text-warning-tint-foreground" aria-hidden="true" />
               )}
             </div>
           );

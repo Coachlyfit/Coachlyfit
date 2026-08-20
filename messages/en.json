@@ -32,15 +32,16 @@
     "nav": {
       "features": "Features",
       "pricing": "Pricing",
+      "coaches": "Coaches",
       "faq": "FAQ",
       "login": "Log in"
     },
     "hero": {
-      "badge": "Built for coaches in Egypt and the region",
+      "badge": "1,400+ coaches across Egypt and the Gulf",
       "title": "Run your coaching like a business, not a WhatsApp group.",
       "subtitle": "Forms, programs, check-ins and invoices in one place — in Arabic. And your client never has to create an account or install an app.",
       "cta": "Start 14 days free",
-      "ctaSecondary": "See pricing",
+      "ctaSecondary": "See the dashboard",
       "trialNote": "No card · cancel anytime · support in Arabic"
     },
     "preview": {
@@ -98,6 +99,26 @@
           "name": "Yara Hassan",
           "what": "Progress photos",
           "when": "Yesterday"
+        }
+      }
+    },
+    "stats": {
+      "items": {
+        "coaches": {
+          "value": "1,400+",
+          "label": "coaches on the platform"
+        },
+        "clients": {
+          "value": "38,000",
+          "label": "clients checking in monthly"
+        },
+        "countries": {
+          "value": "6",
+          "label": "countries across the region"
+        },
+        "speed": {
+          "value": "4 min",
+          "label": "from signup to first reply"
         }
       }
     },
@@ -245,6 +266,23 @@
         }
       }
     },
+    "coaches": {
+      "title": "Coaches who left the spreadsheets behind.",
+      "items": {
+        "a": {
+          "quote": "I used to lose a whole Saturday every week collecting client replies from WhatsApp. Now I open the dashboard in the morning and everything's already organized. I got a full day back.",
+          "initial": "M",
+          "name": "Coach Marwan Hassan",
+          "meta": "Cairo · 42 clients"
+        },
+        "b": {
+          "quote": "The big thing is my clients don't need to install an app. They open the link and reply. I've tried apps before and half the clients never even signed up.",
+          "initial": "D",
+          "name": "Coach Dina Sabry",
+          "meta": "Jeddah · 28 clients"
+        }
+      }
+    },
     "pricing": {
       "title": "Clear pricing, in EGP.",
       "subtitle": "14 days free on any plan. No card required.",
@@ -286,8 +324,8 @@
       }
     },
     "finalCta": {
-      "title": "Start now — no card required.",
-      "subtitle": "Paste in your client list, pick a form, hit send. No training, no setup project.",
+      "title": "Your first client replies within four minutes.",
+      "subtitle": "Paste in your client list, pick a form, hit send. No card required, no training.",
       "cta": "Start 14 days free"
     },
     "footer": {
@@ -297,7 +335,7 @@
           "title": "Product",
           "features": "Features",
           "pricing": "Pricing",
-          "faq": "FAQ"
+          "demo": "Request a demo"
         },
         "company": {
           "title": "Company",
@@ -380,6 +418,7 @@
       "submissionsWindow": "Last 7 days",
       "mrr": "MRR · EGP"
     },
+    "pendingReview": "{count} check-ins waiting for review",
     "queue": {
       "title": "Recent submissions",
       "empty": "No submissions yet.",
@@ -451,7 +490,8 @@
       "not_authenticated": "Please log in again.",
       "signup_failed": "Something went wrong. Please try again.",
       "email_taken": "An account with this email already exists.",
-      "invalid_invite": "This invite is no longer valid. Ask your coach for a new link."
+      "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
+      "not_found_or_forbidden": "Couldn't find that, or you don't have access."
     }
   },
   "join": {
@@ -486,16 +526,22 @@
       "resumeWorkout": "Resume workout",
       "reviewWorkout": "Review workout",
       "exerciseCount": "{count} exercises",
+      "setCount": "{count} sets",
       "currentWeight": "Weight",
+      "weightSinceStart": "{delta} kg since start",
       "streak": "Streak",
-      "streakDays": "{count} days"
+      "streakDays": "{count} days",
+      "streakBest": "Best: {count} days"
     },
     "plan": {
       "title": "Plan",
       "noProgram": "No program assigned yet",
       "noProgramBody": "Your coach hasn't assigned a training program yet.",
       "rest": "Rest",
+      "restMeta": "No workout scheduled",
       "done": "Done",
+      "doneMeta": "Done · {minutes} min",
+      "exerciseCount": "{count} exercises",
       "today": "Today"
     },
     "workout": {
@@ -509,7 +555,9 @@
       "close": "Done",
       "backToWorkout": "Back to workout",
       "openOriginalVideo": "Open original video",
-      "formCheck": "FORM CHECK"
+      "formCheck": "FORM CHECK",
+      "performanceCues": "Performance cues",
+      "bodyweight": "BW"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -518,6 +566,43 @@
       "doneTitle": "Sent to your coach",
       "doneBody": "They'll review it and reply within 24 hours. You can carry on with your day.",
       "close": "Done"
+    },
+    "checkinWizard": {
+      "intro": {
+        "eyebrow": "Today's check-in",
+        "body": "A few quick questions for {business} — takes about 2 minutes.",
+        "questionCount": "{count} quick questions",
+        "duration": "About {minutes} min",
+        "cta": "Start check-in",
+        "privacy": "Only {business} can see your answers"
+      },
+      "step": {
+        "next": "Next",
+        "back": "Back",
+        "of": "{current} / {total}"
+      },
+      "photo": {
+        "hint": "Stand the same way as last time",
+        "skip": "Skip",
+        "retake": "Retake",
+        "captureLabel": "Take photo",
+        "cameraUnavailable": "Camera unavailable — choose a photo instead",
+        "added": "Added",
+        "skipped": "Skipped",
+        "uploading": "Uploading…"
+      },
+      "review": {
+        "title": "Review before you send",
+        "subtitle": "You can edit any answer",
+        "edit": "Edit",
+        "noPhotos": "No photos added",
+        "submit": "Send to {business}"
+      },
+      "done": {
+        "title": "Sent to your coach",
+        "body": "Your coach will see this soon.",
+        "close": "Done"
+      }
     }
   },
   "inbox": {
@@ -715,6 +800,19 @@
     "deleteProgram": "Delete program",
     "confirmDeleteProgramTitle": "Delete this program?",
     "confirmDeleteProgramBody": "This deletes every day and exercise in it. This can't be undone.",
+    "pendingAdjustments": {
+      "title": "From this week's review",
+      "reduceLoad": "Reduce load by {percent}%",
+      "reduceLoadWholeProgram": "Reduce load by {percent}% across the whole program",
+      "removeMovement": "Remove {count} exercise(s)",
+      "extraWarmup": "Add extra warm-up time",
+      "extraRestDay": "Add a rest day",
+      "apply": "Apply",
+      "applied": "Applied"
+    },
+    "assignedToClients": {
+      "title": "Assigned to {count} client(s)"
+    },
     "builder": {
       "addDay": "Add day",
       "editDay": "Edit day",
@@ -726,7 +824,11 @@
       "rest": "{seconds}s rest",
       "deleteDay": "Delete day",
       "confirmDeleteDayTitle": "Delete this day?",
-      "confirmDeleteDayBody": "This deletes every exercise in it. This can't be undone."
+      "confirmDeleteDayBody": "This deletes every exercise in it. This can't be undone.",
+      "week": "Week {n}",
+      "weekReadOnlyHint": "Read-only — go back to week 1 to edit",
+      "bodyweight": "BW",
+      "setLine": "{reps} reps"
     },
     "dayDialog": {
       "addTitle": "Add day",
@@ -740,13 +842,35 @@
       "editTitle": "Edit exercise",
       "exercise": "Exercise",
       "searchPlaceholder": "Search exercises...",
+      "loading": "Searching...",
       "noResults": "No exercises match.",
       "sets": "Sets",
+      "setN": "Set {index}",
       "reps": "Reps",
-      "restSeconds": "Rest (seconds, optional)",
+      "weight": "Weight (kg, optional)",
+      "restSeconds": "Rest (sec, optional)",
+      "addSet": "Add set",
+      "removeSet": "Remove",
+      "progressionRule": "Week-over-week progression",
+      "progressionNone": "None — same every week",
+      "progressionPlus25": "+2.5kg per week",
+      "progressionPlus5": "+5kg per week",
+      "progressionPlus1Rep": "+1 rep per week",
       "notesAr": "Notes (Arabic, optional)",
       "notesEn": "Notes (English, optional)",
       "submit": "Save"
+    },
+    "volume": {
+      "title": "Weekly volume",
+      "empty": "Add exercises to see volume by muscle group."
+    },
+    "exerciseSidebar": {
+      "title": "Add exercise",
+      "searchPlaceholder": "Search exercises...",
+      "loading": "Searching...",
+      "noResults": "No exercises match.",
+      "allGroups": "All",
+      "dayFallback": "Day {n}"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -772,6 +896,33 @@
     },
     "watchVideo": "Watch video",
     "notDraggable": "Global entries can't be moved",
+    "pagination": {
+      "range": "{from}–{to} of {total}",
+      "prev": "Previous page",
+      "next": "Next page"
+    },
+    "filters": {
+      "group": "Muscle group",
+      "allGroups": "All muscle groups",
+      "category": "Category",
+      "allCategories": "All categories"
+    },
+    "media": {
+      "play": "Play video",
+      "image": "Image",
+      "video": "Video",
+      "link": "Link",
+      "none": "No media"
+    },
+    "columns": {
+      "name": "Name",
+      "group": "Group",
+      "equipment": "Equipment",
+      "media": "Media",
+      "serving": "Serving",
+      "macros": "Macros",
+      "source": "Source"
+    },
     "exercise": {
       "add": "Add exercise",
       "nameAr": "Name (Arabic)",
@@ -779,7 +930,19 @@
       "muscleGroup": "Muscle group",
       "equipment": "Equipment",
       "videoUrl": "Video link (YouTube or Vimeo)",
-      "submit": "Add exercise"
+      "imageUrl": "Image / GIF URL",
+      "instructionsAr": "Instructions (Arabic)",
+      "instructionsEn": "Instructions (English)",
+      "cuesAr": "Coaching cues (Arabic)",
+      "cuesEn": "Coaching cues (English)",
+      "cuesPlaceholder": "One cue per line",
+      "cuesHint": "Shown as a numbered list on the client's form-check screen.",
+      "coachNotesAr": "Your coaching notes (Arabic)",
+      "coachNotesEn": "Your coaching notes (English)",
+      "submit": "Add exercise",
+      "cloneTitle": "Customize exercise",
+      "editTitle": "Edit exercise",
+      "save": "Save"
     },
     "food": {
       "add": "Add food",
@@ -791,7 +954,12 @@
       "protein": "Protein (g)",
       "carbs": "Carbs (g)",
       "fat": "Fat (g)",
-      "submit": "Add food"
+      "notesAr": "Your notes / serving guidance (Arabic)",
+      "notesEn": "Your notes / serving guidance (English)",
+      "submit": "Add food",
+      "cloneTitle": "Customize food",
+      "editTitle": "Edit food",
+      "save": "Save"
     },
     "muscleGroups": {
       "chest": "Chest",
@@ -824,10 +992,16 @@
       "not_found_or_forbidden": "You can't change this entry.",
       "forbidden": "You don't have permission to do that.",
       "already_global": "This entry is already in the global library.",
+      "already_cloned": "You already have your own version of this entry.",
       "unknown": "Something went wrong. Please try again."
     },
     "official": "Official",
     "mine": "Mine",
+    "customized": "Customized",
+    "basedOn": "Based on: {name}",
+    "clone": "Clone & Customize",
+    "editMyVersion": "Edit my version",
+    "edit": "Edit",
     "source": {
       "label": "Source",
       "all": "All",
@@ -835,6 +1009,7 @@
       "mine": "My Exercises"
     },
     "emptyStates": {
+      "clearFilter": "Clear filter",
       "searchAll": "Search all exercises",
       "searchMine": "Search my exercises",
       "mineNoneHint": "Anything you create is private to you and stays out of the shared library.",
@@ -853,6 +1028,19 @@
   },
   "admin": {
     "title": "Admin",
+    "impersonation": {
+      "action": "Impersonate",
+      "confirmTitle": "Impersonate this coach?",
+      "confirmBody": "You'll sign in as them, with full read/write access to their account. This is logged. Sign out to return to your own admin session.",
+      "banner": "You're viewing this account as {name}, signed in by an admin.",
+      "stop": "Sign out",
+      "errors": {
+        "forbidden": "Admin only.",
+        "not_found": "That coach no longer exists.",
+        "no_email": "This account has no email on file — can't sign in as them.",
+        "unknown": "Something went wrong. Please try again."
+      }
+    },
     "library": {
       "title": "Global Library",
       "description": "Curate the official exercise and food database every coach sees.",
@@ -889,10 +1077,30 @@
     },
     "coaches": {
       "title": "Coaches",
+      "search": "Name, phone, or ID",
+      "filterLabel": "Filter by segment",
+      "shownCount": "{shown} of {total}",
+      "segments": {
+        "all": "All",
+        "atRisk": "At risk",
+        "trialing": "Trial",
+        "starter": "Starter",
+        "pro": "Pro",
+        "elite": "Elite"
+      },
+      "health": {
+        "good": "Good",
+        "atRisk": "At risk",
+        "stalled": "Stalled",
+        "trial": "Trial",
+        "none": "—"
+      },
       "table": {
         "business": "Business",
         "tier": "Tier",
         "status": "Status",
+        "mrr": "MRR · EGP",
+        "health": "Health",
         "clients": "Clients",
         "period": "Period ends",
         "joined": "Joined"
@@ -924,6 +1132,23 @@
         "invalid_input": "Please check the form and try again.",
         "forbidden": "Admin only.",
         "not_found": "No subscription found for that coach."
+      },
+      "detail": {
+        "joined": "Joined {date}",
+        "risk": {
+          "pastDue": "Payment past due",
+          "canceled": "Subscription canceled",
+          "trialEndingSoon": "Trial ends in {days}d",
+          "good": "Good standing"
+        },
+        "billing": {
+          "title": "Billing history",
+          "empty": "No payments recorded yet.",
+          "date": "Recorded",
+          "period": "Period",
+          "method": "Method",
+          "amount": "Amount (EGP)"
+        }
       }
     }
   },
@@ -953,9 +1178,13 @@
       "weight": "Weight (kg)",
       "mood": "Mood (1-5)",
       "energy": "Energy (1-5)",
-      "adherence": "Adherence (%)",
+      "adherence": "Adherence (1-10)",
       "sleepHours": "Sleep (hours)",
+      "photos": "Progress photos",
+      "photoFront": "Front",
+      "photoSide": "Side",
       "notes": "Notes",
+      "chooseAdherence": "Choose your adherence",
       "submit": "Save check-in",
       "submitted": "Check-in saved."
     },
@@ -982,7 +1211,16 @@
       "alt": "Progress photo from {date}",
       "emptyTitle": "No photos yet",
       "emptyClient": "Add a photo each week — the change is easier to see than to feel.",
-      "emptyCoach": "This client hasn't added progress photos."
+      "emptyCoach": "This client hasn't added progress photos.",
+      "pose": {
+        "front": "Front",
+        "side": "Side",
+        "back": "Back"
+      },
+      "delete": "Delete photo",
+      "deleteConfirmTitle": "Delete this photo?",
+      "deleteConfirmBody": "This removes it for both of you. This can't be undone.",
+      "deleted": "Photo deleted"
     },
     "chart": {
       "empty": "No data yet.",
@@ -1052,6 +1290,106 @@
         "vodafone_cash": "Vodafone Cash",
         "cash": "Cash"
       }
+    }
+  },
+  "review": {
+    "title": "Check-in review",
+    "close": "Close",
+    "counter": "{current} of {total} · {remaining} left",
+    "keyboardHint": "Use arrow keys to navigate",
+    "prev": "Previous",
+    "next": "Next",
+    "emptyTitle": "All caught up",
+    "emptyDescription": "No check-ins waiting for review.",
+    "flag": {
+      "needsAttention": "Needs attention"
+    },
+    "stats": {
+      "weight": "Weight",
+      "adherence": "Adherence",
+      "sleep": "Sleep",
+      "workouts": "Workouts",
+      "deltaFromLast": "{delta} from last week",
+      "avgLabel": "avg {avg}/10",
+      "workoutsWindow": "last 7 days"
+    },
+    "photos": {
+      "title": "Photo comparison",
+      "pose": {
+        "front": "Front",
+        "side": "Side",
+        "back": "Back"
+      },
+      "modeSlider": "Compare",
+      "modeSide": "Side by side",
+      "empty": "Not enough photos yet to compare.",
+      "dragHint": "Drag to compare"
+    },
+    "note": {
+      "title": "Client's note",
+      "empty": "No note this week.",
+      "similarTitle": "Said this before"
+    },
+    "decision": {
+      "title": "Program decision",
+      "keep": {
+        "title": "Keep the program as-is",
+        "sub": "Continue the same week"
+      },
+      "adjust": {
+        "title": "Adjust the program",
+        "sub": "Changes for next week"
+      },
+      "call": {
+        "title": "Needs a call",
+        "sub": "This one is bigger than a written reply"
+      }
+    },
+    "adjustments": {
+      "title": "Adjustments",
+      "options": {
+        "reduceLoad": "Reduce training load this week",
+        "extraWarmup": "Add extra warm-up time",
+        "removeMovement": "Temporarily remove a specific movement",
+        "extraRestDay": "Add a rest day"
+      },
+      "percentLabel": "Reduce by",
+      "wholeProgram": "Whole active program",
+      "pickExercises": "Or pick specific exercises",
+      "loadingExercises": "Loading exercises...",
+      "noExercises": "No active program for this client.",
+      "removeMovementHint": "Pick at least one exercise to remove.",
+      "exercisesSelected": "{count} exercises selected"
+    },
+    "reply": {
+      "title": "Your reply",
+      "placeholder": "Write your reply to {name}…",
+      "deliveryNote": "Delivered to the client in the app",
+      "chips": {
+        "encouragement": {
+          "label": "Encouragement",
+          "text": "Great work this week — keep doing exactly what you're doing."
+        },
+        "nextWeek": {
+          "label": "Next week",
+          "text": "Stay focused next week, and message me if anything comes up."
+        },
+        "call": {
+          "label": "Call",
+          "text": "Let's talk for 5 minutes, easier than writing. Send me a time that works."
+        }
+      }
+    },
+    "submit": {
+      "sendDefault": "Write your reply first",
+      "send": "Send and continue",
+      "sent": "Sent",
+      "skip": "Leave for later"
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "review_failed": "Couldn't save that review. Try again."
     }
   },
   "onboarding": {

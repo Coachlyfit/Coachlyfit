@@ -24,11 +24,13 @@ function fakeSupabase(opts: {
           if (cols === "coach_id, client_id") {
             return { eq: () => ({ maybeSingle: async () => ({ data: parentRow, error: null }) }) };
           }
-          // getTree: select("*, program_days(...)").eq(...).order().order().maybeSingle()
+          // getTree: select("*, program_days(...)").eq(...).order().order().order().maybeSingle()
           return {
             eq: () => ({
               order: () => ({
-                order: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
+                order: () => ({
+                  order: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
+                }),
               }),
             }),
             order: () => ({ ascending: undefined }),
@@ -116,6 +118,87 @@ describe("ProgramsService", () => {
     });
   });
 
+  describe("per-set prescriptions", () => {
+    it("addItem writes a program_item_sets row per set, plus a legacy sets/reps snapshot on program_items", async () => {
+      const { db, inserts } = fakeSupabase({ parentRow: { coach_id: "coach-1", client_id: "client-9" } });
+      await new ProgramsService(db).addItem("day-1", {
+        exercise_id: "ex-1",
+        sets: [
+          { reps: 8, weight: 50 },
+          { reps: 12, weight: 40 },
+        ],
+        progression_rule: "plus_5kg_week",
+      });
+
+      const itemInsert = inserts.find((i) => i.table === "program_items");
+      expect(itemInsert?.payload).toMatchObject({ sets: 2, reps: "8-12", progression_rule: "plus_5kg_week" });
+
+      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
+      expect(setsInsert?.payload).toEqual([
+        expect.objectContaining({ set_index: 1, reps: 8, weight: 50, coach_id: "coach-1", client_id: "client-9" }),
+        expect.objectContaining({ set_index: 2, reps: 12, weight: 40, coach_id: "coach-1", client_id: "client-9" }),
+      ]);
+    });
+
+    it("updateItem replaces program_item_sets (delete-then-reinsert) when sets are provided", async () => {
+      const { db, deletes, inserts } = fakeSupabase({
+        affected: [{ id: "item-1", coach_id: "coach-1", client_id: "client-9" }],
+      });
+      const ok = await new ProgramsService(db).updateItem("item-1", { sets: [{ reps: 5, weight: 60 }] });
+
+      expect(ok).toBe(true);
+      expect(deletes).toContainEqual({
+        table: "program_item_sets",
+        eqs: [["program_item_id", "item-1"]],
+      });
+      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
+      expect(setsInsert?.payload).toEqual([
+        expect.objectContaining({ set_index: 1, reps: 5, weight: 60, program_item_id: "item-1" }),
+      ]);
+    });
+
+    it("updateItem leaves program_item_sets untouched when sets aren't provided", async () => {
+      const { db, deletes } = fakeSupabase({ affected: [{ id: "item-1", coach_id: "coach-1", client_id: "c" }] });
+      await new ProgramsService(db).updateItem("item-1", { notes_ar: "ملاحظة" });
+      expect(deletes).toHaveLength(0);
+    });
+  });
+
+  describe("applyLoadReduction", () => {
+    it("scales weight down by percent, rounded to the nearest 0.5kg, and skips bodyweight sets", async () => {
+      const updates: { id: string; weight: number }[] = [];
+      const db = {
+        from: (table: string) => {
+          if (table === "program_item_sets") {
+            return {
+              select: () => ({
+                in: async () => ({
+                  data: [
+                    { id: "set-1", weight: 100 },
+                    { id: "set-2", weight: null },
+                  ],
+                  error: null,
+                }),
+              }),
+              update: (payload: { weight: number }) => ({
+                eq: (_col: string, id: string) => {
+                  updates.push({ id, weight: payload.weight });
+                  return Promise.resolve({ error: null });
+                },
+              }),
+            };
+          }
+          throw new Error(`unexpected table ${table}`);
+        },
+      };
+
+      const count = await new ProgramsService(db as never).applyLoadReduction(["item-1"], 10);
+
+      expect(count).toBe(1);
+      expect(updates).toEqual([{ id: "set-1", weight: 90 }]);
+    });
+  });
+
   describe("write results", () => {
     it("update/remove/updateDay/removeItem report false on a 0-row RLS no-op", async () => {
       const { db } = fakeSupabase({ affected: [] });
@@ -151,7 +234,7 @@ describe("ProgramsService", () => {
   });
 
   describe("cloneToClient", () => {
-    it("stamps the new client_id on program, days, and items", async () => {
+    it("stamps the new client_id on program/days/items, and clones progression_rule + per-set data", async () => {
       const tree = {
         id: "template-1",
         coach_id: "coach-1",
@@ -171,12 +254,17 @@ describe("ProgramsService", () => {
               {
                 id: "item-1",
                 exercise_id: "ex-1",
-                sets: 3,
+                sets: 2,
                 reps: "8-12",
                 rest_seconds: 60,
+                progression_rule: "plus_2_5kg_week",
                 notes_ar: null,
                 notes_en: null,
                 order_index: 0,
+                program_item_sets: [
+                  { id: "set-1", set_index: 1, reps: 8, weight: 50, rest_seconds: 60 },
+                  { id: "set-2", set_index: 2, reps: 12, weight: 45, rest_seconds: 60 },
+                ],
               },
             ],
           },
@@ -189,11 +277,19 @@ describe("ProgramsService", () => {
       const programInsert = inserts.find((i) => i.table === "programs");
       const dayInsert = inserts.find((i) => i.table === "program_days");
       const itemInsert = inserts.find((i) => i.table === "program_items");
+      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
 
       expect(programInsert?.payload).toMatchObject({ client_id: "client-9", coach_id: "coach-1" });
       expect(dayInsert?.payload).toMatchObject({ client_id: "client-9", coach_id: "coach-1" });
-      expect(itemInsert?.payload).toEqual([
-        expect.objectContaining({ client_id: "client-9", coach_id: "coach-1", exercise_id: "ex-1" }),
+      expect(itemInsert?.payload).toMatchObject({
+        client_id: "client-9",
+        coach_id: "coach-1",
+        exercise_id: "ex-1",
+        progression_rule: "plus_2_5kg_week",
+      });
+      expect(setsInsert?.payload).toEqual([
+        expect.objectContaining({ client_id: "client-9", coach_id: "coach-1", set_index: 1, reps: 8, weight: 50 }),
+        expect.objectContaining({ client_id: "client-9", coach_id: "coach-1", set_index: 2, reps: 12, weight: 45 }),
       ]);
     });
 
@@ -219,7 +315,9 @@ describe("ProgramsService", () => {
                 order: () => ({
                   order: () => ({
                     order: () => ({
-                      limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                      order: () => ({
+                        limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                      }),
                     }),
                   }),
                 }),

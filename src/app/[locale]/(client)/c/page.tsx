@@ -9,9 +9,11 @@ import { ProgressService } from "@/domain/progress/progress.service";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { dayIndexForDate } from "@/domain/programs/program-cycle";
-import { checkinStreak, weightTrend } from "@/domain/progress/stats";
+import { checkinStreak, longestStreak, weightTrend } from "@/domain/progress/stats";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
+import { tintFor } from "@/lib/tint";
+import { TodayExercisePreview } from "./today-exercise-preview";
 
 export default async function ClientHomePage({
   params,
@@ -55,16 +57,30 @@ export default async function ClientHomePage({
 
   const weekPct = cycleLength > 0 ? Math.round(((todayIndex ?? 1) / cycleLength) * 100) : 0;
   const trend = weightTrend(history);
+  const firstWeighed = history.find((c) => c.weight != null);
+  const sinceStartDelta = trend && firstWeighed?.weight != null ? trend.latest - firstWeighed.weight : null;
   const streak = checkinStreak(history, today);
+  const best = longestStreak(history);
   const checkinDue = !existingCheckin;
+  const totalSets = todayDay?.program_items.reduce((sum, item) => sum + item.sets, 0) ?? 0;
 
   const ChevronIcon = locale === "ar" ? ChevronLeft : ChevronRight;
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t("welcome", { name: profile?.full_name ?? "" })}
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1 className="min-w-0 flex-1 text-2xl font-semibold tracking-tight">
+          {t("welcome", { name: profile?.full_name ?? "" })}
+        </h1>
+        {clientRow && (
+          <div
+            className={`flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${tintFor(clientRow.id)}`}
+            aria-hidden="true"
+          >
+            {(profile?.full_name ?? "?")[0]}
+          </div>
+        )}
+      </div>
 
       <Card className="border-none bg-sidebar text-sidebar-foreground">
         <CardContent className="flex items-center gap-5">
@@ -117,19 +133,11 @@ export default async function ClientHomePage({
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {tToday("exerciseCount", { count: todayDay.program_items.length })}
+                {" · "}
+                {tToday("setCount", { count: totalSets })}
               </p>
             </div>
-            <div className="flex flex-col gap-2 px-4.5 pb-3.5">
-              {todayDay.program_items.slice(0, 4).map((item) => (
-                <div key={item.id} className="flex items-center gap-2.5">
-                  <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
-                  <span className="flex-1 truncate text-[13px]">{pickLocale(item.exercises, locale)}</span>
-                  <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                    {item.sets} × {item.reps}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <TodayExercisePreview locale={locale} items={todayDay.program_items.slice(0, 4)} />
             <div className="px-4.5 pb-4.5">
               <Link
                 href={`/c/workout/${todayDay.id}`}
@@ -149,10 +157,19 @@ export default async function ClientHomePage({
               {tToday("currentWeight")}
             </p>
             {trend ? (
-              <p className="font-mono text-[22px] font-semibold tabular-nums">
-                {formatNumber(trend.latest, locale, { maximumFractionDigits: 1 })}{" "}
-                <span className="text-xs font-normal text-muted-foreground">kg</span>
-              </p>
+              <>
+                <p className="font-mono text-[22px] font-semibold tabular-nums">
+                  {formatNumber(trend.latest, locale, { maximumFractionDigits: 1 })}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">kg</span>
+                </p>
+                {sinceStartDelta != null && (
+                  <p className={`text-xs ${sinceStartDelta <= 0 ? "text-success" : "text-muted-foreground"}`}>
+                    {tToday("weightSinceStart", {
+                      delta: `${sinceStartDelta > 0 ? "+" : ""}${formatNumber(sinceStartDelta, locale, { maximumFractionDigits: 1 })}`,
+                    })}
+                  </p>
+                )}
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">—</p>
             )}
@@ -166,6 +183,9 @@ export default async function ClientHomePage({
             <p className="font-mono text-[22px] font-semibold tabular-nums">
               {formatNumber(streak, locale)} <span className="text-xs font-normal text-muted-foreground">{tToday("streakDays", { count: streak })}</span>
             </p>
+            {best > streak && (
+              <p className="text-xs text-muted-foreground">{tToday("streakBest", { count: best })}</p>
+            )}
           </CardContent>
         </Card>
       </div>

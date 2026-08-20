@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { ProgramTree } from "@/domain/programs/programs.service";
+import { projectSetsForWeek, MAX_PROGRAM_WEEKS, type ProgressionRule } from "@/domain/programs/progression";
 import {
   deleteProgramAction,
   deleteDayAction,
@@ -39,24 +40,36 @@ import {
 import { AddDayDialog } from "./add-day-dialog";
 import { ItemDialog } from "./item-dialog";
 import { AssignTemplateDialog } from "./assign-template-dialog";
+import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
+import { VolumeSidebar } from "./volume-sidebar";
 import { useRouter } from "@/i18n/navigation";
 
 type Day = ProgramTree["program_days"][number];
 type Item = Day["program_items"][number];
 
+/** Week 1 is the editable base; week 2-12 is a read-only projection
+ * (progression.ts) — no drag handle, no edit/delete, and week>1 never mounts
+ * inside a DndContext (see DayCard) so there's nothing to make draggable. */
 function SortableItem({
   item,
   locale,
+  week,
   onEdit,
   onDelete,
 }: {
   item: Item;
   locale: AppLocale;
+  week: number;
   onEdit: () => void;
   onDelete: () => void;
 }) {
   const t = useTranslations("programs.builder");
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const readOnly = week !== 1;
+  const sortable = useSortable({ id: item.id, disabled: readOnly });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
+  const displaySets = readOnly
+    ? projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week)
+    : item.program_item_sets;
 
   return (
     <div
@@ -66,28 +79,40 @@ function SortableItem({
         isDragging ? "opacity-50" : ""
       }`}
     >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        aria-label="drag"
-        className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
-      >
-        <GripVertical className="size-4" />
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="drag"
+          className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+        >
+          <GripVertical className="size-4" />
+        </button>
+      )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{pickLocale(item.exercises, locale)}</div>
-        <div className="mt-0.5 flex items-center gap-2 font-mono text-xs text-muted-foreground tabular-nums">
-          <span>{t("setsReps", { sets: item.sets, reps: item.reps })}</span>
-          {item.rest_seconds != null && <span>· {t("rest", { seconds: item.rest_seconds })}</span>}
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          {displaySets.map((set, i) => (
+            <span
+              key={i}
+              className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
+            >
+              {set.reps}×{set.weight != null ? `${set.weight}kg` : t("bodyweight")}
+            </span>
+          ))}
         </div>
       </div>
-      <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
-        <Pencil className="size-4" />
-      </Button>
-      <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
-        <Trash2 className="size-4" />
-      </Button>
+      {!readOnly && (
+        <>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
+            <Pencil className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
+            <Trash2 className="size-4" />
+          </Button>
+        </>
+      )}
     </div>
   );
 }
@@ -96,21 +121,41 @@ function DayCard({
   locale,
   programId,
   day,
+  week,
   onEditDay,
   onDeleteDay,
 }: {
   locale: AppLocale;
   programId: string;
   day: Day;
+  week: number;
   onEditDay: () => void;
   onDeleteDay: () => void;
 }) {
   const t = useTranslations("programs.builder");
   const tErrors = useTranslations("programs.errors");
+  const router = useRouter();
+  const readOnly = week !== 1;
   const [items, setItems] = useState(day.program_items);
-  const [itemDialog, setItemDialog] = useState<{ item?: Item } | null>(null);
+  const [itemDialog, setItemDialog] = useState<{
+    item?: Item;
+    initialExercise?: { id: string; name_ar: string; name_en: string };
+  } | null>(null);
   const [pendingDeleteItem, setPendingDeleteItem] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [, startTransition] = useTransition();
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    const raw = e.dataTransfer.getData(EXERCISE_DRAG_MIME);
+    if (!raw) return;
+    try {
+      setItemDialog({ initialExercise: JSON.parse(raw) });
+    } catch {
+      // Malformed payload (not our drag source) — ignore silently.
+    }
+  }
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -121,6 +166,7 @@ function DayCard({
     const toIndex = items.findIndex((i) => i.id === over.id);
     if (fromIndex === -1 || toIndex === -1) return;
 
+    const previous = items;
     const reordered = [...items];
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
@@ -135,7 +181,11 @@ function DayCard({
       );
       if (result?.error) {
         toast.error(tErrors(result.error));
-        setItems(day.program_items);
+        // Revert to the pre-drag snapshot, not the (now-stale) day.program_items
+        // prop — this component never remounts on a server refresh, so that
+        // prop stays frozen at whatever it was on first render.
+        setItems(previous);
+        router.refresh();
       }
     });
   }
@@ -148,7 +198,13 @@ function DayCard({
   }
 
   return (
-    <Card>
+    <Card
+      onDragOver={readOnly ? undefined : (e) => e.preventDefault()}
+      onDragEnter={readOnly ? undefined : () => setDragOver(true)}
+      onDragLeave={readOnly ? undefined : () => setDragOver(false)}
+      onDrop={readOnly ? undefined : handleDrop}
+      className={dragOver ? "ring-2 ring-primary" : undefined}
+    >
       <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
         <CardTitle className="flex items-center gap-2 text-base">
           {t("dayN", { n: day.day_index })}
@@ -158,10 +214,12 @@ function DayCard({
           <span className="font-mono text-xs text-muted-foreground">({items.length})</span>
         </CardTitle>
         <div className="flex items-center gap-1">
-          <Button type="button" variant="outline" size="sm" onClick={() => setItemDialog({})}>
-            <Plus className="size-4" />
-            {t("addExercise")}
-          </Button>
+          {!readOnly && (
+            <Button type="button" variant="outline" size="sm" onClick={() => setItemDialog({})}>
+              <Plus className="size-4" />
+              {t("addExercise")}
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button type="button" variant="ghost" size="icon-sm" />}>
               <Pencil className="size-4" />
@@ -178,6 +236,12 @@ function DayCard({
       <CardContent>
         {items.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">{t("noItems")}</p>
+        ) : readOnly ? (
+          <div className="flex flex-col gap-1">
+            {items.map((item) => (
+              <SortableItem key={item.id} item={item} locale={locale} week={week} onEdit={() => {}} onDelete={() => {}} />
+            ))}
+          </div>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
@@ -187,6 +251,7 @@ function DayCard({
                     key={item.id}
                     item={item}
                     locale={locale}
+                    week={week}
                     onEdit={() => setItemDialog({ item })}
                     onDelete={() => setPendingDeleteItem(item.id)}
                   />
@@ -203,6 +268,7 @@ function DayCard({
           programId={programId}
           dayId={day.id}
           item={itemDialog.item}
+          initialExercise={itemDialog.initialExercise}
           open={!!itemDialog}
           onOpenChange={(open) => !open && setItemDialog(null)}
         />
@@ -234,6 +300,8 @@ export function ProgramBuilder({
   const tErrors = useTranslations("programs.errors");
   const router = useRouter();
   const [days, setDays] = useState(tree.program_days);
+  const [week, setWeek] = useState(1);
+  const readOnly = week !== 1;
   const [dayDialog, setDayDialog] = useState<{ day?: Day } | null>(null);
   const [pendingDeleteDay, setPendingDeleteDay] = useState<string | null>(null);
   const [pendingDeleteProgram, setPendingDeleteProgram] = useState(false);
@@ -249,6 +317,7 @@ export function ProgramBuilder({
     const toIndex = days.findIndex((d) => d.id === over.id);
     if (fromIndex === -1 || toIndex === -1) return;
 
+    const previous = days;
     const reordered = [...days];
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
@@ -262,7 +331,8 @@ export function ProgramBuilder({
       );
       if (result?.error) {
         toast.error(tErrors(result.error));
-        setDays(tree.program_days);
+        setDays(previous);
+        router.refresh();
       }
     });
   }
@@ -292,12 +362,28 @@ export function ProgramBuilder({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {isTemplate && <AssignTemplateDialog locale={locale} programId={tree.id} clients={clients} />}
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <select
+              value={week}
+              onChange={(e) => setWeek(Number(e.target.value))}
+              className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+            >
+              {Array.from({ length: MAX_PROGRAM_WEEKS }, (_, i) => i + 1).map((w) => (
+                <option key={w} value={w}>
+                  {t("week", { n: w })}
+                </option>
+              ))}
+            </select>
+          </label>
+          {readOnly && <span className="text-xs text-muted-foreground">{t("weekReadOnlyHint")}</span>}
         </div>
         <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" onClick={() => setDayDialog({})}>
-            <Plus className="size-4" />
-            {t("addDay")}
-          </Button>
+          {!readOnly && (
+            <Button type="button" variant="outline" onClick={() => setDayDialog({})}>
+              <Plus className="size-4" />
+              {t("addDay")}
+            </Button>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -310,13 +396,13 @@ export function ProgramBuilder({
         </div>
       </div>
 
-      {days.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">{t("noDays")}</CardContent>
-        </Card>
-      ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={days.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+      <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+        <div className="min-w-0">
+          {days.length === 0 ? (
+            <Card>
+              <CardContent className="py-10 text-center text-sm text-muted-foreground">{t("noDays")}</CardContent>
+            </Card>
+          ) : readOnly ? (
             <div className="flex flex-col gap-4">
               {days.map((day) => (
                 <DayCard
@@ -324,14 +410,37 @@ export function ProgramBuilder({
                   locale={locale}
                   programId={tree.id}
                   day={day}
+                  week={week}
                   onEditDay={() => setDayDialog({ day })}
                   onDeleteDay={() => setPendingDeleteDay(day.id)}
                 />
               ))}
             </div>
-          </SortableContext>
-        </DndContext>
-      )}
+          ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={days.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-4">
+                  {days.map((day) => (
+                    <DayCard
+                      key={day.id}
+                      locale={locale}
+                      programId={tree.id}
+                      day={day}
+                      week={week}
+                      onEditDay={() => setDayDialog({ day })}
+                      onDeleteDay={() => setPendingDeleteDay(day.id)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
+        </div>
+        <aside className="flex flex-col gap-4">
+          {!readOnly && <ExerciseSidebar locale={locale} programId={tree.id} days={days} />}
+          <VolumeSidebar days={days} />
+        </aside>
+      </div>
 
       {dayDialog && (
         <AddDayDialog

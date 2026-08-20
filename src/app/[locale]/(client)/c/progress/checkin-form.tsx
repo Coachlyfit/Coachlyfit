@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Segmented } from "@/components/ui/segmented";
+import { PhotoUpload } from "./photo-upload";
 import { checkinSchema, type CheckinFormInput, type CheckinInput } from "./schemas";
 import { submitCheckinAction } from "./actions";
 import type { Database } from "@/lib/supabase/database.types";
@@ -16,16 +17,24 @@ import type { Database } from "@/lib/supabase/database.types";
 type Checkin = Database["public"]["Tables"]["checkins"]["Row"];
 
 const RATING_OPTIONS = [1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }));
+// The DB column stays 0-100 (existing coach-dashboard stats untouched, see
+// 20260802000001_workout_sessions_and_messages.sql) — this is a UI
+// affordance mapping a 1-10 tap scale onto that same range in steps of 10.
+const ADHERENCE_OPTIONS = Array.from({ length: 10 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
 
 export function CheckinForm({
   locale,
   today,
   existing,
+  coachId,
+  clientId,
   onSubmitted,
 }: {
   locale: string;
   today: string;
   existing: Checkin | null;
+  coachId: string;
+  clientId: string;
   /** Called after a successful save, instead of showing the inline "saved"
    * message — used by the full-screen check-in stack (/c/checkin), which
    * navigates to a shared Done screen rather than staying on the form. */
@@ -41,6 +50,7 @@ export function CheckinForm({
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors },
   } = useForm<CheckinFormInput, unknown, CheckinInput>({
     resolver: zodResolver(checkinSchema),
@@ -54,6 +64,8 @@ export function CheckinForm({
       notes: existing?.notes ?? undefined,
     },
   });
+
+  const adherence = watch("adherence");
 
   const onSubmit = handleSubmit((data) => {
     setSaved(false);
@@ -85,19 +97,31 @@ export function CheckinForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="weight">{t("weight")}</Label>
-          <Input id="weight" type="number" step="0.1" className="h-11" {...register("weight")} />
+          <Input id="weight" type="number" inputMode="decimal" step="0.1" className="h-11" {...register("weight")} />
           {errors.weight && <p className="text-sm text-destructive">{errors.weight.message}</p>}
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="adherence">{t("adherence")}</Label>
-          <Input id="adherence" type="number" min={0} max={100} className="h-11" {...register("adherence")} />
-          {errors.adherence && <p className="text-sm text-destructive">{errors.adherence.message}</p>}
-        </div>
-        <div className="flex flex-col gap-2">
           <Label htmlFor="sleep_hours">{t("sleepHours")}</Label>
-          <Input id="sleep_hours" type="number" step="0.5" min={0} max={24} className="h-11" {...register("sleep_hours")} />
+          <Input id="sleep_hours" type="number" inputMode="decimal" step="0.5" min={0} max={24} className="h-11" {...register("sleep_hours")} />
           {errors.sleep_hours && <p className="text-sm text-destructive">{errors.sleep_hours.message}</p>}
         </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="adherence">{t("adherence")}</Label>
+        <Controller
+          name="adherence"
+          control={control}
+          render={({ field }) => (
+            <Segmented
+              value={field.value ? String(Math.round(Number(field.value) / 10)) : ""}
+              onChange={(value) => field.onChange(Number(value) * 10)}
+              options={ADHERENCE_OPTIONS}
+              label={t("adherence")}
+              className="w-full [&>button]:h-11 [&>button]:flex-1 [&>button]:px-0"
+            />
+          )}
+        />
+        {errors.adherence && <p className="text-sm text-destructive">{errors.adherence.message}</p>}
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="mood">{t("mood")}</Label>
@@ -134,13 +158,20 @@ export function CheckinForm({
         {errors.energy && <p className="text-sm text-destructive">{errors.energy.message}</p>}
       </div>
       <div className="flex flex-col gap-2">
+        <Label>{t("photos")}</Label>
+        <div className="grid grid-cols-2 gap-2.5">
+          <PhotoUpload locale={locale} coachId={coachId} clientId={clientId} pose="front" label={t("photoFront")} compact />
+          <PhotoUpload locale={locale} coachId={coachId} clientId={clientId} pose="side" label={t("photoSide")} compact />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
         <Label htmlFor="notes">{t("notes")}</Label>
         <Textarea id="notes" {...register("notes")} />
       </div>
       {saved && <p className="text-sm text-success">{t("submitted")}</p>}
       {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-      <Button type="submit" disabled={pending} className="h-11">
-        {t("submit")}
+      <Button type="submit" disabled={pending || !adherence} className="h-11">
+        {adherence ? t("submit") : t("chooseAdherence")}
       </Button>
     </form>
   );

@@ -1,20 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -22,11 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { MUSCLE_GROUPS } from "@/domain/library/taxonomy";
 import {
   createExerciseSchema,
   type CreateExerciseInput,
 } from "@/app/[locale]/(coach)/library/schemas";
+import { ExerciseFields } from "@/app/[locale]/(coach)/library/exercise-fields";
 import { createGlobalExerciseAction, updateGlobalExerciseAction } from "./actions";
 
 type ExistingExercise = {
@@ -36,10 +27,16 @@ type ExistingExercise = {
   muscle_group: string | null;
   equipment: string | null;
   video_url: string | null;
+  image_url: string | null;
+  instructions_ar: string | null;
+  instructions_en: string | null;
 };
 
 /** Create and edit share one form — the only difference is which action runs
- * and whether the fields start populated. `exercise` present = edit mode. */
+ * and whether the fields start populated. `exercise` present = edit mode.
+ * Fields come from the coach dialogs' shared ExerciseFields (with
+ * showCoachNotes off — see that component for why), so curating a global's
+ * instructions/media stays in sync with what a coach's own clone can hold. */
 export function GlobalExerciseDialog({
   locale,
   exercise,
@@ -55,7 +52,6 @@ export function GlobalExerciseDialog({
 }) {
   const t = useTranslations("library.exercise");
   const tAdmin = useTranslations("admin.library");
-  const tGroups = useTranslations("library.muscleGroups");
   const tErrors = useTranslations("library.errors");
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -74,7 +70,7 @@ export function GlobalExerciseDialog({
   } = useForm<CreateExerciseInput>({
     resolver: zodResolver(createExerciseSchema),
     // Select must be controlled from the first render — see the coach-side
-    // AddExerciseDialog for the Base UI gotcha this avoids.
+    // ExerciseDialog for the Base UI gotcha this avoids.
     defaultValues: {
       name_ar: exercise?.name_ar ?? "",
       name_en: exercise?.name_en ?? "",
@@ -82,6 +78,9 @@ export function GlobalExerciseDialog({
         (exercise?.muscle_group as CreateExerciseInput["muscle_group"]) ?? "other",
       equipment: exercise?.equipment ?? "",
       video_url: exercise?.video_url ?? "",
+      image_url: exercise?.image_url ?? "",
+      instructions_ar: exercise?.instructions_ar ?? "",
+      instructions_en: exercise?.instructions_en ?? "",
     },
   });
 
@@ -93,6 +92,9 @@ export function GlobalExerciseDialog({
     if (data.muscle_group) formData.set("muscle_group", data.muscle_group);
     if (data.equipment) formData.set("equipment", data.equipment);
     if (data.video_url) formData.set("video_url", data.video_url);
+    if (data.image_url) formData.set("image_url", data.image_url);
+    if (data.instructions_ar) formData.set("instructions_ar", data.instructions_ar);
+    if (data.instructions_en) formData.set("instructions_en", data.instructions_en);
     startTransition(async () => {
       const result = isEdit
         ? await updateGlobalExerciseAction(locale, exercise.id, formData)
@@ -122,53 +124,13 @@ export function GlobalExerciseDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="g_name_ar">{t("nameAr")}</Label>
-            <Input id="g_name_ar" dir="rtl" {...register("name_ar")} />
-            {errors.name_ar && <p className="text-sm text-destructive">{errors.name_ar.message}</p>}
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="g_name_en">{t("nameEn")}</Label>
-            <Input id="g_name_en" dir="ltr" {...register("name_en")} />
-            {errors.name_en && <p className="text-sm text-destructive">{errors.name_en.message}</p>}
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="g_muscle_group">{t("muscleGroup")}</Label>
-            <Controller
-              name="muscle_group"
-              control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="g_muscle_group">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MUSCLE_GROUPS.map((group) => (
-                      <SelectItem key={group} value={group}>
-                        {tGroups(group)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="g_equipment">{t("equipment")}</Label>
-            <Input id="g_equipment" {...register("equipment")} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="g_video_url">{t("videoUrl")}</Label>
-            <Input
-              id="g_video_url"
-              type="url"
-              placeholder="https://youtube.com/watch?v=..."
-              {...register("video_url")}
-            />
-            {errors.video_url && (
-              <p className="text-sm text-destructive">{errors.video_url.message}</p>
-            )}
-          </div>
+          <ExerciseFields
+            idPrefix="g_"
+            register={register}
+            control={control}
+            errors={errors}
+            showCoachNotes={false}
+          />
           {formError && (
             <p className="text-sm text-destructive">
               {tErrors.has(formError) ? tErrors(formError) : tErrors("unknown")}

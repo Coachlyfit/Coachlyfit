@@ -4,6 +4,7 @@ import {
   adherenceAverage,
   checkinStreak,
   lastCheckinDate,
+  longestStreak,
   parseRange,
   rangeStart,
   weightTrend,
@@ -23,6 +24,13 @@ function checkin(overrides: Partial<CheckinRow> & { checkin_date: string }): Che
     adherence: null,
     notes: null,
     sleep_hours: null,
+    reviewed_at: null,
+    reviewed_by: null,
+    decision: null,
+    adjustments: null,
+    adjustment_applied_at: null,
+    coach_reply: null,
+    coach_seen_at: null,
     ...overrides,
   };
 }
@@ -64,6 +72,35 @@ describe("checkinStreak", () => {
   it("steps correctly across a month boundary", () => {
     const rows = ["2026-08-01", "2026-07-31"].map((d) => checkin({ checkin_date: d }));
     expect(checkinStreak(rows, TODAY)).toBe(2);
+  });
+});
+
+describe("longestStreak", () => {
+  it("finds the longest run even if it isn't the most recent one", () => {
+    // 3-day run (07-01..07-03), gap, 2-day run (07-10..07-11) — the current
+    // streak (2) is shorter than the best-ever streak (3) further back.
+    const rows = ["2026-07-01", "2026-07-02", "2026-07-03", "2026-07-10", "2026-07-11"].map((d) =>
+      checkin({ checkin_date: d })
+    );
+    expect(longestStreak(rows)).toBe(3);
+  });
+
+  it("is zero for an empty history", () => {
+    expect(longestStreak([])).toBe(0);
+  });
+
+  it("is 1 for a single check-in", () => {
+    expect(longestStreak([checkin({ checkin_date: "2026-07-01" })])).toBe(1);
+  });
+
+  it("counts a duplicated date only once toward the run", () => {
+    const rows = ["2026-07-01", "2026-07-01", "2026-07-02"].map((d) => checkin({ checkin_date: d }));
+    expect(longestStreak(rows)).toBe(2);
+  });
+
+  it("does not require sorted input", () => {
+    const rows = ["2026-07-03", "2026-07-01", "2026-07-02"].map((d) => checkin({ checkin_date: d }));
+    expect(longestStreak(rows)).toBe(3);
   });
 });
 

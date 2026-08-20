@@ -7,6 +7,7 @@ import { checkinStreak, adherenceAverage, weightTrend } from "@/domain/progress/
 import { metricPresetI18nKey } from "@/domain/progress/metric-presets";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import type { AppLocale } from "@/domain/locale";
+import { formatNumber } from "@/lib/format";
 import { CheckinForm } from "./checkin-form";
 import { CheckinHero } from "./checkin-hero";
 import { MetricSwitcher } from "./metric-switcher";
@@ -47,7 +48,7 @@ export default async function ClientProgressPage({
   const signed = await progress.signMediaUrls(media.map((m) => m.storage_path));
   const photos = media
     .filter((m) => signed.has(m.storage_path))
-    .map((m) => ({ id: m.id, url: signed.get(m.storage_path)!, createdAt: m.created_at }));
+    .map((m) => ({ id: m.id, url: signed.get(m.storage_path)!, createdAt: m.created_at, pose: m.pose }));
 
   const weightData = history.filter((c) => c.weight != null).map((c) => ({ date: c.checkin_date, value: c.weight! }));
   const moodData = history.filter((c) => c.mood != null).map((c) => ({ date: c.checkin_date, value: c.mood! }));
@@ -56,7 +57,7 @@ export default async function ClientProgressPage({
     .filter((c) => c.adherence != null)
     .map((c) => ({ date: c.checkin_date, value: c.adherence! }));
 
-  const series = [
+  const series: { key: string; label: string; color: string; unit?: string; data: { date: string; value: number }[] }[] = [
     { key: "weight", label: tChart("weightTitle"), color: "var(--chart-1)", unit: "kg", data: weightData },
     { key: "mood", label: tChart("moodTitle"), color: "var(--chart-2)", data: moodData },
     { key: "energy", label: tChart("energyTitle"), color: "var(--chart-3)", data: energyData },
@@ -87,7 +88,13 @@ export default async function ClientProgressPage({
 
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold tracking-tight">{t("checkin.title")}</h2>
-        <CheckinForm locale={locale} today={todayIso} existing={existing} />
+        <CheckinForm
+          locale={locale}
+          today={todayIso}
+          existing={existing}
+          coachId={client!.coach_id}
+          clientId={client!.id}
+        />
       </div>
 
       <div className="flex items-center justify-between">
@@ -95,7 +102,33 @@ export default async function ClientProgressPage({
         <AddMetricDialog locale={locale} />
       </div>
       {series.length > 0 ? (
-        <MetricSwitcher series={series} />
+        <>
+          <MetricSwitcher series={series} />
+          <div className="flex flex-col rounded-xl border border-border bg-card">
+            {series.map((s) => {
+              const last = s.data[s.data.length - 1];
+              const prev = s.data[s.data.length - 2];
+              const delta = prev ? last.value - prev.value : null;
+              return (
+                <div key={s.key} className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-0">
+                  <span className="flex-1 truncate text-sm">{s.label}</span>
+                  <span className="font-mono text-sm font-semibold tabular-nums">
+                    {formatNumber(last.value, locale, { maximumFractionDigits: 1 })}
+                    {s.unit ? ` ${s.unit}` : ""}
+                  </span>
+                  {delta != null && (
+                    <span
+                      className={`font-mono text-xs tabular-nums ${delta <= 0 ? "text-success" : "text-muted-foreground"}`}
+                    >
+                      {delta > 0 ? "+" : ""}
+                      {formatNumber(delta, locale, { maximumFractionDigits: 1 })}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <EmptyState icon={LineChart} title={tChart("emptyTitle")} description={tChart("emptyClient")} />
       )}

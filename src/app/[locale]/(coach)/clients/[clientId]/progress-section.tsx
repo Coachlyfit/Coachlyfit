@@ -40,7 +40,7 @@ export async function ProgressSection({
   const signed = await progress.signMediaUrls(media.map((m) => m.storage_path));
   const photos = media
     .filter((m) => signed.has(m.storage_path))
-    .map((m) => ({ id: m.id, url: signed.get(m.storage_path)!, createdAt: m.created_at }));
+    .map((m) => ({ id: m.id, url: signed.get(m.storage_path)!, createdAt: m.created_at, pose: m.pose }));
 
   const weightData = history.filter((c) => c.weight != null).map((c) => ({ date: c.checkin_date, value: c.weight! }));
   const moodData = history.filter((c) => c.mood != null).map((c) => ({ date: c.checkin_date, value: c.mood! }));
@@ -103,6 +103,8 @@ export async function ProgressSection({
           locale={locale}
           emptyTitle={tPhotos("emptyTitle")}
           emptyDescription={tPhotos("emptyCoach")}
+          deletable
+          clientId={clientId}
         />
       </div>
 

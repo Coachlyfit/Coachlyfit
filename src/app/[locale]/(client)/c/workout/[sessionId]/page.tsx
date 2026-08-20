@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { startOrResumeSessionAction, listSetLogsAction } from "@/domain/workouts/workouts-actions";
+import { weekIndexForDate } from "@/domain/programs/program-cycle";
 import type { AppLocale } from "@/domain/locale";
 import { WorkoutSessionClient } from "./workout-session-client";
 
@@ -17,9 +18,12 @@ export default async function WorkoutSessionPage({
 
   const { data: day } = await supabase
     .from("program_days")
-    .select("*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url))")
+    .select(
+      "*, programs(start_date), program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en), program_item_sets(*))"
+    )
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })
+    .order("set_index", { referencedTable: "program_items.program_item_sets" })
     .maybeSingle();
 
   if (!day) notFound();
@@ -28,11 +32,14 @@ export default async function WorkoutSessionPage({
   if (!session) notFound();
 
   const setLogs = await listSetLogsAction(session.id);
+  const today = new Date().toISOString().slice(0, 10);
+  const week = day.programs ? weekIndexForDate(day.programs.start_date, today) : 1;
 
   return (
     <WorkoutSessionClient
       locale={locale}
       day={day}
+      week={week}
       sessionId={session.id}
       initialSetLogs={setLogs}
       alreadyCompleted={session.completed_at != null}

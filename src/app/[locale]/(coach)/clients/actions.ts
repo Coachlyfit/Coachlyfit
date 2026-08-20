@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { InvitesService } from "@/domain/clients/invites.service";
+import { ProgressService } from "@/domain/progress/progress.service";
 import { createInviteSchema } from "./schemas";
 
 type ActionResult = { error: string } | { joinUrl: string };
+type VoidActionResult = { error: string } | void;
 
 function joinUrl(locale: string, token: string) {
   return `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/join/${token}`;
@@ -55,4 +57,20 @@ export async function regenerateInviteAction(
   } catch {
     return { error: "signup_failed" };
   }
+}
+
+// Coach-initiated only — see coach_delete policy on `media`
+// (20260810000001_media_coach_delete.sql). RLS is the real gate; the
+// unauthenticated check here only turns an anonymous call into a clean
+// error instead of an RLS-rejected exception.
+export async function deleteMediaAction(locale: string, clientId: string, mediaId: string): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const deleted = await new ProgressService(supabase).deleteMedia(mediaId);
+  if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients/${clientId}`);
 }

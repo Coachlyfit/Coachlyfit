@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ProgramsService } from "@/domain/programs/programs.service";
+import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
+import { adjustmentSchema } from "../review/schemas";
 import { createProgramSchema, daySchema, itemSchema, reorderSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
@@ -155,6 +157,18 @@ export async function deleteDayAction(locale: string, programId: string, dayId: 
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
+// `sets` is a JSON-encoded array in one FormData field — FormData has no
+// native way to carry a nested array of {reps, weight, rest_seconds}.
+function parseSetsField(formData: FormData): unknown {
+  const raw = formData.get("sets");
+  if (typeof raw !== "string") return undefined;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
 export async function addItemAction(
   locale: string,
   programId: string,
@@ -163,9 +177,8 @@ export async function addItemAction(
 ): Promise<ActionResult> {
   const parsed = itemSchema.safeParse({
     exercise_id: formData.get("exercise_id"),
-    sets: formData.get("sets") || undefined,
-    reps: formData.get("reps") || undefined,
-    rest_seconds: formData.get("rest_seconds") || undefined,
+    sets: parseSetsField(formData),
+    progression_rule: formData.get("progression_rule") || undefined,
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
   });
@@ -190,9 +203,8 @@ export async function updateItemAction(
 ): Promise<ActionResult> {
   const parsed = itemSchema.partial().safeParse({
     exercise_id: formData.get("exercise_id") || undefined,
-    sets: formData.get("sets") || undefined,
-    reps: formData.get("reps") || undefined,
-    rest_seconds: formData.get("rest_seconds") || undefined,
+    sets: parseSetsField(formData),
+    progression_rule: formData.get("progression_rule") || undefined,
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
   });
@@ -251,5 +263,69 @@ export async function reorderItemsAction(
   if (!user) return { error: "not_authenticated" };
 
   await new ProgramsService(supabase).reorderItems(dayId, parsed.data.ids);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+// Read-only, RLS-scoped — same "no auth check needed" reasoning as
+// searchExercisesAction/getExerciseAction in library/actions.ts. Flattens
+// program_days -> program_items into a flat list the review console's
+// exercise multi-select and the pending-adjustments banner both consume,
+// fetched on demand rather than eagerly for every review-queue entry.
+export async function listActiveProgramItemsAction(clientId: string) {
+  const supabase = await createClient();
+  const tree = await new ProgramsService(supabase).getActiveTreeForClient(clientId);
+  if (!tree) return [];
+  return tree.program_days.flatMap((day) =>
+    day.program_items.map((item) => ({
+      id: item.id,
+      exercise_id: item.exercise_id,
+      exercises: { name_ar: item.exercises.name_ar, name_en: item.exercises.name_en },
+    }))
+  );
+}
+
+/** Turns one structured review adjustment into a real program mutation,
+ * then marks the checkin as applied so the banner drops it. `itemIds: []`
+ * on reduceLoad means "whole active program" — resolved here via
+ * getActiveTreeForClient (the client's current program, which may or may
+ * not be `programId` itself) rather than trusting a client-picked list. */
+export async function applyAdjustmentAction(
+  locale: string,
+  programId: string,
+  checkinId: string,
+  adjustment: StructuredAdjustment
+): Promise<ActionResult> {
+  const parsed = adjustmentSchema.safeParse(adjustment);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+
+  switch (parsed.data.key) {
+    case "reduceLoad": {
+      let itemIds = parsed.data.itemIds;
+      if (itemIds.length === 0) {
+        const tree = await programs.getTree(programId);
+        if (!tree?.client_id) return { error: "not_found_or_forbidden" };
+        const activeTree = await programs.getActiveTreeForClient(tree.client_id);
+        itemIds = activeTree ? activeTree.program_days.flatMap((d) => d.program_items.map((i) => i.id)) : [];
+      }
+      if (itemIds.length > 0) await programs.applyLoadReduction(itemIds, parsed.data.percent);
+      break;
+    }
+    case "removeMovement":
+      for (const itemId of parsed.data.itemIds) await programs.removeItem(itemId);
+      break;
+    default:
+      // extraWarmup/extraRestDay are message-only — nothing to mutate.
+      break;
+  }
+
+  await new ReviewService(supabase).markAdjustmentApplied(checkinId);
   revalidatePath(`/${locale}/programs/${programId}`);
 }

@@ -16,8 +16,8 @@ export default async function LibraryPage({
   const library = new LibraryService(supabase);
 
   const [initialExercises, initialFoods] = await Promise.all([
-    library.searchExercises(""),
-    library.searchFoods(""),
+    library.searchExercises({ pageSize: 24 }),
+    library.searchFoods({ pageSize: 24 }),
   ]);
 
   return (

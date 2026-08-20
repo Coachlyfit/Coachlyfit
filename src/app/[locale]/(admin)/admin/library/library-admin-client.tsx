@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Pagination } from "@/components/ui/pagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -26,10 +27,13 @@ import {
 } from "./actions";
 import { GlobalExerciseDialog } from "./global-exercise-dialog";
 
-type Exercise = Awaited<ReturnType<typeof adminSearchExercisesAction>>[number];
-type Food = Awaited<ReturnType<typeof adminSearchFoodsAction>>[number];
+type ExercisePage = Awaited<ReturnType<typeof adminSearchExercisesAction>>;
+type FoodPage = Awaited<ReturnType<typeof adminSearchFoodsAction>>;
+type Exercise = ExercisePage["rows"][number];
 
 type Pending = { kind: "exercise" | "food"; id: string };
+
+const PAGE_SIZE = 24;
 
 export function LibraryAdminClient({
   locale,
@@ -37,8 +41,8 @@ export function LibraryAdminClient({
   initialFoods,
 }: {
   locale: AppLocale;
-  initialExercises: Exercise[];
-  initialFoods: Food[];
+  initialExercises: ExercisePage;
+  initialFoods: FoodPage;
 }) {
   const t = useTranslations("library");
   const tAdmin = useTranslations("admin.library");
@@ -46,27 +50,55 @@ export function LibraryAdminClient({
   const [tab, setTab] = useState<"exercises" | "foods">("exercises");
   const [search, setSearch] = useState("");
   const [source, setSource] = useState<LibrarySource>("all");
+  const [pageExercise, setPageExercise] = useState(1);
+  const [pageFood, setPageFood] = useState(1);
   const [pendingDelete, setPendingDelete] = useState<Pending | null>(null);
   const [pendingPromote, setPendingPromote] = useState<Pending | null>(null);
   const [editing, setEditing] = useState<Exercise | null>(null);
   const debouncedSearch = useDebouncedValue(search, 300);
   const queryClient = useQueryClient();
 
-  const isDefaultView = debouncedSearch === "" && source === "all";
+  function updateSearch(value: string) {
+    setSearch(value);
+    setPageExercise(1);
+    setPageFood(1);
+  }
+
+  function updateSource(value: LibrarySource) {
+    setSource(value);
+    setPageExercise(1);
+    setPageFood(1);
+  }
+
+  const isDefaultExercises = debouncedSearch === "" && source === "all" && pageExercise === 1;
+  const isDefaultFoods = debouncedSearch === "" && source === "all" && pageFood === 1;
 
   const exercisesQuery = useQuery({
-    queryKey: ["admin-library", "exercises", debouncedSearch, source],
-    queryFn: () => adminSearchExercisesAction(debouncedSearch, source),
-    initialData: isDefaultView ? initialExercises : undefined,
+    queryKey: ["admin-library", "exercises", debouncedSearch, source, pageExercise],
+    queryFn: () =>
+      adminSearchExercisesAction({ query: debouncedSearch, source, page: pageExercise, pageSize: PAGE_SIZE }),
+    initialData: isDefaultExercises ? initialExercises : undefined,
     placeholderData: keepPreviousData,
   });
 
   const foodsQuery = useQuery({
-    queryKey: ["admin-library", "foods", debouncedSearch, source],
-    queryFn: () => adminSearchFoodsAction(debouncedSearch, source),
-    initialData: isDefaultView ? initialFoods : undefined,
+    queryKey: ["admin-library", "foods", debouncedSearch, source, pageFood],
+    queryFn: () =>
+      adminSearchFoodsAction({ query: debouncedSearch, source, page: pageFood, pageSize: PAGE_SIZE }),
+    initialData: isDefaultFoods ? initialFoods : undefined,
     placeholderData: keepPreviousData,
   });
+
+  // Adjusted during render, not in an effect — see library-client.tsx for
+  // why (the same delete-shrinks-total case applies here).
+  if (exercisesQuery.data) {
+    const maxPage = Math.max(1, Math.ceil(exercisesQuery.data.total / exercisesQuery.data.pageSize));
+    if (pageExercise > maxPage) setPageExercise(maxPage);
+  }
+  if (foodsQuery.data) {
+    const maxPage = Math.max(1, Math.ceil(foodsQuery.data.total / foodsQuery.data.pageSize));
+    if (pageFood > maxPage) setPageFood(maxPage);
+  }
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["admin-library"] });
@@ -108,8 +140,10 @@ export function LibraryAdminClient({
     invalidate();
   }
 
-  const exercises = exercisesQuery.data ?? [];
-  const foods = foodsQuery.data ?? [];
+  const exercises = exercisesQuery.data?.rows ?? [];
+  const foods = foodsQuery.data?.rows ?? [];
+  const exercisesTotal = exercisesQuery.data?.total ?? 0;
+  const foodsTotal = foodsQuery.data?.total ?? 0;
 
   const emptyTitle =
     source === "mine" ? tAdmin("emptyCoach") : source === "global" ? tAdmin("emptyGlobal") : t("empty");
@@ -123,10 +157,10 @@ export function LibraryAdminClient({
             <TabsTrigger value="foods">{t("tabs.foods")}</TabsTrigger>
           </TabsList>
           <div className="flex flex-wrap items-center gap-2">
-            <SourceFilter value={source} onChange={setSource} namespace="admin.library.source" />
+            <SourceFilter value={source} onChange={updateSource} namespace="admin.library.source" />
             <Input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => updateSearch(e.target.value)}
               placeholder={t("search")}
               className="sm:w-56"
             />
@@ -134,7 +168,7 @@ export function LibraryAdminClient({
           </div>
         </div>
 
-        <TabsContent value="exercises" className="mt-4">
+        <TabsContent value="exercises" className="mt-4 flex flex-col gap-3">
           {exercises.length === 0 ? (
             <EmptyState icon={Dumbbell} title={emptyTitle} />
           ) : (
@@ -199,9 +233,16 @@ export function LibraryAdminClient({
               </TableBody>
             </Table>
           )}
+          <Pagination
+            page={pageExercise}
+            pageSize={PAGE_SIZE}
+            total={exercisesTotal}
+            onPageChange={setPageExercise}
+            disabled={exercisesQuery.isFetching}
+          />
         </TabsContent>
 
-        <TabsContent value="foods" className="mt-4">
+        <TabsContent value="foods" className="mt-4 flex flex-col gap-3">
           {foods.length === 0 ? (
             <EmptyState icon={Dumbbell} title={emptyTitle} />
           ) : (
@@ -253,6 +294,13 @@ export function LibraryAdminClient({
               </TableBody>
             </Table>
           )}
+          <Pagination
+            page={pageFood}
+            pageSize={PAGE_SIZE}
+            total={foodsTotal}
+            onPageChange={setPageFood}
+            disabled={foodsQuery.isFetching}
+          />
         </TabsContent>
       </Tabs>
 

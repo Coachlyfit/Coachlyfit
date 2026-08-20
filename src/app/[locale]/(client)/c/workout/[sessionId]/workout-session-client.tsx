@@ -5,17 +5,35 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronRight, ChevronLeft, Play } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { ApertureSweep } from "@/components/brand/aperture-sweep";
+import { ExerciseVideoSheet } from "@/components/workout/exercise-video-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { logSetAction, completeSessionAction } from "@/domain/workouts/workouts-actions";
+import { projectSetsForWeek, type ProgressionRule } from "@/domain/programs/progression";
 import { cn } from "@/lib/utils";
 
+type ProgramItemSetRow = Database["public"]["Tables"]["program_item_sets"]["Row"];
 type ProgramItem = Database["public"]["Tables"]["program_items"]["Row"] & {
-  exercises: Pick<Database["public"]["Tables"]["exercises"]["Row"], "id" | "name_ar" | "name_en" | "muscle_group" | "video_url">;
+  exercises: Pick<
+    Database["public"]["Tables"]["exercises"]["Row"],
+    "id" | "name_ar" | "name_en" | "muscle_group" | "video_url" | "cues_ar" | "cues_en"
+  >;
+  program_item_sets: ProgramItemSetRow[]; // must already be ordered by set_index
 };
 type ProgramDay = Database["public"]["Tables"]["program_days"]["Row"] & { program_items: ProgramItem[] };
 type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
+
+/** min-max reps across a projected set list, formatted like the old
+ * program_items.reps range string ("8-12" or "10") — display-only, purely
+ * cosmetic continuity with the previous header line. */
+function repsRangeLabel(sets: { reps: number }[]): string {
+  if (sets.length === 0) return "";
+  const reps = sets.map((s) => s.reps);
+  const min = Math.min(...reps);
+  const max = Math.max(...reps);
+  return min === max ? String(min) : `${min}-${max}`;
+}
 
 function mmss(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
@@ -34,12 +52,16 @@ function setKey(programItemId: string, setIndex: number): string {
 export function WorkoutSessionClient({
   locale,
   day,
+  week,
   sessionId,
   initialSetLogs,
   alreadyCompleted,
 }: {
   locale: AppLocale;
   day: ProgramDay;
+  /** Which week's progression to project — see program-cycle.ts's
+   * weekIndexForDate, resolved server-side from the program's start_date. */
+  week: number;
   sessionId: string;
   initialSetLogs: WorkoutSetLog[];
   alreadyCompleted: boolean;
@@ -59,7 +81,13 @@ export function WorkoutSessionClient({
   const [videoExercise, setVideoExercise] = useState<ProgramItem["exercises"] | null>(null);
   const [restDuration, setRestDuration] = useState(90);
 
-  const totalSets = day.program_items.reduce((sum, item) => sum + item.sets, 0);
+  const projectedByItem = new Map(
+    day.program_items.map((item) => [
+      item.id,
+      projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week),
+    ])
+  );
+  const totalSets = day.program_items.reduce((sum, item) => sum + item.program_item_sets.length, 0);
   const doneCount = logs.size;
   const allDone = totalSets > 0 && doneCount === totalSets;
 
@@ -72,14 +100,13 @@ export function WorkoutSessionClient({
     return () => clearInterval(id);
   }, [done]);
 
-  async function toggleSet(item: ProgramItem, setIndex: number) {
+  async function toggleSet(item: ProgramItem, setIndex: number, prescribedReps: number) {
     const key = setKey(item.id, setIndex);
     if (logs.has(key)) return; // sets are logged once, not un-toggled — matches server-authored history
-    const [minReps] = item.reps.split(/[-–]/).map((s) => parseInt(s.trim(), 10));
     const log = await logSetAction(sessionId, {
       program_item_id: item.id,
       set_index: setIndex,
-      reps: Number.isFinite(minReps) ? minReps : null,
+      reps: prescribedReps,
     });
     if (!log) return;
     setLogs((prev) => new Map(prev).set(key, log));
@@ -96,15 +123,7 @@ export function WorkoutSessionClient({
   if (done) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-[#0F172A] px-8 py-10 text-center text-[#E2E8F0]">
-        <svg viewBox="0 0 48 48" width={104} height={104} fill="none" aria-hidden="true">
-          <path
-            d="M26.78 8.24 A16 16 0 1 0 39.76 21.22"
-            fill="none"
-            stroke="#E2E8F0"
-            strokeWidth="7"
-          />
-          <circle cx="37.44" cy="10.56" r="4.2" fill="#EA580C" />
-        </svg>
+        <ApertureSweep size={104} className="text-[#E2E8F0]" />
         <div>
           <p className="text-xl font-semibold text-[#F8FAFC]">{t("finishDone")}</p>
           <p className="mt-2.5 max-w-xs text-[13.5px] leading-relaxed text-[#94A3B8]">
@@ -161,7 +180,9 @@ export function WorkoutSessionClient({
       )}
 
       <div className="flex flex-col gap-3.5 px-5 py-4">
-        {day.program_items.map((item) => (
+        {day.program_items.map((item) => {
+          const displaySets = projectedByItem.get(item.id) ?? [];
+          return (
           <div key={item.id} className="rounded-2xl bg-[#0F172A] p-4">
             <div className="mb-3.5 flex items-center gap-3">
               <button
@@ -179,7 +200,7 @@ export function WorkoutSessionClient({
                 </p>
                 <div className="mt-1 flex items-center gap-2.5">
                   <span className="font-mono text-[11px] text-[#64748B]">
-                    {item.sets} × {item.reps}
+                    {displaySets.length} × {repsRangeLabel(displaySets)}
                   </span>
                   {item.exercises.video_url && (
                     <button
@@ -194,28 +215,31 @@ export function WorkoutSessionClient({
               </div>
             </div>
             <div className="flex gap-2.5">
-              {Array.from({ length: item.sets }, (_, i) => {
+              {displaySets.map((set, i) => {
                 const log = logs.get(setKey(item.id, i));
                 const on = log != null;
                 return (
                   <button
                     key={i}
                     type="button"
-                    onClick={() => toggleSet(item, i)}
+                    onClick={() => toggleSet(item, i, set.reps)}
                     disabled={on}
                     className={cn(
                       "flex h-13 flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
                       on ? "border-primary bg-primary text-primary-foreground" : "border-[#1E293B] text-[#64748B]"
                     )}
                   >
-                    <span className="font-mono text-sm font-semibold">{log?.weight ?? item.reps.split(/[-–]/)[0]}</span>
-                    <span className="font-mono text-[9px] tracking-wider">{log?.reps ?? "rep"}</span>
+                    <span className="font-mono text-sm font-semibold">
+                      {log?.weight ?? set.weight ?? t("bodyweight")}
+                    </span>
+                    <span className="font-mono text-[9px] tracking-wider">{log?.reps ?? set.reps}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
 
         <button
           type="button"
@@ -229,33 +253,12 @@ export function WorkoutSessionClient({
         </button>
       </div>
 
-      <Sheet open={videoExercise != null} onOpenChange={(open) => !open && setVideoExercise(null)}>
-        <SheetContent side="bottom" className="h-auto max-h-[85dvh] rounded-t-2xl border-white/10 bg-[#020617] text-[#E2E8F0]">
-          {videoExercise && (
-            <div className="flex flex-col gap-5 px-1 pb-2">
-              <SheetTitle className="font-mono text-[10px] tracking-wider text-[#64748B] uppercase">
-                {t("formCheck")}
-              </SheetTitle>
-              <div>
-                <p className="text-[19px] font-semibold text-[#F8FAFC]">{pickLocale(videoExercise, locale)}</p>
-              </div>
-              {videoExercise.video_url && (
-                <a
-                  href={videoExercise.video_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex min-h-13 items-center gap-3 rounded-[11px] border border-[#1E293B] bg-[#0F172A] px-4 py-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12.5px] font-medium text-[#E2E8F0]">{t("openOriginalVideo")}</p>
-                    <p className="mt-0.5 truncate font-mono text-[10.5px] text-[#64748B]">{videoExercise.video_url}</p>
-                  </div>
-                </a>
-              )}
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+      <ExerciseVideoSheet
+        locale={locale}
+        exercise={videoExercise}
+        open={videoExercise != null}
+        onOpenChange={(open) => !open && setVideoExercise(null)}
+      />
     </div>
   );
 }

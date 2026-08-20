@@ -6,7 +6,7 @@ import { CoachlyLockup } from "@/components/brand/coachly-lockup";
  * and muted copy resolve against dark tokens instead of hand-picked opacities.
  */
 const COLUMNS = {
-  product: ["features", "pricing", "faq"],
+  product: ["features", "pricing", "demo"],
   company: ["about", "blog", "careers"],
   contact: ["whatsapp", "email", "instagram"],
 } as const;
@@ -16,7 +16,6 @@ const COLUMNS = {
 const HREFS: Record<string, string> = {
   features: "#features",
   pricing: "#pricing",
-  faq: "#faq",
 };
 
 export function Footer() {

@@ -1,0 +1,133 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Play, ExternalLink } from "lucide-react";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { pickLocale, type AppLocale } from "@/domain/locale";
+import { resolveExerciseMedia } from "@/lib/video-embed";
+
+export type VideoSheetExercise = {
+  name_ar: string;
+  name_en: string;
+  video_url: string | null;
+  cues_ar?: string[] | null;
+  cues_en?: string[] | null;
+};
+
+function pickCues(exercise: VideoSheetExercise, locale: AppLocale): string[] {
+  const primary = locale === "ar" ? exercise.cues_ar : exercise.cues_en;
+  const fallback = locale === "ar" ? exercise.cues_en : exercise.cues_ar;
+  return (primary?.length ? primary : fallback) ?? [];
+}
+
+/** The workout form-check sheet — shared by the workout runner (dark, full
+ * exercise list) and the Today tab's exercise preview (which only needs the
+ * same video/cues lookup for one exercise at a time). Same click-to-play
+ * classification as the coach library's ExerciseMedia (exercise-card.tsx):
+ * the iframe only mounts on tap, and playback state resets every open
+ * because this component unmounts with the sheet (`exercise != null`). */
+export function ExerciseVideoSheet({
+  locale,
+  exercise,
+  open,
+  onOpenChange,
+}: {
+  locale: AppLocale;
+  exercise: VideoSheetExercise | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const t = useTranslations("client.workout");
+  const tMedia = useTranslations("library.media");
+  const [playing, setPlaying] = useState(false);
+
+  const media = exercise ? resolveExerciseMedia(exercise.video_url) : null;
+  const cues = exercise ? pickCues(exercise, locale) : [];
+
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setPlaying(false);
+        onOpenChange(next);
+      }}
+    >
+      <SheetContent side="bottom" className="h-auto max-h-[85dvh] rounded-t-2xl border-white/10 bg-[#020617] text-[#E2E8F0]">
+        {exercise && (
+          <div className="flex flex-col gap-5 px-1 pb-2">
+            <SheetTitle className="font-mono text-[10px] tracking-wider text-[#64748B] uppercase">
+              {t("formCheck")}
+            </SheetTitle>
+
+            {media?.kind === "image" && (
+              <div className="aspect-video w-full overflow-hidden rounded-[11px] bg-[#0F172A]">
+                <img
+                  src={media.src}
+                  alt={pickLocale(exercise, locale)}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+            {media?.kind === "embed" &&
+              (playing ? (
+                <div className="aspect-video w-full overflow-hidden rounded-[11px] bg-black">
+                  <iframe src={media.src} className="h-full w-full" allowFullScreen title={pickLocale(exercise, locale)} />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setPlaying(true)}
+                  className="relative aspect-video w-full overflow-hidden rounded-[11px] bg-[repeating-linear-gradient(135deg,#131C2F_0_10px,#1B2437_10px_20px)]"
+                  aria-label={tMedia("play")}
+                >
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex size-14 items-center justify-center rounded-full bg-[#F8FAFC]/95">
+                      <Play className="size-5 fill-[#0F172A] text-[#0F172A] ms-0.5" aria-hidden="true" />
+                    </span>
+                  </span>
+                </button>
+              ))}
+
+            <div>
+              <p className="text-[19px] font-semibold text-[#F8FAFC]">{pickLocale(exercise, locale)}</p>
+            </div>
+
+            {cues.length > 0 && (
+              <div>
+                <p className="font-mono text-[9.5px] tracking-wider text-[#64748B] uppercase">{t("performanceCues")}</p>
+                <div className="mt-3 flex flex-col gap-3">
+                  {cues.map((cue, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <span className="mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-[#1E293B] font-mono text-[10px] font-semibold text-primary">
+                        {i + 1}
+                      </span>
+                      <p className="flex-1 text-[13.5px] leading-relaxed text-[#CBD5E1]">{cue}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {exercise.video_url && (
+              <a
+                href={exercise.video_url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-h-13 items-center gap-3 rounded-[11px] border border-[#1E293B] bg-[#0F172A] px-4 py-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] font-medium text-[#E2E8F0]">{t("openOriginalVideo")}</p>
+                  <p className="mt-0.5 truncate font-mono text-[10.5px] text-[#64748B]">{exercise.video_url}</p>
+                </div>
+                <ExternalLink className="size-4 shrink-0 text-[#64748B]" aria-hidden="true" />
+              </a>
+            )}
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}

@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import type { ProgressionRule } from "./progression";
 
 type Program = Database["public"]["Tables"]["programs"]["Row"];
 type ProgramDay = Database["public"]["Tables"]["program_days"]["Row"];
 type ProgramItem = Database["public"]["Tables"]["program_items"]["Row"];
+type ProgramItemSet = Database["public"]["Tables"]["program_item_sets"]["Row"];
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 
 export type ProgramScope = "all" | "assigned" | "templates";
@@ -19,11 +21,14 @@ export type CreateProgramInput = {
 export type CreateDayInput = { day_index: number; label_ar?: string; label_en?: string };
 export type UpdateDayInput = Partial<CreateDayInput>;
 
+/** One prescribed set — the week-1 base that `progression.ts` projects onto
+ * weeks 2-12. `weight: null` means bodyweight/unloaded. */
+export type SetInput = { reps: number; weight?: number | null; rest_seconds?: number | null };
+
 export type CreateItemInput = {
   exercise_id: string;
-  sets?: number;
-  reps?: string;
-  rest_seconds?: number | null;
+  sets?: SetInput[];
+  progression_rule?: ProgressionRule;
   notes_ar?: string;
   notes_en?: string;
 };
@@ -32,7 +37,8 @@ export type UpdateItemInput = Partial<CreateItemInput>;
 export type ProgramTree = Program & {
   program_days: (ProgramDay & {
     program_items: (ProgramItem & {
-      exercises: Pick<Exercise, "id" | "name_ar" | "name_en" | "muscle_group" | "video_url">;
+      exercises: Pick<Exercise, "id" | "name_ar" | "name_en" | "muscle_group" | "video_url" | "cues_ar" | "cues_en">;
+      program_item_sets: ProgramItemSet[];
     })[];
   })[];
 };
@@ -46,6 +52,32 @@ function applyScope<Q extends { is: (c: "client_id", v: null) => Q; not: (c: "cl
   if (scope === "templates") return q.is("client_id", null);
   if (scope === "assigned") return q.not("client_id", "is", null);
   return q;
+}
+
+/** Legacy sets/reps/rest_seconds snapshot derived from a per-set array —
+ * written alongside program_item_sets so any reader not yet migrated to the
+ * real per-set data (item.sets/item.reps) still sees something sane. */
+function legacySnapshot(sets: SetInput[]) {
+  const reps = sets.map((s) => s.reps);
+  const min = Math.min(...reps);
+  const max = Math.max(...reps);
+  return {
+    sets: sets.length,
+    reps: min === max ? String(min) : `${min}-${max}`,
+    rest_seconds: sets[0]?.rest_seconds ?? null,
+  };
+}
+
+function setRows(sets: SetInput[], coachId: string, clientId: string | null, programItemId: string) {
+  return sets.map((set, i) => ({
+    coach_id: coachId,
+    client_id: clientId,
+    program_item_id: programItemId,
+    set_index: i + 1,
+    reps: set.reps,
+    weight: set.weight ?? null,
+    rest_seconds: set.rest_seconds ?? null,
+  }));
 }
 
 /** Coach-authored workout programs: standalone (assigned to one client) or
@@ -85,12 +117,13 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url)))"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en), program_item_sets(*)))"
       )
       .eq("client_id", clientId)
       .order("created_at", { ascending: false })
       .order("order_index", { referencedTable: "program_days" })
       .order("order_index", { referencedTable: "program_days.program_items" })
+      .order("set_index", { referencedTable: "program_days.program_items.program_item_sets" })
       .limit(1)
       .maybeSingle();
     if (error) throw error;
@@ -101,11 +134,12 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url)))"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en), program_item_sets(*)))"
       )
       .eq("id", programId)
       .order("order_index", { referencedTable: "program_days" })
       .order("order_index", { referencedTable: "program_days.program_items" })
+      .order("set_index", { referencedTable: "program_days.program_items.program_item_sets" })
       .maybeSingle();
     if (error) throw error;
     return data as ProgramTree | null;
@@ -170,22 +204,43 @@ export class ProgramsService {
         .single();
       if (dayError) throw dayError;
 
-      if (day.program_items.length === 0) continue;
-      const { error: itemsError } = await this.db.from("program_items").insert(
-        day.program_items.map((item) => ({
-          coach_id: tree.coach_id,
-          client_id: clientId,
-          program_day_id: clonedDay.id,
-          exercise_id: item.exercise_id,
-          sets: item.sets,
-          reps: item.reps,
-          rest_seconds: item.rest_seconds,
-          notes_ar: item.notes_ar,
-          notes_en: item.notes_en,
-          order_index: item.order_index,
-        }))
-      );
-      if (itemsError) throw itemsError;
+      for (const item of day.program_items) {
+        const { data: clonedItem, error: itemError } = await this.db
+          .from("program_items")
+          .insert({
+            coach_id: tree.coach_id,
+            client_id: clientId,
+            program_day_id: clonedDay.id,
+            exercise_id: item.exercise_id,
+            sets: item.sets,
+            reps: item.reps,
+            rest_seconds: item.rest_seconds,
+            progression_rule: item.progression_rule,
+            notes_ar: item.notes_ar,
+            notes_en: item.notes_en,
+            order_index: item.order_index,
+          })
+          .select()
+          .single();
+        if (itemError) throw itemError;
+
+        // Per-set prescriptions must be cloned explicitly — they don't live
+        // on program_items, so they're not carried by the insert above.
+        if (item.program_item_sets.length > 0) {
+          const { error: setsError } = await this.db.from("program_item_sets").insert(
+            item.program_item_sets.map((set) => ({
+              coach_id: tree.coach_id,
+              client_id: clientId,
+              program_item_id: clonedItem.id,
+              set_index: set.set_index,
+              reps: set.reps,
+              weight: set.weight,
+              rest_seconds: set.rest_seconds,
+            }))
+          );
+          if (setsError) throw setsError;
+        }
+      }
     }
 
     return cloned;
@@ -224,7 +279,11 @@ export class ProgramsService {
     return data.length > 0;
   }
 
-  /** Same derivation, one level deeper — parent is `program_days`. */
+  /** Same derivation, one level deeper — parent is `program_days`. Writes
+   * both the real per-set rows and a legacy sets/reps/rest_seconds snapshot
+   * on program_items itself (min-max reps range, first set's rest) purely
+   * as insurance for any not-yet-migrated reader — see class doc for the
+   * derivation rule this follows. */
   async addItem(dayId: string, input: CreateItemInput): Promise<ProgramItem | null> {
     const { data: parent, error: parentError } = await this.db
       .from("program_days")
@@ -234,24 +293,57 @@ export class ProgramsService {
     if (parentError) throw parentError;
     if (!parent) return null;
 
+    const sets = input.sets && input.sets.length > 0 ? input.sets : [{ reps: 10 }];
+
     const { data, error } = await this.db
       .from("program_items")
       .insert({
         coach_id: parent.coach_id,
         client_id: parent.client_id,
         program_day_id: dayId,
-        ...input,
+        exercise_id: input.exercise_id,
+        ...legacySnapshot(sets),
+        progression_rule: input.progression_rule ?? "none",
+        notes_ar: input.notes_ar,
+        notes_en: input.notes_en,
       })
       .select()
       .single();
     if (error) throw error;
+
+    const { error: setsError } = await this.db
+      .from("program_item_sets")
+      .insert(setRows(sets, parent.coach_id, parent.client_id, data.id));
+    if (setsError) throw setsError;
+
     return data;
   }
 
   async updateItem(itemId: string, input: UpdateItemInput): Promise<boolean> {
-    const { data, error } = await this.db.from("program_items").update(input).eq("id", itemId).select("id");
+    const { sets, ...itemFields } = input;
+    const patch: Database["public"]["Tables"]["program_items"]["Update"] = { ...itemFields };
+    if (sets) Object.assign(patch, legacySnapshot(sets));
+
+    const { data, error } = await this.db
+      .from("program_items")
+      .update(patch)
+      .eq("id", itemId)
+      .select("id, coach_id, client_id");
     if (error) throw error;
-    return data.length > 0;
+    if (data.length === 0) return false;
+
+    if (sets) {
+      const { coach_id, client_id } = data[0];
+      const { error: deleteError } = await this.db.from("program_item_sets").delete().eq("program_item_id", itemId);
+      if (deleteError) throw deleteError;
+      if (sets.length > 0) {
+        const { error: insertError } = await this.db
+          .from("program_item_sets")
+          .insert(setRows(sets, coach_id, client_id, itemId));
+        if (insertError) throw insertError;
+      }
+    }
+    return true;
   }
 
   async removeItem(itemId: string): Promise<boolean> {
@@ -291,5 +383,41 @@ export class ProgramsService {
       count += data.length;
     }
     return count;
+  }
+
+  /** Scales prescribed weight down on every given item's sets — the
+   * program-side effect of a review's "reduce load" adjustment (see
+   * review.service.ts's StructuredAdjustment). Bodyweight sets (weight null)
+   * are left alone: there's nothing to reduce. Same N-updates tradeoff as
+   * reorderDays/reorderItems above — RLS already scopes program_item_sets to
+   * the coach, so no separate ownership check is needed here. */
+  async applyLoadReduction(itemIds: string[], percent: number): Promise<number> {
+    const { data: sets, error: fetchError } = await this.db
+      .from("program_item_sets")
+      .select("id, weight")
+      .in("program_item_id", itemIds);
+    if (fetchError) throw fetchError;
+
+    let count = 0;
+    for (const set of sets ?? []) {
+      if (set.weight == null) continue;
+      const nextWeight = Math.round(set.weight * (1 - percent / 100) * 2) / 2; // nearest 0.5kg
+      const { error } = await this.db.from("program_item_sets").update({ weight: nextWeight }).eq("id", set.id);
+      if (error) throw error;
+      count++;
+    }
+    return count;
+  }
+
+  /** Every client instance cloned from this template, for the template
+   * detail page's "assigned to N clients" list. */
+  async listClonedInstances(templateId: string) {
+    const { data, error } = await this.db
+      .from("programs")
+      .select("*, clients(display_name)")
+      .eq("source_template_id", templateId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
   }
 }

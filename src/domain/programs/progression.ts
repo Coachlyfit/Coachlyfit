@@ -1,0 +1,39 @@
+export type ProgressionRule = "none" | "plus_2_5kg_week" | "plus_5kg_week" | "plus_1_rep_week";
+
+export type BaseSet = {
+  set_index: number;
+  reps: number;
+  weight: number | null;
+  rest_seconds: number | null;
+};
+
+export const MAX_PROGRAM_WEEKS = 12;
+const DELOAD_INTERVAL = 4;
+
+/** Projects week 1's base sets onto `week`. Week 1 and every 4th week (4, 8,
+ * 12) always return the base unmodified — a deload is a display-time reset,
+ * not a stored state, so it never shifts later weeks' trend: week 5 still
+ * progresses as `base + 4 steps`, exactly as if week 4 had never deloaded.
+ * `weight: null` (bodyweight exercises) stays null under weight-based rules
+ * — there's nothing to add a delta to. */
+export function projectSetsForWeek(baseSets: BaseSet[], rule: ProgressionRule, week: number): BaseSet[] {
+  const clamped = Math.min(Math.max(Math.round(week), 1), MAX_PROGRAM_WEEKS);
+  if (clamped === 1 || rule === "none" || clamped % DELOAD_INTERVAL === 0) {
+    return baseSets.map((set) => ({ ...set }));
+  }
+  const steps = clamped - 1;
+  return baseSets.map((set) => projectSet(set, rule, steps));
+}
+
+function projectSet(set: BaseSet, rule: ProgressionRule, steps: number): BaseSet {
+  switch (rule) {
+    case "plus_2_5kg_week":
+      return { ...set, weight: set.weight == null ? null : set.weight + 2.5 * steps };
+    case "plus_5kg_week":
+      return { ...set, weight: set.weight == null ? null : set.weight + 5 * steps };
+    case "plus_1_rep_week":
+      return { ...set, reps: set.reps + steps };
+    default:
+      return { ...set };
+  }
+}
