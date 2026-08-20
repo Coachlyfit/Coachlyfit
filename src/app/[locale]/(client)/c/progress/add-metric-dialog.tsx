@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { pickLocale, type AppLocale } from "@/domain/locale";
 import {
   bodyMetricSchema,
   METRIC_PRESETS,
@@ -31,12 +32,22 @@ import {
 } from "./metric-schemas";
 import { addBodyMetricAction } from "./actions";
 
-export function AddMetricDialog({ locale }: { locale: string }) {
+type CustomMetric = { key: string; label_ar: string; label_en: string; unit: string };
+
+export function AddMetricDialog({ locale, customMetrics = [] }: { locale: string; customMetrics?: CustomMetric[] }) {
   const t = useTranslations("progress.metrics");
   const tErrors = useTranslations("progress.errors");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+
+  const unitByKey: Record<string, string> = {
+    ...METRIC_PRESET_UNIT,
+    ...Object.fromEntries(customMetrics.map((m) => [m.key, m.unit])),
+  };
+  const labelByKey: Record<string, string> = Object.fromEntries(
+    customMetrics.map((m) => [m.key, pickLocale(m, locale as AppLocale, "label")])
+  );
 
   const {
     register,
@@ -93,18 +104,29 @@ export function AddMetricDialog({ locale }: { locale: string }) {
                   value={field.value}
                   onValueChange={(value) => {
                     field.onChange(value);
-                    if (typeof value === "string" && value in METRIC_PRESET_UNIT) {
-                      setValue("unit", METRIC_PRESET_UNIT[value as keyof typeof METRIC_PRESET_UNIT]);
+                    if (typeof value === "string" && value in unitByKey) {
+                      setValue("unit", unitByKey[value]);
                     }
                   }}
                 >
                   <SelectTrigger id="metric">
-                    <SelectValue />
+                    <SelectValue>
+                      {(value) =>
+                        typeof value === "string" && value in METRIC_PRESET_UNIT
+                          ? t(`presets.${value}`)
+                          : (labelByKey[value as string] ?? value)
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {METRIC_PRESETS.map((m) => (
                       <SelectItem key={m} value={m}>
                         {t(`presets.${m}`)}
+                      </SelectItem>
+                    ))}
+                    {customMetrics.map((m) => (
+                      <SelectItem key={m.key} value={m.key}>
+                        {labelByKey[m.key]}
                       </SelectItem>
                     ))}
                   </SelectContent>

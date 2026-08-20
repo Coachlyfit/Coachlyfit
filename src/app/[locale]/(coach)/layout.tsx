@@ -2,10 +2,12 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
+import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
 
 export default async function CoachLayout({
   children,
@@ -32,12 +34,23 @@ export default async function CoachLayout({
 
   if (profile?.role !== "coach") redirect(roleHome(locale, profile?.role));
 
-  const { data: coach } = await supabase
-    .from("coaches")
-    .select("onboarding_completed_at")
-    .eq("id", user.id)
-    .single();
-  if (!coach?.onboarding_completed_at) redirect(`/${locale}/onboarding`);
+  const coachId = await resolveCoachId(supabase);
+  if (coachId === user.id) {
+    // The tenant owner -- unchanged existing gate.
+    const { data: coach } = await supabase
+      .from("coaches")
+      .select("onboarding_completed_at")
+      .eq("id", user.id)
+      .single();
+    if (!coach?.onboarding_completed_at) redirect(`/${locale}/onboarding`);
+  }
+  // Else: an accepted team member (coachId is someone else's tenant id, or
+  // null). Team members never go through onboarding, so the gate simply
+  // doesn't apply to them. If coachId is null here despite role === "coach"
+  // that's a broken/incomplete signup state; let them through to the
+  // dashboard rather than trap them in a redirect loop -- the dashboard's
+  // own queries will just come back empty, which is a saner failure mode
+  // than an infinite bounce.
 
   const impersonating = (await cookies()).get("impersonating")?.value === "1";
 
@@ -52,6 +65,7 @@ export default async function CoachLayout({
         </main>
       </div>
       <BottomNav locale={locale} />
+      <FeedbackWidget />
     </div>
   );
 }

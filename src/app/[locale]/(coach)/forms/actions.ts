@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { TemplatesService } from "@/domain/forms/templates.service";
 import { SubmissionsService } from "@/domain/forms/submissions.service";
 import { formTemplateSchema, type FormField } from "@/domain/forms/schema";
@@ -19,12 +20,10 @@ export async function createTemplateAction(locale: string, formData: FormData) {
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
-  const template = await new TemplatesService(supabase).create(user.id, parsed.data);
+  const template = await new TemplatesService(supabase).create(coachId, parsed.data);
   redirect(`/${locale}/forms/${template.id}`);
 }
 
@@ -37,13 +36,11 @@ export async function publishTemplateAction(
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
   try {
-    await new TemplatesService(supabase).publish(user.id, templateId, parsed.data);
+    await new TemplatesService(supabase).publish(coachId, templateId, parsed.data);
   } catch {
     return { error: "publish_failed" };
   }
@@ -62,12 +59,10 @@ export async function assignTemplateAction(
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
-  await new SubmissionsService(supabase).assign(user.id, {
+  await new SubmissionsService(supabase).assign(coachId, {
     clientId: parsed.data.clientId,
     templateVersionId,
     dueAt: parsed.data.dueAt,

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 
 // Deliberately its own route group, not nested under (coach): the (coach)
 // layout redirects here whenever onboarding isn't finished, and this layout
@@ -27,6 +28,11 @@ export default async function OnboardingLayout({
     .eq("id", user.id)
     .single();
   if (profile?.role !== "coach") redirect(roleHome(locale, profile?.role));
+
+  // Onboarding is owner-only -- a team member (or any coachId !== user.id,
+  // including a genuinely orphaned coach account) belongs on the dashboard.
+  const coachId = await resolveCoachId(supabase);
+  if (coachId !== user.id) redirect(`/${locale}/dashboard`);
 
   const { data: coach } = await supabase
     .from("coaches")

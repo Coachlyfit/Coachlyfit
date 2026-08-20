@@ -2,9 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { InvitesService } from "@/domain/clients/invites.service";
 import { ProgressService } from "@/domain/progress/progress.service";
-import { createInviteSchema } from "./schemas";
+import { ClientBillingService } from "@/domain/billing/client-billing.service";
+import { ObservationsService } from "@/domain/clients/observations.service";
+import { createInviteSchema, createSubscriptionSchema, recordTransactionSchema, createObservationSchema } from "./schemas";
 
 type ActionResult = { error: string } | { joinUrl: string };
 type VoidActionResult = { error: string } | void;
@@ -29,9 +32,11 @@ export async function createClientInviteAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
   try {
-    const { token } = await new InvitesService(supabase).createInvite(user.id, parsed.data);
+    const { token } = await new InvitesService(supabase).createInvite(coachId, parsed.data);
     revalidatePath(`/${locale}/clients`);
     return { joinUrl: joinUrl(locale, token) };
   } catch {
@@ -50,9 +55,11 @@ export async function regenerateInviteAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
   try {
-    const { token } = await new InvitesService(supabase).regenerateInvite(user.id, clientId);
+    const { token } = await new InvitesService(supabase).regenerateInvite(coachId, clientId);
     return { joinUrl: joinUrl(locale, token) };
   } catch {
     return { error: "signup_failed" };
@@ -71,6 +78,151 @@ export async function deleteMediaAction(locale: string, clientId: string, mediaI
   if (!user) return { error: "not_authenticated" };
 
   const deleted = await new ProgressService(supabase).deleteMedia(mediaId);
+  if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function createSubscriptionAction(
+  locale: string,
+  clientId: string,
+  formData: FormData
+): Promise<VoidActionResult> {
+  const parsed = createSubscriptionSchema.safeParse({
+    package_id: formData.get("package_id"),
+    end_date: formData.get("end_date"),
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  await new ClientBillingService(supabase).createSubscription(coachId, { client_id: clientId, ...parsed.data });
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function freezeSubscriptionAction(
+  locale: string,
+  clientId: string,
+  subscriptionId: string
+): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const ok = await new ClientBillingService(supabase).freezeSubscription(subscriptionId);
+  if (!ok) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function unfreezeSubscriptionAction(
+  locale: string,
+  clientId: string,
+  subscriptionId: string
+): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const ok = await new ClientBillingService(supabase).unfreezeSubscription(subscriptionId);
+  if (!ok) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function cancelSubscriptionAction(
+  locale: string,
+  clientId: string,
+  subscriptionId: string
+): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const ok = await new ClientBillingService(supabase).cancelSubscription(subscriptionId);
+  if (!ok) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function recordTransactionAction(
+  locale: string,
+  clientId: string,
+  formData: FormData
+): Promise<VoidActionResult> {
+  const parsed = recordTransactionSchema.safeParse({
+    subscription_id: formData.get("subscription_id"),
+    payment_method_id: formData.get("payment_method_id"),
+    amount_egp: formData.get("amount_egp"),
+    transaction_date: formData.get("transaction_date") || "",
+    proof_path: formData.get("proof_path") || "",
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  const { transaction_date, proof_path, ...rest } = parsed.data;
+  // A client's own storage-path prefix check (RLS would already block a
+  // foreign path) — same "don't trust a browser-uploaded path blindly"
+  // reasoning as addProgressPhotoAction in (client)/c/progress/actions.ts.
+  if (proof_path && !proof_path.startsWith(`${coachId}/${clientId}/`)) return { error: "invalid_input" };
+
+  await new ClientBillingService(supabase).recordTransaction(coachId, {
+    client_id: clientId,
+    ...rest,
+    transaction_date: transaction_date || undefined,
+    proof_path: proof_path || null,
+    recorded_by: user.id,
+  });
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function createObservationAction(
+  locale: string,
+  clientId: string,
+  formData: FormData
+): Promise<VoidActionResult> {
+  const parsed = createObservationSchema.safeParse({ body: formData.get("body") });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  await new ObservationsService(supabase).create(coachId, clientId, parsed.data.body);
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function deleteObservationAction(
+  locale: string,
+  clientId: string,
+  observationId: string
+): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const deleted = await new ObservationsService(supabase).remove(observationId);
   if (!deleted) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/clients/${clientId}`);
 }

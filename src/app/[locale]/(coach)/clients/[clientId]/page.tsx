@@ -12,6 +12,10 @@ import { ProgressSection } from "./progress-section";
 import { ProgressSkeleton } from "./progress-skeleton";
 import { WorkoutSection } from "./workout-section";
 import { WorkoutSkeleton } from "./workout-skeleton";
+import { BillingSection } from "./billing-section";
+import { BillingSkeleton } from "./billing-skeleton";
+import { ObservationsSection } from "./observations-section";
+import { ObservationsSkeleton } from "./observations-skeleton";
 
 export default async function ClientDetailPage({
   params,
@@ -56,6 +60,14 @@ export default async function ClientDetailPage({
           <RangePicker range={range} />
         </CardContent>
       </Card>
+
+      <Suspense fallback={<BillingSkeleton />}>
+        <BillingSection clientId={clientId} locale={locale} />
+      </Suspense>
+
+      <Suspense fallback={<ObservationsSkeleton />}>
+        <ObservationsSection clientId={clientId} locale={locale} />
+      </Suspense>
 
       <Suspense fallback={<WorkoutSkeleton />}>
         <WorkoutSection clientId={clientId} locale={locale} />

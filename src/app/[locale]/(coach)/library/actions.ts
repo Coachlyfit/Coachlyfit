@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { LibraryService, type LibraryQuery } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
 import { createExerciseSchema, createFoodSchema } from "./schemas";
@@ -52,14 +53,12 @@ export async function createExerciseAction(locale: string, formData: FormData): 
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
   const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
   try {
-    await new LibraryService(supabase).createExercise(user.id, {
+    await new LibraryService(supabase).createExercise(coachId, {
       ...input,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
@@ -91,13 +90,11 @@ export async function createFoodAction(locale: string, formData: FormData): Prom
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
   try {
-    await new LibraryService(supabase).createFood(user.id, parsed.data);
+    await new LibraryService(supabase).createFood(coachId, parsed.data);
   } catch (error) {
     return { error: libraryErrorKey(error) };
   }

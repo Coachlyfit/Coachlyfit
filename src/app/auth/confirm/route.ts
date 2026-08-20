@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/ar/dashboard";
   const inviteToken = searchParams.get("invite_token");
+  const teamInviteToken = searchParams.get("team_invite_token");
   const impersonating = searchParams.get("impersonating") === "1";
 
   if (tokenHash && type) {
@@ -38,6 +39,17 @@ export async function GET(request: NextRequest) {
         });
         if (acceptError) {
           redirect(`/ar/join/${inviteToken}?error=invalid_invite`);
+        }
+      }
+      // Team invite signups only get their coach link on confirmation when
+      // email confirmations are on — the immediate-session case is already
+      // handled in join-team/[token]/actions.ts.
+      if (teamInviteToken) {
+        const { error: acceptError } = await supabase.rpc("accept_team_invite", {
+          p_token: teamInviteToken,
+        });
+        if (acceptError) {
+          redirect(`/ar/join-team/${teamInviteToken}?error=invalid_invite`);
         }
       }
       const cookieStore = await cookies();

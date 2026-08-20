@@ -11,3 +11,29 @@ export const createInviteSchema = z.object({
 });
 
 export type CreateInviteInput = z.infer<typeof createInviteSchema>;
+
+export const createSubscriptionSchema = z.object({
+  package_id: z.string().uuid(),
+  end_date: z.string().min(1),
+});
+
+export const recordTransactionSchema = z.object({
+  subscription_id: z.string().uuid(),
+  payment_method_id: z.string().uuid(),
+  amount_egp: z.coerce.number().positive(),
+  transaction_date: z.string().optional().or(z.literal("")),
+  proof_path: z.string().optional().or(z.literal("")),
+});
+
+export type CreateSubscriptionInput = z.infer<typeof createSubscriptionSchema>;
+// z.coerce.number() makes the schema's input type (what RHF's number input
+// actually hands it, pre-validation) diverge from its output type — same
+// split as programs/schemas.ts's ItemFormInput/ItemInput.
+export type RecordTransactionFormInput = z.input<typeof recordTransactionSchema>;
+export type RecordTransactionInput = z.output<typeof recordTransactionSchema>;
+
+export const createObservationSchema = z.object({
+  body: z.string().min(1).max(1000),
+});
+
+export type CreateObservationInput = z.infer<typeof createObservationSchema>;
