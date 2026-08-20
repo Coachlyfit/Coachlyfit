@@ -48,7 +48,7 @@ export function AppPreview() {
 
         <div className="flex h-[420px] bg-background">
           <aside className="hidden w-[210px] shrink-0 flex-col gap-0.5 bg-sidebar p-3 lg:flex">
-            <div className="px-2 pb-4">
+            <div className="px-2 pb-4 text-sidebar-foreground">
               <CoachlyLockup height={19} onDarkGround />
             </div>
             <div className="flex h-8.5 items-center rounded-md bg-sidebar-accent px-2.5 text-[12.5px] font-medium text-sidebar-foreground">
