@@ -7,7 +7,7 @@ import { libraryErrorKey } from "@/domain/library/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { createExerciseSchema, createFoodSchema } from "@/app/[locale]/(coach)/library/schemas";
-import { linesToArray } from "@/app/[locale]/(coach)/library/actions";
+import { linesToArray } from "@/app/[locale]/(coach)/library/lines-to-array";
 
 type ActionResult = { error: string } | void;
 
