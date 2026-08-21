@@ -33,7 +33,18 @@ export function CheckinTemplatePicker({
   }
 
   return (
-    <Select value={defaultTemplateId ?? NONE} onValueChange={onChange} disabled={pending}>
+    <Select
+      value={defaultTemplateId ?? NONE}
+      onValueChange={onChange}
+      disabled={pending}
+      items={[
+        { value: NONE, label: t("checkinTemplateNone") },
+        ...templates.map((template) => ({
+          value: template.id,
+          label: pickLocale(template, locale as AppLocale),
+        })),
+      ]}
+    >
       <SelectTrigger id="default-checkin-template" className="w-full">
         <SelectValue placeholder={t("checkinTemplateNone")} />
       </SelectTrigger>

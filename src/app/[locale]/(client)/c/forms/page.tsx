@@ -17,7 +17,7 @@ export default async function ClientFormsPage({
 
   const { data: assignments } = await supabase
     .from("form_assignments")
-    .select("id, status, due_at, assigned_at, form_template_versions(form_templates(name_ar, name_en, kind))")
+    .select("id, status, due_at, assigned_at, form_template_versions(form_templates!form_template_versions_template_id_fkey(name_ar, name_en, kind))")
     .order("assigned_at", { ascending: false });
 
   const pending = (assignments ?? []).filter((a) => a.status === "pending");

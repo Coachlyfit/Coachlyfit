@@ -18,7 +18,7 @@ export default async function ClientFillFormPage({
   const { data: assignment } = await supabase
     .from("form_assignments")
     .select(
-      "id, status, client_id, coach_id, form_template_versions(template_id, schema, form_templates(name_ar, name_en)), coaches(business_name)"
+      "id, status, client_id, coach_id, form_template_versions(template_id, schema, form_templates!form_template_versions_template_id_fkey(name_ar, name_en)), coaches(business_name)"
     )
     .eq("id", assignmentId)
     .maybeSingle();

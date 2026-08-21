@@ -196,6 +196,12 @@ export function Inspector() {
                 });
               }
             }}
+            items={[
+              { value: "__none__", label: t("visibleIfNone") },
+              ...fields
+                .filter((f) => f.id !== field.id && f.type !== "section")
+                .map((f) => ({ value: f.id, label: f.label.ar || f.label.en || f.id })),
+            ]}
           >
             <SelectTrigger>
               <SelectValue />

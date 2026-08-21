@@ -54,7 +54,7 @@ export default async function DashboardPage({
     supabase
       .from("form_submissions")
       .select(
-        "id, submitted_at, clients(display_name), form_template_versions(form_templates(name_ar, name_en))"
+        "id, submitted_at, clients(display_name), form_template_versions(form_templates!form_template_versions_template_id_fkey(name_ar, name_en))"
       )
       .order("submitted_at", { ascending: false })
       .limit(RECENT_SUBMISSIONS_LIMIT),

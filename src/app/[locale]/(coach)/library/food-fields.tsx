@@ -55,7 +55,11 @@ export function FoodFields({
             name="category"
             control={control}
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                items={FOOD_CATEGORIES.map((cat) => ({ value: cat, label: tCategories(cat) }))}
+              >
                 <SelectTrigger id={id("category")}>
                   <SelectValue />
                 </SelectTrigger>

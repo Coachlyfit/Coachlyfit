@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ApertureSweep } from "@/components/brand/aperture-sweep";
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import { pickBilingual, type AppLocale } from "@/domain/locale";
 import { buildAnswerSchema } from "@/domain/forms/derive";
 import { formatNumber } from "@/lib/format";
 import type { FormField } from "@/domain/forms/schema";
@@ -199,10 +199,10 @@ export function StepFormRenderer({
 
             <div className="flex flex-1 flex-col pt-8">
               <h2 className="text-2xl font-semibold leading-snug tracking-tight text-foreground">
-                {pickLocale(currentField.label, locale)}
+                {pickBilingual(currentField.label, locale)}
               </h2>
               {currentField.help && (
-                <p className="mt-2.5 text-sm text-muted-foreground">{pickLocale(currentField.help, locale)}</p>
+                <p className="mt-2.5 text-sm text-muted-foreground">{pickBilingual(currentField.help, locale)}</p>
               )}
               <div className="mt-9 flex flex-1 flex-col justify-center">
                 <StepFieldInput
@@ -246,7 +246,7 @@ export function StepFormRenderer({
                   className="flex items-center gap-3.5 rounded-xl border border-border bg-card p-4"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs text-muted-foreground">{pickLocale(field.label, locale)}</div>
+                    <div className="text-xs text-muted-foreground">{pickBilingual(field.label, locale)}</div>
                     <div className="mt-0.5">
                       <ReadonlyAnswer
                         field={field}

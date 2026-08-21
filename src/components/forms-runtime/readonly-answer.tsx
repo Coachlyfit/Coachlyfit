@@ -1,4 +1,4 @@
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import type { FormField } from "@/domain/forms/schema";
 import type { LibraryRefOption } from "@/domain/forms/library-refs";
 
@@ -23,13 +23,13 @@ export function ReadonlyAnswer({
 
   if (field.type === "select" || field.type === "radio") {
     const option = field.options?.find((o) => o.value === value);
-    return <span className="text-sm">{option ? pickLocale(option.label, locale) : String(value)}</span>;
+    return <span className="text-sm">{option ? pickBilingual(option.label, locale) : String(value)}</span>;
   }
 
   if (field.type === "multiselect" && Array.isArray(value)) {
     const labels = value.map((v) => {
       const option = field.options?.find((o) => o.value === v);
-      return option ? pickLocale(option.label, locale) : v;
+      return option ? pickBilingual(option.label, locale) : v;
     });
     return <span className="text-sm">{labels.join(", ")}</span>;
   }

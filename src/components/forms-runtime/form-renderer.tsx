@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import { pickBilingual, type AppLocale } from "@/domain/locale";
 import { buildAnswerSchema, isFieldVisible } from "@/domain/forms/derive";
 import type { FormField } from "@/domain/forms/schema";
 import type { LibraryRefOption } from "@/domain/forms/library-refs";
@@ -56,14 +56,14 @@ export function FormRenderer({
           if (field.type === "section") {
             return (
               <h3 key={field.id} className="pt-2 text-base font-semibold">
-                {pickLocale(field.label, locale)}
+                {pickBilingual(field.label, locale)}
               </h3>
             );
           }
           return (
             <div key={field.id} className="flex flex-col gap-1 border-b border-border pb-3">
               <span className="text-sm font-medium text-muted-foreground">
-                {pickLocale(field.label, locale)}
+                {pickBilingual(field.label, locale)}
               </span>
               <ReadonlyAnswer
                 field={field}
@@ -96,7 +96,7 @@ export function FormRenderer({
             if (field.type === "section") {
               return (
                 <h3 key={field.id} className="pt-2 text-base font-semibold">
-                  {pickLocale(field.label, locale)}
+                  {pickBilingual(field.label, locale)}
                 </h3>
               );
             }
@@ -104,11 +104,11 @@ export function FormRenderer({
             return (
               <div key={field.id} className="flex flex-col gap-2">
                 <Label htmlFor={field.id}>
-                  {pickLocale(field.label, locale)}
+                  {pickBilingual(field.label, locale)}
                   {field.required && <span className="text-destructive"> *</span>}
                 </Label>
                 {field.help && (
-                  <p className="text-xs text-muted-foreground">{pickLocale(field.help, locale)}</p>
+                  <p className="text-xs text-muted-foreground">{pickBilingual(field.help, locale)}</p>
                 )}
                 <FieldInput
                   field={field}

@@ -25,7 +25,7 @@ export default async function SubmissionsPage({
   const { data: submissions } = await supabase
     .from("form_submissions")
     .select(
-      "id, submitted_at, clients(display_name), form_template_versions(version, form_templates(name_ar, name_en))"
+      "id, submitted_at, clients(display_name), form_template_versions(version, form_templates!form_template_versions_template_id_fkey(name_ar, name_en))"
     )
     .order("submitted_at", { ascending: false });
 

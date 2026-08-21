@@ -20,7 +20,7 @@ export default async function SubmissionDetailPage({
   const { data: submission } = await supabase
     .from("form_submissions")
     .select(
-      "id, answers, submitted_at, clients(display_name), form_template_versions(schema, form_templates(name_ar, name_en))"
+      "id, answers, submitted_at, clients(display_name), form_template_versions(schema, form_templates!form_template_versions_template_id_fkey(name_ar, name_en))"
     )
     .eq("id", id)
     .maybeSingle();

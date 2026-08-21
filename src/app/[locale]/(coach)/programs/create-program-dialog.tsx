@@ -104,6 +104,10 @@ export function CreateProgramDialog({
                 <Select
                   value={field.value || NO_CLIENT}
                   onValueChange={(v) => field.onChange(v === NO_CLIENT ? "" : v)}
+                  items={[
+                    { value: NO_CLIENT, label: t("clientNone") },
+                    ...clients.map((c) => ({ value: c.id, label: c.display_name })),
+                  ]}
                 >
                   <SelectTrigger id="client_id">
                     <SelectValue />

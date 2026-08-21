@@ -54,7 +54,11 @@ export function ExerciseFields({
           name="muscle_group"
           control={control}
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              items={MUSCLE_GROUPS.map((group) => ({ value: group, label: tGroups(group) }))}
+            >
               <SelectTrigger id={id("muscle_group")}>
                 <SelectValue />
               </SelectTrigger>
