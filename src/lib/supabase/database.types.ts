@@ -1870,6 +1870,7 @@ export type Database = {
           reps: number | null
           session_id: string
           set_index: number
+          substituted_exercise_id: string | null
           weight: number | null
         }
         Insert: {
@@ -1881,6 +1882,7 @@ export type Database = {
           reps?: number | null
           session_id: string
           set_index: number
+          substituted_exercise_id?: string | null
           weight?: number | null
         }
         Update: {
@@ -1892,6 +1894,7 @@ export type Database = {
           reps?: number | null
           session_id?: string
           set_index?: number
+          substituted_exercise_id?: string | null
           weight?: number | null
         }
         Relationships: [
@@ -1921,6 +1924,20 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_substituted_exercise_id_fkey"
+            columns: ["substituted_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_substituted_exercise_id_fkey"
+            columns: ["substituted_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises_visible"
             referencedColumns: ["id"]
           },
         ]
