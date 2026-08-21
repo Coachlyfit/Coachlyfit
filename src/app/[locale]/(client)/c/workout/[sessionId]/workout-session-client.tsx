@@ -7,6 +7,7 @@ import { ChevronRight, ChevronLeft, Play } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { ApertureSweep } from "@/components/brand/aperture-sweep";
 import { ExerciseVideoSheet } from "@/components/workout/exercise-video-sheet";
+import { ExerciseSwapSheet, type SwapExercise } from "@/components/workout/exercise-swap-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { logSetAction, completeSessionAction } from "@/domain/workouts/workouts-actions";
@@ -80,6 +81,12 @@ export function WorkoutSessionClient({
   const [done, setDone] = useState(alreadyCompleted);
   const [videoExercise, setVideoExercise] = useState<ProgramItem["exercises"] | null>(null);
   const [restDuration, setRestDuration] = useState(90);
+  const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(new Map());
+  const [swapItem, setSwapItem] = useState<ProgramItem | null>(null);
+
+  function activeExercise(item: ProgramItem): SwapExercise {
+    return swaps.get(item.id) ?? item.exercises;
+  }
 
   const projectedByItem = new Map(
     day.program_items.map((item) => [
@@ -112,10 +119,12 @@ export function WorkoutSessionClient({
   async function toggleSet(item: ProgramItem, setIndex: number, prescribedReps: number) {
     const key = setKey(item.id, setIndex);
     if (logs.has(key)) return; // sets are logged once, not un-toggled — matches server-authored history
+    const swap = swaps.get(item.id);
     const log = await logSetAction(sessionId, {
       program_item_id: item.id,
       set_index: setIndex,
       reps: prescribedReps,
+      substituted_exercise_id: swap ? swap.id : null,
     });
     if (!log) return;
     setLogs((prev) => new Map(prev).set(key, log));
@@ -197,7 +206,7 @@ export function WorkoutSessionClient({
             <div className="mb-3.5 flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setVideoExercise(item.exercises)}
+                onClick={() => setVideoExercise(activeExercise(item))}
                 className="relative flex size-none h-13.5 w-19.5 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-[repeating-linear-gradient(135deg,#131C2F_0_7px,#1B2437_7px_14px)]"
               >
                 <span className="flex size-7 items-center justify-center rounded-full bg-[#F8FAFC]/95">
@@ -206,21 +215,33 @@ export function WorkoutSessionClient({
               </button>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[14.5px] font-semibold text-[#F8FAFC]">
-                  {pickLocale(item.exercises, locale)}
+                  {pickLocale(activeExercise(item), locale)}
                 </p>
+                {swaps.has(item.id) && (
+                  <p className="mt-0.5 truncate text-[10px] text-[#64748B]">
+                    {t("insteadOf", { name: pickLocale(item.exercises, locale) })}
+                  </p>
+                )}
                 <div className="mt-1 flex items-center gap-2.5">
                   <span className="font-mono text-[11px] text-[#64748B]">
                     {displaySets.length} × {repsRangeLabel(displaySets)}
                   </span>
-                  {item.exercises.video_url && (
+                  {activeExercise(item).video_url && (
                     <button
                       type="button"
-                      onClick={() => setVideoExercise(item.exercises)}
+                      onClick={() => setVideoExercise(activeExercise(item))}
                       className="text-[11.5px] font-medium text-primary"
                     >
                       {t("watchForm")}
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => setSwapItem(item)}
+                    className="text-[11.5px] font-medium text-[#64748B]"
+                  >
+                    {t("swap")}
+                  </button>
                 </div>
               </div>
             </div>
@@ -275,6 +296,29 @@ export function WorkoutSessionClient({
         exercise={videoExercise}
         open={videoExercise != null}
         onOpenChange={(open) => !open && setVideoExercise(null)}
+      />
+
+      <ExerciseSwapSheet
+        locale={locale}
+        open={swapItem != null}
+        onOpenChange={(open) => !open && setSwapItem(null)}
+        originalExerciseId={swapItem?.exercises.id ?? ""}
+        activeExerciseId={swapItem ? (swaps.get(swapItem.id)?.id ?? swapItem.exercises.id) : ""}
+        muscleGroup={swapItem?.exercises.muscle_group ?? null}
+        onSelect={(exercise) => {
+          if (!swapItem) return;
+          setSwaps((prev) => new Map(prev).set(swapItem.id, exercise));
+          setSwapItem(null);
+        }}
+        onUseOriginal={() => {
+          if (!swapItem) return;
+          setSwaps((prev) => {
+            const next = new Map(prev);
+            next.delete(swapItem.id);
+            return next;
+          });
+          setSwapItem(null);
+        }}
       />
     </div>
   );

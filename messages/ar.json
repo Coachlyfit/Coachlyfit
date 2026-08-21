@@ -713,7 +713,14 @@
       "performanceCues": "نقط الأداء",
       "bodyweight": "وزن الجسم",
       "prevShort": "قبل",
-      "todayWorkout": "النهاردة"
+      "todayWorkout": "النهاردة",
+      "swap": "بدّل",
+      "swapTitle": "بدّل التمرين",
+      "useOriginal": "استخدم الأصلي",
+      "insteadOf": "بدل: {name}",
+      "searchExercises": "دوّر على تمرين...",
+      "searching": "بدوّر...",
+      "noExercisesMatch": "مفيش تمارين مطابقة."
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",

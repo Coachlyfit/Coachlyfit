@@ -713,7 +713,14 @@
       "performanceCues": "Performance cues",
       "bodyweight": "BW",
       "prevShort": "Prev",
-      "todayWorkout": "TODAY"
+      "todayWorkout": "TODAY",
+      "swap": "Swap",
+      "swapTitle": "Swap exercise",
+      "useOriginal": "Use original",
+      "insteadOf": "Instead of: {name}",
+      "searchExercises": "Search exercises...",
+      "searching": "Searching...",
+      "noExercisesMatch": "No exercises match."
     },
     "checkin": {
       "backTitle": "Weekly check-in",
