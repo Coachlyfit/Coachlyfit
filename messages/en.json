@@ -711,7 +711,9 @@
       "openOriginalVideo": "Open original video",
       "formCheck": "FORM CHECK",
       "performanceCues": "Performance cues",
-      "bodyweight": "BW"
+      "bodyweight": "BW",
+      "prevShort": "Prev",
+      "todayWorkout": "TODAY"
     },
     "checkin": {
       "backTitle": "Weekly check-in",

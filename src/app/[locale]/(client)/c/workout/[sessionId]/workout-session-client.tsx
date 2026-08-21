@@ -87,6 +87,15 @@ export function WorkoutSessionClient({
       projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week),
     ])
   );
+  const showPrev = week > 1;
+  const prevByItem = showPrev
+    ? new Map(
+        day.program_items.map((item) => [
+          item.id,
+          projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week - 1),
+        ])
+      )
+    : null;
   const totalSets = day.program_items.reduce((sum, item) => sum + item.program_item_sets.length, 0);
   const doneCount = logs.size;
   const allDone = totalSets > 0 && doneCount === totalSets;
@@ -182,6 +191,7 @@ export function WorkoutSessionClient({
       <div className="flex flex-col gap-3.5 px-5 py-4">
         {day.program_items.map((item) => {
           const displaySets = projectedByItem.get(item.id) ?? [];
+          const prevSets = prevByItem?.get(item.id) ?? null;
           return (
           <div key={item.id} className="rounded-2xl bg-[#0F172A] p-4">
             <div className="mb-3.5 flex items-center gap-3">
@@ -218,6 +228,7 @@ export function WorkoutSessionClient({
               {displaySets.map((set, i) => {
                 const log = logs.get(setKey(item.id, i));
                 const on = log != null;
+                const prevSet = prevSets?.[i] ?? null;
                 return (
                   <button
                     key={i}
@@ -225,7 +236,8 @@ export function WorkoutSessionClient({
                     onClick={() => toggleSet(item, i, set.reps)}
                     disabled={on}
                     className={cn(
-                      "flex h-13 flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
+                      "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
+                      showPrev ? "h-16" : "h-13",
                       on ? "border-primary bg-primary text-primary-foreground" : "border-[#1E293B] text-[#64748B]"
                     )}
                   >
@@ -233,6 +245,11 @@ export function WorkoutSessionClient({
                       {log?.weight ?? set.weight ?? t("bodyweight")}
                     </span>
                     <span className="font-mono text-[9px] tracking-wider">{log?.reps ?? set.reps}</span>
+                    {prevSet && (
+                      <span className="font-mono text-[8px] tracking-wide opacity-60">
+                        {t("prevShort")} {prevSet.weight != null ? `${prevSet.weight}×${prevSet.reps}` : prevSet.reps}
+                      </span>
+                    )}
                   </button>
                 );
               })}

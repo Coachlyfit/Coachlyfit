@@ -711,7 +711,9 @@
       "openOriginalVideo": "افتح الفيديو الأصلي",
       "formCheck": "شيك على الأداء",
       "performanceCues": "نقط الأداء",
-      "bodyweight": "وزن الجسم"
+      "bodyweight": "وزن الجسم",
+      "prevShort": "قبل",
+      "todayWorkout": "النهاردة"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
