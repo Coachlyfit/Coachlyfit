@@ -572,7 +572,8 @@
       "title": "آخر التمارين",
       "empty": "مفيش تمارين متسجلة لسه.",
       "completed": "خلصت",
-      "inProgress": "جارية"
+      "inProgress": "جارية",
+      "swapped": "بدّل {original} بـ {substitute}"
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",

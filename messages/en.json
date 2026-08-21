@@ -572,7 +572,8 @@
       "title": "Recent workouts",
       "empty": "No logged workouts yet.",
       "completed": "Completed",
-      "inProgress": "In progress"
+      "inProgress": "In progress",
+      "swapped": "Swapped {original} for {substitute}"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
