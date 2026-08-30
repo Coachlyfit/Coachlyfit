@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import type { FormField } from "@/domain/forms/schema";
 import type { LibraryRefOption } from "@/domain/forms/library-refs";
 import { PhotoFileInput } from "./photo-file-input";
@@ -93,14 +93,18 @@ export function FieldInput({
           name={field.id}
           control={control}
           render={({ field: f }) => (
-            <Select value={f.value} onValueChange={f.onChange}>
+            <Select
+              value={f.value}
+              onValueChange={f.onChange}
+              items={(field.options ?? []).map((o) => ({ value: o.value, label: pickBilingual(o.label, locale) }))}
+            >
               <SelectTrigger id={field.id}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {(field.options ?? []).map((o) => (
                   <SelectItem key={o.value} value={o.value}>
-                    {pickLocale(o.label, locale)}
+                    {pickBilingual(o.label, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -120,7 +124,7 @@ export function FieldInput({
                 <div key={o.value} className="flex items-center gap-2">
                   <RadioGroupItem value={o.value} id={`${field.id}-${o.value}`} />
                   <label htmlFor={`${field.id}-${o.value}`} className="text-sm">
-                    {pickLocale(o.label, locale)}
+                    {pickBilingual(o.label, locale)}
                   </label>
                 </div>
               ))}
@@ -150,7 +154,7 @@ export function FieldInput({
                       }
                     />
                     <label htmlFor={`${field.id}-${o.value}`} className="text-sm">
-                      {pickLocale(o.label, locale)}
+                      {pickBilingual(o.label, locale)}
                     </label>
                   </div>
                 ))}
@@ -167,7 +171,11 @@ export function FieldInput({
           name={field.id}
           control={control}
           render={({ field: f }) => (
-            <Select value={f.value} onValueChange={f.onChange}>
+            <Select
+              value={f.value}
+              onValueChange={f.onChange}
+              items={(refOptions ?? []).map((o) => ({ value: o.id, label: pickLocale(o, locale) }))}
+            >
               <SelectTrigger id={field.id}>
                 <SelectValue />
               </SelectTrigger>

@@ -13,3 +13,11 @@ export function pickLocale(
   const en = row[`${field}_en`] as string | undefined;
   return (locale === "ar" ? ar || en : en || ar) ?? "";
 }
+
+/** Same ar/en fallback as pickLocale, for values that are already a
+ * `{ ar, en }` pair (form field labels/help/option text) instead of a
+ * `_ar`/`_en`-suffixed row — e.g. the forms-runtime renderers reading
+ * `field.label`. Delegates to pickLocale so there's still one fallback rule. */
+export function pickBilingual(value: { ar: string; en: string }, locale: AppLocale): string {
+  return pickLocale({ label_ar: value.ar, label_en: value.en }, locale, "label");
+}

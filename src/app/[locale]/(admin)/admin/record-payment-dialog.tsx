@@ -100,7 +100,11 @@ export function RecordPaymentDialog({ locale, coachId }: { locale: string; coach
                 name="method"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    items={METHODS.map((m) => ({ value: m, label: tMethods(m) }))}
+                  >
                     <SelectTrigger id="method">
                       <SelectValue />
                     </SelectTrigger>

@@ -27,7 +27,19 @@ export function GroupFilter({
   const allLabel = kind === "exercises" ? t("allGroups") : t("allCategories");
 
   return (
-    <Select value={value ?? ALL} onValueChange={(v) => onChange(v === ALL ? null : v)}>
+    <Select
+      value={value ?? ALL}
+      onValueChange={(v) => onChange(v === ALL ? null : v)}
+      // base-ui's SelectValue renders the raw value unless Root knows the label
+      // for each item — SelectItem children are not inspected the way Radix does.
+      items={[
+        { value: ALL, label: allLabel },
+        ...options.map((option) => ({
+          value: option,
+          label: kind === "exercises" ? tGroups(option) : tCategories(option),
+        })),
+      ]}
+    >
       <SelectTrigger aria-label={label} className="sm:w-40">
         <SelectValue />
       </SelectTrigger>

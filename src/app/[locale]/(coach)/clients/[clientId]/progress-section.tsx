@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -7,8 +8,10 @@ import { ProgressKpiRow } from "@/components/progress/progress-kpi-row";
 import { MetricCharts } from "@/components/progress/metric-charts";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import { ProgressService } from "@/domain/progress/progress.service";
+import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
 import { checkinStreak, rangeStart, type ProgressRange } from "@/domain/progress/stats";
 import { createClient } from "@/lib/supabase/server";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import type { AppLocale } from "@/domain/locale";
 
 /** The expensive part of the coach's client-detail page: one Suspense
@@ -31,10 +34,14 @@ export async function ProgressSection({
   const today = new Date();
   const since = rangeStart(range, today);
 
-  const [history, grouped, media] = await Promise.all([
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) notFound();
+
+  const [history, grouped, media, customMetrics] = await Promise.all([
     progress.listCheckins(clientId, since),
     progress.listBodyMetricsGrouped(clientId, since),
     progress.listMedia(clientId, "photo", since),
+    new MetricDefinitionsService(supabase).list(coachId),
   ]);
 
   const signed = await progress.signMediaUrls(media.map((m) => m.storage_path));
@@ -108,7 +115,7 @@ export async function ProgressSection({
         />
       </div>
 
-      <MetricCharts grouped={grouped} />
+      <MetricCharts grouped={grouped} customMetrics={customMetrics} locale={locale} />
     </div>
   );
 }

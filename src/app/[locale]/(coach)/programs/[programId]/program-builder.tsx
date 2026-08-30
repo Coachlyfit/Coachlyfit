@@ -16,10 +16,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, Trash2, Pencil } from "lucide-react";
+import { GripVertical, Plus, Trash2, Pencil, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   DropdownMenu,
@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { ProgramTree } from "@/domain/programs/programs.service";
 import { projectSetsForWeek, MAX_PROGRAM_WEEKS, type ProgressionRule } from "@/domain/programs/progression";
@@ -42,7 +43,7 @@ import { ItemDialog } from "./item-dialog";
 import { AssignTemplateDialog } from "./assign-template-dialog";
 import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
 import { VolumeSidebar } from "./volume-sidebar";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 
 type Day = ProgramTree["program_days"][number];
 type Item = Day["program_items"][number];
@@ -297,6 +298,7 @@ export function ProgramBuilder({
 }) {
   const t = useTranslations("programs.builder");
   const tPrograms = useTranslations("programs");
+  const tPrint = useTranslations("print");
   const tErrors = useTranslations("programs.errors");
   const router = useRouter();
   const [days, setDays] = useState(tree.program_days);
@@ -378,6 +380,14 @@ export function ProgramBuilder({
           {readOnly && <span className="text-xs text-muted-foreground">{t("weekReadOnlyHint")}</span>}
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href={`/print/program/${tree.id}`}
+            target="_blank"
+            className={cn(buttonVariants({ variant: "outline" }))}
+          >
+            <Printer className="size-4" />
+            {tPrint("button")}
+          </Link>
           {!readOnly && (
             <Button type="button" variant="outline" onClick={() => setDayDialog({})}>
               <Plus className="size-4" />

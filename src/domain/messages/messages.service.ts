@@ -40,6 +40,21 @@ export class MessagesService {
     return data;
   }
 
+  /** Sends the same message to every listed client in a single bulk insert
+   * (not a loop of single inserts) — used for coach-to-all-active-clients
+   * broadcasts. Callers don't need the created rows back. */
+  async broadcast(coachId: string, clientIds: string[], body: string): Promise<void> {
+    const { error } = await this.db.from("messages").insert(
+      clientIds.map((clientId) => ({
+        coach_id: coachId,
+        client_id: clientId,
+        sender_role: "coach" as const,
+        body,
+      })),
+    );
+    if (error) throw error;
+  }
+
   /** Marks every message in the thread NOT sent by the caller as read —
    * the caller passes their own role so they never mark their own
    * outgoing messages read. */

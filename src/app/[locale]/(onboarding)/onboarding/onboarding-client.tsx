@@ -158,6 +158,7 @@ export function OnboardingClient({ locale, steps }: { locale: "ar" | "en"; steps
                           next[col] = value as ImportField;
                           setFields(next);
                         }}
+                        items={FIELD_KEYS.map((f) => ({ value: f, label: t(`mapping.fields.${f}`) }))}
                       >
                         <SelectTrigger size="sm" className="w-full">
                           <SelectValue />

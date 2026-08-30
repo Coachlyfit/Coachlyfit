@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MessageCircle } from "lucide-react";
 import { PageTitle } from "@/components/dashboard/page-title";
+import { BroadcastDialog } from "./broadcast-dialog";
 
 export default async function InboxPage() {
   const t = await getTranslations("inbox");
@@ -22,6 +23,9 @@ export default async function InboxPage() {
         <EmptyState icon={MessageCircle} title={t("clientList.empty")} />
       ) : (
         <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-end">
+            <BroadcastDialog />
+          </div>
           {clients.map((client) => (
             <Link key={client.id} href={`/inbox/${client.id}`}>
               <Card className="transition-colors hover:bg-muted/50">

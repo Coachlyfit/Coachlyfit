@@ -16,10 +16,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/sign-out-action";
 import type { AppLocale } from "@/domain/locale";
+import { CommandPalette } from "./command-palette";
 import { NotificationBell } from "./notification-bell";
 import { usePageTitleStore } from "./page-title-store";
+import type { NavItem } from "./nav-items";
 
-export function Topbar({ locale, fullName }: { locale: string; fullName: string | null }) {
+export function Topbar({
+  locale,
+  fullName,
+  navItems,
+}: {
+  locale: string;
+  fullName: string | null;
+  /** Forwarded to CommandPalette; defaults to the coach NAV_ITEMS there.
+   *  (admin)/layout.tsx passes ADMIN_NAV_ITEMS since Topbar is shared by
+   *  both role layouts. */
+  navItems?: NavItem[];
+}) {
   const tCommon = useTranslations("common");
   const title = usePageTitleStore((s) => s.title);
   const subtitle = usePageTitleStore((s) => s.subtitle);
@@ -36,6 +49,7 @@ export function Topbar({ locale, fullName }: { locale: string; fullName: string 
         {fullName}
       </span>
       <div className="flex items-center gap-2 ms-auto md:ms-0">
+        <CommandPalette items={navItems} />
         <NotificationBell locale={locale as AppLocale} />
         <LocaleSwitcher />
         <ThemeToggle />

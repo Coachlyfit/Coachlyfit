@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Dumbbell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 
 /** Coach-facing compliance view — sits alongside ProgressSection on the
@@ -30,16 +30,26 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
             const done = session.completed_at != null;
             return (
               <Card key={session.id}>
-                <CardContent className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-sm font-medium">{label || t("title")}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(session.started_at, locale, { dateStyle: "medium" })}
-                    </p>
+                <CardContent className="flex flex-col gap-1.5 py-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{label || t("title")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(session.started_at, locale, { dateStyle: "medium" })}
+                      </p>
+                    </div>
+                    <span className={done ? "text-sm text-success" : "text-sm text-muted-foreground"}>
+                      {done ? t("completed") : t("inProgress")}
+                    </span>
                   </div>
-                  <span className={done ? "text-sm text-success" : "text-sm text-muted-foreground"}>
-                    {done ? t("completed") : t("inProgress")}
-                  </span>
+                  {session.swaps.map((swap, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">
+                      {t("swapped", {
+                        original: pickBilingual(swap.original, locale),
+                        substitute: pickBilingual(swap.substitute, locale),
+                      })}
+                    </p>
+                  ))}
                 </CardContent>
               </Card>
             );

@@ -26,7 +26,16 @@
     "admin": "Admin",
     "plan": "Plan",
     "coach": "Coach",
-    "inbox": "Inbox"
+    "inbox": "Inbox",
+    "diets": "Nutrition",
+    "feedback": "Feedback"
+  },
+  "palette": {
+    "navigation": "Navigation",
+    "clients": "Clients",
+    "placeholder": "Search or jump to...",
+    "empty": "No results found.",
+    "trigger": "Search"
   },
   "marketing": {
     "nav": {
@@ -387,6 +396,7 @@
       "title": "Check your email",
       "body": "We sent you a confirmation link. Click it to activate your account."
     },
+    "poweredBy": "Powered by Coachly Fit",
     "errors": {
       "invalid_input": "Please check the form and try again.",
       "invalid_credentials": "Incorrect email or password.",
@@ -435,7 +445,87 @@
     "businessName": "Business name",
     "email": "Email",
     "locale": "Interface language",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "checkinTemplateTitle": "Automatic check-in",
+    "checkinTemplateHint": "When a plan's duration ends, automatically send the client this form.",
+    "checkinTemplateNone": "None — don't auto-send",
+    "checkinTemplateSaved": "Saved.",
+    "checkinTemplateError": "Couldn't save. Try again.",
+    "packages": {
+      "title": "Packages",
+      "add": "Add package",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "duration": "Duration",
+      "durationDays": "{count} days",
+      "price": "Price",
+      "egp": "EGP",
+      "submit": "Save",
+      "empty": "No packages yet. Add one so you can subscribe clients to it.",
+      "confirmDeleteTitle": "Delete this package?",
+      "delete": "Delete"
+    },
+    "paymentMethods": {
+      "title": "Payment Methods",
+      "add": "Add method",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "submit": "Save",
+      "empty": "No payment methods yet. Add how you accept payment from clients.",
+      "confirmDeleteTitle": "Delete this payment method?",
+      "delete": "Delete"
+    },
+    "errors": {
+      "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
+      "update_failed": "Couldn't save. Try again.",
+      "slug_taken": "That link is taken — try another one.",
+      "package_in_use": "This package has a client subscribed to it, so it can't be deleted.",
+      "payment_method_in_use": "This payment method has a transaction recorded against it, so it can't be deleted.",
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "metric_already_exists": "You already have a metric with a similar name."
+    },
+    "customMetrics": {
+      "title": "Custom Metrics",
+      "add": "Add metric",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "unit": "Unit",
+      "unitPlaceholder": "e.g. cm, kg, %",
+      "submit": "Save",
+      "empty": "No custom metrics yet. Add one so clients can log it under Progress.",
+      "confirmDeleteTitle": "Delete this metric?",
+      "delete": "Delete"
+    },
+    "team": {
+      "title": "Team",
+      "add": "Invite member",
+      "emailLabel": "Email",
+      "submit": "Send invite",
+      "empty": "No team members yet. Invite someone to share access to your business.",
+      "statusPending": "Pending",
+      "statusAccepted": "Active",
+      "linkTitle": "Share this link",
+      "linkBody": "Anyone with this link can join your team. It works once.",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "done": "Done",
+      "confirmDeleteTitle": "Remove this team member?",
+      "delete": "Remove"
+    },
+    "portal": {
+      "title": "Portal link",
+      "description": "Share this link with clients so they see your brand, not ours.",
+      "slugLabel": "Your link",
+      "slugHint": "Lowercase letters, numbers, and hyphens only. Up to 40 characters.",
+      "slugFormat": "Lowercase letters, numbers, and hyphens only, up to 40 characters.",
+      "save": "Save",
+      "saved": "Saved.",
+      "urlLabel": "Shareable link",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "qrAlt": "QR code for your portal link"
+    }
   },
   "clients": {
     "title": "Clients",
@@ -482,7 +572,8 @@
       "title": "Recent workouts",
       "empty": "No logged workouts yet.",
       "completed": "Completed",
-      "inProgress": "In progress"
+      "inProgress": "In progress",
+      "swapped": "Swapped {original} for {substitute}"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -492,6 +583,67 @@
       "email_taken": "An account with this email already exists.",
       "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
       "not_found_or_forbidden": "Couldn't find that, or you don't have access."
+    },
+    "billing": {
+      "subscription": {
+        "title": "Subscription",
+        "none": "No subscription yet.",
+        "dateRange": "{start} – {end}",
+        "egp": "EGP",
+        "freeze": "Freeze",
+        "unfreeze": "Unfreeze",
+        "cancel": "Cancel",
+        "confirmCancelTitle": "Cancel this subscription?",
+        "confirmCancelBody": "The client keeps access until you decide otherwise — canceling just stops billing.",
+        "status": {
+          "active": "Active",
+          "expired": "Expired",
+          "frozen": "Frozen",
+          "canceled": "Canceled"
+        },
+        "confirmCancelAction": "Cancel subscription"
+      },
+      "startSubscription": {
+        "title": "Start subscription",
+        "package": "Package",
+        "endDate": "End date",
+        "submit": "Start"
+      },
+      "recordTransaction": {
+        "title": "Record payment",
+        "amount": "Amount (EGP)",
+        "method": "Payment method",
+        "date": "Date",
+        "proof": "Proof of payment (optional)",
+        "proofUpload": "Upload proof",
+        "proofAttached": "Attached",
+        "uploading": "Uploading…",
+        "submit": "Save"
+      },
+      "transactions": {
+        "title": "Transactions",
+        "empty": "No transactions recorded yet.",
+        "date": "Date",
+        "method": "Method",
+        "amount": "Amount",
+        "egp": "EGP",
+        "viewProof": "View proof"
+      },
+      "errors": {
+        "invalid_input": "Please check the form and try again.",
+        "not_authenticated": "Please log in again.",
+        "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
+        "file_too_large": "File must be under 10 MB.",
+        "invalid_file": "Choose an image or PDF file.",
+        "upload_failed": "Couldn't upload that file. Try again."
+      }
+    },
+    "observations": {
+      "title": "Observations",
+      "empty": "No observations yet.",
+      "add": "Add note",
+      "placeholder": "Write a private note about this client...",
+      "submit": "Save"
     }
   },
   "join": {
@@ -505,6 +657,9 @@
       "email": "Email",
       "password": "Password",
       "submit": "Create account"
+    },
+    "team": {
+      "heading": "You've been invited to join a coaching team"
     }
   },
   "client": {
@@ -557,7 +712,16 @@
       "openOriginalVideo": "Open original video",
       "formCheck": "FORM CHECK",
       "performanceCues": "Performance cues",
-      "bodyweight": "BW"
+      "bodyweight": "BW",
+      "prevShort": "Prev",
+      "todayWorkout": "TODAY",
+      "swap": "Swap",
+      "swapTitle": "Swap exercise",
+      "useOriginal": "Use original",
+      "insteadOf": "Instead of: {name}",
+      "searchExercises": "Search exercises...",
+      "searching": "Searching...",
+      "noExercisesMatch": "No exercises match."
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -603,6 +767,12 @@
         "body": "Your coach will see this soon.",
         "close": "Done"
       }
+    },
+    "diet": {
+      "title": "Nutrition",
+      "noPlan": "No nutrition plan yet",
+      "noPlanBody": "Your coach has not assigned a nutrition plan yet.",
+      "quantityUnit": "{quantity} {unit}"
     }
   },
   "inbox": {
@@ -613,6 +783,17 @@
     "send": "Send",
     "clientList": {
       "empty": "No clients yet."
+    },
+    "broadcast": {
+      "trigger": "Broadcast",
+      "title": "Message all active clients",
+      "placeholder": "Type a message to send to every active client…",
+      "submit": "Send to all",
+      "success": "Sent to every active client."
+    },
+    "errors": {
+      "invalid_input": "Please check the message and try again.",
+      "no_recipients": "You don't have any active clients yet."
     }
   },
   "forms": {
@@ -1150,6 +1331,14 @@
           "amount": "Amount (EGP)"
         }
       }
+    },
+    "feedback": {
+      "title": "Coach feedback",
+      "empty": "No feedback yet.",
+      "table": {
+        "body": "Feedback",
+        "date": "Date"
+      }
     }
   },
   "notifications": {
@@ -1468,6 +1657,121 @@
       "save_failed": "Something went wrong. Please try again.",
       "no_rows": "No valid rows found. Check the pasted data.",
       "template_failed": "Couldn't create the template. Please try again."
+    }
+  },
+  "diets": {
+    "title": "Nutrition Plans",
+    "new": "New plan",
+    "allTab": "All",
+    "templatesTab": "Templates",
+    "assignedTab": "Assigned",
+    "empty": {
+      "title": "No nutrition plans yet",
+      "description": "Build a plan once and apply it to any number of clients."
+    },
+    "table": {
+      "name": "Name",
+      "client": "Client",
+      "dates": "Dates",
+      "created": "Created"
+    },
+    "template": "Template",
+    "dateRange": "{start} – {end}",
+    "ongoing": "Ongoing",
+    "createDialog": {
+      "title": "New nutrition plan",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "client": "Client",
+      "clientNone": "No client — save as a template",
+      "startDate": "Start date",
+      "endDate": "End date (optional)",
+      "submit": "Create"
+    },
+    "assignTemplateDialog": {
+      "title": "Assign this template",
+      "description": "Creates a copy of this plan for the client you pick — the template stays unchanged.",
+      "client": "Client",
+      "submit": "Assign"
+    },
+    "deletePlan": "Delete plan",
+    "confirmDeletePlanTitle": "Delete this plan?",
+    "confirmDeletePlanBody": "This deletes every meal and food in it. This can not be undone.",
+    "assignedToClients": {
+      "title": "Assigned to {count} client(s)"
+    },
+    "builder": {
+      "addMeal": "Add meal",
+      "editMeal": "Edit meal",
+      "addFood": "Add food",
+      "noMeals": "No meals yet.",
+      "noItems": "No foods in this meal yet.",
+      "deleteMeal": "Delete meal",
+      "confirmDeleteMealTitle": "Delete this meal?",
+      "confirmDeleteMealBody": "This deletes every food in it. This can not be undone.",
+      "quantityUnit": "{quantity} {unit}",
+      "untitledMeal": "Meal"
+    },
+    "mealDialog": {
+      "addTitle": "Add meal",
+      "editTitle": "Edit meal",
+      "labelAr": "Label (Arabic, optional)",
+      "labelEn": "Label (English, optional)",
+      "submit": "Save"
+    },
+    "itemDialog": {
+      "addTitle": "Add food",
+      "editTitle": "Edit food",
+      "food": "Food",
+      "searchPlaceholder": "Search foods...",
+      "loading": "Searching...",
+      "noResults": "No foods match.",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "submit": "Save"
+    },
+    "macros": {
+      "title": "Plan totals",
+      "empty": "Add foods to see totals.",
+      "kcal": "kcal",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat"
+    },
+    "foodSidebar": {
+      "title": "Add food",
+      "searchPlaceholder": "Search foods...",
+      "loading": "Searching...",
+      "noResults": "No foods match.",
+      "allCategories": "All"
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "not_found_or_forbidden": "You can not change this plan.",
+      "end_date_before_start_date": "End date can not be before the start date.",
+      "unknown": "Something went wrong. Please try again."
+    }
+  },
+  "print": {
+    "button": "Print",
+    "preparedFor": "Prepared for {name}",
+    "set": "Set",
+    "reps": "Reps",
+    "weight": "Weight",
+    "rest": "Rest",
+    "quantity": "Qty",
+    "planTotals": "Plan totals"
+  },
+  "feedback": {
+    "trigger": "Send feedback",
+    "title": "Share your feedback",
+    "placeholder": "Write your note or suggestion here...",
+    "submit": "Send",
+    "success": "Sent — thanks for your time.",
+    "errors": {
+      "invalid_input": "Please check your message and try again.",
+      "not_authenticated": "Please log in again."
     }
   }
 }

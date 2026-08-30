@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { ReviewService } from "@/domain/progress/review.service";
 import { MessagesService } from "@/domain/messages/messages.service";
 import { reviewSchema } from "./schemas";
@@ -38,10 +39,8 @@ export async function submitReviewAction(locale: string, formData: FormData): Pr
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
   const review = new ReviewService(supabase);
   let checkin;
@@ -55,7 +54,7 @@ export async function submitReviewAction(locale: string, formData: FormData): Pr
     return { error: "review_failed" };
   }
 
-  await new MessagesService(supabase).send(user.id, checkin.client_id, {
+  await new MessagesService(supabase).send(coachId, checkin.client_id, {
     sender_role: "coach",
     body: parsed.data.coachReply,
   });

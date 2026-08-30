@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, CalendarDays, LineChart, MessageCircle, FileText } from "lucide-react";
+import { Home, CalendarDays, Salad, LineChart, MessageCircle, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const ITEMS = [
   { href: "/c", key: "home", icon: Home },
   { href: "/c/plan", key: "plan", icon: CalendarDays },
+  { href: "/c/diet", key: "diet", icon: Salad },
   { href: "/c/progress", key: "progress", icon: LineChart },
   { href: "/c/coach", key: "coach", icon: MessageCircle },
   { href: "/c/forms", key: "forms", icon: FileText },
@@ -23,6 +24,7 @@ export function ClientNav() {
     if (key === "forms") return t("forms");
     if (key === "plan") return t("plan");
     if (key === "coach") return t("coach");
+    if (key === "diet") return tClient("diet.title");
     return t("progress");
   }
 

@@ -206,7 +206,11 @@ export function ItemDialog({
               name="progression_rule"
               control={control}
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={PROGRESSION_RULES.map((rule) => ({ value: rule.value, label: t(rule.labelKey) }))}
+                >
                   <SelectTrigger id="progression_rule">
                     <SelectValue />
                   </SelectTrigger>

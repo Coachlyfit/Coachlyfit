@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WorkoutsService } from "./workouts.service";
+import { WorkoutsService, groupSwapsBySession } from "./workouts.service";
 
 function fakeSupabase(opts: {
   parent?: unknown;
@@ -98,5 +98,51 @@ describe("WorkoutsService", () => {
   it("completeSession reports true when a row was actually affected", async () => {
     const { db } = fakeSupabase({ affected: [{ id: "session-1" }] });
     expect(await new WorkoutsService(db).completeSession("session-1", 900)).toBe(true);
+  });
+});
+
+describe("groupSwapsBySession", () => {
+  it("groups by session and dedupes by program_item_id", () => {
+    const rows = [
+      {
+        session_id: "s1",
+        program_item_id: "item-1",
+        program_items: { exercises: { name_ar: "بنش بار", name_en: "Barbell Bench Press" } },
+        exercises: { name_ar: "بنش دمبل", name_en: "Dumbbell Bench Press" },
+      },
+      {
+        // second logged set of the SAME swapped exercise in the same session — must not duplicate
+        session_id: "s1",
+        program_item_id: "item-1",
+        program_items: { exercises: { name_ar: "بنش بار", name_en: "Barbell Bench Press" } },
+        exercises: { name_ar: "بنش دمبل", name_en: "Dumbbell Bench Press" },
+      },
+      {
+        session_id: "s2",
+        program_item_id: "item-2",
+        program_items: { exercises: { name_ar: "سكوات", name_en: "Squat" } },
+        exercises: { name_ar: "لانج", name_en: "Lunge" },
+      },
+    ];
+
+    const grouped = groupSwapsBySession(rows);
+
+    expect(grouped.get("s1")).toEqual([
+      { original: { ar: "بنش بار", en: "Barbell Bench Press" }, substitute: { ar: "بنش دمبل", en: "Dumbbell Bench Press" } },
+    ]);
+    expect(grouped.get("s2")).toEqual([
+      { original: { ar: "سكوات", en: "Squat" }, substitute: { ar: "لانج", en: "Lunge" } },
+    ]);
+  });
+
+  it("skips a row missing either exercise name (join came back null)", () => {
+    const rows = [
+      { session_id: "s1", program_item_id: "item-1", program_items: null, exercises: { name_ar: "أ", name_en: "A" } },
+    ];
+    expect(groupSwapsBySession(rows).get("s1")).toBeUndefined();
+  });
+
+  it("returns an empty map for no rows", () => {
+    expect(groupSwapsBySession([]).size).toBe(0);
   });
 });

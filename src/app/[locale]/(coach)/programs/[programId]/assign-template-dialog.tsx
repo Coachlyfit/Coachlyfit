@@ -49,7 +49,7 @@ export function AssignTemplateDialog({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<AssignInput>({ resolver: zodResolver(assignSchema) });
+  } = useForm<AssignInput>({ resolver: zodResolver(assignSchema), defaultValues: { client_id: "" } });
 
   const onSubmit = handleSubmit((data) => {
     setFormError(null);
@@ -82,7 +82,11 @@ export function AssignTemplateDialog({
               name="client_id"
               control={control}
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={clients.map((c) => ({ value: c.id, label: c.display_name }))}
+                >
                   <SelectTrigger id="client_id">
                     <SelectValue />
                   </SelectTrigger>

@@ -3,8 +3,10 @@ import { LineChart } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { ProgressService } from "@/domain/progress/progress.service";
+import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
 import { checkinStreak, adherenceAverage, weightTrend } from "@/domain/progress/stats";
 import { metricPresetI18nKey } from "@/domain/progress/metric-presets";
+import { pickLocale } from "@/domain/locale";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import type { AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
@@ -38,11 +40,12 @@ export default async function ClientProgressPage({
   const today = new Date();
   const todayIso = today.toISOString().slice(0, 10);
   const progress = new ProgressService(supabase);
-  const [existing, history, grouped, media] = await Promise.all([
+  const [existing, history, grouped, media, customMetrics] = await Promise.all([
     progress.getCheckin(client!.id, todayIso),
     progress.listCheckins(client!.id),
     progress.listBodyMetricsGrouped(client!.id),
     progress.listMedia(client!.id, "photo"),
+    new MetricDefinitionsService(supabase).list(client!.coach_id),
   ]);
 
   const signed = await progress.signMediaUrls(media.map((m) => m.storage_path));
@@ -57,6 +60,10 @@ export default async function ClientProgressPage({
     .filter((c) => c.adherence != null)
     .map((c) => ({ date: c.checkin_date, value: c.adherence! }));
 
+  const customLabelByKey = Object.fromEntries(
+    customMetrics.map((m) => [m.key, pickLocale(m, locale, "label")])
+  );
+
   const series: { key: string; label: string; color: string; unit?: string; data: { date: string; value: number }[] }[] = [
     { key: "weight", label: tChart("weightTitle"), color: "var(--chart-1)", unit: "kg", data: weightData },
     { key: "mood", label: tChart("moodTitle"), color: "var(--chart-2)", data: moodData },
@@ -66,7 +73,7 @@ export default async function ClientProgressPage({
       const presetKey = metricPresetI18nKey(metric);
       return {
         key: metric,
-        label: presetKey ? tMetrics(presetKey) : metric.replace(/_/g, " "),
+        label: presetKey ? tMetrics(presetKey) : (customLabelByKey[metric] ?? metric.replace(/_/g, " ")),
         color: "var(--chart-5)",
         unit: rows[0]?.unit,
         data: rows.map((r) => ({ date: r.taken_on, value: r.value })),
@@ -99,7 +106,7 @@ export default async function ClientProgressPage({
 
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold tracking-tight">{tMetrics("title")}</h2>
-        <AddMetricDialog locale={locale} />
+        <AddMetricDialog locale={locale} customMetrics={customMetrics} />
       </div>
       {series.length > 0 ? (
         <>

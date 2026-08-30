@@ -147,6 +147,295 @@ export type Database = {
           },
         ]
       }
+      client_metric_definitions: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          key: string
+          label_ar: string
+          label_en: string
+          unit: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          key: string
+          label_ar: string
+          label_en: string
+          unit: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          key?: string
+          label_ar?: string
+          label_en?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_metric_definitions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_observations: {
+        Row: {
+          body: string
+          client_id: string
+          coach_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          body: string
+          client_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          body?: string
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_observations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_observations_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_packages: {
+        Row: {
+          coach_id: string
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          duration_days: number
+          id: string
+          is_active: boolean
+          name_ar: string
+          name_en: string
+          price_egp: number
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          duration_days: number
+          id?: string
+          is_active?: boolean
+          name_ar: string
+          name_en: string
+          price_egp: number
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string
+          price_egp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_packages_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_payment_methods: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          name_ar: string
+          name_en: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          name_ar: string
+          name_en: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          name_ar?: string
+          name_en?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_payment_methods_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_subscriptions: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          end_date: string
+          frozen_at: string | null
+          id: string
+          package_id: string
+          start_date: string
+          status: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          end_date: string
+          frozen_at?: string | null
+          id?: string
+          package_id: string
+          start_date?: string
+          status?: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          end_date?: string
+          frozen_at?: string | null
+          id?: string
+          package_id?: string
+          start_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "client_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_transactions: {
+        Row: {
+          amount_egp: number
+          client_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          payment_method_id: string
+          proof_path: string | null
+          recorded_by: string | null
+          subscription_id: string
+          transaction_date: string
+        }
+        Insert: {
+          amount_egp: number
+          client_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          payment_method_id: string
+          proof_path?: string | null
+          recorded_by?: string | null
+          subscription_id: string
+          transaction_date?: string
+        }
+        Update: {
+          amount_egp?: number
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          payment_method_id?: string
+          proof_path?: string | null
+          recorded_by?: string | null
+          subscription_id?: string
+          transaction_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_transactions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_transactions_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "client_payment_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_transactions_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "client_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           coach_id: string
@@ -199,6 +488,7 @@ export type Database = {
         Row: {
           business_name: string
           created_at: string
+          default_checkin_template_id: string | null
           id: string
           onboarding_completed_at: string | null
           slug: string
@@ -207,6 +497,7 @@ export type Database = {
         Insert: {
           business_name: string
           created_at?: string
+          default_checkin_template_id?: string | null
           id: string
           onboarding_completed_at?: string | null
           slug: string
@@ -215,12 +506,20 @@ export type Database = {
         Update: {
           business_name?: string
           created_at?: string
+          default_checkin_template_id?: string | null
           id?: string
           onboarding_completed_at?: string | null
           slug?: string
           training_mode?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "coaches_default_checkin_template_id_fkey"
+            columns: ["default_checkin_template_id"]
+            isOneToOne: false
+            referencedRelation: "form_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coaches_id_fkey"
             columns: ["id"]
@@ -232,33 +531,36 @@ export type Database = {
       }
       diet_plans: {
         Row: {
-          client_id: string
+          client_id: string | null
           coach_id: string
           created_at: string
           end_date: string | null
           id: string
           name_ar: string
           name_en: string
+          source_template_id: string | null
           start_date: string
         }
         Insert: {
-          client_id: string
+          client_id?: string | null
           coach_id: string
           created_at?: string
           end_date?: string | null
           id?: string
           name_ar: string
           name_en: string
+          source_template_id?: string | null
           start_date?: string
         }
         Update: {
-          client_id?: string
+          client_id?: string | null
           coach_id?: string
           created_at?: string
           end_date?: string | null
           id?: string
           name_ar?: string
           name_en?: string
+          source_template_id?: string | null
           start_date?: string
         }
         Relationships: [
@@ -274,6 +576,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plans_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
             referencedColumns: ["id"]
           },
         ]
@@ -353,6 +662,35 @@ export type Database = {
             columns: ["source_exercise_id"]
             isOneToOne: false
             referencedRelation: "exercises_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback: {
+        Row: {
+          body: string
+          coach_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          body: string
+          coach_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          body?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
         ]
@@ -735,7 +1073,7 @@ export type Database = {
       }
       meal_items: {
         Row: {
-          client_id: string
+          client_id: string | null
           coach_id: string
           food_id: string
           id: string
@@ -745,7 +1083,7 @@ export type Database = {
           unit: string
         }
         Insert: {
-          client_id: string
+          client_id?: string | null
           coach_id: string
           food_id: string
           id?: string
@@ -755,7 +1093,7 @@ export type Database = {
           unit?: string
         }
         Update: {
-          client_id?: string
+          client_id?: string | null
           coach_id?: string
           food_id?: string
           id?: string
@@ -804,7 +1142,7 @@ export type Database = {
       }
       meals: {
         Row: {
-          client_id: string
+          client_id: string | null
           coach_id: string
           diet_plan_id: string
           id: string
@@ -813,7 +1151,7 @@ export type Database = {
           order_index: number
         }
         Insert: {
-          client_id: string
+          client_id?: string | null
           coach_id: string
           diet_plan_id: string
           id?: string
@@ -822,7 +1160,7 @@ export type Database = {
           order_index?: number
         }
         Update: {
-          client_id?: string
+          client_id?: string | null
           coach_id?: string
           diet_plan_id?: string
           id?: string
@@ -1276,6 +1614,7 @@ export type Database = {
       }
       programs: {
         Row: {
+          checkin_triggered_at: string | null
           client_id: string | null
           coach_id: string
           created_at: string
@@ -1287,6 +1626,7 @@ export type Database = {
           start_date: string
         }
         Insert: {
+          checkin_triggered_at?: string | null
           client_id?: string | null
           coach_id: string
           created_at?: string
@@ -1298,6 +1638,7 @@ export type Database = {
           start_date?: string
         }
         Update: {
+          checkin_triggered_at?: string | null
           client_id?: string | null
           coach_id?: string
           created_at?: string
@@ -1413,6 +1754,57 @@ export type Database = {
           },
         ]
       }
+      team_members: {
+        Row: {
+          accepted_at: string | null
+          coach_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_at: string
+          profile_id: string | null
+          token_hash: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          coach_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_at?: string
+          profile_id?: string | null
+          token_hash?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          coach_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_at?: string
+          profile_id?: string | null
+          token_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_sessions: {
         Row: {
           client_id: string
@@ -1478,6 +1870,7 @@ export type Database = {
           reps: number | null
           session_id: string
           set_index: number
+          substituted_exercise_id: string | null
           weight: number | null
         }
         Insert: {
@@ -1489,6 +1882,7 @@ export type Database = {
           reps?: number | null
           session_id: string
           set_index: number
+          substituted_exercise_id?: string | null
           weight?: number | null
         }
         Update: {
@@ -1500,6 +1894,7 @@ export type Database = {
           reps?: number | null
           session_id?: string
           set_index?: number
+          substituted_exercise_id?: string | null
           weight?: number | null
         }
         Relationships: [
@@ -1529,6 +1924,20 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_substituted_exercise_id_fkey"
+            columns: ["substituted_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_substituted_exercise_id_fkey"
+            columns: ["substituted_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises_visible"
             referencedColumns: ["id"]
           },
         ]
@@ -1631,6 +2040,10 @@ export type Database = {
         Args: { p_ip?: unknown; p_token: string }
         Returns: Json
       }
+      accept_team_invite: {
+        Args: { p_ip?: unknown; p_token: string }
+        Returns: Json
+      }
       admin_list_coaches: {
         Args: never
         Returns: {
@@ -1651,6 +2064,7 @@ export type Database = {
       admin_promote_food: { Args: { p_id: string }; Returns: undefined }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
+      get_portal_branding: { Args: { p_slug: string }; Returns: Json }
       mark_checkin_adjustment_applied: {
         Args: { p_checkin_id: string }
         Returns: {

@@ -9,11 +9,53 @@ export type LogSetInput = {
   set_index: number;
   weight?: number | null;
   reps?: number | null;
+  /** Which exercise the client actually performed this set on, if different
+   * from what program_items prescribes. null/omitted = prescribed exercise,
+   * same as before this field existed. */
+  substituted_exercise_id?: string | null;
+};
+
+export type SwapSummary = {
+  original: { ar: string; en: string };
+  substitute: { ar: string; en: string };
 };
 
 export type RecentSession = WorkoutSession & {
   program_days: { label_ar: string | null; label_en: string | null } | null;
+  swaps: SwapSummary[];
 };
+
+type SwapRow = {
+  session_id: string;
+  program_item_id: string;
+  program_items: { exercises: { name_ar: string; name_en: string } | null } | null;
+  exercises: { name_ar: string; name_en: string } | null;
+};
+
+/** One entry per distinct swapped exercise per session — a swapped exercise
+ * usually has several logged sets, this collapses them to one summary line.
+ * Pure and exported so it's testable without mocking the two-query fetch
+ * that produces its input (see fetchSwaps below). */
+export function groupSwapsBySession(rows: SwapRow[]): Map<string, SwapSummary[]> {
+  const seen = new Set<string>();
+  const bySession = new Map<string, SwapSummary[]>();
+  for (const row of rows) {
+    const key = `${row.session_id}-${row.program_item_id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const original = row.program_items?.exercises;
+    const substitute = row.exercises;
+    if (!original || !substitute) continue;
+    const summary: SwapSummary = {
+      original: { ar: original.name_ar, en: original.name_en },
+      substitute: { ar: substitute.name_ar, en: substitute.name_en },
+    };
+    const list = bySession.get(row.session_id) ?? [];
+    list.push(summary);
+    bySession.set(row.session_id, list);
+  }
+  return bySession;
+}
 
 /** Client-side execution of a program_day — separate from program_items
  * (the prescription), which stays untouched here. See the migration
@@ -112,6 +154,25 @@ export class WorkoutsService {
       .order("started_at", { ascending: false })
       .limit(limit);
     if (error) throw error;
-    return data;
+
+    const sessionIds = data.map((session) => session.id);
+    const swapsBySession = sessionIds.length > 0 ? await this.fetchSwaps(sessionIds) : new Map<string, SwapSummary[]>();
+
+    return data.map((session) => ({ ...session, swaps: swapsBySession.get(session.id) ?? [] }));
+  }
+
+  /** Both `program_items(exercises(...))` and the direct `exercises(...)`
+   * (via substituted_exercise_id) are each the ONLY foreign key between
+   * their two tables, so neither embed is ambiguous — no `!fk_name` hint
+   * needed (contrast with a table that has two FKs to the same target,
+   * where PostgREST refuses to guess and returns PGRST201). */
+  private async fetchSwaps(sessionIds: string[]): Promise<Map<string, SwapSummary[]>> {
+    const { data, error } = await this.db
+      .from("workout_set_logs")
+      .select("session_id, program_item_id, program_items(exercises(name_ar, name_en)), exercises(name_ar, name_en)")
+      .in("session_id", sessionIds)
+      .not("substituted_exercise_id", "is", null);
+    if (error) throw error;
+    return groupSwapsBySession((data ?? []) as SwapRow[]);
   }
 }

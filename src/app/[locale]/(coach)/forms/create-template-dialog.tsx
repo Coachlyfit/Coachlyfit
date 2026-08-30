@@ -84,7 +84,11 @@ export function CreateTemplateDialog({ locale }: { locale: string }) {
               name="kind"
               control={control}
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={FORM_KINDS.map((kind) => ({ value: kind, label: tKinds(kind) }))}
+                >
                   <SelectTrigger id="kind">
                     <SelectValue />
                   </SelectTrigger>

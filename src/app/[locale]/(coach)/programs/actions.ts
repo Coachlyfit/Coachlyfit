@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
 import { adjustmentSchema } from "../review/schemas";
@@ -26,13 +27,11 @@ export async function createProgramAction(locale: string, formData: FormData): P
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
 
   const { client_id, start_date, end_date, ...rest } = parsed.data;
-  const program = await new ProgramsService(supabase).create(user.id, {
+  const program = await new ProgramsService(supabase).create(coachId, {
     ...rest,
     client_id: client_id || null,
     start_date: start_date || undefined,

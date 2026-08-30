@@ -4,15 +4,17 @@ import {
   ClipboardList,
   FileText,
   Dumbbell,
+  Salad,
   CreditCard,
   Settings,
   MessageCircle,
+  MessageSquareText,
   type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "forms" | "library" | "billing" | "settings" | "admin" | "inbox";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "billing" | "settings" | "admin" | "inbox" | "feedback";
   icon: LucideIcon;
 };
 
@@ -30,6 +32,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/programs", labelKey: "programs", icon: ClipboardList },
   { href: "/forms", labelKey: "forms", icon: FileText },
   { href: "/library", labelKey: "library", icon: Dumbbell },
+  { href: "/diets", labelKey: "diets", icon: Salad },
   { href: "/billing", labelKey: "billing", icon: CreditCard },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/inbox", labelKey: "inbox", icon: MessageCircle },
@@ -41,6 +44,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin", labelKey: "admin", icon: LayoutDashboard },
   { href: "/admin/library", labelKey: "library", icon: Dumbbell },
+  { href: "/admin/feedback", labelKey: "feedback", icon: MessageSquareText },
 ];
 
 // Bottom tab bar caps at 5 items (bottom-nav-limit); the rest live behind
