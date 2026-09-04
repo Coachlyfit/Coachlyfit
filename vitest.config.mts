@@ -7,7 +7,12 @@ config({ path: path.resolve(import.meta.dirname, ".env.local") });
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/domain/**/*.test.ts", "src/lib/**/*.test.ts", "tests/**/*.test.ts"],
+    include: [
+      "src/domain/**/*.test.ts",
+      "src/lib/**/*.test.ts",
+      "src/components/**/*.test.tsx",
+      "tests/**/*.test.ts",
+    ],
     testTimeout: 20_000,
   },
   resolve: {
