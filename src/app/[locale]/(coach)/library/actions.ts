@@ -3,34 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
-import { LibraryService, type LibraryQuery } from "@/domain/library/library.service";
+import { LibraryService } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
 import { createExerciseSchema, createFoodSchema } from "./schemas";
 import { linesToArray } from "./lines-to-array";
 
 type ActionResult = { error: string } | void;
 
-export async function searchExercisesAction(params: LibraryQuery = {}) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).searchExercises(params);
-}
-
-export async function searchFoodsAction(params: LibraryQuery = {}) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).searchFoods(params);
-}
-
-// Read-only, same as the search actions above — RLS is the guard. Used by
-// "Edit my version": the card only has my_clone_id, not the clone's fields.
-export async function getExerciseAction(id: string) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).getExercise(id);
-}
-
-export async function getFoodAction(id: string) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).getFood(id);
-}
+// Plain reads moved to src/domain/library/library-actions.ts so a
+// client-facing component can import them without pulling in this route's
+// write actions (see that file's header comment). Re-exported here so
+// existing coach-side importers (library-client.tsx, exercise-card.tsx,
+// exercise-dialog.tsx, programs' exercise-picker/exercise-sidebar) don't
+// need to change their import path.
+export {
+  searchExercisesAction,
+  searchFoodsAction,
+  getExerciseAction,
+  getFoodAction,
+} from "@/domain/library/library-actions";
 
 export async function createExerciseAction(locale: string, formData: FormData): Promise<ActionResult> {
   const parsed = createExerciseSchema.safeParse({

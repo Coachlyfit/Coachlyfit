@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
-import { searchExercisesAction } from "@/app/[locale]/(coach)/library/actions";
+import { searchExercisesAction } from "@/domain/library/library-actions";
 
 export type SwapExercise = Pick<
   Database["public"]["Tables"]["exercises"]["Row"],
@@ -16,10 +16,13 @@ export type SwapExercise = Pick<
 >;
 
 /** Session-only exercise substitution — see workouts.service.ts's
- * substituted_exercise_id. Reuses the coach's own searchExercisesAction:
- * it's a plain RLS-scoped read (exercises' read_own_and_global policy
- * already includes clients via private.tenant_id()), not a coach-only
- * action, same library the coach's own ExercisePicker searches. */
+ * substituted_exercise_id. Reuses searchExercisesAction from
+ * src/domain/library/library-actions.ts: a plain RLS-scoped read
+ * (exercises' read_own_and_global policy already includes clients via
+ * private.tenant_id()), not a coach-only action, same library the coach's
+ * own ExercisePicker searches — imported from src/domain rather than the
+ * (coach) route so this client-facing component never depends on a coach
+ * route's write actions. */
 export function ExerciseSwapSheet({
   locale,
   open,

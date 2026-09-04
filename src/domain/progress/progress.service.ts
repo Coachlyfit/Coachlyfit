@@ -77,10 +77,16 @@ export class ProgressService {
     return data;
   }
 
+  /** Upsert on (client_id, metric, taken_on) — a retry after a flaky
+   * connection or a second tab overwrites the same day's value instead of
+   * duplicating it, matching submitCheckin's pattern. */
   async addBodyMetric(coachId: string, clientId: string, input: BodyMetricInput): Promise<BodyMetric> {
     const { data, error } = await this.db
       .from("body_metrics")
-      .insert({ coach_id: coachId, client_id: clientId, ...input })
+      .upsert(
+        { coach_id: coachId, client_id: clientId, ...input },
+        { onConflict: "client_id,metric,taken_on" }
+      )
       .select()
       .single();
     if (error) throw error;

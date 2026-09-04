@@ -12,7 +12,12 @@
     "light": "Light",
     "dark": "Dark",
     "more": "More",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "errorBoundary": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Try again, or go back.",
+      "retry": "Try again"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",

@@ -1,20 +1,23 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
-import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { z } from "zod";
+import { requireCoach } from "@/lib/auth/require-coach";
 import { FeedbackService } from "@/domain/feedback/feedback.service";
 
+const feedbackSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(1000);
+
 // No revalidatePath -- nothing on the coach's own screen reflects this
-// write back (see FeedbackService's write-only-for-coaches note). Mirrors
-// sendMessageAction's trim+length-check shape in
-// src/domain/messages/messages-actions.ts.
+// write back (see FeedbackService's write-only-for-coaches note).
 export async function submitFeedbackAction(body: string): Promise<{ error: string } | void> {
-  const trimmed = body.trim();
-  if (!trimmed || trimmed.length > 1000) return { error: "invalid_input" };
+  const parsed = feedbackSchema.safeParse(body);
+  if (!parsed.success) return { error: "invalid_input" };
 
-  const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  const auth = await requireCoach();
+  if ("error" in auth) return auth;
 
-  await new FeedbackService(supabase).create(coachId, trimmed);
+  await new FeedbackService(auth.supabase).create(auth.coachId, parsed.data);
 }

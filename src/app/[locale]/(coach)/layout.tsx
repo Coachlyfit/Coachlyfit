@@ -52,6 +52,13 @@ export default async function CoachLayout({
   // own queries will just come back empty, which is a saner failure mode
   // than an infinite bounce.
 
+  // Display-only: this cookie drives nothing but whether the banner
+  // renders. The actual authorization boundary is begin_impersonation()
+  // (admin-checked, writes impersonation_log atomically with that check —
+  // see admin/actions.ts's impersonateCoachAction) plus the magic-link
+  // session it mints; the session that lands here has already gone through
+  // that RPC by the time this cookie is read. Forging this cookie value
+  // shows/hides a banner, nothing more.
   const impersonating = (await cookies()).get("impersonating")?.value === "1";
 
   return (
