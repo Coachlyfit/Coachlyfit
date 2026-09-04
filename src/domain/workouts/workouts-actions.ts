@@ -104,6 +104,11 @@ export async function setExerciseResultAction(
   return { ok: true };
 }
 
+export async function saveSessionProgressAction(sessionId: string, elapsedSeconds: number, currentItemId: string | null) {
+  const supabase = await createClient();
+  await new WorkoutsService(supabase).saveSessionProgress(sessionId, elapsedSeconds, currentItemId);
+}
+
 export async function completeSessionAction(sessionId: string, durationSeconds: number) {
   const supabase = await createClient();
   return new WorkoutsService(supabase).completeSession(sessionId, durationSeconds);

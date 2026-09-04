@@ -60,6 +60,7 @@ export default async function WorkoutSessionPage({
       initialExerciseResults={exerciseResults}
       lastPerformance={lastPerformance}
       alreadyCompleted={session.completed_at != null}
+      initialElapsedSeconds={session.elapsed_seconds}
     />
   );
 }

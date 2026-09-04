@@ -265,6 +265,20 @@ export class WorkoutsService {
     return data;
   }
 
+  /** Persists in-progress elapsed time (and, optionally, which exercise the
+   * client is currently on) so a refresh/backgrounding doesn't reset the
+   * timer to 0 on resume. Fire-and-forget from the client's perspective —
+   * called on an interval, not awaited for user feedback, so this
+   * deliberately doesn't distinguish "no row" from "ok" the way other
+   * writes here do. */
+  async saveSessionProgress(sessionId: string, elapsedSeconds: number, currentItemId: string | null): Promise<void> {
+    const { error } = await this.db
+      .from("workout_sessions")
+      .update({ elapsed_seconds: elapsedSeconds, current_item_id: currentItemId })
+      .eq("id", sessionId);
+    if (error) throw error;
+  }
+
   async listExerciseResults(sessionId: string): Promise<WorkoutExerciseResult[]> {
     const { data, error } = await this.db
       .from("workout_exercise_results")

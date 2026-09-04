@@ -1998,7 +1998,9 @@ export type Database = {
           coach_id: string
           completed_at: string | null
           created_at: string
+          current_item_id: string | null
           duration_seconds: number | null
+          elapsed_seconds: number
           id: string
           program_day_id: string
           sets_completed: number | null
@@ -2011,7 +2013,9 @@ export type Database = {
           coach_id: string
           completed_at?: string | null
           created_at?: string
+          current_item_id?: string | null
           duration_seconds?: number | null
+          elapsed_seconds?: number
           id?: string
           program_day_id: string
           sets_completed?: number | null
@@ -2024,7 +2028,9 @@ export type Database = {
           coach_id?: string
           completed_at?: string | null
           created_at?: string
+          current_item_id?: string | null
           duration_seconds?: number | null
+          elapsed_seconds?: number
           id?: string
           program_day_id?: string
           sets_completed?: number | null
@@ -2045,6 +2051,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_current_item_id_fkey"
+            columns: ["current_item_id"]
+            isOneToOne: false
+            referencedRelation: "program_items"
             referencedColumns: ["id"]
           },
           {

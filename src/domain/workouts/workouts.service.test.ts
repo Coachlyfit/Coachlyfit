@@ -74,17 +74,22 @@ function fakeSupabase(opts: {
         update: (payload: unknown) => {
           updates.push({ table, payload });
           return {
-            eq: () => ({
-              select: (columns?: string) => {
-                const promise = Promise.resolve({
-                  data: columns === "id" ? affected : { id: "1", ...(payload as object) },
-                  error: null,
-                });
-                return Object.assign(promise, {
-                  maybeSingle: async () => ({ data: { id: "1", ...(payload as object) }, error: null }),
-                });
-              },
-            }),
+            eq: () => {
+              // saveSessionProgress awaits .update().eq() directly, no
+              // .select() — everything else here chains .select() first.
+              const bare = Promise.resolve({ data: null, error: null });
+              return Object.assign(bare, {
+                select: (columns?: string) => {
+                  const promise = Promise.resolve({
+                    data: columns === "id" ? affected : { id: "1", ...(payload as object) },
+                    error: null,
+                  });
+                  return Object.assign(promise, {
+                    maybeSingle: async () => ({ data: { id: "1", ...(payload as object) }, error: null }),
+                  });
+                },
+              });
+            },
           };
         },
         delete: () => {
@@ -211,6 +216,14 @@ describe("WorkoutsService", () => {
       sets_completed: 2,
       sets_prescribed: 3,
     });
+  });
+
+  it("saveSessionProgress updates elapsed_seconds and current_item_id by session id", async () => {
+    const { db, updates } = fakeSupabase();
+    await new WorkoutsService(db).saveSessionProgress("session-1", 120, "item-1");
+
+    const progressUpdate = updates.find((u) => u.table === "workout_sessions");
+    expect(progressUpdate?.payload).toEqual({ elapsed_seconds: 120, current_item_id: "item-1" });
   });
 
   it("setExerciseResult derives coach_id/client_id from the parent session and upserts on (session,item)", async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronRight, ChevronLeft, Play } from "lucide-react";
@@ -18,6 +18,7 @@ import {
   updateSetAction,
   deleteSetAction,
   setExerciseResultAction,
+  saveSessionProgressAction,
   completeSessionAction,
 } from "@/domain/workouts/workouts-actions";
 import { projectSetsForWeek, type ProgressionRule } from "@/domain/programs/progression";
@@ -87,6 +88,7 @@ export function WorkoutSessionClient({
   initialExerciseResults,
   lastPerformance,
   alreadyCompleted,
+  initialElapsedSeconds,
 }: {
   locale: AppLocale;
   day: ProgramDay;
@@ -103,6 +105,10 @@ export function WorkoutSessionClient({
    * week-minus-1 projection. */
   lastPerformance: Record<string, { weight: number | null; reps: number | null; rpe: number | null }>;
   alreadyCompleted: boolean;
+  /** Elapsed time as of the last saveSessionProgressAction call — resuming
+   * a backgrounded/refreshed session picks up here instead of restarting
+   * the timer at 0. */
+  initialElapsedSeconds: number;
 }) {
   const t = useTranslations("client.workout");
   const router = useRouter();
@@ -113,7 +119,7 @@ export function WorkoutSessionClient({
     for (const log of initialSetLogs) map.set(setKey(log.program_item_id, log.set_index), log);
     return map;
   });
-  const [elapsedS, setElapsedS] = useState(0);
+  const [elapsedS, setElapsedS] = useState(initialElapsedSeconds);
   const restTimer = useRestTimer();
   const [done, setDone] = useState(alreadyCompleted);
   const [videoExercise, setVideoExercise] = useState<SwapExercise | null>(null);
@@ -187,6 +193,22 @@ export function WorkoutSessionClient({
     }, 1000);
     return () => clearInterval(id);
   }, [done]);
+
+  // Persists elapsed time (and which item's set-entry sheet is open, if
+  // any) every 15s while the session is active — a refresh or the app
+  // being backgrounded then killed resumes from here instead of 0. A ref
+  // for elapsedS avoids resetting this interval on every second tick.
+  const elapsedRef = useRef(elapsedS);
+  useEffect(() => {
+    elapsedRef.current = elapsedS;
+  }, [elapsedS]);
+  useEffect(() => {
+    if (done) return;
+    const id = setInterval(() => {
+      saveSessionProgressAction(sessionId, elapsedRef.current, activeSet?.item.id ?? null);
+    }, 15_000);
+    return () => clearInterval(id);
+  }, [done, sessionId, activeSet]);
 
   function openSetEntry(item: ProgramItem, setIndex: number, prescribed: { reps: number; weight: number | null }) {
     setActiveSet({ item, setIndex, prescribed });
