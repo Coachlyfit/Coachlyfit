@@ -24,6 +24,11 @@
       "empty": "Trash is empty",
       "restore": "Restore",
       "restoreFailed": "Couldn't restore this item"
+    },
+    "push": {
+      "enable": "Enable push notifications",
+      "disable": "Disable push notifications",
+      "failed": "Couldn't update push notifications"
     }
   },
   "nav": {

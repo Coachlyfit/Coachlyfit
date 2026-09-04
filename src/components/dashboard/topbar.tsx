@@ -18,6 +18,7 @@ import { signOutAction } from "@/lib/auth/sign-out-action";
 import type { AppLocale } from "@/domain/locale";
 import { CommandPalette } from "./command-palette";
 import { NotificationBell } from "./notification-bell";
+import { PushSubscribeButton } from "./push-subscribe-button";
 import { usePageTitleStore } from "./page-title-store";
 import type { NavItem } from "./nav-items";
 
@@ -50,6 +51,7 @@ export function Topbar({
       </span>
       <div className="flex items-center gap-2 ms-auto md:ms-0">
         <CommandPalette items={navItems} />
+        <PushSubscribeButton />
         <NotificationBell locale={locale as AppLocale} />
         <LocaleSwitcher />
         <ThemeToggle />

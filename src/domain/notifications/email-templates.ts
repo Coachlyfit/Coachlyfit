@@ -78,3 +78,14 @@ export function renderNotificationEmail(
 
   return { subject: copy.subjectByKind[kind], html };
 }
+
+/** Same subject/body-by-kind copy as the email, just without the HTML
+ * shell — a push notification is title + body, nothing else. */
+export function renderPushNotification(
+  locale: EmailLocale,
+  kind: NotificationKind,
+  name: string | null
+): { title: string; body: string } {
+  const copy = COPY[locale];
+  return { title: copy.subjectByKind[kind], body: bodyByKind(locale, kind, name) };
+}
