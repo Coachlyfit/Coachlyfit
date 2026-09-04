@@ -17,6 +17,20 @@ export const createExerciseSchema = z.object({
   cues_en: z.string().max(1000).optional(),
   coach_notes_ar: z.string().max(2000).optional(),
   coach_notes_en: z.string().max(2000).optional(),
+  // One step/mistake/muscle per line, same convention as cues_ar/cues_en —
+  // split into text[] at the action boundary via lines-to-array.ts.
+  steps_ar: z.string().max(2000).optional(),
+  steps_en: z.string().max(2000).optional(),
+  mistakes_ar: z.string().max(1000).optional(),
+  mistakes_en: z.string().max(1000).optional(),
+  safety_ar: z.string().max(1000).optional(),
+  safety_en: z.string().max(1000).optional(),
+  tempo: z.string().max(20).optional(),
+  primary_muscles: z.string().max(500).optional(),
+  secondary_muscles: z.string().max(500).optional(),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  thumbnail_url: z.string().url().optional().or(z.literal("")),
+  video_url_alt: z.string().url().optional().or(z.literal("")),
   // Only ever set by the clone flow (prefilled, not user-typed) and stripped
   // again by LibraryService.updateExercise on every edit — validated here
   // only so a forged non-uuid string fails fast instead of hitting the DB.

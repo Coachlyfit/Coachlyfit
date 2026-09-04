@@ -70,6 +70,18 @@ export function ExerciseDialog({
       instructions_en: item?.instructions_en ?? "",
       coach_notes_ar: item?.coach_notes_ar ?? "",
       coach_notes_en: item?.coach_notes_en ?? "",
+      steps_ar: item?.steps_ar?.join("\n") ?? "",
+      steps_en: item?.steps_en?.join("\n") ?? "",
+      mistakes_ar: item?.mistakes_ar?.join("\n") ?? "",
+      mistakes_en: item?.mistakes_en?.join("\n") ?? "",
+      safety_ar: item?.safety_ar ?? "",
+      safety_en: item?.safety_en ?? "",
+      tempo: item?.tempo ?? "",
+      primary_muscles: item?.primary_muscles?.join("\n") ?? "",
+      secondary_muscles: item?.secondary_muscles?.join("\n") ?? "",
+      difficulty: (item?.difficulty as CreateExerciseInput["difficulty"]) ?? undefined,
+      thumbnail_url: item?.thumbnail_url ?? "",
+      video_url_alt: item?.video_url_alt ?? "",
     },
   });
 
@@ -86,6 +98,18 @@ export function ExerciseDialog({
     if (data.instructions_en) formData.set("instructions_en", data.instructions_en);
     if (data.coach_notes_ar) formData.set("coach_notes_ar", data.coach_notes_ar);
     if (data.coach_notes_en) formData.set("coach_notes_en", data.coach_notes_en);
+    if (data.steps_ar) formData.set("steps_ar", data.steps_ar);
+    if (data.steps_en) formData.set("steps_en", data.steps_en);
+    if (data.mistakes_ar) formData.set("mistakes_ar", data.mistakes_ar);
+    if (data.mistakes_en) formData.set("mistakes_en", data.mistakes_en);
+    if (data.safety_ar) formData.set("safety_ar", data.safety_ar);
+    if (data.safety_en) formData.set("safety_en", data.safety_en);
+    if (data.tempo) formData.set("tempo", data.tempo);
+    if (data.primary_muscles) formData.set("primary_muscles", data.primary_muscles);
+    if (data.secondary_muscles) formData.set("secondary_muscles", data.secondary_muscles);
+    if (data.difficulty) formData.set("difficulty", data.difficulty);
+    if (data.thumbnail_url) formData.set("thumbnail_url", data.thumbnail_url);
+    if (data.video_url_alt) formData.set("video_url_alt", data.video_url_alt);
     // Provenance is set once, here — "edit" never sends this, so an edit of
     // an already-cloned row can't rewrite (or forge) what it's based on.
     if (mode === "clone" && item) formData.set("source_exercise_id", item.id);

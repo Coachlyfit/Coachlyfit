@@ -37,7 +37,23 @@ export type UpdateItemInput = Partial<CreateItemInput>;
 export type ProgramTree = Program & {
   program_days: (ProgramDay & {
     program_items: (ProgramItem & {
-      exercises: Pick<Exercise, "id" | "name_ar" | "name_en" | "muscle_group" | "video_url" | "cues_ar" | "cues_en">;
+      exercises: Pick<
+        Exercise,
+        | "id"
+        | "name_ar"
+        | "name_en"
+        | "muscle_group"
+        | "video_url"
+        | "cues_ar"
+        | "cues_en"
+        | "steps_ar"
+        | "steps_en"
+        | "mistakes_ar"
+        | "mistakes_en"
+        | "safety_ar"
+        | "safety_en"
+        | "tempo"
+      >;
       program_item_sets: ProgramItemSet[];
     })[];
   })[];
@@ -117,7 +133,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en), program_item_sets(*)))"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
       )
       .eq("client_id", clientId)
       .order("created_at", { ascending: false })
@@ -134,7 +150,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en), program_item_sets(*)))"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
       )
       .eq("id", programId)
       .order("order_index", { referencedTable: "program_days" })

@@ -33,6 +33,18 @@ export type CreateExerciseInput = {
   cues_en?: string[];
   coach_notes_ar?: string;
   coach_notes_en?: string;
+  steps_ar?: string[];
+  steps_en?: string[];
+  mistakes_ar?: string[];
+  mistakes_en?: string[];
+  safety_ar?: string;
+  safety_en?: string;
+  tempo?: string;
+  primary_muscles?: string[];
+  secondary_muscles?: string[];
+  difficulty?: "beginner" | "intermediate" | "advanced";
+  thumbnail_url?: string;
+  video_url_alt?: string;
   /** Set once at creation (the clone flow) — updateExercise strips it back
    * out of any later edit payload, so provenance can't be rewritten after
    * the fact. */

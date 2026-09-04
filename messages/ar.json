@@ -756,7 +756,11 @@
         "skip": "تخطي",
         "save": "حفظ",
         "saveFailed": "تعذر الحفظ. حاول مرة أخرى."
-      }
+      },
+      "tempo": "الإيقاع",
+      "executionSteps": "طريقة الأداء",
+      "commonMistakes": "الأخطاء الشائعة",
+      "safetyNote": "ملاحظة سلامة"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
@@ -1158,7 +1162,26 @@
       "submit": "ضيف التمرين",
       "cloneTitle": "خصّص التمرين",
       "editTitle": "عدّل التمرين",
-      "save": "احفظ"
+      "save": "احفظ",
+      "stepsAr": "خطوات الأداء (عربي)",
+      "stepsEn": "خطوات الأداء (إنجليزي)",
+      "mistakesAr": "الأخطاء الشائعة (عربي)",
+      "mistakesEn": "الأخطاء الشائعة (إنجليزي)",
+      "safetyAr": "ملاحظات السلامة (عربي)",
+      "safetyEn": "ملاحظات السلامة (إنجليزي)",
+      "tempo": "الإيقاع",
+      "primaryMuscles": "العضلات الأساسية",
+      "secondaryMuscles": "العضلات الثانوية",
+      "difficulty": "الصعوبة",
+      "difficultyPlaceholder": "اختر مستوى الصعوبة",
+      "difficultyLevel": {
+        "beginner": "مبتدئ",
+        "intermediate": "متوسط",
+        "advanced": "متقدم"
+      },
+      "thumbnailUrl": "رابط الصورة المصغرة",
+      "videoUrlAlt": "رابط فيديو بزاوية بديلة",
+      "linesPlaceholder": "عنصر واحد في كل سطر"
     },
     "food": {
       "add": "ضيف طعام",

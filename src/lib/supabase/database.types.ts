@@ -595,16 +595,28 @@ export type Database = {
           created_at: string
           cues_ar: string[] | null
           cues_en: string[] | null
+          difficulty: string | null
           equipment: string | null
           id: string
           image_url: string | null
           instructions_ar: string | null
           instructions_en: string | null
+          mistakes_ar: string[] | null
+          mistakes_en: string[] | null
           muscle_group: string | null
           name_ar: string
           name_en: string
+          primary_muscles: string[] | null
+          safety_ar: string | null
+          safety_en: string | null
+          secondary_muscles: string[] | null
           source_exercise_id: string | null
+          steps_ar: string[] | null
+          steps_en: string[] | null
+          tempo: string | null
+          thumbnail_url: string | null
           video_url: string | null
+          video_url_alt: string | null
         }
         Insert: {
           coach_id?: string | null
@@ -613,16 +625,28 @@ export type Database = {
           created_at?: string
           cues_ar?: string[] | null
           cues_en?: string[] | null
+          difficulty?: string | null
           equipment?: string | null
           id?: string
           image_url?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
+          mistakes_ar?: string[] | null
+          mistakes_en?: string[] | null
           muscle_group?: string | null
           name_ar: string
           name_en: string
+          primary_muscles?: string[] | null
+          safety_ar?: string | null
+          safety_en?: string | null
+          secondary_muscles?: string[] | null
           source_exercise_id?: string | null
+          steps_ar?: string[] | null
+          steps_en?: string[] | null
+          tempo?: string | null
+          thumbnail_url?: string | null
           video_url?: string | null
+          video_url_alt?: string | null
         }
         Update: {
           coach_id?: string | null
@@ -631,16 +655,28 @@ export type Database = {
           created_at?: string
           cues_ar?: string[] | null
           cues_en?: string[] | null
+          difficulty?: string | null
           equipment?: string | null
           id?: string
           image_url?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
+          mistakes_ar?: string[] | null
+          mistakes_en?: string[] | null
           muscle_group?: string | null
           name_ar?: string
           name_en?: string
+          primary_muscles?: string[] | null
+          safety_ar?: string | null
+          safety_en?: string | null
+          secondary_muscles?: string[] | null
           source_exercise_id?: string | null
+          steps_ar?: string[] | null
+          steps_en?: string[] | null
+          tempo?: string | null
+          thumbnail_url?: string | null
           video_url?: string | null
+          video_url_alt?: string | null
         }
         Relationships: [
           {
@@ -2035,19 +2071,31 @@ export type Database = {
           created_at: string | null
           cues_ar: string[] | null
           cues_en: string[] | null
+          difficulty: string | null
           equipment: string | null
           id: string | null
           image_url: string | null
           instructions_ar: string | null
           instructions_en: string | null
+          mistakes_ar: string[] | null
+          mistakes_en: string[] | null
           muscle_group: string | null
           my_clone_id: string | null
           name_ar: string | null
           name_en: string | null
+          primary_muscles: string[] | null
+          safety_ar: string | null
+          safety_en: string | null
+          secondary_muscles: string[] | null
           source_exercise_id: string | null
           source_name_ar: string | null
           source_name_en: string | null
+          steps_ar: string[] | null
+          steps_en: string[] | null
+          tempo: string | null
+          thumbnail_url: string | null
           video_url: string | null
+          video_url_alt: string | null
         }
         Relationships: [
           {

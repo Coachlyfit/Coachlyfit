@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MUSCLE_GROUPS } from "@/domain/library/taxonomy";
 import type { CreateExerciseInput } from "./schemas";
 
+const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
+
 /** The exercise form fields, shared by the coach's create/clone/edit dialog
  * (exercise-dialog.tsx) and the admin global-exercise-dialog — pulled out
  * once a third mode made copy-pasting the block a real duplication risk
@@ -108,6 +110,77 @@ export function ExerciseFields({
       <div className="flex flex-col gap-2">
         <Label htmlFor={id("cues_en")}>{t("cuesEn")}</Label>
         <Textarea id={id("cues_en")} dir="ltr" rows={3} placeholder={t("cuesPlaceholder")} {...register("cues_en")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("steps_ar")}>{t("stepsAr")}</Label>
+        <Textarea id={id("steps_ar")} dir="rtl" rows={3} placeholder={t("linesPlaceholder")} {...register("steps_ar")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("steps_en")}>{t("stepsEn")}</Label>
+        <Textarea id={id("steps_en")} dir="ltr" rows={3} placeholder={t("linesPlaceholder")} {...register("steps_en")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("mistakes_ar")}>{t("mistakesAr")}</Label>
+        <Textarea id={id("mistakes_ar")} dir="rtl" rows={2} placeholder={t("linesPlaceholder")} {...register("mistakes_ar")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("mistakes_en")}>{t("mistakesEn")}</Label>
+        <Textarea id={id("mistakes_en")} dir="ltr" rows={2} placeholder={t("linesPlaceholder")} {...register("mistakes_en")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("safety_ar")}>{t("safetyAr")}</Label>
+        <Textarea id={id("safety_ar")} dir="rtl" rows={2} {...register("safety_ar")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("safety_en")}>{t("safetyEn")}</Label>
+        <Textarea id={id("safety_en")} dir="ltr" rows={2} {...register("safety_en")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("tempo")}>{t("tempo")}</Label>
+        <Input id={id("tempo")} placeholder="3-1-1-0" {...register("tempo")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("primary_muscles")}>{t("primaryMuscles")}</Label>
+        <Textarea id={id("primary_muscles")} rows={2} placeholder={t("linesPlaceholder")} {...register("primary_muscles")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("secondary_muscles")}>{t("secondaryMuscles")}</Label>
+        <Textarea id={id("secondary_muscles")} rows={2} placeholder={t("linesPlaceholder")} {...register("secondary_muscles")} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("difficulty")}>{t("difficulty")}</Label>
+        <Controller
+          name="difficulty"
+          control={control}
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              items={DIFFICULTIES.map((d) => ({ value: d, label: t(`difficultyLevel.${d}`) }))}
+            >
+              <SelectTrigger id={id("difficulty")}>
+                <SelectValue placeholder={t("difficultyPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {DIFFICULTIES.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {t(`difficultyLevel.${d}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("thumbnail_url")}>{t("thumbnailUrl")}</Label>
+        <Input id={id("thumbnail_url")} type="url" placeholder="https://.../thumb.jpg" {...register("thumbnail_url")} />
+        {errors.thumbnail_url && <p className="text-sm text-destructive">{errors.thumbnail_url.message}</p>}
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("video_url_alt")}>{t("videoUrlAlt")}</Label>
+        <Input id={id("video_url_alt")} type="url" placeholder="https://youtube.com/watch?v=..." {...register("video_url_alt")} />
+        {errors.video_url_alt && <p className="text-sm text-destructive">{errors.video_url_alt.message}</p>}
       </div>
       {showCoachNotes && (
         <>

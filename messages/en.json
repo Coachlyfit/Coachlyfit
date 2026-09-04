@@ -756,7 +756,11 @@
         "skip": "Skip",
         "save": "Save",
         "saveFailed": "Couldn't save that. Try again."
-      }
+      },
+      "tempo": "Tempo",
+      "executionSteps": "How to do it",
+      "commonMistakes": "Common mistakes",
+      "safetyNote": "Safety note"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -1158,7 +1162,26 @@
       "submit": "Add exercise",
       "cloneTitle": "Customize exercise",
       "editTitle": "Edit exercise",
-      "save": "Save"
+      "save": "Save",
+      "stepsAr": "Execution steps (Arabic)",
+      "stepsEn": "Execution steps (English)",
+      "mistakesAr": "Common mistakes (Arabic)",
+      "mistakesEn": "Common mistakes (English)",
+      "safetyAr": "Safety notes (Arabic)",
+      "safetyEn": "Safety notes (English)",
+      "tempo": "Tempo",
+      "primaryMuscles": "Primary muscles",
+      "secondaryMuscles": "Secondary muscles",
+      "difficulty": "Difficulty",
+      "difficultyPlaceholder": "Select difficulty",
+      "difficultyLevel": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "thumbnailUrl": "Thumbnail URL",
+      "videoUrlAlt": "Alternate-angle video link",
+      "linesPlaceholder": "One per line"
     },
     "food": {
       "add": "Add food",

@@ -37,6 +37,18 @@ export async function createExerciseAction(locale: string, formData: FormData): 
     cues_en: formData.get("cues_en") || undefined,
     coach_notes_ar: formData.get("coach_notes_ar") || undefined,
     coach_notes_en: formData.get("coach_notes_en") || undefined,
+    steps_ar: formData.get("steps_ar") || undefined,
+    steps_en: formData.get("steps_en") || undefined,
+    mistakes_ar: formData.get("mistakes_ar") || undefined,
+    mistakes_en: formData.get("mistakes_en") || undefined,
+    safety_ar: formData.get("safety_ar") || undefined,
+    safety_en: formData.get("safety_en") || undefined,
+    tempo: formData.get("tempo") || undefined,
+    primary_muscles: formData.get("primary_muscles") || undefined,
+    secondary_muscles: formData.get("secondary_muscles") || undefined,
+    difficulty: formData.get("difficulty") || undefined,
+    thumbnail_url: formData.get("thumbnail_url") || undefined,
+    video_url_alt: formData.get("video_url_alt") || undefined,
     // Present only on the clone flow — the dialog hides this field entirely
     // for a plain "Add exercise".
     source_exercise_id: formData.get("source_exercise_id") || undefined,
@@ -47,14 +59,36 @@ export async function createExerciseAction(locale: string, formData: FormData): 
   const coachId = await resolveCoachId(supabase);
   if (!coachId) return { error: "not_authenticated" };
 
-  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
+  const {
+    video_url,
+    image_url,
+    thumbnail_url,
+    video_url_alt,
+    cues_ar,
+    cues_en,
+    steps_ar,
+    steps_en,
+    mistakes_ar,
+    mistakes_en,
+    primary_muscles,
+    secondary_muscles,
+    ...input
+  } = parsed.data;
   try {
     await new LibraryService(supabase).createExercise(coachId, {
       ...input,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
+      thumbnail_url: thumbnail_url || undefined,
+      video_url_alt: video_url_alt || undefined,
       cues_ar: linesToArray(cues_ar),
       cues_en: linesToArray(cues_en),
+      steps_ar: linesToArray(steps_ar),
+      steps_en: linesToArray(steps_en),
+      mistakes_ar: linesToArray(mistakes_ar),
+      mistakes_en: linesToArray(mistakes_en),
+      primary_muscles: linesToArray(primary_muscles),
+      secondary_muscles: linesToArray(secondary_muscles),
     });
   } catch (error) {
     // 23505 here means the coach already has a clone of this global — see
@@ -115,6 +149,18 @@ export async function updateExerciseAction(
     cues_en: formData.get("cues_en") || undefined,
     coach_notes_ar: formData.get("coach_notes_ar") || undefined,
     coach_notes_en: formData.get("coach_notes_en") || undefined,
+    steps_ar: formData.get("steps_ar") || undefined,
+    steps_en: formData.get("steps_en") || undefined,
+    mistakes_ar: formData.get("mistakes_ar") || undefined,
+    mistakes_en: formData.get("mistakes_en") || undefined,
+    safety_ar: formData.get("safety_ar") || undefined,
+    safety_en: formData.get("safety_en") || undefined,
+    tempo: formData.get("tempo") || undefined,
+    primary_muscles: formData.get("primary_muscles") || undefined,
+    secondary_muscles: formData.get("secondary_muscles") || undefined,
+    difficulty: formData.get("difficulty") || undefined,
+    thumbnail_url: formData.get("thumbnail_url") || undefined,
+    video_url_alt: formData.get("video_url_alt") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -124,14 +170,36 @@ export async function updateExerciseAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
+  const {
+    video_url,
+    image_url,
+    thumbnail_url,
+    video_url_alt,
+    cues_ar,
+    cues_en,
+    steps_ar,
+    steps_en,
+    mistakes_ar,
+    mistakes_en,
+    primary_muscles,
+    secondary_muscles,
+    ...input
+  } = parsed.data;
   try {
     const updated = await new LibraryService(supabase).updateExercise(id, {
       ...input,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
+      thumbnail_url: thumbnail_url || undefined,
+      video_url_alt: video_url_alt || undefined,
       cues_ar: linesToArray(cues_ar),
       cues_en: linesToArray(cues_en),
+      steps_ar: linesToArray(steps_ar),
+      steps_en: linesToArray(steps_en),
+      mistakes_ar: linesToArray(mistakes_ar),
+      mistakes_en: linesToArray(mistakes_en),
+      primary_muscles: linesToArray(primary_muscles),
+      secondary_muscles: linesToArray(secondary_muscles),
     });
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (error) {
