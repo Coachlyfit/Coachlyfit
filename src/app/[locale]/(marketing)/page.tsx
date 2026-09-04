@@ -1,5 +1,7 @@
 import { useTranslations } from "next-intl";
+import { hasLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { routing, type AppLocale } from "@/i18n/routing";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
@@ -40,9 +42,47 @@ function FinalCta() {
   );
 }
 
-export default function MarketingHome() {
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+function jsonLd(locale: AppLocale) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "Coachlyfit",
+        url: siteUrl,
+        logo: `${siteUrl}/icon.svg`,
+      },
+      {
+        "@type": "SoftwareApplication",
+        name: "Coachlyfit",
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Web",
+        url: `${siteUrl}/${locale}`,
+        offers: { "@type": "Offer", availability: "https://schema.org/InStock" },
+        publisher: { "@id": `${siteUrl}/#organization` },
+      },
+    ],
+  };
+}
+
+export default async function MarketingHome({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const appLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
+
   return (
     <>
+      {/* JSON-LD: static, server-generated from our own data — not user input, safe to inline */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(appLocale)) }}
+      />
       <Hero />
       <AppPreview />
       <StatsBand />
