@@ -13,6 +13,7 @@ import { sendOtpAction, verifyOtpAction } from "../actions";
 export function OtpForm({ locale }: { locale: "ar" | "en" }) {
   const t = useTranslations("auth.signup");
   const tErrors = useTranslations("auth.errors");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [phone, setPhone] = useState<string | null>(null);
@@ -74,8 +75,8 @@ export function OtpForm({ locale }: { locale: "ar" | "en" }) {
             {tErrors(formError)}
           </p>
         )}
-        <Button type="submit" disabled={pending} className="w-full">
-          {t("otpSubmit")}
+        <Button type="submit" disabled={pending} className="w-full min-w-24">
+          {pending ? tCommon("pending") : t("otpSubmit")}
         </Button>
       </form>
     );
@@ -107,8 +108,8 @@ export function OtpForm({ locale }: { locale: "ar" | "en" }) {
           {tErrors(formError)}
         </p>
       )}
-      <Button type="submit" disabled={pending} className="w-full">
-        {t("otpSend")}
+      <Button type="submit" disabled={pending} className="w-full min-w-24">
+        {pending ? tCommon("pending") : t("otpSend")}
       </Button>
     </form>
   );

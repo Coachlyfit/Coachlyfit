@@ -53,6 +53,7 @@ export function GlobalExerciseDialog({
   const t = useTranslations("library.exercise");
   const tAdmin = useTranslations("admin.library");
   const tErrors = useTranslations("library.errors");
+  const tCommon = useTranslations("common");
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -136,8 +137,8 @@ export function GlobalExerciseDialog({
               {tErrors.has(formError) ? tErrors(formError) : tErrors("unknown")}
             </p>
           )}
-          <Button type="submit" disabled={pending}>
-            {isEdit ? tAdmin("edit") : t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : isEdit ? tAdmin("edit") : t("submit")}
           </Button>
         </form>
       </DialogContent>
