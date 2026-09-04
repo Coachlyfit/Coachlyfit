@@ -729,7 +729,7 @@
       "skipRest": "تخطّي",
       "watchForm": "شوف الأداء الصح",
       "doneTitle": "التمرين اتسجل",
-      "doneBody": "سجّلنا {sets} مجموعة في {duration}. كابتنك هيشوف النتيجة.",
+      "doneBody": "سجّلنا {sets, plural, zero {# مجموعة} one {مجموعة واحدة} two {مجموعتين} few {# مجموعات} many {# مجموعة} other {# مجموعة}} في {duration}. كابتنك هيشوف النتيجة.",
       "close": "تمام",
       "backToWorkout": "رجوع للتمرين",
       "openOriginalVideo": "افتح الفيديو الأصلي",
@@ -762,6 +762,11 @@
       },
       "restMinus15": "إنقاص 15 ثانية من الراحة",
       "restPlus15": "إضافة 15 ثانية للراحة",
+      "blockKind": {
+        "warmup": "إحماء",
+        "main": "أساسي",
+        "cooldown": "تهدئة"
+      },
       "markDone": "إنهاء",
       "skipExercise": "تخطي",
       "exerciseDone": "تم",
