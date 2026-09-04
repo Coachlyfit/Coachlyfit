@@ -772,11 +772,8 @@
       "exerciseDone": "Done",
       "exerciseSkipped": "Skipped",
       "feedback": {
-        "title": "How did that go?",
-        "difficulty": "Difficulty",
+        "title": "Any pain?",
         "pain": "Pain",
-        "energy": "Energy",
-        "notesPlaceholder": "Notes (optional)",
         "skip": "Skip",
         "save": "Save",
         "saveFailed": "Couldn't save that. Try again."
