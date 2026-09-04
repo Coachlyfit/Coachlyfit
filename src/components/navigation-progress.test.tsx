@@ -30,7 +30,7 @@ describe("NavigationProgress", () => {
     expect(bar.dataset.state).toBe("idle");
   });
 
-  it("shows the bar once the pathname changes after mount, past the debounce delay", () => {
+  it("does not show the bar on a route change alone, with no preceding click", () => {
     const { rerender } = render(<NavigationProgress />);
     usePathnameMock.mockReturnValue("/clients");
     rerender(<NavigationProgress />);
@@ -38,6 +38,17 @@ describe("NavigationProgress", () => {
       vi.advanceTimersByTime(150);
     });
     const bar = screen.getByRole("progressbar", { hidden: true });
-    expect(bar.dataset.state).toBe("loading");
+    expect(bar.dataset.state).toBe("idle");
+  });
+
+  it("does not spuriously show the bar after MIN_VISIBLE_MS when only the pathname changed", () => {
+    const { rerender } = render(<NavigationProgress />);
+    usePathnameMock.mockReturnValue("/clients");
+    rerender(<NavigationProgress />);
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    const bar = screen.getByRole("progressbar", { hidden: true });
+    expect(bar.dataset.state).toBe("idle");
   });
 });

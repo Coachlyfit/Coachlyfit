@@ -15,6 +15,7 @@ export function NavigationProgress() {
   const previousKey = useRef(routeKey);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const safetyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // A click handler on any in-app link starts the "pending" clock; the
   // effect below closes it out once the route key actually changes.
@@ -28,11 +29,22 @@ export function NavigationProgress() {
       if (showTimer.current) clearTimeout(showTimer.current);
       showTimer.current = setTimeout(() => {
         setState("loading");
+
+        // Safety net: if this click never results in a route change (link
+        // to current page, preventDefault'd handler, etc.), the route-key
+        // effect below never fires to close the bar out. Force it closed.
+        if (safetyTimer.current) clearTimeout(safetyTimer.current);
+        safetyTimer.current = setTimeout(() => {
+          setState("idle");
+        }, SHOW_DELAY_MS + MIN_VISIBLE_MS + 5000);
       }, SHOW_DELAY_MS);
     }
 
     document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+      if (showTimer.current) clearTimeout(showTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -44,12 +56,23 @@ export function NavigationProgress() {
       showTimer.current = null;
     }
 
-    setState("loading");
+    // A real navigation happened. If the bar isn't showing, there's nothing
+    // to close out (e.g. browser back/forward with no preceding click).
+    setState((current) => {
+      if (current !== "loading") return current;
 
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => {
-      setState("idle");
-    }, MIN_VISIBLE_MS);
+      if (safetyTimer.current) {
+        clearTimeout(safetyTimer.current);
+        safetyTimer.current = null;
+      }
+
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => {
+        setState("idle");
+      }, MIN_VISIBLE_MS);
+
+      return current;
+    });
 
     return () => {
       if (hideTimer.current) clearTimeout(hideTimer.current);
