@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 import { requireCoach } from "@/lib/auth/require-coach";
 
 type ActionResult = { error: string } | void;
@@ -46,6 +47,23 @@ export async function updateSlugAction(locale: string, slug: string): Promise<Ac
 
   const { error } = await auth.supabase.from("coaches").update({ slug: parsed.data }).eq("id", auth.coachId);
   if (error) return { error: error.code === "23505" ? "slug_taken" : "update_failed" };
+
+  revalidatePath(`/${locale}/settings`);
+}
+
+/** email_notifications lives on profiles, not coaches — this toggles the
+ * caller's own row directly rather than going through requireCoach(), so
+ * it works the same for a coach or a client (both are profiles). RLS's
+ * profiles_update_own already scopes the update to the caller. */
+export async function updateEmailNotificationsAction(locale: string, enabled: boolean): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { error } = await supabase.from("profiles").update({ email_notifications: enabled }).eq("id", user.id);
+  if (error) return { error: "update_failed" };
 
   revalidatePath(`/${locale}/settings`);
 }

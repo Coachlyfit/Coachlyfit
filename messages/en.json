@@ -530,7 +530,8 @@
       "copy": "Copy link",
       "copied": "Copied",
       "qrAlt": "QR code for your portal link"
-    }
+    },
+    "emailNotifications": "Email notifications"
   },
   "clients": {
     "title": "Clients",

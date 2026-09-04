@@ -57,3 +57,5 @@ next-env.d.ts
 .vscode/
 
 /docs
+.vercel
+.env*

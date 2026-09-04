@@ -587,6 +587,24 @@ export type Database = {
           },
         ]
       }
+      email_suppressions: {
+        Row: {
+          created_at: string
+          email: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          reason?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           coach_id: string | null
@@ -1328,6 +1346,47 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          attempts: number
+          channel: string
+          created_at: string
+          id: string
+          last_error: string | null
+          notification_id: string
+          send_after: string
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          channel: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          notification_id: string
+          send_after?: string
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          channel?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          notification_id?: string
+          send_after?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1431,6 +1490,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          email_notifications: boolean
           full_name: string | null
           id: string
           locale: string
@@ -1440,6 +1500,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          email_notifications?: boolean
           full_name?: string | null
           id: string
           locale?: string
@@ -1449,6 +1510,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          email_notifications?: boolean
           full_name?: string | null
           id?: string
           locale?: string

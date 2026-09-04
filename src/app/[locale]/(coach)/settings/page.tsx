@@ -12,6 +12,7 @@ import { PaymentMethodsCard } from "@/components/settings/payment-methods-card";
 import { CustomMetricsCard } from "@/components/settings/custom-metrics-card";
 import { TeamCard } from "@/components/settings/team-card";
 import { PortalCard } from "@/components/settings/portal-card";
+import { EmailNotificationsToggle } from "@/components/settings/email-notifications-toggle";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
 import { TeamService } from "@/domain/team/team.service";
@@ -35,6 +36,12 @@ export default async function SettingsPage({
     .from("coaches")
     .select("business_name, default_checkin_template_id, slug")
     .eq("id", coachId)
+    .single();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email_notifications")
+    .eq("id", user!.id)
     .single();
 
   // Only published (current_version_id set) checkin-kind templates are
@@ -71,6 +78,7 @@ export default async function SettingsPage({
             <span className="text-sm text-muted-foreground">{t("email")}</span>
             <span className="text-sm font-medium">{user?.email}</span>
           </div>
+          <EmailNotificationsToggle locale={locale} enabled={profile?.email_notifications ?? true} />
           <form action={signOutAction.bind(null, locale)}>
             <Button type="submit" variant="outline" className="w-full">
               {t("signOut")}
