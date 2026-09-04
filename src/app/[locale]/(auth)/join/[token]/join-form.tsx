@@ -23,6 +23,7 @@ export function JoinForm({
 }) {
   const t = useTranslations("join.form");
   const tErrors = useTranslations("clients.errors");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -78,8 +79,8 @@ export function JoinForm({
           {tErrors(formError)}
         </p>
       )}
-      <Button type="submit" disabled={pending} className="w-full">
-        {t("submit")}
+      <Button type="submit" disabled={pending} className="w-full min-w-24">
+        {pending ? tCommon("pending") : t("submit")}
       </Button>
     </form>
   );

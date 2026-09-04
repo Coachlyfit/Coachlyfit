@@ -26,6 +26,7 @@ export function Builder({
   onPublish: (fields: FormField[]) => Promise<{ error: string } | void>;
 }) {
   const t = useTranslations("forms.builder");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("forms.errors");
   const fields = useBuilderStore((s) => s.fields);
   const load = useBuilderStore((s) => s.load);
@@ -85,9 +86,9 @@ export function Builder({
             {preview ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             {t("preview")}
           </Button>
-          <Button type="button" size="sm" onClick={handlePublish} disabled={pending}>
+          <Button type="button" size="sm" onClick={handlePublish} disabled={pending} className="min-w-24">
             <Save className="size-4" />
-            {t("publish")}
+            {pending ? tCommon("pending") : t("publish")}
           </Button>
         </div>
       </div>

@@ -213,6 +213,21 @@
   --sidebar-ring: #fb923c;
 }
 
+@keyframes navigation-progress {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  50% {
+    transform: scaleX(0.6);
+    transform-origin: left;
+  }
+  100% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -23,7 +23,10 @@ export default async function ClientDietPage({
     data: { user },
   } = await supabase.auth.getUser();
   const { data: clientRow } = await supabase.from("clients").select("id").eq("profile_id", user!.id).single();
-  const tree = await new DietPlansService(supabase).getActiveTreeForClient(clientRow!.id);
+  if (!clientRow) {
+    throw new Error("Client profile not found for authenticated user.");
+  }
+  const tree = await new DietPlansService(supabase).getActiveTreeForClient(clientRow.id);
 
   if (!tree) {
     return (

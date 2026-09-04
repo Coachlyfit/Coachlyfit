@@ -41,6 +41,10 @@ export default async function ClientProgressPage({
     .eq("profile_id", user!.id)
     .single();
 
+  if (!client) {
+    throw new Error("Client profile not found for authenticated user.");
+  }
+
   const today = new Date();
   const todayIso = today.toISOString().slice(0, 10);
   const progress = new ProgressService(supabase);

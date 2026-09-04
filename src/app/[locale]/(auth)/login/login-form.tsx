@@ -13,6 +13,7 @@ import { signInAction } from "../actions";
 export function LoginForm({ locale }: { locale: string }) {
   const t = useTranslations("auth.login");
   const tErrors = useTranslations("auth.errors");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -59,8 +60,8 @@ export function LoginForm({ locale }: { locale: string }) {
           {tErrors(formError)}
         </p>
       )}
-      <Button type="submit" disabled={pending} className="w-full">
-        {t("submit")}
+      <Button type="submit" disabled={pending} className="w-full min-w-24">
+        {pending ? tCommon("pending") : t("submit")}
       </Button>
     </form>
   );

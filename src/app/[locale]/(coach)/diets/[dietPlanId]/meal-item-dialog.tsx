@@ -48,6 +48,7 @@ export function MealItemDialog({
 }) {
   const t = useTranslations("diets.itemDialog");
   const tErrors = useTranslations("diets.errors");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [selectedFood, setSelectedFood] = useState(item?.foods ?? initialFood ?? null);
@@ -123,8 +124,8 @@ export function MealItemDialog({
           </div>
 
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending || !selectedFood}>
-            {t("submit")}
+          <Button type="submit" disabled={pending || !selectedFood} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

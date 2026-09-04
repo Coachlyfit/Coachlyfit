@@ -3,6 +3,7 @@
     "appName": "Coachly",
     "loading": "Loading...",
     "save": "Save",
+    "pending": "Saving…",
     "cancel": "Cancel",
     "back": "Back",
     "next": "Next",

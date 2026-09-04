@@ -38,6 +38,7 @@ export function CreateProgramDialog({
   const t = useTranslations("programs.createDialog");
   const tPrograms = useTranslations("programs");
   const tErrors = useTranslations("programs.errors");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -165,8 +166,8 @@ export function CreateProgramDialog({
             <p className="text-xs text-muted-foreground">{t("scheduleModeHint")}</p>
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

@@ -46,6 +46,7 @@ export function SubscriptionCard({
 }) {
   const t = useTranslations("clients.billing.subscription");
   const tErrors = useTranslations("clients.billing.errors");
+  const tCommon = useTranslations("common");
   const displayLocale = useLocale() as AppLocale;
   const [pending, startTransition] = useTransition();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
@@ -93,15 +94,15 @@ export function SubscriptionCard({
         </div>
         <div className="flex flex-wrap gap-2">
           {subscription.status === "active" && (
-            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => runAction(freezeSubscriptionAction)}>
+            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => runAction(freezeSubscriptionAction)} className="min-w-24">
               <Snowflake className="size-4" />
-              {t("freeze")}
+              {pending ? tCommon("pending") : t("freeze")}
             </Button>
           )}
           {subscription.status === "frozen" && (
-            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => runAction(unfreezeSubscriptionAction)}>
+            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => runAction(unfreezeSubscriptionAction)} className="min-w-24">
               <Play className="size-4" />
-              {t("unfreeze")}
+              {pending ? tCommon("pending") : t("unfreeze")}
             </Button>
           )}
           {subscription.status !== "canceled" && (

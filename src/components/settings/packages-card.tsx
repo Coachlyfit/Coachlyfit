@@ -30,6 +30,7 @@ type Package = { id: string; name_ar: string; name_en: string; duration_days: nu
 
 export function PackagesCard({ packages }: { packages: Package[] }) {
   const t = useTranslations("settings.packages");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("settings.errors");
   const locale = useLocale() as AppLocale;
   const [open, setOpen] = useState(false);
@@ -105,8 +106,8 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
                   {errors.price_egp && <p className="text-sm text-destructive">{errors.price_egp.message}</p>}
                 </div>
               </div>
-              <Button type="submit" disabled={pending}>
-                {t("submit")}
+              <Button type="submit" disabled={pending} className="min-w-24">
+                {pending ? tCommon("pending") : t("submit")}
               </Button>
             </form>
           </DialogContent>

@@ -38,6 +38,7 @@ export function CreateDietPlanDialog({
   const t = useTranslations("diets.createDialog");
   const tDiets = useTranslations("diets");
   const tErrors = useTranslations("diets.errors");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -136,8 +137,8 @@ export function CreateDietPlanDialog({
             </div>
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

@@ -25,6 +25,7 @@ const FIELD_KEYS: ImportField[] = ["name", "phone", "goal", "fee", "skip"];
 
 export function OnboardingClient({ locale, steps }: { locale: "ar" | "en"; steps: string[] }) {
   const t = useTranslations("onboarding");
+  const tCommon = useTranslations("common");
   const [step, setStep] = useState(0);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -262,8 +263,8 @@ export function OnboardingClient({ locale, steps }: { locale: "ar" | "en"; steps
               <SummaryStat label={t("done.sent")} value={selectedClients.length} />
             </div>
           </div>
-          <Button onClick={finish} disabled={pending} className="w-full">
-            {t("done.cta")}
+          <Button onClick={finish} disabled={pending} className="w-full min-w-24">
+            {pending ? tCommon("pending") : t("done.cta")}
           </Button>
         </StepCard>
       )}
@@ -315,8 +316,8 @@ function StepActions({
   const t = useTranslations("common");
   return (
     <div className="flex gap-3">
-      <Button onClick={onNext} disabled={pending || nextDisabled}>
-        {nextLabel ?? t("next")}
+      <Button onClick={onNext} disabled={pending || nextDisabled} className="min-w-24">
+        {pending ? t("pending") : (nextLabel ?? t("next"))}
       </Button>
       {showBack && onBack && (
         <Button variant="outline" onClick={onBack} disabled={pending}>

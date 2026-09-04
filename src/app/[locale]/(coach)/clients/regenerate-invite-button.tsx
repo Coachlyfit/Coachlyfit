@@ -17,6 +17,7 @@ import { regenerateInviteAction } from "./actions";
 export function RegenerateInviteButton({ locale, clientId }: { locale: string; clientId: string }) {
   const t = useTranslations("clients");
   const tDialog = useTranslations("clients.dialog");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [joinUrl, setJoinUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -30,9 +31,9 @@ export function RegenerateInviteButton({ locale, clientId }: { locale: string; c
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={onClick} disabled={pending}>
+      <Button variant="ghost" size="sm" onClick={onClick} disabled={pending} className="min-w-24">
         <LinkIcon className="size-4" />
-        {t("regenerate")}
+        {pending ? tCommon("pending") : t("regenerate")}
       </Button>
       <Dialog open={!!joinUrl} onOpenChange={(next) => !next && setJoinUrl(null)}>
         <DialogContent>

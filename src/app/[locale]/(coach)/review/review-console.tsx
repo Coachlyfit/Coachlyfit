@@ -232,6 +232,7 @@ function ReviewEntryPanel({
   onSkip: () => void;
 }) {
   const t = useTranslations("review");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("review.errors");
   const [decision, setDecision] = useState<Decision>("keep");
   const [adjustments, setAdjustments] = useState<Set<string>>(new Set());
@@ -642,8 +643,9 @@ function ReviewEntryPanel({
               size="lg"
               disabled={pending || !reply.trim() || (decision === "adjust" && removeMovementBlocked)}
               onClick={onSubmit}
+              className="min-w-24"
             >
-              {reply.trim() ? t("submit.send") : t("submit.sendDefault")}
+              {pending ? tCommon("pending") : reply.trim() ? t("submit.send") : t("submit.sendDefault")}
             </Button>
           )}
           <Button type="button" variant="outline" onClick={onSkip} disabled={sent}>

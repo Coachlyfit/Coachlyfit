@@ -17,7 +17,10 @@ export default async function proxy(request: NextRequest) {
   // request.headers in place (not constructing a fresh NextResponse.next({
   // request: { headers } }) here) so it composes with next-intl's own
   // rewrite/redirect below instead of racing it.
-  const slug = extractPortalSlug(request.headers.get("host"));
+  // Falls back to a `?coach=` query param when there's no wildcard subdomain
+  // set up yet (NEXT_PUBLIC_ROOT_DOMAIN unset / no *.domain DNS), so portal
+  // links still work — see resolvePortalSlug().
+  const slug = extractPortalSlug(request.headers.get("host")) ?? request.nextUrl.searchParams.get("coach");
   if (slug) {
     request.headers.set("x-coach-slug", slug);
   }

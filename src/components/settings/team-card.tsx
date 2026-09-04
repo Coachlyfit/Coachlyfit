@@ -31,6 +31,7 @@ type TeamMember = { id: string; email: string; accepted_at: string | null };
 
 export function TeamCard({ members }: { members: TeamMember[] }) {
   const t = useTranslations("settings.team");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("settings.errors");
   const locale = useLocale();
   const [open, setOpen] = useState(false);
@@ -120,8 +121,8 @@ export function TeamCard({ members }: { members: TeamMember[] }) {
                   <Input id="team_email" type="email" dir="ltr" {...register("email")} />
                   {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
                 </div>
-                <Button type="submit" disabled={pending}>
-                  {t("submit")}
+                <Button type="submit" disabled={pending} className="min-w-24">
+                  {pending ? tCommon("pending") : t("submit")}
                 </Button>
               </form>
             )}

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
@@ -5,6 +6,7 @@ import { getMessages } from "next-intl/server";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { fontMono, fontSans } from "@/lib/fonts";
 import { Providers } from "@/components/providers/providers";
+import { NavigationProgress } from "@/components/navigation-progress";
 import "../globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -118,6 +120,9 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="min-h-dvh antialiased">
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>

@@ -26,6 +26,7 @@ type PaymentMethod = { id: string; name_ar: string; name_en: string };
 
 export function PaymentMethodsCard({ methods }: { methods: PaymentMethod[] }) {
   const t = useTranslations("settings.paymentMethods");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("settings.errors");
   const locale = useLocale() as AppLocale;
   const [open, setOpen] = useState(false);
@@ -87,8 +88,8 @@ export function PaymentMethodsCard({ methods }: { methods: PaymentMethod[] }) {
                 <Input id="pm_name_en" dir="ltr" {...register("name_en")} />
                 {errors.name_en && <p className="text-sm text-destructive">{errors.name_en.message}</p>}
               </div>
-              <Button type="submit" disabled={pending}>
-                {t("submit")}
+              <Button type="submit" disabled={pending} className="min-w-24">
+                {pending ? tCommon("pending") : t("submit")}
               </Button>
             </form>
           </DialogContent>

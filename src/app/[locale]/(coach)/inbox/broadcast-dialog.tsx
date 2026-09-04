@@ -12,6 +12,7 @@ import { sendBroadcastAction } from "@/domain/messages/messages-actions";
 
 export function BroadcastDialog() {
   const t = useTranslations("inbox.broadcast");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("inbox.errors");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -46,8 +47,8 @@ export function BroadcastDialog() {
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
           <Textarea {...register("body")} placeholder={t("placeholder")} rows={4} autoFocus />
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

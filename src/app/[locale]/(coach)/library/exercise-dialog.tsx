@@ -40,6 +40,7 @@ export function ExerciseDialog({
   onSaved: () => void;
 }) {
   const t = useTranslations("library.exercise");
+  const tCommon = useTranslations("common");
   const tLibrary = useTranslations("library");
   const tErrors = useTranslations("library.errors");
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
@@ -164,8 +165,8 @@ export function ExerciseDialog({
               {tErrors.has(formError) ? tErrors(formError) : tErrors("unknown")}
             </p>
           )}
-          <Button type="submit" disabled={pending}>
-            {submitLabel}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : submitLabel}
           </Button>
         </form>
       </DialogContent>

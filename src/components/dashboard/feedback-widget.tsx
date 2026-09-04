@@ -17,6 +17,7 @@ import { submitFeedbackAction } from "@/app/[locale]/(coach)/feedback-actions";
 // submission land in (feedback is write-only for them, see the migration).
 export function FeedbackWidget() {
   const t = useTranslations("feedback");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("feedback.errors");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -60,8 +61,8 @@ export function FeedbackWidget() {
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
           <Textarea {...register("body")} placeholder={t("placeholder")} rows={4} autoFocus />
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>
