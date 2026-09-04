@@ -1086,7 +1086,9 @@
         "4": "Thu",
         "5": "Fri",
         "6": "Sat"
-      }
+      },
+      "duplicateItem": "Duplicate exercise",
+      "duplicateDay": "Duplicate day"
     },
     "dayDialog": {
       "addTitle": "Add day",

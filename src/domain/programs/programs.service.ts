@@ -392,6 +392,173 @@ export class ProgramsService {
     return data.length > 0;
   }
 
+  /** Copies one item (its prescription, per-set data, block, and private
+   * note — everything except group_key/group_kind, since a duplicate isn't
+   * automatically part of its source's superset/circuit) onto the end of
+   * the same day. Re-reads the source row rather than trusting a
+   * caller-supplied copy, same parent-derivation rule as every other write
+   * here — an itemId the caller can't see yields null, nothing inserted. */
+  async duplicateItem(itemId: string): Promise<ProgramItem | null> {
+    const { data: source, error: sourceError } = await this.db
+      .from("program_items")
+      .select("*, program_item_sets(*)")
+      .eq("id", itemId)
+      .maybeSingle();
+    if (sourceError) throw sourceError;
+    if (!source) return null;
+
+    const { data: siblings, error: siblingsError } = await this.db
+      .from("program_items")
+      .select("order_index")
+      .eq("program_day_id", source.program_day_id)
+      .order("order_index", { ascending: false })
+      .limit(1);
+    if (siblingsError) throw siblingsError;
+    const nextOrderIndex = (siblings[0]?.order_index ?? -1) + 1;
+
+    const { data: newItem, error: itemError } = await this.db
+      .from("program_items")
+      .insert({
+        coach_id: source.coach_id,
+        client_id: source.client_id,
+        program_day_id: source.program_day_id,
+        exercise_id: source.exercise_id,
+        sets: source.sets,
+        reps: source.reps,
+        rest_seconds: source.rest_seconds,
+        progression_rule: source.progression_rule,
+        notes_ar: source.notes_ar,
+        notes_en: source.notes_en,
+        order_index: nextOrderIndex,
+        block: source.block,
+        coach_note_private: source.coach_note_private,
+      })
+      .select()
+      .single();
+    if (itemError) throw itemError;
+
+    const sourceSets = (source.program_item_sets as ProgramItemSet[]).sort((a, b) => a.set_index - b.set_index);
+    if (sourceSets.length > 0) {
+      const { error: setsError } = await this.db.from("program_item_sets").insert(
+        sourceSets.map((set) => ({
+          coach_id: source.coach_id,
+          client_id: source.client_id,
+          program_item_id: newItem.id,
+          set_index: set.set_index,
+          reps: set.reps,
+          weight: set.weight,
+          rest_seconds: set.rest_seconds,
+        }))
+      );
+      if (setsError) throw setsError;
+    }
+
+    return newItem;
+  }
+
+  /** Copies a whole day (label, weekday, and every item + its sets) onto
+   * the end of the same program at the next free day_index. Grouped items
+   * keep their relative order but NOT their group_key — duplicating a day
+   * that contains a superset produces ungrouped copies, since carrying the
+   * exact group_key forward would silently merge the new day's "superset"
+   * with the original day's, which are meant to be independent. A coach
+   * who wants the duplicate grouped too re-groups it in two taps (the
+   * builder's existing multi-select -> Make superset flow). */
+  async duplicateDay(dayId: string): Promise<ProgramDay | null> {
+    const { data: source, error: sourceError } = await this.db
+      .from("program_days")
+      .select("*, program_items(*, program_item_sets(*))")
+      .eq("id", dayId)
+      .maybeSingle();
+    if (sourceError) throw sourceError;
+    if (!source) return null;
+
+    const { data: siblingDays, error: siblingDaysError } = await this.db
+      .from("program_days")
+      .select("day_index, order_index")
+      .eq("program_id", source.program_id)
+      .order("day_index", { ascending: false })
+      .limit(1);
+    if (siblingDaysError) throw siblingDaysError;
+    const nextDayIndex = (siblingDays[0]?.day_index ?? 0) + 1;
+    const nextOrderIndex = (siblingDays[0]?.order_index ?? -1) + 1;
+
+    const { data: newDay, error: dayError } = await this.db
+      .from("program_days")
+      .insert({
+        coach_id: source.coach_id,
+        client_id: source.client_id,
+        program_id: source.program_id,
+        day_index: nextDayIndex,
+        order_index: nextOrderIndex,
+        label_ar: source.label_ar,
+        label_en: source.label_en,
+        weekday: source.weekday,
+      })
+      .select()
+      .single();
+    if (dayError) throw dayError;
+
+    const sourceItems = (
+      source.program_items as (ProgramItem & { program_item_sets: ProgramItemSet[] })[]
+    ).sort((a, b) => a.order_index - b.order_index);
+
+    for (const item of sourceItems) {
+      const { data: newItem, error: itemError } = await this.db
+        .from("program_items")
+        .insert({
+          coach_id: source.coach_id,
+          client_id: source.client_id,
+          program_day_id: newDay.id,
+          exercise_id: item.exercise_id,
+          sets: item.sets,
+          reps: item.reps,
+          rest_seconds: item.rest_seconds,
+          progression_rule: item.progression_rule,
+          notes_ar: item.notes_ar,
+          notes_en: item.notes_en,
+          order_index: item.order_index,
+          block: item.block,
+          coach_note_private: item.coach_note_private,
+        })
+        .select()
+        .single();
+      if (itemError) throw itemError;
+
+      const sourceSets = item.program_item_sets.sort((a, b) => a.set_index - b.set_index);
+      if (sourceSets.length > 0) {
+        const { error: setsError } = await this.db.from("program_item_sets").insert(
+          sourceSets.map((set) => ({
+            coach_id: source.coach_id,
+            client_id: source.client_id,
+            program_item_id: newItem.id,
+            set_index: set.set_index,
+            reps: set.reps,
+            weight: set.weight,
+            rest_seconds: set.rest_seconds,
+          }))
+        );
+        if (setsError) throw setsError;
+      }
+    }
+
+    return newDay;
+  }
+
+  /** Swaps an item's exercise while keeping every other field (sets,
+   * progression, notes, block, private note) — "replace exercise" in the
+   * builder, distinct from swapping mid-session (workouts.service.ts's
+   * substituted_exercise_id, which never touches the prescription). */
+  async replaceItemExercise(itemId: string, exerciseId: string): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("program_items")
+      .update({ exercise_id: exerciseId })
+      .eq("id", itemId)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
   /** N scoped updates, not an upsert — a PostgREST upsert needs every NOT
    * NULL column and would null out coach_id/label. ponytail: N updates per
    * drag, N < 20 (a day's item count). Batch RPC if that ever grows. */

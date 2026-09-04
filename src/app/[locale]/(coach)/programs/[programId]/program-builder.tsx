@@ -16,7 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, Trash2, Pencil, Printer, Link2, Link2Off } from "lucide-react";
+import { GripVertical, Plus, Trash2, Pencil, Printer, Link2, Link2Off, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -35,6 +35,8 @@ import {
   deleteProgramAction,
   deleteDayAction,
   deleteItemAction,
+  duplicateDayAction,
+  duplicateItemAction,
   reorderDaysAction,
   reorderItemsAction,
   groupItemsAction,
@@ -63,6 +65,7 @@ function SortableItem({
   onToggleSelect,
   onEdit,
   onDelete,
+  onDuplicate,
 }: {
   item: Item;
   locale: AppLocale;
@@ -75,6 +78,7 @@ function SortableItem({
   onToggleSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) {
   const t = useTranslations("programs.builder");
   const readOnly = week !== 1;
@@ -136,6 +140,9 @@ function SortableItem({
         <>
           <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
             <Pencil className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDuplicate} title={t("duplicateItem")}>
+            <Copy className="size-4" />
           </Button>
           <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
             <Trash2 className="size-4" />
@@ -286,6 +293,18 @@ function DayCard({
     setPendingDeleteItem(null);
   }
 
+  async function duplicateItem(itemId: string) {
+    const result = await duplicateItemAction(locale, programId, itemId);
+    if (result?.error) toast.error(tErrors(result.error));
+    else router.refresh();
+  }
+
+  async function duplicateDay() {
+    const result = await duplicateDayAction(locale, programId, day.id);
+    if (result?.error) toast.error(tErrors(result.error));
+    else router.refresh();
+  }
+
   return (
     <Card
       onDragOver={readOnly ? undefined : (e) => e.preventDefault()}
@@ -320,6 +339,7 @@ function DayCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEditDay}>{t("editDay")}</DropdownMenuItem>
+              <DropdownMenuItem onClick={duplicateDay}>{t("duplicateDay")}</DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={onDeleteDay}>
                 {t("deleteDay")}
               </DropdownMenuItem>
@@ -367,6 +387,7 @@ function DayCard({
                 onToggleSelect={() => {}}
                 onEdit={() => {}}
                 onDelete={() => {}}
+                onDuplicate={() => {}}
               />
             ))}
           </div>
@@ -385,6 +406,7 @@ function DayCard({
                     onToggleSelect={() => toggleSelect(item.id)}
                     onEdit={() => setItemDialog({ item })}
                     onDelete={() => setPendingDeleteItem(item.id)}
+                    onDuplicate={() => duplicateItem(item.id)}
                   />
                 ))}
               </div>

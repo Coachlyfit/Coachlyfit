@@ -538,6 +538,110 @@ describe("ProgramsService", () => {
     });
   });
 
+  describe("duplicateItem", () => {
+    it("copies the source item's prescription and per-set data onto the end of the same day", async () => {
+      const source = {
+        id: "item-1",
+        coach_id: "coach-1",
+        client_id: "client-9",
+        program_day_id: "day-1",
+        exercise_id: "ex-1",
+        sets: 2,
+        reps: "8-12",
+        rest_seconds: 60,
+        progression_rule: "none",
+        notes_ar: null,
+        notes_en: null,
+        block: "main",
+        coach_note_private: "watch her knees",
+        program_item_sets: [
+          { set_index: 1, reps: 8, weight: 50, rest_seconds: 60 },
+          { set_index: 2, reps: 12, weight: 45, rest_seconds: 60 },
+        ],
+      };
+      const inserts: { table: string; payload: unknown }[] = [];
+      const db = {
+        from: (table: string) => ({
+          select: (cols?: string) => ({
+            eq: () => {
+              if (cols === "order_index") {
+                return { order: () => ({ limit: async () => ({ data: [{ order_index: 2 }], error: null }) }) };
+              }
+              return { maybeSingle: async () => ({ data: source, error: null }) };
+            },
+          }),
+          insert: (payload: unknown) => {
+            inserts.push({ table, payload });
+            return {
+              select: () => ({
+                single: async () => ({ data: { id: `new-${table}`, ...(payload as object) }, error: null }),
+              }),
+            };
+          },
+        }),
+      };
+
+      const result = await new ProgramsService(db as never).duplicateItem("item-1");
+      expect(result).not.toBeNull();
+
+      const itemInsert = inserts.find((i) => i.table === "program_items");
+      expect(itemInsert?.payload).toMatchObject({
+        exercise_id: "ex-1",
+        order_index: 3,
+        coach_note_private: "watch her knees",
+      });
+
+      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
+      expect(setsInsert?.payload).toEqual([
+        expect.objectContaining({ set_index: 1, reps: 8, weight: 50 }),
+        expect.objectContaining({ set_index: 2, reps: 12, weight: 45 }),
+      ]);
+    });
+
+    it("returns null without inserting when the source item isn't visible", async () => {
+      const inserts: unknown[] = [];
+      const db = {
+        from: () => ({
+          select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
+          insert: (payload: unknown) => {
+            inserts.push(payload);
+            return { select: () => ({ single: async () => ({ data: null, error: null }) }) };
+          },
+        }),
+      };
+      const result = await new ProgramsService(db as never).duplicateItem("item-1");
+      expect(result).toBeNull();
+      expect(inserts).toHaveLength(0);
+    });
+  });
+
+  describe("replaceItemExercise", () => {
+    it("updates exercise_id and reports true when a row was affected", async () => {
+      const updates: { payload: unknown }[] = [];
+      const db = {
+        from: () => ({
+          update: (payload: unknown) => {
+            updates.push({ payload });
+            return { eq: () => ({ select: async () => ({ data: [{ id: "item-1" }], error: null }) }) };
+          },
+        }),
+      };
+      const ok = await new ProgramsService(db as never).replaceItemExercise("item-1", "ex-2");
+      expect(ok).toBe(true);
+      expect(updates[0].payload).toEqual({ exercise_id: "ex-2" });
+    });
+
+    it("reports false when RLS matches no row", async () => {
+      const db = {
+        from: () => ({
+          update: () => ({ eq: () => ({ select: async () => ({ data: [], error: null }) }) }),
+        }),
+      };
+      const ok = await new ProgramsService(db as never).replaceItemExercise("item-1", "ex-2");
+      expect(ok).toBe(false);
+    });
+  });
+
   describe("getActiveTreeForClient", () => {
     it("scopes by client_id and takes the most recently created program", async () => {
       const eqCalls: [string, unknown][] = [];

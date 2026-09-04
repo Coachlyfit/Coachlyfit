@@ -6,6 +6,7 @@ import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
 import { adjustmentSchema } from "../review/schemas";
+import { z } from "zod";
 import { createProgramSchema, daySchema, itemSchema, reorderSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
@@ -250,6 +251,56 @@ export async function deleteItemAction(locale: string, programId: string, itemId
   await programs.snapshotIfAssigned(programId, "delete_item");
   const deleted = await programs.removeItem(itemId);
   if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function duplicateDayAction(locale: string, programId: string, dayId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "duplicate_day");
+  const duplicated = await programs.duplicateDay(dayId);
+  if (!duplicated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function duplicateItemAction(locale: string, programId: string, itemId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "duplicate_item");
+  const duplicated = await programs.duplicateItem(itemId);
+  if (!duplicated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function replaceItemExerciseAction(
+  locale: string,
+  programId: string,
+  itemId: string,
+  exerciseId: string
+): Promise<ActionResult> {
+  const parsed = z.string().uuid().safeParse(exerciseId);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "replace_exercise");
+  const replaced = await programs.replaceItemExercise(itemId, parsed.data);
+  if (!replaced) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
