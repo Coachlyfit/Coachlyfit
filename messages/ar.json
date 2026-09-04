@@ -772,11 +772,8 @@
       "exerciseDone": "تم",
       "exerciseSkipped": "تم التخطي",
       "feedback": {
-        "title": "كيف كان أداؤك؟",
-        "difficulty": "الصعوبة",
+        "title": "حسيت بألم؟",
         "pain": "الألم",
-        "energy": "الطاقة",
-        "notesPlaceholder": "ملاحظات (اختياري)",
         "skip": "تخطي",
         "save": "حفظ",
         "saveFailed": "تعذر الحفظ. حاول مرة أخرى."
