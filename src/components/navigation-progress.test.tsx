@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
 
 const usePathnameMock = vi.fn();
@@ -20,14 +20,13 @@ describe("NavigationProgress", () => {
   });
 
   afterEach(() => {
-    cleanup();
     vi.useRealTimers();
   });
 
   it("renders a hidden bar with role=progressbar when idle", () => {
     render(<NavigationProgress />);
     const bar = screen.getByRole("progressbar", { hidden: true });
-    expect(bar.getAttribute("aria-hidden")).toBe("true");
+    expect(bar).toHaveAttribute("aria-hidden", "true");
     expect(bar.dataset.state).toBe("idle");
   });
 
