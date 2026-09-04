@@ -1725,6 +1725,48 @@ export type Database = {
           },
         ]
       }
+      program_revisions: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          program_id: string
+          reason: string | null
+          snapshot: Json
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          program_id: string
+          reason?: string | null
+          snapshot: Json
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          program_id?: string
+          reason?: string | null
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_revisions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_revisions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           checkin_triggered_at: string | null

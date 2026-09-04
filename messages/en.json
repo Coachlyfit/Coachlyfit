@@ -1147,6 +1147,27 @@
       "end_date_before_start_date": "End date can't be before the start date.",
       "unknown": "Something went wrong. Please try again.",
       "group_not_contiguous": "Superset/circuit items must stay next to each other."
+    },
+    "revisions": {
+      "title": "History",
+      "loading": "Loading...",
+      "empty": "No changes recorded yet.",
+      "restore": "Restore",
+      "restored": "Program restored.",
+      "unknownReason": "Program edited",
+      "confirmRestoreTitle": "Restore this version?",
+      "confirmRestoreBody": "The program will be reverted to how it looked at this point. Your current version is saved first, so you can undo this restore too.",
+      "reason": {
+        "add_day": "Day added",
+        "update_day": "Day edited",
+        "delete_day": "Day deleted",
+        "add_item": "Exercise added",
+        "update_item": "Exercise edited",
+        "delete_item": "Exercise deleted",
+        "group_items": "Superset/circuit created",
+        "ungroup_items": "Superset/circuit removed",
+        "before_restore": "Before a restore"
+      }
     }
   },
   "library": {

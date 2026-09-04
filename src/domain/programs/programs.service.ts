@@ -517,4 +517,124 @@ export class ProgramsService {
     if (error) throw error;
     return data;
   }
+
+  /** Snapshots an ASSIGNED program's current tree before a structural edit
+   * — call this from an action, once per user gesture, before the mutation
+   * it's about to apply. Templates (client_id null) are skipped entirely:
+   * they're edited freely pre-clone, so snapshotting every template tweak
+   * would be noise with no real undo value (see the migration's header
+   * comment). No-op (returns null, snapshots nothing) for a template or an
+   * invisible/nonexistent program — the caller doesn't need to branch on
+   * "assigned vs template" itself. */
+  async snapshotIfAssigned(programId: string, reason?: string): Promise<boolean> {
+    const tree = await this.getTree(programId);
+    if (!tree || tree.client_id == null) return false;
+
+    const { error } = await this.db.from("program_revisions").insert({
+      coach_id: tree.coach_id,
+      program_id: programId,
+      snapshot: tree as unknown as Database["public"]["Tables"]["program_revisions"]["Insert"]["snapshot"],
+      reason,
+    });
+    if (error) throw error;
+    return true;
+  }
+
+  async listRevisions(programId: string, limit = 20) {
+    const { data, error } = await this.db
+      .from("program_revisions")
+      .select("id, reason, created_at")
+      .eq("program_id", programId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data;
+  }
+
+  /** Restores a program to a prior snapshot by clearing its current tree
+   * and re-inserting the snapshotted one — same three-level insert
+   * cloneToClient already does, just onto the SAME program_id/client_id
+   * instead of a new one. Not itself snapshotted first: the caller should
+   * call snapshotIfAssigned before this if "undo the restore" needs to be
+   * possible too (the builder's restore action does). No transaction
+   * (PostgREST has none, same ponytail note as cloneToClient) — a partial
+   * failure here leaves the program with only some days restored; the
+   * revision list still has every prior snapshot to retry from. */
+  async restoreRevision(revisionId: string): Promise<boolean> {
+    const { data: revision, error: revisionError } = await this.db
+      .from("program_revisions")
+      .select("program_id, snapshot")
+      .eq("id", revisionId)
+      .maybeSingle();
+    if (revisionError) throw revisionError;
+    if (!revision) return false;
+
+    const snapshot = revision.snapshot as unknown as ProgramTree;
+
+    const { error: deleteError } = await this.db
+      .from("program_days")
+      .delete()
+      .eq("program_id", revision.program_id);
+    if (deleteError) throw deleteError;
+
+    for (const day of snapshot.program_days) {
+      const { data: newDay, error: dayError } = await this.db
+        .from("program_days")
+        .insert({
+          coach_id: snapshot.coach_id,
+          client_id: snapshot.client_id,
+          program_id: revision.program_id,
+          day_index: day.day_index,
+          order_index: day.order_index,
+          label_ar: day.label_ar,
+          label_en: day.label_en,
+          weekday: day.weekday,
+        })
+        .select()
+        .single();
+      if (dayError) throw dayError;
+
+      for (const item of day.program_items) {
+        const { data: newItem, error: itemError } = await this.db
+          .from("program_items")
+          .insert({
+            coach_id: snapshot.coach_id,
+            client_id: snapshot.client_id,
+            program_day_id: newDay.id,
+            exercise_id: item.exercise_id,
+            sets: item.sets,
+            reps: item.reps,
+            rest_seconds: item.rest_seconds,
+            progression_rule: item.progression_rule,
+            notes_ar: item.notes_ar,
+            notes_en: item.notes_en,
+            order_index: item.order_index,
+            block: item.block,
+            coach_note_private: item.coach_note_private,
+            group_key: item.group_key,
+            group_kind: item.group_kind,
+          })
+          .select()
+          .single();
+        if (itemError) throw itemError;
+
+        if (item.program_item_sets.length > 0) {
+          const { error: setsError } = await this.db.from("program_item_sets").insert(
+            item.program_item_sets.map((set) => ({
+              coach_id: snapshot.coach_id,
+              client_id: snapshot.client_id,
+              program_item_id: newItem.id,
+              set_index: set.set_index,
+              reps: set.reps,
+              weight: set.weight,
+              rest_seconds: set.rest_seconds,
+            }))
+          );
+          if (setsError) throw setsError;
+        }
+      }
+    }
+
+    return true;
+  }
 }

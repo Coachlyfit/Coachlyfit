@@ -119,7 +119,9 @@ export async function addDayAction(locale: string, programId: string, formData: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const added = await new ProgramsService(supabase).addDay(programId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "add_day");
+  const added = await programs.addDay(programId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -144,7 +146,9 @@ export async function updateDayAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const updated = await new ProgramsService(supabase).updateDay(dayId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "update_day");
+  const updated = await programs.updateDay(dayId, parsed.data);
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -156,7 +160,9 @@ export async function deleteDayAction(locale: string, programId: string, dayId: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const deleted = await new ProgramsService(supabase).removeDay(dayId);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "delete_day");
+  const deleted = await programs.removeDay(dayId);
   if (!deleted) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -196,7 +202,9 @@ export async function addItemAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const added = await new ProgramsService(supabase).addItem(dayId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "add_item");
+  const added = await programs.addItem(dayId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -224,7 +232,9 @@ export async function updateItemAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const updated = await new ProgramsService(supabase).updateItem(itemId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "update_item");
+  const updated = await programs.updateItem(itemId, parsed.data);
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -236,7 +246,9 @@ export async function deleteItemAction(locale: string, programId: string, itemId
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const deleted = await new ProgramsService(supabase).removeItem(itemId);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "delete_item");
+  const deleted = await programs.removeItem(itemId);
   if (!deleted) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -299,7 +311,9 @@ export async function groupItemsAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  await new ProgramsService(supabase).groupItems(parsed.data.ids, kind);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "group_items");
+  await programs.groupItems(parsed.data.ids, kind);
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
@@ -313,7 +327,36 @@ export async function ungroupItemsAction(locale: string, programId: string, item
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  await new ProgramsService(supabase).ungroupItems(parsed.data.ids);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "ungroup_items");
+  await programs.ungroupItems(parsed.data.ids);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function listRevisionsAction(programId: string) {
+  const supabase = await createClient();
+  return new ProgramsService(supabase).listRevisions(programId);
+}
+
+/** Restores a program to a prior snapshot -- snapshots the CURRENT state
+ * first (so restoring is itself undoable) before overwriting it, same
+ * "snapshot before you mutate" rule every other structural action here
+ * follows. */
+export async function restoreRevisionAction(
+  locale: string,
+  programId: string,
+  revisionId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "before_restore");
+  const restored = await programs.restoreRevision(revisionId);
+  if (!restored) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 

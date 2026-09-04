@@ -43,6 +43,7 @@ import {
 import { AddDayDialog } from "./add-day-dialog";
 import { ItemDialog } from "./item-dialog";
 import { AssignTemplateDialog } from "./assign-template-dialog";
+import { RevisionHistoryDrawer } from "./revision-history-drawer";
 import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
 import { VolumeSidebar } from "./volume-sidebar";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -493,6 +494,7 @@ export function ProgramBuilder({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {isTemplate && <AssignTemplateDialog locale={locale} programId={tree.id} clients={clients} />}
+          {!isTemplate && <RevisionHistoryDrawer locale={locale} programId={tree.id} />}
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <select
               value={week}
