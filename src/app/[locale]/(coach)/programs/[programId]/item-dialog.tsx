@@ -66,6 +66,7 @@ export function ItemDialog({
 }) {
   const t = useTranslations("programs.itemDialog");
   const tErrors = useTranslations("programs.errors");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [selectedExercise, setSelectedExercise] = useState(item?.exercises ?? initialExercise ?? null);
@@ -274,8 +275,8 @@ export function ItemDialog({
             <p className="text-xs text-muted-foreground">{t("coachNotePrivateHint")}</p>
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending || !selectedExercise}>
-            {t("submit")}
+          <Button type="submit" disabled={pending || !selectedExercise} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>
