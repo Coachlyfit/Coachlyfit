@@ -388,7 +388,7 @@ export function WorkoutSessionClient({
             type="button"
             onClick={() => restTimer.adjust(-15)}
             aria-label={t("restMinus15")}
-            className="shrink-0 px-1 text-xs font-semibold text-primary-foreground"
+            className="flex h-9 shrink-0 items-center px-2 text-xs font-semibold text-primary-foreground"
           >
             −15
           </button>
@@ -396,14 +396,14 @@ export function WorkoutSessionClient({
             type="button"
             onClick={() => restTimer.adjust(15)}
             aria-label={t("restPlus15")}
-            className="shrink-0 px-1 text-xs font-semibold text-primary-foreground"
+            className="flex h-9 shrink-0 items-center px-2 text-xs font-semibold text-primary-foreground"
           >
             +15
           </button>
           <button
             type="button"
             onClick={restTimer.skip}
-            className="shrink-0 px-1 text-xs font-semibold text-primary-foreground"
+            className="flex h-9 shrink-0 items-center px-2 text-xs font-semibold text-primary-foreground"
           >
             {t("skipRest")}
           </button>
