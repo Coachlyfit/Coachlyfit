@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getRootDomain } from "@/lib/tenant/portal-slug";
 import { updateSlugAction } from "@/app/[locale]/(coach)/settings/actions";
 
 // Mirrors the DNS-label CHECK constraint on coaches.slug
@@ -37,13 +36,21 @@ export function PortalCard({ slug }: { slug: string }) {
     formState: { errors },
   } = useForm<SlugFormInput>({ resolver: zodResolver(slugFormSchema), defaultValues: { slug } });
 
-  const rootDomain = getRootDomain();
   // The URL box, Copy button, and QR code all stay pinned to the
   // server-confirmed slug until save succeeds, so the coach can't hand out
   // a link for a slug that didn't actually save.
-  const savedUrl = `https://${slug}.${rootDomain}`;
+  //
+  // Path relative to the current origin (`?coach=` query param) rather than
+  // a `<slug>.<rootDomain>` subdomain — that requires a wildcard domain
+  // (*.domain) configured on the host, which isn't set up yet. Switch to
+  // the subdomain form once NEXT_PUBLIC_ROOT_DOMAIN + wildcard DNS exist.
+  const [origin, setOrigin] = useState("");
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from window.location, an external system with no server-side value; effect is the correct place to read it
+  useEffect(() => setOrigin(window.location.origin), []);
+  const savedUrl = origin ? `${origin}/${locale}/login?coach=${slug}` : "";
 
   useEffect(() => {
+    if (!savedUrl) return;
     QRCode.toDataURL(savedUrl).then(setQrDataUrl);
   }, [savedUrl]);
 
