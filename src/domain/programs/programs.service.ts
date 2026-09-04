@@ -386,7 +386,34 @@ export class ProgramsService {
     return count;
   }
 
+  /** Rejects (throws) a reorder that would split a superset/circuit's
+   * members apart — the session flow assumes a group's items are
+   * contiguous to expand them into one round-robin block (see
+   * session-order.ts), so an interleaved group would silently break that.
+   * The builder is expected to keep grouped items draggable only as a
+   * unit; this is the server-side backstop for whatever gets sent anyway. */
   async reorderItems(dayId: string, orderedIds: string[]): Promise<number> {
+    const { data: items, error: fetchError } = await this.db
+      .from("program_items")
+      .select("id, group_key")
+      .eq("program_day_id", dayId)
+      .in("id", orderedIds);
+    if (fetchError) throw fetchError;
+
+    const groupById = new Map(items.map((i) => [i.id, i.group_key]));
+    const seenGroups = new Set<string>();
+    let lastGroup: string | null = null;
+    for (const id of orderedIds) {
+      const group = groupById.get(id) ?? null;
+      if (group !== lastGroup) {
+        if (group != null && seenGroups.has(group)) {
+          throw new Error("group_not_contiguous");
+        }
+        if (group != null) seenGroups.add(group);
+      }
+      lastGroup = group;
+    }
+
     let count = 0;
     for (let i = 0; i < orderedIds.length; i++) {
       const { data, error } = await this.db
@@ -423,6 +450,36 @@ export class ProgramsService {
       count++;
     }
     return count;
+  }
+
+  /** Groups the given items into a superset/circuit — they render together
+   * in the builder and, in the session, alternate one set per item per
+   * round instead of each item finishing all its own sets first. The group
+   * key is generated here (crypto.randomUUID, same entropy as a DB uuid
+   * column, just not stored as one since group_key has no FK target of its
+   * own) rather than accepted from the caller, so a client can't force a
+   * collision with an existing group by guessing/reusing a key. Requires
+   * at least 2 items — a "group" of one is just an ungrouped item. */
+  async groupItems(itemIds: string[], kind: "superset" | "circuit"): Promise<number> {
+    if (itemIds.length < 2) return 0;
+    const groupKey = crypto.randomUUID();
+    const { data, error } = await this.db
+      .from("program_items")
+      .update({ group_key: groupKey, group_kind: kind })
+      .in("id", itemIds)
+      .select("id");
+    if (error) throw error;
+    return data.length;
+  }
+
+  async ungroupItems(itemIds: string[]): Promise<number> {
+    const { data, error } = await this.db
+      .from("program_items")
+      .update({ group_key: null, group_kind: null })
+      .in("id", itemIds)
+      .select("id");
+    if (error) throw error;
+    return data.length;
   }
 
   /** Every client instance cloned from this template, for the template

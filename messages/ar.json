@@ -760,7 +760,9 @@
       "tempo": "الإيقاع",
       "executionSteps": "طريقة الأداء",
       "commonMistakes": "الأخطاء الشائعة",
-      "safetyNote": "ملاحظة سلامة"
+      "safetyNote": "ملاحظة سلامة",
+      "supersetLabel": "سوبرسيت",
+      "circuitLabel": "دائرة"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
@@ -1048,7 +1050,13 @@
       "week": "الأسبوع {n}",
       "weekReadOnlyHint": "للعرض فقط — ارجع للأسبوع ١ عشان تعدّل",
       "bodyweight": "وزن الجسم",
-      "setLine": "{reps} تكرار"
+      "setLine": "{reps} تكرار",
+      "selectItem": "تحديد التمرين",
+      "selectedCount": "تم تحديد {count}",
+      "makeSuperset": "دمج كسوبرسيت",
+      "makeCircuit": "دمج كدائرة",
+      "ungroup": "فصل",
+      "clearSelection": "إلغاء التحديد"
     },
     "dayDialog": {
       "addTitle": "ضيف يوم",
@@ -1097,7 +1105,8 @@
       "not_authenticated": "سجّل الدخول تاني.",
       "not_found_or_forbidden": "مينفعش تعدّل البرنامج ده.",
       "end_date_before_start_date": "تاريخ النهاية لازم يكون بعد تاريخ البداية.",
-      "unknown": "حصل خطأ. جرّب تاني."
+      "unknown": "حصل خطأ. جرّب تاني.",
+      "group_not_contiguous": "يجب أن تبقى تمارين السوبرسيت/الدائرة متجاورة."
     }
   },
   "library": {

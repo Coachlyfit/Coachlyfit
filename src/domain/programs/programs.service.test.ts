@@ -8,11 +8,12 @@ function fakeSupabase(opts: {
   parentRow?: Record<string, unknown> | null;
   treeRow?: Record<string, unknown> | null;
   affected?: unknown[];
+  itemsRow?: unknown[];
 } = {}) {
-  const { parentRow = null, treeRow = null, affected = [{ id: "1" }] } = opts;
+  const { parentRow = null, treeRow = null, affected = [{ id: "1" }], itemsRow = [] } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
-  const updates: { table: string; payload: unknown; eqs: [string, unknown][] }[] = [];
+  const updates: { table: string; payload: unknown; eqs: [string, unknown][]; ins: [string, unknown[]][] }[] = [];
   const deletes: { table: string; eqs: [string, unknown][] }[] = [];
   const affectedRows = async () => ({ data: affected, error: null });
 
@@ -23,6 +24,10 @@ function fakeSupabase(opts: {
           // Parent-derivation lookups: select("coach_id, client_id").eq(...).maybeSingle()
           if (cols === "coach_id, client_id") {
             return { eq: () => ({ maybeSingle: async () => ({ data: parentRow, error: null }) }) };
+          }
+          // reorderItems' pre-check: select("id, group_key").eq(...).in(...)
+          if (cols === "id, group_key") {
+            return { eq: () => ({ in: async () => ({ data: itemsRow, error: null }) }) };
           }
           // getTree: select("*, program_days(...)").eq(...).order().order().order().maybeSingle()
           return {
@@ -46,14 +51,19 @@ function fakeSupabase(opts: {
         },
         update: (payload: unknown) => {
           const eqs: [string, unknown][] = [];
+          const ins: [string, unknown[]][] = [];
           const chain = {
             eq: (col: string, val: unknown) => {
               eqs.push([col, val]);
               return chain;
             },
+            in: (col: string, vals: unknown[]) => {
+              ins.push([col, vals]);
+              return chain;
+            },
             select: affectedRows,
           };
-          updates.push({ table, payload, eqs });
+          updates.push({ table, payload, eqs, ins });
           return chain;
         },
         delete: () => {
@@ -230,6 +240,60 @@ describe("ProgramsService", () => {
           ["program_day_id", "day-1"],
         ]);
       });
+    });
+
+    it("allows a reorder where a group's members stay contiguous", async () => {
+      const itemsRow = [
+        { id: "a", group_key: "g1" },
+        { id: "b", group_key: "g1" },
+        { id: "c", group_key: null },
+      ];
+      const { db, updates } = fakeSupabase({ itemsRow });
+      const count = await new ProgramsService(db).reorderItems("day-1", ["c", "a", "b"]);
+      expect(count).toBe(3);
+      expect(updates).toHaveLength(3);
+    });
+
+    it("rejects a reorder that splits a group's members apart", async () => {
+      const itemsRow = [
+        { id: "a", group_key: "g1" },
+        { id: "b", group_key: "g1" },
+        { id: "c", group_key: null },
+      ];
+      const { db } = fakeSupabase({ itemsRow });
+      await expect(new ProgramsService(db).reorderItems("day-1", ["a", "c", "b"])).rejects.toThrow(
+        "group_not_contiguous"
+      );
+    });
+  });
+
+  describe("groupItems / ungroupItems", () => {
+    it("groupItems stamps a shared group_key and the given kind on every item id, returning the affected count", async () => {
+      const { db, updates } = fakeSupabase({ affected: [{ id: "a" }, { id: "b" }] });
+      const count = await new ProgramsService(db).groupItems(["a", "b"], "superset");
+
+      expect(count).toBe(2);
+      expect(updates).toHaveLength(1);
+      expect(updates[0].table).toBe("program_items");
+      expect(updates[0].payload).toMatchObject({ group_kind: "superset" });
+      expect(typeof (updates[0].payload as { group_key: string }).group_key).toBe("string");
+      expect(updates[0].ins).toEqual([["id", ["a", "b"]]]);
+    });
+
+    it("groupItems is a no-op for fewer than 2 items", async () => {
+      const { db, updates } = fakeSupabase();
+      const count = await new ProgramsService(db).groupItems(["a"], "superset");
+      expect(count).toBe(0);
+      expect(updates).toHaveLength(0);
+    });
+
+    it("ungroupItems clears group_key and group_kind on the given ids", async () => {
+      const { db, updates } = fakeSupabase({ affected: [{ id: "a" }, { id: "b" }] });
+      const count = await new ProgramsService(db).ungroupItems(["a", "b"]);
+
+      expect(count).toBe(2);
+      expect(updates[0].payload).toEqual({ group_key: null, group_kind: null });
+      expect(updates[0].ins).toEqual([["id", ["a", "b"]]]);
     });
   });
 

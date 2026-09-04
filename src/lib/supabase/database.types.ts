@@ -1572,6 +1572,8 @@ export type Database = {
           client_id: string | null
           coach_id: string
           exercise_id: string
+          group_key: string | null
+          group_kind: string | null
           id: string
           notes_ar: string | null
           notes_en: string | null
@@ -1586,6 +1588,8 @@ export type Database = {
           client_id?: string | null
           coach_id: string
           exercise_id: string
+          group_key?: string | null
+          group_kind?: string | null
           id?: string
           notes_ar?: string | null
           notes_en?: string | null
@@ -1600,6 +1604,8 @@ export type Database = {
           client_id?: string | null
           coach_id?: string
           exercise_id?: string
+          group_key?: string | null
+          group_kind?: string | null
           id?: string
           notes_ar?: string | null
           notes_en?: string | null

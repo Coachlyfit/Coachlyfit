@@ -134,6 +134,20 @@ export function WorkoutSessionClient({
   const doneCount = logs.size;
   const allDone = totalSets > 0 && doneCount === totalSets;
 
+  // Consecutive items sharing group_key become one visual block (bordered,
+  // labeled A1/A2/...) — reorderItems already enforces server-side that a
+  // group's members stay contiguous, so a simple consecutive-run grouping
+  // here is sufficient; it never needs to handle a split group.
+  const itemGroups: ProgramItem[][] = [];
+  for (const item of day.program_items) {
+    const last = itemGroups[itemGroups.length - 1];
+    if (item.group_key && last?.[0]?.group_key === item.group_key) {
+      last.push(item);
+    } else {
+      itemGroups.push([item]);
+    }
+  }
+
   useEffect(() => {
     if (done) return;
     const id = setInterval(() => {
@@ -343,9 +357,23 @@ export function WorkoutSessionClient({
       )}
 
       <div className="flex flex-col gap-3.5 px-5 py-4">
-        {day.program_items.map((item) => {
+        {itemGroups.map((group, groupIdx) => (
+          <div
+            key={group[0].id}
+            className={cn(
+              "flex flex-col gap-2.5",
+              group.length > 1 && "rounded-2xl border border-primary/30 p-2.5"
+            )}
+          >
+            {group.length > 1 && (
+              <p className="px-1 font-mono text-[9.5px] tracking-wider text-primary uppercase">
+                {group[0].group_kind === "circuit" ? t("circuitLabel") : t("supersetLabel")}
+              </p>
+            )}
+            {group.map((item, positionInGroup) => {
           const displaySets = projectedByItem.get(item.id) ?? [];
           const prevSets = prevByItem?.get(item.id) ?? null;
+          const groupLabel = group.length > 1 ? `${String.fromCharCode(65 + groupIdx)}${positionInGroup + 1}` : null;
           return (
           <div key={item.id} className="rounded-2xl bg-[#0F172A] p-4">
             <div className="mb-3.5 flex items-center gap-3">
@@ -360,6 +388,11 @@ export function WorkoutSessionClient({
               </button>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[14.5px] font-semibold text-[#F8FAFC]">
+                  {groupLabel && (
+                    <span className="me-1.5 rounded bg-primary/20 px-1.5 py-0.5 font-mono text-[10px] font-bold text-primary">
+                      {groupLabel}
+                    </span>
+                  )}
                   {pickLocale(activeExercise(item), locale)}
                 </p>
                 {swaps.has(item.id) && (
@@ -453,7 +486,9 @@ export function WorkoutSessionClient({
             </div>
           </div>
           );
-        })}
+            })}
+          </div>
+        ))}
 
         <button
           type="button"

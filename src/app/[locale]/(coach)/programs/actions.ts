@@ -261,7 +261,50 @@ export async function reorderItemsAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  await new ProgramsService(supabase).reorderItems(dayId, parsed.data.ids);
+  try {
+    await new ProgramsService(supabase).reorderItems(dayId, parsed.data.ids);
+  } catch (err) {
+    // group_not_contiguous — the drag would split a superset/circuit's
+    // members apart; the builder should never construct such a drop in
+    // the first place, but this is the server-side backstop either way.
+    if (err instanceof Error && err.message === "group_not_contiguous") {
+      return { error: "group_not_contiguous" };
+    }
+    throw err;
+  }
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function groupItemsAction(
+  locale: string,
+  programId: string,
+  itemIds: string[],
+  kind: "superset" | "circuit"
+): Promise<ActionResult> {
+  const parsed = reorderSchema.safeParse({ ids: itemIds });
+  if (!parsed.success || parsed.data.ids.length < 2) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  await new ProgramsService(supabase).groupItems(parsed.data.ids, kind);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function ungroupItemsAction(locale: string, programId: string, itemIds: string[]): Promise<ActionResult> {
+  const parsed = reorderSchema.safeParse({ ids: itemIds });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  await new ProgramsService(supabase).ungroupItems(parsed.data.ids);
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 

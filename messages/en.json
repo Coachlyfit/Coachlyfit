@@ -760,7 +760,9 @@
       "tempo": "Tempo",
       "executionSteps": "How to do it",
       "commonMistakes": "Common mistakes",
-      "safetyNote": "Safety note"
+      "safetyNote": "Safety note",
+      "supersetLabel": "Superset",
+      "circuitLabel": "Circuit"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -1048,7 +1050,13 @@
       "week": "Week {n}",
       "weekReadOnlyHint": "Read-only — go back to week 1 to edit",
       "bodyweight": "BW",
-      "setLine": "{reps} reps"
+      "setLine": "{reps} reps",
+      "selectItem": "Select exercise",
+      "selectedCount": "{count} selected",
+      "makeSuperset": "Make superset",
+      "makeCircuit": "Make circuit",
+      "ungroup": "Ungroup",
+      "clearSelection": "Clear"
     },
     "dayDialog": {
       "addTitle": "Add day",
@@ -1097,7 +1105,8 @@
       "not_authenticated": "Please log in again.",
       "not_found_or_forbidden": "You can't change this program.",
       "end_date_before_start_date": "End date can't be before the start date.",
-      "unknown": "Something went wrong. Please try again."
+      "unknown": "Something went wrong. Please try again.",
+      "group_not_contiguous": "Superset/circuit items must stay next to each other."
     }
   },
   "library": {
