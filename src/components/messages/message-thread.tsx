@@ -112,7 +112,13 @@ export function MessageThread({
         )}
         <div ref={bottomRef} />
       </div>
-      <div className="flex items-center gap-2">
+      {/* me-14 on md+ clears FeedbackWidget's fixed bottom-end corner
+          button ((coach)/layout.tsx, bottom-4 end-4 on desktop) -- without
+          it the widget's circle sits directly on top of Send since this
+          panel's composer runs flush to the same corner. Mobile doesn't
+          need it: the widget sits higher there (bottom-20, above
+          BottomNav), clear of the composer. */}
+      <div className="flex items-center gap-2 md:me-14">
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
