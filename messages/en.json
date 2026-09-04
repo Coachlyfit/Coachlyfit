@@ -703,7 +703,8 @@
       "done": "Done",
       "doneMeta": "Done · {minutes} min",
       "exerciseCount": "{count} exercises",
-      "today": "Today"
+      "today": "Today",
+      "historyLink": "History"
     },
     "workout": {
       "setsDone": "{done} / {total} sets",
@@ -815,6 +816,17 @@
       "noPlan": "No nutrition plan yet",
       "noPlanBody": "Your coach has not assigned a nutrition plan yet.",
       "quantityUnit": "{quantity} {unit}"
+    },
+    "history": {
+      "title": "Workout history",
+      "empty": "No completed workouts yet.",
+      "workout": "Workout",
+      "completed": "Completed",
+      "inProgress": "In progress",
+      "setsDone": "{done}/{total} sets",
+      "volume": "{value}kg volume",
+      "duration": "{minutes} min",
+      "swapped": "Swapped {original} for {substitute}"
     }
   },
   "inbox": {
@@ -1381,11 +1393,6 @@
         "label": "View",
         "list": "List",
         "grid": "Grid"
-      },
-      "pagination": {
-        "pageOf": "Page {page} of {totalPages}",
-        "previous": "Previous",
-        "next": "Next"
       },
       "recordPayment": "Record payment",
       "recordPaymentDialog": {

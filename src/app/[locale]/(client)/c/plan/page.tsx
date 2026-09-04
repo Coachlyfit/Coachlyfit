@@ -78,7 +78,12 @@ export default async function ClientPlanPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <Link href="/c/history" className="text-sm font-medium text-primary">
+          {t("historyLink")}
+        </Link>
+      </div>
 
       <div className="flex flex-col gap-3">
         {days.map(({ date, day, isRest, isToday }) => {

@@ -2001,7 +2001,10 @@ export type Database = {
           duration_seconds: number | null
           id: string
           program_day_id: string
+          sets_completed: number | null
+          sets_prescribed: number | null
           started_at: string
+          total_volume: number | null
         }
         Insert: {
           client_id: string
@@ -2011,7 +2014,10 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           program_day_id: string
+          sets_completed?: number | null
+          sets_prescribed?: number | null
           started_at?: string
+          total_volume?: number | null
         }
         Update: {
           client_id?: string
@@ -2021,7 +2027,10 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           program_day_id?: string
+          sets_completed?: number | null
+          sets_prescribed?: number | null
           started_at?: string
+          total_volume?: number | null
         }
         Relationships: [
           {

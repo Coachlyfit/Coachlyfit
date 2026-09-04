@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { computeSessionSummary } from "./summary";
 
 type WorkoutSession = Database["public"]["Tables"]["workout_sessions"]["Row"];
 type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
@@ -307,10 +308,48 @@ export class WorkoutsService {
       }));
   }
 
+  /** Computes and persists the session summary (total volume, sets
+   * completed/prescribed) alongside marking it done — a cheap read for
+   * every future history-list render instead of re-aggregating
+   * workout_set_logs each time. sets_prescribed comes from the session's
+   * program_day (via program_items -> program_item_sets), not from the
+   * logs themselves, so a client who skipped exercises still shows the
+   * true prescribed count relative to what they actually did. */
   async completeSession(sessionId: string, durationSeconds: number): Promise<boolean> {
+    const { data: session, error: sessionError } = await this.db
+      .from("workout_sessions")
+      .select("program_day_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (sessionError) throw sessionError;
+
+    let totalVolume = 0;
+    let setsCompleted = 0;
+    let setsPrescribed: number | null = null;
+
+    if (session) {
+      const [{ data: logs }, { data: items }] = await Promise.all([
+        this.db.from("workout_set_logs").select("weight, reps").eq("session_id", sessionId),
+        this.db
+          .from("program_items")
+          .select("program_item_sets(id)")
+          .eq("program_day_id", session.program_day_id),
+      ]);
+      const summary = computeSessionSummary(logs ?? []);
+      totalVolume = summary.totalVolume;
+      setsCompleted = summary.setsCompleted;
+      setsPrescribed = (items ?? []).reduce((sum, item) => sum + item.program_item_sets.length, 0);
+    }
+
     const { data, error } = await this.db
       .from("workout_sessions")
-      .update({ completed_at: new Date().toISOString(), duration_seconds: durationSeconds })
+      .update({
+        completed_at: new Date().toISOString(),
+        duration_seconds: durationSeconds,
+        total_volume: totalVolume,
+        sets_completed: setsCompleted,
+        sets_prescribed: setsPrescribed,
+      })
       .eq("id", sessionId)
       .select("id");
     if (error) throw error;

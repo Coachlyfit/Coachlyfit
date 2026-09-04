@@ -6,8 +6,17 @@ function fakeSupabase(opts: {
   rows?: unknown[];
   affected?: unknown[];
   prescribed?: unknown;
+  setLogsForSummary?: unknown[];
+  itemsForSummary?: unknown[];
 } = {}) {
-  const { parent = null, rows = [], affected = [{ id: "1" }], prescribed = null } = opts;
+  const {
+    parent = null,
+    rows = [],
+    affected = [{ id: "1" }],
+    prescribed = null,
+    setLogsForSummary = [],
+    itemsForSummary = [],
+  } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
   const upserts: { table: string; payload: unknown; onConflict?: string }[] = [];
@@ -19,21 +28,31 @@ function fakeSupabase(opts: {
     from(table: string) {
       return {
         select: () => ({
-          eq: () => ({
-            eq: () => ({
-              maybeSingle: async () => ({
-                data: table === "program_item_sets" ? prescribed : parent,
-                error: null,
+          eq: () => {
+            const eqChain = {
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: table === "program_item_sets" ? prescribed : parent,
+                  error: null,
+                }),
               }),
-            }),
-            maybeSingle: async () => ({ data: parent, error: null }),
-            order: () => ({
-              limit: () => ({
-                maybeSingle: async () => ({ data: parent, error: null }),
+              maybeSingle: async () => ({ data: parent, error: null }),
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: parent, error: null }),
+                }),
               }),
-            }),
-            select: () => ({ id: "1" }),
-          }),
+              select: () => ({ id: "1" }),
+            };
+            // completeSession's summary queries: select(...).eq(...) with
+            // no further chaining, resolved directly as a thenable —
+            // matches workout_set_logs and program_items in that method.
+            const promise = Promise.resolve({
+              data: table === "workout_set_logs" ? setLogsForSummary : itemsForSummary,
+              error: null,
+            });
+            return Object.assign(promise, eqChain);
+          },
           order: () => ({ limit: async () => ({ data: rows, error: null }) }),
         }),
         insert: (payload: unknown) => {
@@ -172,6 +191,26 @@ describe("WorkoutsService", () => {
   it("completeSession reports true when a row was actually affected", async () => {
     const { db } = fakeSupabase({ affected: [{ id: "session-1" }] });
     expect(await new WorkoutsService(db).completeSession("session-1", 900)).toBe(true);
+  });
+
+  it("completeSession computes and persists total_volume/sets_completed/sets_prescribed from the session's logs and program", async () => {
+    const { db, updates } = fakeSupabase({
+      parent: { program_day_id: "day-1" },
+      affected: [{ id: "session-1" }],
+      setLogsForSummary: [
+        { weight: 60, reps: 8 },
+        { weight: 40, reps: 10 },
+      ],
+      itemsForSummary: [{ program_item_sets: [{ id: "s1" }, { id: "s2" }] }, { program_item_sets: [{ id: "s3" }] }],
+    });
+    await new WorkoutsService(db).completeSession("session-1", 900);
+
+    const sessionUpdate = updates.find((u) => u.table === "workout_sessions");
+    expect(sessionUpdate?.payload).toMatchObject({
+      total_volume: 880,
+      sets_completed: 2,
+      sets_prescribed: 3,
+    });
   });
 
   it("setExerciseResult derives coach_id/client_id from the parent session and upserts on (session,item)", async () => {

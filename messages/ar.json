@@ -703,7 +703,8 @@
       "done": "خلصت",
       "doneMeta": "خلصت · {minutes} دقيقة",
       "exerciseCount": "{count} تمارين",
-      "today": "النهاردة"
+      "today": "النهاردة",
+      "historyLink": "السجل"
     },
     "workout": {
       "setsDone": "{done} / {total} مجموعة",
@@ -815,6 +816,17 @@
       "noPlan": "لسه مفيش خطة تغذية",
       "noPlanBody": "الكابتن لسه ما حددش خطة تغذية.",
       "quantityUnit": "{quantity} {unit}"
+    },
+    "history": {
+      "title": "سجل التمارين",
+      "empty": "لا توجد تمارين مكتملة بعد.",
+      "workout": "تمرين",
+      "completed": "مكتمل",
+      "inProgress": "قيد التنفيذ",
+      "setsDone": "{done}/{total} مجموعة",
+      "volume": "{value} كجم حجم",
+      "duration": "{minutes} دقيقة",
+      "swapped": "تم استبدال {original} بـ {substitute}"
     }
   },
   "inbox": {
@@ -1381,11 +1393,6 @@
         "label": "العرض",
         "list": "قائمة",
         "grid": "شبكة"
-      },
-      "pagination": {
-        "pageOf": "صفحة {page} من {totalPages}",
-        "previous": "السابق",
-        "next": "التالي"
       },
       "recordPayment": "سجّل دفعة",
       "recordPaymentDialog": {
