@@ -1055,7 +1055,7 @@
     },
     "deleteProgram": "Delete program",
     "confirmDeleteProgramTitle": "Delete this program?",
-    "confirmDeleteProgramBody": "This deletes every day and exercise in it. This can't be undone.",
+    "confirmDeleteProgramBody": "This moves the program to Trash. You can restore it from there for 30 days.",
     "pendingAdjustments": {
       "title": "From this week's review",
       "reduceLoad": "Reduce load by {percent}%",
@@ -1309,6 +1309,7 @@
     "delete": "Delete",
     "deleteConfirmTitle": "Delete this entry?",
     "deleteConfirmBody": "This can't be undone.",
+    "deleteConfirmBodyExercise": "This moves the exercise to Trash. You can restore it from there for 30 days.",
     "errors": {
       "invalid_input": "Please check the form and try again.",
       "not_authenticated": "Please log in again.",
@@ -1850,7 +1851,7 @@
     },
     "deletePlan": "Delete plan",
     "confirmDeletePlanTitle": "Delete this plan?",
-    "confirmDeletePlanBody": "This deletes every meal and food in it. This can not be undone.",
+    "confirmDeletePlanBody": "This moves the plan to Trash. You can restore it from there for 30 days.",
     "assignedToClients": {
       "title": "Assigned to {count} client(s)"
     },

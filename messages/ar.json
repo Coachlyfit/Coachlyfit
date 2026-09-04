@@ -1055,7 +1055,7 @@
     },
     "deleteProgram": "امسح البرنامج",
     "confirmDeleteProgramTitle": "تمسح البرنامج ده؟",
-    "confirmDeleteProgramBody": "هيمسح كل الأيام والتمارين اللي فيه. مينفعش ترجع فيها.",
+    "confirmDeleteProgramBody": "هينقل البرنامج للمحذوفات. تقدر تسترجعه من هناك خلال 30 يوم.",
     "pendingAdjustments": {
       "title": "جاية من المراجعة الأسبوعية",
       "reduceLoad": "قلّل الحمل {percent}٪",
@@ -1309,6 +1309,7 @@
     "delete": "امسح",
     "deleteConfirmTitle": "تمسح العنصر ده؟",
     "deleteConfirmBody": "مينفعش ترجع فيها.",
+    "deleteConfirmBodyExercise": "هينقل التمرين للمحذوفات. تقدر تسترجعه من هناك خلال 30 يوم.",
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
       "not_authenticated": "سجّل الدخول تاني.",
@@ -1850,7 +1851,7 @@
     },
     "deletePlan": "امسح الخطة",
     "confirmDeletePlanTitle": "تمسح الخطة دي؟",
-    "confirmDeletePlanBody": "هيمسح كل الوجبات والأطعمة اللي فيها. مينفعش ترجع فيها.",
+    "confirmDeletePlanBody": "هينقل الخطة للمحذوفات. تقدر تسترجعها من هناك خلال 30 يوم.",
     "assignedToClients": {
       "title": "متعيّنة لـ {count} عميل"
     },

@@ -678,7 +678,7 @@ export function LibraryClient({
         open={pendingDelete !== null}
         onOpenChange={(open) => !open && setPendingDelete(null)}
         title={t("deleteConfirmTitle")}
-        description={t("deleteConfirmBody")}
+        description={pendingDelete?.kind === "exercise" ? t("deleteConfirmBodyExercise") : t("deleteConfirmBody")}
         confirmLabel={t("delete")}
         onConfirm={onConfirmDelete}
       />
