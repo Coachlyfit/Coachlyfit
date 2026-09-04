@@ -242,6 +242,8 @@ export async function updateFoodAction(locale: string, id: string, formData: For
 // inherit the (coach) layout's guard, so each write re-checks auth itself.
 // RLS is still the authority on WHICH rows; this only rejects anonymous
 // callers early and turns an RLS no-op into a message instead of a lie.
+// Soft delete: archives instead of removing, so it can be undone from the
+// trash view. Hard delete only happens via the 30-day cron.
 export async function deleteExerciseAction(locale: string, id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -250,12 +252,33 @@ export async function deleteExerciseAction(locale: string, id: string): Promise<
   if (!user) return { error: "not_authenticated" };
 
   try {
-    const deleted = await new LibraryService(supabase).deleteExercise(id);
-    if (!deleted) return { error: "not_found_or_forbidden" };
+    const archived = await new LibraryService(supabase).archiveExercise(id);
+    if (!archived) return { error: "not_found_or_forbidden" };
   } catch (error) {
     return { error: libraryErrorKey(error) };
   }
   revalidatePath(`/${locale}/library`);
+}
+
+export async function restoreExerciseAction(locale: string, id: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const restored = await new LibraryService(supabase).restoreExercise(id);
+  if (!restored) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/library`);
+}
+
+export async function listArchivedExercisesAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  return new LibraryService(supabase).listArchivedExercises();
 }
 
 export async function deleteFoodAction(locale: string, id: string): Promise<ActionResult> {

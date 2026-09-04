@@ -17,6 +17,13 @@
       "title": "Something went wrong",
       "description": "An unexpected error occurred. Try again, or go back.",
       "retry": "Try again"
+    },
+    "trash": {
+      "trigger": "Trash",
+      "title": "Trash",
+      "empty": "Trash is empty",
+      "restore": "Restore",
+      "restoreFailed": "Couldn't restore this item"
     }
   },
   "nav": {

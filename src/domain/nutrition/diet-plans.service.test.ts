@@ -27,11 +27,19 @@ function fakeSupabase(
             return { eq: () => ({ maybeSingle: async () => ({ data: parentRow, error: null }) }) };
           }
           // getTree: select("*, meals(...)").eq(...).order().order().maybeSingle()
+          // getActiveTreeForClient additionally chains .is("archived_at", null)
+          // and .limit(1) before the same order/order/maybeSingle tail.
+          const step2 = () => ({
+            order: () => ({
+              maybeSingle: async () => ({ data: treeRow, error: null }),
+              limit: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
+            }),
+          });
+          const step1 = () => ({ order: () => step2() });
           return {
             eq: () => ({
-              order: () => ({
-                order: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
-              }),
+              ...step1(),
+              is: () => step1(),
             }),
             order: () => ({ ascending: undefined }),
           };
@@ -235,10 +243,12 @@ describe("DietPlansService", () => {
             eq: (col: string, val: unknown) => {
               eqCalls.push([col, val]);
               return {
-                order: () => ({
+                is: () => ({
                   order: () => ({
                     order: () => ({
-                      limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                      order: () => ({
+                        limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                      }),
                     }),
                   }),
                 }),

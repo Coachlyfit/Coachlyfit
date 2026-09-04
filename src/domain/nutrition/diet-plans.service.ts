@@ -60,11 +60,38 @@ export class DietPlansService {
     let q = this.db
       .from("diet_plans")
       .select("*, clients(display_name)")
+      .is("archived_at", null)
       .order("created_at", { ascending: false });
     q = applyScope(q, scope);
     const { data, error } = await q;
     if (error) throw error;
     return data;
+  }
+
+  async listArchived() {
+    const { data, error } = await this.db
+      .from("diet_plans")
+      .select("*, clients(display_name)")
+      .not("archived_at", "is", null)
+      .order("archived_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  }
+
+  async archive(id: string): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("diet_plans")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", id)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  async restore(id: string): Promise<boolean> {
+    const { data, error } = await this.db.from("diet_plans").update({ archived_at: null }).eq("id", id).select("id");
+    if (error) throw error;
+    return data.length > 0;
   }
 
   /** The client's current assigned (non-template) diet plan, if any — same
@@ -76,6 +103,7 @@ export class DietPlansService {
       .from("diet_plans")
       .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, kcal, protein_g, carb_g, fat_g)))")
       .eq("client_id", clientId)
+      .is("archived_at", null)
       .order("created_at", { ascending: false })
       .order("order_index", { referencedTable: "meals" })
       .order("order_index", { referencedTable: "meals.meal_items" })

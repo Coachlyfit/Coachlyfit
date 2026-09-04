@@ -167,6 +167,7 @@ export class LibraryService {
       let q = this.db
         .from("exercises_visible")
         .select("*", { count: "exact" })
+        .is("archived_at", null)
         .order("name_en")
         .order("id");
       q = applySource(q, params.source ?? "all");
@@ -301,6 +302,37 @@ export class LibraryService {
     const { data, error } = await this.db.from("exercises").delete().eq("id", id).select("id");
     if (error) throw error;
     return data.length > 0;
+  }
+
+  /** Soft delete — the coach-facing "Delete" action archives instead of
+   * hard-deleting, so a mistaken delete can be undone via restoreExercise.
+   * Only meaningful on a coach's own row; a global exercise's delete button
+   * is admin-only in the UI, same as deleteExercise above. */
+  async archiveExercise(id: string): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("exercises")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", id)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  async restoreExercise(id: string): Promise<boolean> {
+    const { data, error } = await this.db.from("exercises").update({ archived_at: null }).eq("id", id).select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  async listArchivedExercises(): Promise<Exercise[]> {
+    const { data, error } = await this.db
+      .from("exercises_visible")
+      .select("*")
+      .not("archived_at", "is", null)
+      .order("name_en")
+      .returns<Exercise[]>();
+    if (error) throw error;
+    return data;
   }
 
   async deleteFood(id: string): Promise<boolean> {

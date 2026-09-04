@@ -531,6 +531,7 @@ export type Database = {
       }
       diet_plans: {
         Row: {
+          archived_at: string | null
           client_id: string | null
           coach_id: string
           created_at: string
@@ -542,6 +543,7 @@ export type Database = {
           start_date: string
         }
         Insert: {
+          archived_at?: string | null
           client_id?: string | null
           coach_id: string
           created_at?: string
@@ -553,6 +555,7 @@ export type Database = {
           start_date?: string
         }
         Update: {
+          archived_at?: string | null
           client_id?: string | null
           coach_id?: string
           created_at?: string
@@ -607,6 +610,7 @@ export type Database = {
       }
       exercises: {
         Row: {
+          archived_at: string | null
           coach_id: string | null
           coach_notes_ar: string | null
           coach_notes_en: string | null
@@ -637,6 +641,7 @@ export type Database = {
           video_url_alt: string | null
         }
         Insert: {
+          archived_at?: string | null
           coach_id?: string | null
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
@@ -667,6 +672,7 @@ export type Database = {
           video_url_alt?: string | null
         }
         Update: {
+          archived_at?: string | null
           coach_id?: string | null
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
@@ -1769,6 +1775,7 @@ export type Database = {
       }
       programs: {
         Row: {
+          archived_at: string | null
           checkin_triggered_at: string | null
           client_id: string | null
           coach_id: string
@@ -1782,6 +1789,7 @@ export type Database = {
           start_date: string
         }
         Insert: {
+          archived_at?: string | null
           checkin_triggered_at?: string | null
           client_id?: string | null
           coach_id: string
@@ -1795,6 +1803,7 @@ export type Database = {
           start_date?: string
         }
         Update: {
+          archived_at?: string | null
           checkin_triggered_at?: string | null
           client_id?: string | null
           coach_id?: string
@@ -2209,6 +2218,7 @@ export type Database = {
     Views: {
       exercises_visible: {
         Row: {
+          archived_at: string | null
           coach_id: string | null
           coach_notes_ar: string | null
           coach_notes_en: string | null

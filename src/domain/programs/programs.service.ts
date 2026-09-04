@@ -129,11 +129,42 @@ export class ProgramsService {
     let q = this.db
       .from("programs")
       .select("*, clients(display_name)")
+      .is("archived_at", null)
       .order("created_at", { ascending: false });
     q = applyScope(q, scope);
     const { data, error } = await q;
     if (error) throw error;
     return data;
+  }
+
+  async listArchived() {
+    const { data, error } = await this.db
+      .from("programs")
+      .select("*, clients(display_name)")
+      .not("archived_at", "is", null)
+      .order("archived_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  }
+
+  /** Soft delete: stops the program appearing in list()/listArchived's
+   * counterpart. Used by the coach-facing "Delete" action; the tree, child
+   * rows, and any client-side reads by id are unaffected, so a mistaken
+   * delete can be undone via restore(). */
+  async archive(id: string): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("programs")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", id)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  async restore(id: string): Promise<boolean> {
+    const { data, error } = await this.db.from("programs").update({ archived_at: null }).eq("id", id).select("id");
+    if (error) throw error;
+    return data.length > 0;
   }
 
   /** The client's current assigned (non-template) program, if any — a
@@ -158,6 +189,7 @@ export class ProgramsService {
         `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))`
       )
       .eq("client_id", clientId)
+      .is("archived_at", null)
       .order("created_at", { ascending: false })
       .order("order_index", { referencedTable: "program_days" })
       .order("order_index", { referencedTable: "program_days.program_items" })

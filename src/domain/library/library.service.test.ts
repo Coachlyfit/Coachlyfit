@@ -33,8 +33,11 @@ function fakeSupabase(rows: unknown[], affected: unknown[] = [{ id: "1" }], tota
         filters.push(filter);
         return chain;
       },
-      is: (column: "coach_id" | "my_clone_id", value: null) => {
-        sourceFilters.push(`is:${column}=${value}`);
+      is: (column: "coach_id" | "my_clone_id" | "archived_at", value: null) => {
+        // archived_at is the list-query's own soft-delete filter, not a
+        // source filter — only coach_id/my_clone_id calls (applySource)
+        // are what these tests assert on.
+        if (column !== "archived_at") sourceFilters.push(`is:${column}=${value}`);
         return chain;
       },
       not: (column: "coach_id", op: string, value: null) => {

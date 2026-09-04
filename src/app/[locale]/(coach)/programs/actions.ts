@@ -73,6 +73,8 @@ export async function updateProgramAction(locale: string, id: string, formData: 
   revalidatePath(`/${locale}/programs/${id}`);
 }
 
+// Soft delete: archives instead of removing, so it can be undone from the
+// trash view. Hard delete only happens via the 30-day cron.
 export async function deleteProgramAction(locale: string, id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -80,9 +82,30 @@ export async function deleteProgramAction(locale: string, id: string): Promise<A
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const deleted = await new ProgramsService(supabase).remove(id);
-  if (!deleted) return { error: "not_found_or_forbidden" };
+  const archived = await new ProgramsService(supabase).archive(id);
+  if (!archived) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
+}
+
+export async function restoreProgramAction(locale: string, id: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const restored = await new ProgramsService(supabase).restore(id);
+  if (!restored) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+}
+
+export async function listArchivedProgramsAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  return new ProgramsService(supabase).listArchived();
 }
 
 // Deviates from the void-on-success convention by returning the new

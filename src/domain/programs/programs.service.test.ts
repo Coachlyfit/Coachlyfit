@@ -30,13 +30,20 @@ function fakeSupabase(opts: {
             return { eq: () => ({ in: async () => ({ data: itemsRow, error: null }) }) };
           }
           // getTree: select("*, program_days(...)").eq(...).order().order().order().maybeSingle()
+          // getActiveTreeForClient additionally chains .is("archived_at", null),
+          // a 4th .order(), and .limit(1) before the same maybeSingle tail.
+          const step3 = () => ({
+            order: () => ({
+              maybeSingle: async () => ({ data: treeRow, error: null }),
+              limit: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
+            }),
+          });
+          const step2 = () => ({ order: () => step3() });
+          const step1 = () => ({ order: () => step2() });
           return {
             eq: () => ({
-              order: () => ({
-                order: () => ({
-                  order: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
-                }),
-              }),
+              ...step1(),
+              is: () => step1(),
             }),
             order: () => ({ ascending: undefined }),
           };
@@ -652,11 +659,13 @@ describe("ProgramsService", () => {
             eq: (col: string, val: unknown) => {
               eqCalls.push([col, val]);
               return {
-                order: () => ({
+                is: () => ({
                   order: () => ({
                     order: () => ({
                       order: () => ({
-                        limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                        order: () => ({
+                          limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                        }),
                       }),
                     }),
                   }),

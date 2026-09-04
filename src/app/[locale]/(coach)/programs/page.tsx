@@ -17,6 +17,7 @@ import { formatDate } from "@/lib/format";
 import { Link } from "@/i18n/navigation";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { CreateProgramDialog } from "./create-program-dialog";
+import { ProgramsTrashButton } from "./programs-trash-button";
 
 export default async function ProgramsPage({
   params,
@@ -39,7 +40,8 @@ export default async function ProgramsPage({
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={t("title")} />
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <ProgramsTrashButton locale={locale} />
         <CreateProgramDialog locale={locale} clients={clients ?? []} />
       </div>
 
