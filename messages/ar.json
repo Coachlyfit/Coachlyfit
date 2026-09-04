@@ -1102,7 +1102,15 @@
       "progressionPlus1Rep": "+تكرار واحد كل أسبوع",
       "notesAr": "ملاحظات (عربي، اختياري)",
       "notesEn": "ملاحظات (إنجليزي، اختياري)",
-      "submit": "حفظ"
+      "submit": "حفظ",
+      "block": "المرحلة",
+      "blockKind": {
+        "warmup": "إحماء",
+        "main": "أساسي",
+        "cooldown": "تهدئة"
+      },
+      "coachNotePrivate": "ملاحظة خاصة (تراها أنت فقط)",
+      "coachNotePrivateHint": "لا تظهر للعميل أبدًا — تظهر فقط في أداة البناء."
     },
     "volume": {
       "title": "الحجم الأسبوعي",
@@ -1368,6 +1376,16 @@
         "clients": "العملاء",
         "period": "نهاية الفترة",
         "joined": "تاريخ الانضمام"
+      },
+      "view": {
+        "label": "العرض",
+        "list": "قائمة",
+        "grid": "شبكة"
+      },
+      "pagination": {
+        "pageOf": "صفحة {page} من {totalPages}",
+        "previous": "السابق",
+        "next": "التالي"
       },
       "recordPayment": "سجّل دفعة",
       "recordPaymentDialog": {

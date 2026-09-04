@@ -7,6 +7,7 @@ import {
   getLastPerformanceAction,
 } from "@/domain/workouts/workouts-actions";
 import { weekIndexForDate } from "@/domain/programs/program-cycle";
+import { CLIENT_SAFE_ITEM_COLUMNS } from "@/domain/programs/programs.service";
 import type { AppLocale } from "@/domain/locale";
 import { WorkoutSessionClient } from "./workout-session-client";
 
@@ -24,7 +25,11 @@ export default async function WorkoutSessionPage({
   const { data: day } = await supabase
     .from("program_days")
     .select(
-      "*, programs(start_date), program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*))"
+      // program_items is an explicit column list, not `*` — must never
+      // include coach_note_private (a coach-only prescription annotation)
+      // on a route the client's browser directly receives the response
+      // for. See CLIENT_SAFE_ITEM_COLUMNS's doc comment.
+      `*, programs(start_date), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*))`
     )
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })

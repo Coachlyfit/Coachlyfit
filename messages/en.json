@@ -1102,7 +1102,15 @@
       "progressionPlus1Rep": "+1 rep per week",
       "notesAr": "Notes (Arabic, optional)",
       "notesEn": "Notes (English, optional)",
-      "submit": "Save"
+      "submit": "Save",
+      "block": "Block",
+      "blockKind": {
+        "warmup": "Warm-up",
+        "main": "Main",
+        "cooldown": "Cool-down"
+      },
+      "coachNotePrivate": "Private note (only you see this)",
+      "coachNotePrivateHint": "Never shown to the client — visible only in the builder."
     },
     "volume": {
       "title": "Weekly volume",
@@ -1368,6 +1376,16 @@
         "clients": "Clients",
         "period": "Period ends",
         "joined": "Joined"
+      },
+      "view": {
+        "label": "View",
+        "list": "List",
+        "grid": "Grid"
+      },
+      "pagination": {
+        "pageOf": "Page {page} of {totalPages}",
+        "previous": "Previous",
+        "next": "Next"
       },
       "recordPayment": "Record payment",
       "recordPaymentDialog": {

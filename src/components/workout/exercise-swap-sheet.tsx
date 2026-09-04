@@ -12,7 +12,20 @@ import { searchExercisesAction } from "@/domain/library/library-actions";
 
 export type SwapExercise = Pick<
   Database["public"]["Tables"]["exercises"]["Row"],
-  "id" | "name_ar" | "name_en" | "muscle_group" | "video_url" | "cues_ar" | "cues_en"
+  | "id"
+  | "name_ar"
+  | "name_en"
+  | "muscle_group"
+  | "video_url"
+  | "cues_ar"
+  | "cues_en"
+  | "steps_ar"
+  | "steps_en"
+  | "mistakes_ar"
+  | "mistakes_en"
+  | "safety_ar"
+  | "safety_en"
+  | "tempo"
 >;
 
 /** Session-only exercise substitution — see workouts.service.ts's

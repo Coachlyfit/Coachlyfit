@@ -56,12 +56,16 @@ export const setInputSchema = z.object({
 
 export const progressionRuleSchema = z.enum(["none", "plus_2_5kg_week", "plus_5kg_week", "plus_1_rep_week"]);
 
+export const blockSchema = z.enum(["warmup", "main", "cooldown"]);
+
 export const itemSchema = z.object({
   exercise_id: z.string().uuid(),
   sets: z.array(setInputSchema).min(1).max(20),
   progression_rule: progressionRuleSchema.default("none"),
   notes_ar: z.string().max(300).optional().or(z.literal("")),
   notes_en: z.string().max(300).optional().or(z.literal("")),
+  block: blockSchema.default("main"),
+  coach_note_private: z.string().max(1000).optional().or(z.literal("")),
 });
 
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });

@@ -185,6 +185,8 @@ export async function addItemAction(
     progression_rule: formData.get("progression_rule") || undefined,
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
+    block: formData.get("block") || undefined,
+    coach_note_private: formData.get("coach_note_private") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -211,6 +213,8 @@ export async function updateItemAction(
     progression_rule: formData.get("progression_rule") || undefined,
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
+    block: formData.get("block") || undefined,
+    coach_note_private: formData.get("coach_note_private") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 

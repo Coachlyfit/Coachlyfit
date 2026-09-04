@@ -26,10 +26,27 @@ import { suggestNextWeight } from "@/domain/workouts/suggest";
 import { cn } from "@/lib/utils";
 
 type ProgramItemSetRow = Database["public"]["Tables"]["program_item_sets"]["Row"];
-type ProgramItem = Database["public"]["Tables"]["program_items"]["Row"] & {
+// Omits coach_note_private — the page's query selects an explicit column
+// list (CLIENT_SAFE_ITEM_COLUMNS) rather than `*` specifically so that
+// coach-only annotation never reaches this client component's props. See
+// programs.service.ts's doc comment on that constant.
+type ProgramItem = Omit<Database["public"]["Tables"]["program_items"]["Row"], "coach_note_private"> & {
   exercises: Pick<
     Database["public"]["Tables"]["exercises"]["Row"],
-    "id" | "name_ar" | "name_en" | "muscle_group" | "video_url" | "cues_ar" | "cues_en"
+    | "id"
+    | "name_ar"
+    | "name_en"
+    | "muscle_group"
+    | "video_url"
+    | "cues_ar"
+    | "cues_en"
+    | "steps_ar"
+    | "steps_en"
+    | "mistakes_ar"
+    | "mistakes_en"
+    | "safety_ar"
+    | "safety_en"
+    | "tempo"
   >;
   program_item_sets: ProgramItemSetRow[]; // must already be ordered by set_index
 };
@@ -99,7 +116,7 @@ export function WorkoutSessionClient({
   const [elapsedS, setElapsedS] = useState(0);
   const restTimer = useRestTimer();
   const [done, setDone] = useState(alreadyCompleted);
-  const [videoExercise, setVideoExercise] = useState<ProgramItem["exercises"] | null>(null);
+  const [videoExercise, setVideoExercise] = useState<SwapExercise | null>(null);
   const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(new Map());
   const [swapItem, setSwapItem] = useState<ProgramItem | null>(null);
   const [activeSet, setActiveSet] = useState<{ item: ProgramItem; setIndex: number; prescribed: { reps: number; weight: number | null } } | null>(null);
@@ -146,6 +163,21 @@ export function WorkoutSessionClient({
     } else {
       itemGroups.push([item]);
     }
+  }
+
+  // A block-kind header is inserted before the first item-group whose block
+  // differs from the previous one — items are expected to already be
+  // ordered warmup -> main -> cooldown (the builder doesn't enforce it, but
+  // a block header simply won't repeat if a coach interleaves them). Using
+  // "block" as a display heading only; it doesn't change set logging or
+  // grouping behavior at all.
+  let lastBlock: string | null = null;
+
+  function shouldShowBlockHeader(group: ProgramItem[]): boolean {
+    const block = group[0].block;
+    if (block === lastBlock) return false;
+    lastBlock = block;
+    return true;
   }
 
   useEffect(() => {
@@ -357,14 +389,21 @@ export function WorkoutSessionClient({
       )}
 
       <div className="flex flex-col gap-3.5 px-5 py-4">
-        {itemGroups.map((group, groupIdx) => (
-          <div
-            key={group[0].id}
-            className={cn(
-              "flex flex-col gap-2.5",
-              group.length > 1 && "rounded-2xl border border-primary/30 p-2.5"
+        {itemGroups.map((group, groupIdx) => {
+          const showBlockHeader = shouldShowBlockHeader(group);
+          return (
+          <div key={group[0].id} className="flex flex-col gap-2.5">
+            {showBlockHeader && (
+              <p className="mt-1 px-1 text-[13px] font-semibold text-[#F8FAFC] first:mt-0">
+                {t(`blockKind.${group[0].block}`)}
+              </p>
             )}
-          >
+            <div
+              className={cn(
+                "flex flex-col gap-2.5",
+                group.length > 1 && "rounded-2xl border border-primary/30 p-2.5"
+              )}
+            >
             {group.length > 1 && (
               <p className="px-1 font-mono text-[9.5px] tracking-wider text-primary uppercase">
                 {group[0].group_kind === "circuit" ? t("circuitLabel") : t("supersetLabel")}
@@ -487,8 +526,10 @@ export function WorkoutSessionClient({
           </div>
           );
             })}
+            </div>
           </div>
-        ))}
+          );
+        })}
 
         <button
           type="button"

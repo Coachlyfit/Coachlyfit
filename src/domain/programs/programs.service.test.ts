@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ProgramsService } from "./programs.service";
+import { ProgramsService, CLIENT_SAFE_ITEM_COLUMNS } from "./programs.service";
 
 /** Same hand-rolled thenable-chain fake as library.service.test.ts — no
  * mocking library. `parentRow` seeds what a parent-lookup select() resolves
@@ -125,6 +125,40 @@ describe("ProgramsService", () => {
 
       expect(result).toBeNull();
       expect(inserts).toHaveLength(0);
+    });
+  });
+
+  describe("CLIENT_SAFE_ITEM_COLUMNS (security)", () => {
+    // getActiveTreeForClient and the client workout session page both build
+    // their program_items select from this constant instead of `*` — this
+    // guards the one thing that actually keeps a coach's private
+    // prescription note out of a client-facing response, since RLS's
+    // client_read_own is a row policy and has no way to hide one column on
+    // an otherwise-visible row.
+    it("never includes coach_note_private", () => {
+      expect(CLIENT_SAFE_ITEM_COLUMNS).not.toMatch(/coach_note_private/);
+    });
+
+    it("includes every other current program_items column a client-facing view needs", () => {
+      for (const col of [
+        "id",
+        "coach_id",
+        "client_id",
+        "program_day_id",
+        "exercise_id",
+        "sets",
+        "reps",
+        "rest_seconds",
+        "notes_ar",
+        "notes_en",
+        "order_index",
+        "progression_rule",
+        "group_key",
+        "group_kind",
+        "block",
+      ]) {
+        expect(CLIENT_SAFE_ITEM_COLUMNS).toContain(col);
+      }
     });
   });
 

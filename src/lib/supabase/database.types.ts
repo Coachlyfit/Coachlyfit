@@ -1634,8 +1634,10 @@ export type Database = {
       }
       program_items: {
         Row: {
+          block: string
           client_id: string | null
           coach_id: string
+          coach_note_private: string | null
           exercise_id: string
           group_key: string | null
           group_kind: string | null
@@ -1650,8 +1652,10 @@ export type Database = {
           sets: number
         }
         Insert: {
+          block?: string
           client_id?: string | null
           coach_id: string
+          coach_note_private?: string | null
           exercise_id: string
           group_key?: string | null
           group_kind?: string | null
@@ -1666,8 +1670,10 @@ export type Database = {
           sets?: number
         }
         Update: {
+          block?: string
           client_id?: string | null
           coach_id?: string
+          coach_note_private?: string | null
           exercise_id?: string
           group_key?: string | null
           group_kind?: string | null

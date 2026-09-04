@@ -29,6 +29,8 @@ type ExistingItem = {
   progression_rule: string;
   notes_ar: string | null;
   notes_en: string | null;
+  block: string;
+  coach_note_private: string | null;
   exercises: { id: string; name_ar: string; name_en: string };
   program_item_sets: ExistingItemSet[]; // must already be ordered by set_index
 };
@@ -39,6 +41,8 @@ const PROGRESSION_RULES: { value: ProgressionRule; labelKey: string }[] = [
   { value: "plus_5kg_week", labelKey: "progressionPlus5" },
   { value: "plus_1_rep_week", labelKey: "progressionPlus1Rep" },
 ];
+
+const BLOCKS = ["warmup", "main", "cooldown"] as const;
 
 export function ItemDialog({
   locale,
@@ -89,8 +93,10 @@ export function ItemDialog({
           progression_rule: item.progression_rule as ProgressionRule,
           notes_ar: item.notes_ar ?? "",
           notes_en: item.notes_en ?? "",
+          block: item.block as ItemFormInput["block"],
+          coach_note_private: item.coach_note_private ?? "",
         }
-      : { exercise_id: initialExercise?.id, sets: [{ reps: 10 }], progression_rule: "none" },
+      : { exercise_id: initialExercise?.id, sets: [{ reps: 10 }], progression_rule: "none", block: "main" },
   });
   const { fields, append, remove } = useFieldArray({ control, name: "sets" });
 
@@ -102,6 +108,8 @@ export function ItemDialog({
     formData.set("progression_rule", data.progression_rule ?? "none");
     if (data.notes_ar) formData.set("notes_ar", data.notes_ar);
     if (data.notes_en) formData.set("notes_en", data.notes_en);
+    formData.set("block", data.block ?? "main");
+    if (data.coach_note_private) formData.set("coach_note_private", data.coach_note_private);
 
     startTransition(async () => {
       const result = item
@@ -140,6 +148,32 @@ export function ItemDialog({
               </p>
             )}
             {errors.exercise_id && <p className="text-sm text-destructive">{errors.exercise_id.message}</p>}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="block">{t("block")}</Label>
+            <Controller
+              name="block"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={BLOCKS.map((b) => ({ value: b, label: t(`blockKind.${b}`) }))}
+                >
+                  <SelectTrigger id="block">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BLOCKS.map((b) => (
+                      <SelectItem key={b} value={b}>
+                        {t(`blockKind.${b}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -233,6 +267,11 @@ export function ItemDialog({
           <div className="flex flex-col gap-2">
             <Label htmlFor="notes_en">{t("notesEn")}</Label>
             <Textarea id="notes_en" dir="ltr" {...register("notes_en")} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="coach_note_private">{t("coachNotePrivate")}</Label>
+            <Textarea id="coach_note_private" rows={2} {...register("coach_note_private")} />
+            <p className="text-xs text-muted-foreground">{t("coachNotePrivateHint")}</p>
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
           <Button type="submit" disabled={pending || !selectedExercise}>

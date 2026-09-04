@@ -10,6 +10,14 @@ type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 
 export type ProgramScope = "all" | "assigned" | "templates";
 
+/** Every program_items column except coach_note_private — see
+ * getActiveTreeForClient's doc comment for why this exists as an explicit
+ * list rather than `*`. Shared with any other client-facing select of this
+ * table (e.g. the workout session page's own direct query) so there is one
+ * place to update when a column is added. */
+export const CLIENT_SAFE_ITEM_COLUMNS =
+  "id, coach_id, client_id, program_day_id, exercise_id, sets, reps, rest_seconds, notes_ar, notes_en, order_index, progression_rule, group_key, group_kind, block";
+
 export type CreateProgramInput = {
   client_id?: string | null;
   name_ar: string;
@@ -32,6 +40,10 @@ export type CreateItemInput = {
   progression_rule?: ProgressionRule;
   notes_ar?: string;
   notes_en?: string;
+  block?: "warmup" | "main" | "cooldown";
+  /** Coach-only annotation, never selected in a client-facing query — see
+   * CLIENT_SAFE_ITEM_COLUMNS. */
+  coach_note_private?: string;
 };
 export type UpdateItemInput = Partial<CreateItemInput>;
 
@@ -129,12 +141,21 @@ export class ProgramsService {
    * takes the most recently created one rather than modeling an explicit
    * "active" flag that doesn't exist in the schema. Used by the client
    * app's Today/Plan tabs, which need the tree to compute day_index ->
-   * date via program-cycle.ts. */
+   * date via program-cycle.ts.
+   *
+   * program_items is an EXPLICIT column list, not `*` — it must never
+   * include coach_note_private, which is a coach-only annotation on a
+   * prescription (see 20260904000001_program_item_block_and_private_note.sql).
+   * RLS's client_read_own is a row policy; it has no way to hide one
+   * column from an otherwise-visible row, so this select IS the boundary
+   * that keeps that note out of every client-facing response. Any new
+   * program_items column must be added here deliberately, not by
+   * switching back to `*`. */
   async getActiveTreeForClient(clientId: string): Promise<ProgramTree | null> {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
+        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))`
       )
       .eq("client_id", clientId)
       .order("created_at", { ascending: false })
@@ -323,6 +344,8 @@ export class ProgramsService {
         progression_rule: input.progression_rule ?? "none",
         notes_ar: input.notes_ar,
         notes_en: input.notes_en,
+        block: input.block ?? "main",
+        coach_note_private: input.coach_note_private,
       })
       .select()
       .single();
