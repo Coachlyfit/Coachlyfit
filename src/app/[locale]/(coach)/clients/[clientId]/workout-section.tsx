@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Dumbbell } from "lucide-react";
+import { Dumbbell, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { computePersonalRecords } from "@/domain/progress/prs";
@@ -18,9 +18,10 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
   const tPrs = await getTranslations("progress.prs");
   const supabase = await createClient();
   const workouts = new WorkoutsService(supabase);
-  const [sessions, logs] = await Promise.all([
+  const [sessions, logs, painReports] = await Promise.all([
     workouts.listRecentSessions(clientId),
     workouts.listSetLogsForClient(clientId),
+    workouts.listPainReports(clientId),
   ]);
 
   const records = computePersonalRecords(logs);
@@ -47,6 +48,33 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
 
   return (
     <div className="flex flex-col gap-4">
+      {painReports.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-destructive">
+            <AlertTriangle className="size-4" aria-hidden="true" />
+            {t("painReports")}
+          </p>
+          {painReports.map((report) => (
+            <p key={report.id} className="text-xs text-muted-foreground">
+              {t("painReportLine", {
+                exercise: report.program_items?.exercises
+                  ? pickBilingual(
+                      {
+                        ar: report.program_items.exercises.name_ar,
+                        en: report.program_items.exercises.name_en,
+                      },
+                      locale
+                    )
+                  : t("unknownExercise"),
+                pain: report.pain ?? 0,
+                date: formatDate(report.created_at, locale, { dateStyle: "medium" }),
+              })}
+              {report.notes ? ` — ${report.notes}` : ""}
+            </p>
+          ))}
+        </div>
+      )}
+
       <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
       {sessions.length === 0 ? (
         <EmptyState icon={Dumbbell} title={t("empty")} />

@@ -579,7 +579,10 @@
       "empty": "No logged workouts yet.",
       "completed": "Completed",
       "inProgress": "In progress",
-      "swapped": "Swapped {original} for {substitute}"
+      "swapped": "Swapped {original} for {substitute}",
+      "painReports": "Pain reported",
+      "painReportLine": "{exercise} — pain {pain}/5 ({date})",
+      "unknownExercise": "An exercise"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",

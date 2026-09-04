@@ -249,6 +249,28 @@ describe("WorkoutsService", () => {
     expect(upserts).toHaveLength(0);
   });
 
+  it("listPainReports filters to pain > 0, most recent first", async () => {
+    const rows = [
+      { id: "r1", pain: 3, program_items: { exercises: { name_ar: "أ", name_en: "A" } } },
+      { id: "r2", pain: 1, program_items: { exercises: { name_ar: "ب", name_en: "B" } } },
+    ];
+    const db = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            gt: () => ({
+              order: () => ({
+                limit: async () => ({ data: rows, error: null }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
+    const result = await new WorkoutsService(db as never).listPainReports("client-1");
+    expect(result).toEqual(rows);
+  });
+
   it("listSetLogsForClient resolves exercise_id via program_items, overridden by a swap", async () => {
     const rows = [
       { weight: 60, reps: 8, completed_at: "2026-01-01T10:00:00Z", substituted_exercise_id: null, program_items: { exercise_id: "ex-1" } },

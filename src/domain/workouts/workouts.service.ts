@@ -279,6 +279,26 @@ export class WorkoutsService {
     if (error) throw error;
   }
 
+  /** Pain reports (pain > 0) for a client, most recent first — the coach
+   * compliance view's "needs attention" signal so a client's own private
+   * one-tap feedback (ExerciseFeedbackSheet) actually reaches the coach
+   * instead of sitting unread in workout_exercise_results. RLS's
+   * coach_read (select-only) already scopes this to the caller's own
+   * clients, same as listRecentSessions/listSetLogsForClient. */
+  async listPainReports(clientId: string, limit = 10): Promise<
+    (WorkoutExerciseResult & { program_items: { exercises: { name_ar: string; name_en: string } | null } | null })[]
+  > {
+    const { data, error } = await this.db
+      .from("workout_exercise_results")
+      .select("*, program_items(exercises(name_ar, name_en))")
+      .eq("client_id", clientId)
+      .gt("pain", 0)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data;
+  }
+
   async listExerciseResults(sessionId: string): Promise<WorkoutExerciseResult[]> {
     const { data, error } = await this.db
       .from("workout_exercise_results")
