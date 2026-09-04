@@ -46,8 +46,8 @@ export function ConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{tCommon("cancel")}</DialogClose>
-          <Button variant={variant} onClick={onConfirm} disabled={pending}>
-            {confirmLabel}
+          <Button variant={variant} onClick={onConfirm} disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
