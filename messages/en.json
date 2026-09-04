@@ -1480,6 +1480,12 @@
       "upload_failed": "Couldn't upload that photo. Try again.",
       "file_too_large": "Photo must be under 10 MB.",
       "invalid_file": "Choose an image file."
+    },
+    "prs": {
+      "title": "Personal records",
+      "emptyTitle": "No PRs yet",
+      "emptyDescription": "Log weight and reps during a session to start tracking personal records.",
+      "estimated1rm": "Est. 1RM {value}kg"
     }
   },
   "billing": {

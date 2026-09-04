@@ -273,6 +273,40 @@ export class WorkoutsService {
     return data;
   }
 
+  /** All completed set logs for a client, resolved to their real exercise_id
+   * (via program_items, and overridden by substituted_exercise_id when the
+   * client swapped mid-session) — the input shape prs.ts and the coach's
+   * Strength tab / client's own PR cards need. `since` is an inclusive ISO
+   * timestamp, same convention as ProgressService.listCheckins; omit for
+   * full history. RLS's coach_read/client_own already scope this to either
+   * the caller's own logs (client) or their own clients' logs (coach) — no
+   * separate clientId filter needed beyond what the caller already has
+   * from their session. */
+  async listSetLogsForClient(clientId: string, since?: string): Promise<{ exercise_id: string; weight: number | null; reps: number | null; completed_at: string }[]> {
+    let q = this.db
+      .from("workout_set_logs")
+      .select("weight, reps, completed_at, substituted_exercise_id, program_items!inner(exercise_id)")
+      .eq("client_id", clientId);
+    if (since) q = q.gte("completed_at", since);
+    const { data, error } = await q.order("completed_at", { ascending: true });
+    if (error) throw error;
+
+    return (data as unknown as {
+      weight: number | null;
+      reps: number | null;
+      completed_at: string;
+      substituted_exercise_id: string | null;
+      program_items: { exercise_id: string } | null;
+    }[])
+      .filter((row) => row.program_items != null)
+      .map((row) => ({
+        exercise_id: row.substituted_exercise_id ?? row.program_items!.exercise_id,
+        weight: row.weight,
+        reps: row.reps,
+        completed_at: row.completed_at,
+      }));
+  }
+
   async completeSession(sessionId: string, durationSeconds: number): Promise<boolean> {
     const { data, error } = await this.db
       .from("workout_sessions")

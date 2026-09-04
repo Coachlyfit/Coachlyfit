@@ -196,6 +196,32 @@ describe("WorkoutsService", () => {
     expect(result).toBeNull();
     expect(upserts).toHaveLength(0);
   });
+
+  it("listSetLogsForClient resolves exercise_id via program_items, overridden by a swap", async () => {
+    const rows = [
+      { weight: 60, reps: 8, completed_at: "2026-01-01T10:00:00Z", substituted_exercise_id: null, program_items: { exercise_id: "ex-1" } },
+      { weight: 40, reps: 10, completed_at: "2026-01-02T10:00:00Z", substituted_exercise_id: "ex-swap", program_items: { exercise_id: "ex-2" } },
+      { weight: 20, reps: 12, completed_at: "2026-01-03T10:00:00Z", substituted_exercise_id: null, program_items: null },
+    ];
+    const db = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            order: async () => ({ data: rows, error: null }),
+            gte: () => ({ order: async () => ({ data: rows, error: null }) }),
+          }),
+        }),
+      }),
+    };
+
+    const result = await new WorkoutsService(db as never).listSetLogsForClient("client-1");
+    // Row with program_items null is dropped -- a log with no resolvable
+    // exercise_id (data integrity edge case) can't feed a per-exercise PR.
+    expect(result).toEqual([
+      { exercise_id: "ex-1", weight: 60, reps: 8, completed_at: "2026-01-01T10:00:00Z" },
+      { exercise_id: "ex-swap", weight: 40, reps: 10, completed_at: "2026-01-02T10:00:00Z" },
+    ]);
+  });
 });
 
 describe("groupSwapsBySession", () => {

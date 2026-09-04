@@ -4,6 +4,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Dumbbell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
+import { computePersonalRecords } from "@/domain/progress/prs";
+import { PrList, type PrListRow } from "@/components/progress/pr-list";
 import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 
@@ -13,8 +15,35 @@ import { formatDate } from "@/lib/format";
  * own clients, no separate authorization needed here. */
 export async function WorkoutSection({ clientId, locale }: { clientId: string; locale: AppLocale }) {
   const t = await getTranslations("clients.workouts");
+  const tPrs = await getTranslations("progress.prs");
   const supabase = await createClient();
-  const sessions = await new WorkoutsService(supabase).listRecentSessions(clientId);
+  const workouts = new WorkoutsService(supabase);
+  const [sessions, logs] = await Promise.all([
+    workouts.listRecentSessions(clientId),
+    workouts.listSetLogsForClient(clientId),
+  ]);
+
+  const records = computePersonalRecords(logs);
+  let prRows: PrListRow[] = [];
+  if (records.length > 0) {
+    const { data: exercises } = await supabase
+      .from("exercises")
+      .select("id, name_ar, name_en")
+      .in(
+        "id",
+        records.map((r) => r.exerciseId)
+      );
+    const nameById = new Map((exercises ?? []).map((e) => [e.id, { name_ar: e.name_ar, name_en: e.name_en }]));
+    prRows = records
+      .filter((r) => nameById.has(r.exerciseId))
+      .map((r) => ({
+        exerciseId: r.exerciseId,
+        exerciseName: nameById.get(r.exerciseId)!,
+        maxWeight: r.maxWeight ? { weight: r.maxWeight.weight, reps: r.maxWeight.reps } : null,
+        estimatedOneRepMax: r.estimatedOneRepMax?.value ?? null,
+      }))
+      .sort((a, b) => pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale)));
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -56,6 +85,9 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
           })}
         </div>
       )}
+
+      <h2 className="text-lg font-semibold tracking-tight">{tPrs("title")}</h2>
+      <PrList rows={prRows} locale={locale} />
     </div>
   );
 }
