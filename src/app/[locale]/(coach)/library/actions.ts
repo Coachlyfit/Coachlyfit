@@ -16,12 +16,28 @@ type ActionResult = { error: string } | void;
 // existing coach-side importers (library-client.tsx, exercise-card.tsx,
 // exercise-dialog.tsx, programs' exercise-picker/exercise-sidebar) don't
 // need to change their import path.
-export {
-  searchExercisesAction,
-  searchFoodsAction,
-  getExerciseAction,
-  getFoodAction,
+import {
+  searchExercisesAction as searchExercisesActionImpl,
+  searchFoodsAction as searchFoodsActionImpl,
+  getExerciseAction as getExerciseActionImpl,
+  getFoodAction as getFoodActionImpl,
 } from "@/domain/library/library-actions";
+
+export async function searchExercisesAction(...args: Parameters<typeof searchExercisesActionImpl>) {
+  return searchExercisesActionImpl(...args);
+}
+
+export async function searchFoodsAction(...args: Parameters<typeof searchFoodsActionImpl>) {
+  return searchFoodsActionImpl(...args);
+}
+
+export async function getExerciseAction(...args: Parameters<typeof getExerciseActionImpl>) {
+  return getExerciseActionImpl(...args);
+}
+
+export async function getFoodAction(...args: Parameters<typeof getFoodActionImpl>) {
+  return getFoodActionImpl(...args);
+}
 
 export async function createExerciseAction(locale: string, formData: FormData): Promise<ActionResult> {
   const parsed = createExerciseSchema.safeParse({
