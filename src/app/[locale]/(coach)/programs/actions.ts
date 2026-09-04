@@ -23,6 +23,7 @@ export async function createProgramAction(locale: string, formData: FormData): P
     name_en: formData.get("name_en"),
     start_date: formData.get("start_date") || "",
     end_date: formData.get("end_date") || "",
+    schedule_mode: formData.get("schedule_mode") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -48,6 +49,7 @@ export async function updateProgramAction(locale: string, id: string, formData: 
     name_en: formData.get("name_en"),
     start_date: formData.get("start_date") || "",
     end_date: formData.get("end_date") || "",
+    schedule_mode: formData.get("schedule_mode") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -57,12 +59,13 @@ export async function updateProgramAction(locale: string, id: string, formData: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { start_date, end_date, name_ar, name_en } = parsed.data;
+  const { start_date, end_date, name_ar, name_en, schedule_mode } = parsed.data;
   const updated = await new ProgramsService(supabase).update(id, {
     name_ar,
     name_en,
     start_date: start_date || undefined,
     end_date: end_date || null,
+    schedule_mode,
   });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
@@ -106,6 +109,7 @@ export async function addDayAction(locale: string, programId: string, formData: 
     day_index: formData.get("day_index"),
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
+    weekday: formData.get("weekday") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -130,6 +134,7 @@ export async function updateDayAction(
     day_index: formData.get("day_index") || undefined,
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
+    weekday: formData.get("weekday") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 

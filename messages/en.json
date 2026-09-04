@@ -1007,7 +1007,11 @@
       "clientNone": "No client — save as a template",
       "startDate": "Start date",
       "endDate": "End date (optional)",
-      "submit": "Create"
+      "submit": "Create",
+      "scheduleMode": "Scheduling",
+      "scheduleModeCycle": "Repeating cycle",
+      "scheduleModeWeekly": "Fixed weekdays",
+      "scheduleModeHint": "Cycle repeats the days in order from the start date. Weekly pins each day to a specific weekday."
     },
     "editDialog": {
       "title": "Edit program",
@@ -1056,14 +1060,25 @@
       "makeSuperset": "Make superset",
       "makeCircuit": "Make circuit",
       "ungroup": "Ungroup",
-      "clearSelection": "Clear"
+      "clearSelection": "Clear",
+      "weekdayShort": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      }
     },
     "dayDialog": {
       "addTitle": "Add day",
       "editTitle": "Edit day",
       "labelAr": "Label (Arabic, optional)",
       "labelEn": "Label (English, optional)",
-      "submit": "Save"
+      "submit": "Save",
+      "weekday": "Weekday",
+      "weekdayPlaceholder": "Select a weekday"
     },
     "itemDialog": {
       "addTitle": "Add exercise",

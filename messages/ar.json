@@ -1007,7 +1007,11 @@
       "clientNone": "من غير عميل — احفظه كقالب",
       "startDate": "تاريخ البداية",
       "endDate": "تاريخ النهاية (اختياري)",
-      "submit": "اعمل"
+      "submit": "اعمل",
+      "scheduleMode": "الجدولة",
+      "scheduleModeCycle": "دورة متكررة",
+      "scheduleModeWeekly": "أيام أسبوعية ثابتة",
+      "scheduleModeHint": "الدورة تكرر الأيام بالترتيب من تاريخ البدء. الأسبوعية تثبت كل يوم على يوم أسبوعي محدد."
     },
     "editDialog": {
       "title": "عدّل البرنامج",
@@ -1056,14 +1060,25 @@
       "makeSuperset": "دمج كسوبرسيت",
       "makeCircuit": "دمج كدائرة",
       "ungroup": "فصل",
-      "clearSelection": "إلغاء التحديد"
+      "clearSelection": "إلغاء التحديد",
+      "weekdayShort": {
+        "0": "أحد",
+        "1": "إثنين",
+        "2": "ثلاثاء",
+        "3": "أربعاء",
+        "4": "خميس",
+        "5": "جمعة",
+        "6": "سبت"
+      }
     },
     "dayDialog": {
       "addTitle": "ضيف يوم",
       "editTitle": "عدّل اليوم",
       "labelAr": "التسمية (عربي، اختياري)",
       "labelEn": "التسمية (إنجليزي، اختياري)",
-      "submit": "حفظ"
+      "submit": "حفظ",
+      "weekday": "يوم الأسبوع",
+      "weekdayPlaceholder": "اختر يوم الأسبوع"
     },
     "itemDialog": {
       "addTitle": "ضيف تمرين",

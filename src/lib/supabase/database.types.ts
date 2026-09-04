@@ -1467,6 +1467,7 @@ export type Database = {
           label_en: string | null
           order_index: number
           program_id: string
+          weekday: number | null
         }
         Insert: {
           client_id?: string | null
@@ -1477,6 +1478,7 @@ export type Database = {
           label_en?: string | null
           order_index?: number
           program_id: string
+          weekday?: number | null
         }
         Update: {
           client_id?: string | null
@@ -1487,6 +1489,7 @@ export type Database = {
           label_en?: string | null
           order_index?: number
           program_id?: string
+          weekday?: number | null
         }
         Relationships: [
           {
@@ -1664,6 +1667,7 @@ export type Database = {
           id: string
           name_ar: string
           name_en: string
+          schedule_mode: string
           source_template_id: string | null
           start_date: string
         }
@@ -1676,6 +1680,7 @@ export type Database = {
           id?: string
           name_ar: string
           name_en: string
+          schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
         }
@@ -1688,6 +1693,7 @@ export type Database = {
           id?: string
           name_ar?: string
           name_en?: string
+          schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
         }

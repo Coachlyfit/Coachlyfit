@@ -23,7 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useRouter } from "@/i18n/navigation";
-import { createProgramSchema, type CreateProgramInput } from "./schemas";
+import { createProgramSchema, type CreateProgramFormInput } from "./schemas";
 import { createProgramAction } from "./actions";
 
 const NO_CLIENT = "__template__";
@@ -49,9 +49,9 @@ export function CreateProgramDialog({
     control,
     reset,
     formState: { errors },
-  } = useForm<CreateProgramInput>({
+  } = useForm<CreateProgramFormInput>({
     resolver: zodResolver(createProgramSchema),
-    defaultValues: { client_id: "" },
+    defaultValues: { client_id: "", schedule_mode: "cycle" },
   });
 
   const onSubmit = handleSubmit((data) => {
@@ -62,6 +62,7 @@ export function CreateProgramDialog({
     formData.set("name_en", data.name_en);
     if (data.start_date) formData.set("start_date", data.start_date);
     if (data.end_date) formData.set("end_date", data.end_date);
+    formData.set("schedule_mode", data.schedule_mode ?? "cycle");
     startTransition(async () => {
       const result = await createProgramAction(locale, formData);
       if ("error" in result) {
@@ -136,6 +137,32 @@ export function CreateProgramDialog({
                 <p className="text-sm text-destructive">{tErrors(errors.end_date.message)}</p>
               )}
             </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="schedule_mode">{t("scheduleMode")}</Label>
+            <Controller
+              name="schedule_mode"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  items={[
+                    { value: "cycle", label: t("scheduleModeCycle") },
+                    { value: "weekly", label: t("scheduleModeWeekly") },
+                  ]}
+                >
+                  <SelectTrigger id="schedule_mode">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cycle">{t("scheduleModeCycle")}</SelectItem>
+                    <SelectItem value="weekly">{t("scheduleModeWeekly")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <p className="text-xs text-muted-foreground">{t("scheduleModeHint")}</p>
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
           <Button type="submit" disabled={pending}>

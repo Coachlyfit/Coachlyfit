@@ -299,6 +299,11 @@ function DayCard({
           {(day.label_ar || day.label_en) && (
             <span className="font-normal text-muted-foreground">— {pickLocale(day, locale, "label")}</span>
           )}
+          {day.weekday != null && (
+            <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium text-secondary-foreground">
+              {t(`weekdayShort.${day.weekday}`)}
+            </span>
+          )}
           <span className="font-mono text-xs text-muted-foreground">({items.length})</span>
         </CardTitle>
         <div className="flex items-center gap-1">
@@ -582,6 +587,7 @@ export function ProgramBuilder({
           programId={tree.id}
           nextDayIndex={nextDayIndex}
           day={dayDialog.day}
+          scheduleMode={tree.schedule_mode as "cycle" | "weekly"}
           open={!!dayDialog}
           onOpenChange={(open) => !open && setDayDialog(null)}
         />

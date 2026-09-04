@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
-import { dayIndexForDate } from "@/domain/programs/program-cycle";
+import { dayIndexForDate, dayIndexForDateWithMode } from "@/domain/programs/program-cycle";
 import { checkinStreak, longestStreak, weightTrend } from "@/domain/progress/stats";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
@@ -48,7 +48,21 @@ export default async function ClientHomePage({
   ]);
 
   const cycleLength = tree?.program_days.length ?? 0;
-  const todayIndex = tree ? dayIndexForDate(tree.start_date, cycleLength, todayIso) : null;
+  const todayIndex = tree
+    ? tree.schedule_mode === "weekly"
+      ? dayIndexForDateWithMode(
+          "weekly",
+          tree.start_date,
+          cycleLength,
+          todayIso,
+          new Map(
+            tree.program_days
+              .filter((d) => d.weekday != null)
+              .map((d) => [d.weekday as number, d.day_index])
+          )
+        )
+      : dayIndexForDate(tree.start_date, cycleLength, todayIso)
+    : null;
   const todayDay = tree?.program_days.find((d) => d.day_index === todayIndex) ?? null;
   const isRestDay = tree != null && todayIndex != null && (!todayDay || todayDay.program_items.length === 0);
 

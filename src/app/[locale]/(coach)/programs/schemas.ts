@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const scheduleModeSchema = z.enum(["cycle", "weekly"]);
+
 // client_id nullable = template. z.string().uuid() alone rejects "" — RHF's
 // "no client picked" state — so the empty-string branch is explicit and the
 // action normalizes "" -> null before calling the service.
@@ -10,16 +12,27 @@ export const createProgramSchema = z
     name_en: z.string().min(1).max(100),
     start_date: z.string().optional().or(z.literal("")),
     end_date: z.string().optional().or(z.literal("")),
+    schedule_mode: scheduleModeSchema.default("cycle"),
   })
   .refine((v) => !v.start_date || !v.end_date || v.end_date >= v.start_date, {
     message: "end_date_before_start_date",
     path: ["end_date"],
   });
 
+// 0-6, Date.getUTCDay() convention (0 = Sunday) — matches program_days.weekday
+// and program-cycle.ts's dayIndexForDateWithMode. Only meaningful in weekly
+// schedule_mode; "" (no weekday picked) is preprocessed to undefined the
+// same way optionalCoercedNumber below handles a blank number input.
+export const weekdaySchema = z.preprocess(
+  (v) => (v === "" || v === null || v === undefined ? undefined : v),
+  z.coerce.number().int().min(0).max(6).optional()
+);
+
 export const daySchema = z.object({
   day_index: z.coerce.number().int().min(1).max(30),
   label_ar: z.string().max(60).optional().or(z.literal("")),
   label_en: z.string().max(60).optional().or(z.literal("")),
+  weekday: weekdaySchema,
 });
 
 // z.coerce.number() runs Number(value) BEFORE the nullable/optional checks,
@@ -53,7 +66,12 @@ export const itemSchema = z.object({
 
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });
 
-export type CreateProgramInput = z.infer<typeof createProgramSchema>;
+// schedule_mode has a zod .default(), which makes RHF's input type (what the
+// form actually manages before validation) diverge from the output type
+// (schedule_mode always present after parsing) — same z.input/z.output split
+// as DayFormInput/DayInput below.
+export type CreateProgramFormInput = z.input<typeof createProgramSchema>;
+export type CreateProgramInput = z.output<typeof createProgramSchema>;
 // z.coerce.number() fields make the schema's input type (what RHF's number
 // inputs actually hand it, pre-validation) diverge from its output type —
 // same split as CreateFoodFormInput/CreateFoodInput in the library schemas.

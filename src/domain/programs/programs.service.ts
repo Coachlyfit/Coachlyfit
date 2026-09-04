@@ -16,9 +16,10 @@ export type CreateProgramInput = {
   name_en: string;
   start_date?: string;
   end_date?: string | null;
+  schedule_mode?: "cycle" | "weekly";
 };
 
-export type CreateDayInput = { day_index: number; label_ar?: string; label_en?: string };
+export type CreateDayInput = { day_index: number; label_ar?: string; label_en?: string; weekday?: number | null };
 export type UpdateDayInput = Partial<CreateDayInput>;
 
 /** One prescribed set — the week-1 base that `progression.ts` projects onto
