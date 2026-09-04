@@ -20,6 +20,7 @@ import {
 } from "@/domain/workouts/workouts-actions";
 import { projectSetsForWeek, type ProgressionRule } from "@/domain/programs/progression";
 import { useRestTimer } from "@/hooks/use-rest-timer";
+import { suggestNextWeight } from "@/domain/workouts/suggest";
 import { cn } from "@/lib/utils";
 
 type ProgramItemSetRow = Database["public"]["Tables"]["program_item_sets"]["Row"];
@@ -64,6 +65,7 @@ export function WorkoutSessionClient({
   week,
   sessionId,
   initialSetLogs,
+  lastPerformance,
   alreadyCompleted,
 }: {
   locale: AppLocale;
@@ -73,6 +75,12 @@ export function WorkoutSessionClient({
   week: number;
   sessionId: string;
   initialSetLogs: WorkoutSetLog[];
+  /** Latest logged set per exercise_id, keyed as a plain object (server
+   * actions can't return a Map) — see getLastPerformanceAction. Drives
+   * suggestNextWeight and the set button's "prev" line, which reads real
+   * history when it exists rather than always showing the static
+   * week-minus-1 projection. */
+  lastPerformance: Record<string, { weight: number | null; reps: number | null; rpe: number | null }>;
   alreadyCompleted: boolean;
 }) {
   const t = useTranslations("client.workout");
@@ -126,6 +134,22 @@ export function WorkoutSessionClient({
 
   function openSetEntry(item: ProgramItem, setIndex: number, prescribed: { reps: number; weight: number | null }) {
     setActiveSet({ item, setIndex, prescribed });
+  }
+
+  /** Suggested weight for a set that hasn't been logged yet — real history
+   * for this exercise if there is any, otherwise the coach's static
+   * prescription. Looked up by the *active* (possibly swapped) exercise's
+   * id, so a suggestion never bleeds across a mid-session substitution. */
+  function suggestedWeight(item: ProgramItem, prescribed: { reps: number; weight: number | null }): number | null {
+    const exerciseId = activeExercise(item).id;
+    const history = lastPerformance[exerciseId];
+    if (!history) return prescribed.weight;
+    return suggestNextWeight({
+      lastWeight: history.weight,
+      lastReps: history.reps,
+      lastRpe: history.rpe,
+      targetReps: prescribed.reps,
+    });
   }
 
   async function saveActiveSet(values: LoggedSetValues) {
@@ -325,7 +349,13 @@ export function WorkoutSessionClient({
               {displaySets.map((set, i) => {
                 const log = logs.get(setKey(item.id, i));
                 const on = log != null;
-                const prevSet = prevSets?.[i] ?? null;
+                // Real logged history for this exercise beats the static
+                // week-minus-1 projection — it's what the client actually
+                // did, not what the coach's progression rule assumes.
+                const history = lastPerformance[activeExercise(item).id];
+                const prevSet = history
+                  ? { weight: history.weight, reps: history.reps ?? set.reps }
+                  : (prevSets?.[i] ?? null);
                 return (
                   <button
                     key={i}
@@ -401,7 +431,12 @@ export function WorkoutSessionClient({
         const existing = logs.get(key);
         const initial: LoggedSetValues = existing
           ? { weight: existing.weight, reps: existing.reps, rpe: existing.rpe, notes: existing.notes }
-          : { weight: activeSet.prescribed.weight, reps: activeSet.prescribed.reps, rpe: null, notes: null };
+          : {
+              weight: suggestedWeight(activeSet.item, activeSet.prescribed),
+              reps: activeSet.prescribed.reps,
+              rpe: null,
+              notes: null,
+            };
         return (
           <SetEntrySheet
             open={activeSet != null}

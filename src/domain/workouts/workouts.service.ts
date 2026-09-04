@@ -24,6 +24,12 @@ export type UpdateSetInput = {
   notes?: string | null;
 };
 
+export type LastPerformance = {
+  weight: number | null;
+  reps: number | null;
+  rpe: number | null;
+};
+
 export type SwapSummary = {
   original: { ar: string; en: string };
   substitute: { ar: string; en: string };
@@ -186,6 +192,33 @@ export class WorkoutsService {
       .order("set_index", { ascending: true });
     if (error) throw error;
     return data;
+  }
+
+  /** Latest logged set per exercise, keyed by exercise_id rather than
+   * program_item_id — a program can be re-cloned/re-assigned with new
+   * program_items for the same exercise, and history should still follow
+   * the exercise, not the row. Used to prefill SetEntrySheet and to drive
+   * suggestNextWeight (suggest.ts). One query for the whole day: RLS's
+   * client_own already scopes this to the caller's own logs, so no
+   * clientId filter is needed beyond that. */
+  async getLastPerformance(exerciseIds: string[]): Promise<Map<string, LastPerformance>> {
+    if (exerciseIds.length === 0) return new Map();
+
+    const { data, error } = await this.db
+      .from("workout_set_logs")
+      .select("weight, reps, rpe, completed_at, program_items!inner(exercise_id)")
+      .in("program_items.exercise_id", exerciseIds)
+      .order("completed_at", { ascending: false })
+      .limit(200);
+    if (error) throw error;
+
+    const byExercise = new Map<string, LastPerformance>();
+    for (const row of data as unknown as { weight: number | null; reps: number | null; rpe: number | null; program_items: { exercise_id: string } | null }[]) {
+      const exerciseId = row.program_items?.exercise_id;
+      if (!exerciseId || byExercise.has(exerciseId)) continue;
+      byExercise.set(exerciseId, { weight: row.weight, reps: row.reps, rpe: row.rpe });
+    }
+    return byExercise;
   }
 
   async completeSession(sessionId: string, durationSeconds: number): Promise<boolean> {

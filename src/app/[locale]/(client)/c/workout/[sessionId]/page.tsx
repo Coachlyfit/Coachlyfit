@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { startOrResumeSessionAction, listSetLogsAction } from "@/domain/workouts/workouts-actions";
+import {
+  startOrResumeSessionAction,
+  listSetLogsAction,
+  getLastPerformanceAction,
+} from "@/domain/workouts/workouts-actions";
 import { weekIndexForDate } from "@/domain/programs/program-cycle";
 import type { AppLocale } from "@/domain/locale";
 import { WorkoutSessionClient } from "./workout-session-client";
@@ -32,6 +36,8 @@ export default async function WorkoutSessionPage({
   if (!session) notFound();
 
   const setLogs = await listSetLogsAction(session.id);
+  const exerciseIds = day.program_items.map((item) => item.exercises.id);
+  const lastPerformance = await getLastPerformanceAction(exerciseIds);
   const today = new Date().toISOString().slice(0, 10);
   const week = day.programs ? weekIndexForDate(day.programs.start_date, today) : 1;
 
@@ -42,6 +48,7 @@ export default async function WorkoutSessionPage({
       week={week}
       sessionId={session.id}
       initialSetLogs={setLogs}
+      lastPerformance={lastPerformance}
       alreadyCompleted={session.completed_at != null}
     />
   );
