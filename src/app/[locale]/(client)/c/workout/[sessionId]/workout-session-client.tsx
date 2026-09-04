@@ -19,6 +19,7 @@ import {
   completeSessionAction,
 } from "@/domain/workouts/workouts-actions";
 import { projectSetsForWeek, type ProgressionRule } from "@/domain/programs/progression";
+import { useRestTimer } from "@/hooks/use-rest-timer";
 import { cn } from "@/lib/utils";
 
 type ProgramItemSetRow = Database["public"]["Tables"]["program_item_sets"]["Row"];
@@ -84,10 +85,9 @@ export function WorkoutSessionClient({
     return map;
   });
   const [elapsedS, setElapsedS] = useState(0);
-  const [restS, setRestS] = useState(0);
+  const restTimer = useRestTimer();
   const [done, setDone] = useState(alreadyCompleted);
   const [videoExercise, setVideoExercise] = useState<ProgramItem["exercises"] | null>(null);
-  const [restDuration, setRestDuration] = useState(90);
   const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(new Map());
   const [swapItem, setSwapItem] = useState<ProgramItem | null>(null);
   const [activeSet, setActiveSet] = useState<{ item: ProgramItem; setIndex: number; prescribed: { reps: number; weight: number | null } } | null>(null);
@@ -120,7 +120,6 @@ export function WorkoutSessionClient({
     if (done) return;
     const id = setInterval(() => {
       setElapsedS((s) => s + 1);
-      setRestS((s) => (s > 0 ? s - 1 : 0));
     }, 1000);
     return () => clearInterval(id);
   }, [done]);
@@ -159,9 +158,7 @@ export function WorkoutSessionClient({
           return;
         }
         setLogs((prev) => new Map(prev).set(key, result.log));
-        const duration = item.rest_seconds ?? 90;
-        setRestDuration(duration);
-        setRestS(duration);
+        restTimer.start(item.rest_seconds ?? 90);
       }
       setActiveSet(null);
     } finally {
@@ -241,18 +238,34 @@ export function WorkoutSessionClient({
         <p className="shrink-0 font-mono text-[17px] font-semibold text-[#EA580C]">{mmss(elapsedS)}</p>
       </div>
 
-      {restS > 0 && (
+      {restTimer.isResting && (
         <div className="flex items-center gap-3.5 bg-primary px-5 py-3.5">
-          <p className="font-mono text-xl font-semibold text-primary-foreground">{mmss(restS)}</p>
+          <p className="font-mono text-xl font-semibold text-primary-foreground">{mmss(restTimer.remaining)}</p>
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-primary-foreground/25">
             <div
               className="h-full bg-primary-foreground"
-              style={{ width: `${(restS / restDuration) * 100}%` }}
+              style={{ width: `${(restTimer.remaining / restTimer.duration) * 100}%` }}
             />
           </div>
           <button
             type="button"
-            onClick={() => setRestS(0)}
+            onClick={() => restTimer.adjust(-15)}
+            aria-label={t("restMinus15")}
+            className="shrink-0 px-1 text-xs font-semibold text-primary-foreground"
+          >
+            −15
+          </button>
+          <button
+            type="button"
+            onClick={() => restTimer.adjust(15)}
+            aria-label={t("restPlus15")}
+            className="shrink-0 px-1 text-xs font-semibold text-primary-foreground"
+          >
+            +15
+          </button>
+          <button
+            type="button"
+            onClick={restTimer.skip}
             className="shrink-0 px-1 text-xs font-semibold text-primary-foreground"
           >
             {t("skipRest")}

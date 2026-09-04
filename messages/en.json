@@ -740,7 +740,9 @@
         "saving": "Saving...",
         "saveFailed": "Couldn't save that set. Try again.",
         "deleteFailed": "Couldn't delete that set. Try again."
-      }
+      },
+      "restMinus15": "Subtract 15 seconds from rest",
+      "restPlus15": "Add 15 seconds to rest"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
