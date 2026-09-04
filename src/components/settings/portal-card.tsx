@@ -24,6 +24,7 @@ type SlugFormInput = z.input<typeof slugFormSchema>;
 
 export function PortalCard({ slug }: { slug: string }) {
   const t = useTranslations("settings.portal");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("settings.errors");
   const locale = useLocale();
   const [pending, startTransition] = useTransition();
@@ -82,8 +83,8 @@ export function PortalCard({ slug }: { slug: string }) {
           <Label htmlFor="portal_slug">{t("slugLabel")}</Label>
           <div className="flex items-center gap-2">
             <Input id="portal_slug" dir="ltr" {...register("slug")} />
-            <Button type="submit" disabled={pending}>
-              {t("save")}
+            <Button type="submit" disabled={pending} className="min-w-24">
+              {pending ? tCommon("pending") : t("save")}
             </Button>
           </div>
           {errors.slug ? (

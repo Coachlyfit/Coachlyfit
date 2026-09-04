@@ -28,6 +28,7 @@ import { createTemplateAction } from "./actions";
 
 export function CreateTemplateDialog({ locale }: { locale: string }) {
   const t = useTranslations("forms.createDialog");
+  const tCommon = useTranslations("common");
   const tForms = useTranslations("forms");
   const tKinds = useTranslations("forms.kinds");
   const tErrors = useTranslations("forms.errors");
@@ -104,8 +105,8 @@ export function CreateTemplateDialog({ locale }: { locale: string }) {
             />
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

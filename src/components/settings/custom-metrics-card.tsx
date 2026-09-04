@@ -30,6 +30,7 @@ type MetricDefinition = { id: string; label_ar: string; label_en: string; unit: 
 
 export function CustomMetricsCard({ metrics }: { metrics: MetricDefinition[] }) {
   const t = useTranslations("settings.customMetrics");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("settings.errors");
   const locale = useLocale() as AppLocale;
   const [open, setOpen] = useState(false);
@@ -97,8 +98,8 @@ export function CustomMetricsCard({ metrics }: { metrics: MetricDefinition[] }) 
                 <Input id="metric_unit" placeholder={t("unitPlaceholder")} {...register("unit")} />
                 {errors.unit && <p className="text-sm text-destructive">{errors.unit.message}</p>}
               </div>
-              <Button type="submit" disabled={pending}>
-                {t("submit")}
+              <Button type="submit" disabled={pending} className="min-w-24">
+                {pending ? tCommon("pending") : t("submit")}
               </Button>
             </form>
           </DialogContent>

@@ -41,6 +41,7 @@ export function CheckinForm({
   onSubmitted?: () => void;
 }) {
   const t = useTranslations("progress.checkin");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("progress.errors");
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
@@ -170,8 +171,8 @@ export function CheckinForm({
       </div>
       {saved && <p className="text-sm text-success">{t("submitted")}</p>}
       {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-      <Button type="submit" disabled={pending || !adherence} className="h-11">
-        {adherence ? t("submit") : t("chooseAdherence")}
+      <Button type="submit" disabled={pending || !adherence} className="h-11 min-w-24">
+        {pending ? tCommon("pending") : adherence ? t("submit") : t("chooseAdherence")}
       </Button>
     </form>
   );

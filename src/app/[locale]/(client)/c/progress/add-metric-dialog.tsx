@@ -36,6 +36,7 @@ type CustomMetric = { key: string; label_ar: string; label_en: string; unit: str
 
 export function AddMetricDialog({ locale, customMetrics = [] }: { locale: string; customMetrics?: CustomMetric[] }) {
   const t = useTranslations("progress.metrics");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("progress.errors");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -150,8 +151,8 @@ export function AddMetricDialog({ locale, customMetrics = [] }: { locale: string
             <Input id="taken_on" type="date" {...register("taken_on")} />
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

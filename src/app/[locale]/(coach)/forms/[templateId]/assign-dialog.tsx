@@ -37,6 +37,7 @@ export function AssignDialog({
   disabled?: boolean;
 }) {
   const t = useTranslations("forms.assign");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations("forms.errors");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -109,8 +110,8 @@ export function AssignDialog({
             <Input id="dueAt" type="date" {...register("dueAt")} />
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>
