@@ -70,6 +70,17 @@ export async function getLastPerformanceAction(exerciseIds: string[]) {
   return Object.fromEntries(map);
 }
 
+// The 7-day immutability trigger (private.reject_stale_client_edit,
+// 20260907000001_client_data_immutability.sql) raises with SQLSTATE 42501
+// ("insufficient privilege") -- caught here and turned into a typed error
+// key instead of an unhandled exception bubbling out of the server action
+// as a generic digest error.
+const STALE_EDIT_ERRCODE = "42501";
+
+function isStaleEditError(err: unknown): boolean {
+  return typeof err === "object" && err !== null && "code" in err && (err as { code: unknown }).code === STALE_EDIT_ERRCODE;
+}
+
 export async function updateSetAction(
   logId: string,
   input: UpdateSetInput
@@ -78,16 +89,26 @@ export async function updateSetAction(
   if (!parsed.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
-  const log = await new WorkoutsService(supabase).updateSet(logId, parsed.data);
-  if (!log) return { error: "not_found_or_forbidden" };
-  return { log };
+  try {
+    const log = await new WorkoutsService(supabase).updateSet(logId, parsed.data);
+    if (!log) return { error: "not_found_or_forbidden" };
+    return { log };
+  } catch (err) {
+    if (isStaleEditError(err)) return { error: "entry_locked" };
+    throw err;
+  }
 }
 
 export async function deleteSetAction(logId: string): Promise<{ error: string } | { ok: true }> {
   const supabase = await createClient();
-  const ok = await new WorkoutsService(supabase).deleteSet(logId);
-  if (!ok) return { error: "not_found_or_forbidden" };
-  return { ok: true };
+  try {
+    const ok = await new WorkoutsService(supabase).deleteSet(logId);
+    if (!ok) return { error: "not_found_or_forbidden" };
+    return { ok: true };
+  } catch (err) {
+    if (isStaleEditError(err)) return { error: "entry_locked" };
+    throw err;
+  }
 }
 
 export async function setExerciseResultAction(

@@ -245,3 +245,85 @@ describe("workout sessions & set logs: client owns, coach reads", () => {
     expect(data).toBeNull();
   });
 });
+
+describe("workout_set_logs: 7-day immutability window", () => {
+  let recentLogId: string;
+  let staleLogId: string;
+
+  it("a client can edit a set logged just now", async () => {
+    const session = await clientOfA.client
+      .from("workout_sessions")
+      .insert({ coach_id: coachA.userId, client_id: clientOfA.clientRowId, program_day_id: tree.dayId })
+      .select("id")
+      .single();
+    if (session.error) throw session.error;
+
+    const { data: log, error: logError } = await clientOfA.client
+      .from("workout_set_logs")
+      .insert({
+        coach_id: coachA.userId,
+        client_id: clientOfA.clientRowId,
+        session_id: session.data.id,
+        program_item_id: tree.itemId,
+        set_index: 10,
+        weight: 50,
+        reps: 5,
+      })
+      .select("id")
+      .single();
+    if (logError) throw logError;
+    recentLogId = log.id;
+
+    const { error: updateError } = await clientOfA.client
+      .from("workout_set_logs")
+      .update({ weight: 55 })
+      .eq("id", recentLogId);
+    expect(updateError).toBeNull();
+  });
+
+  it("a client cannot edit or delete a set logged more than 7 days ago", async () => {
+    const session = await clientOfA.client
+      .from("workout_sessions")
+      .insert({ coach_id: coachA.userId, client_id: clientOfA.clientRowId, program_day_id: tree.dayId })
+      .select("id")
+      .single();
+    if (session.error) throw session.error;
+
+    const { data: log, error: logError } = await clientOfA.client
+      .from("workout_set_logs")
+      .insert({
+        coach_id: coachA.userId,
+        client_id: clientOfA.clientRowId,
+        session_id: session.data.id,
+        program_item_id: tree.itemId,
+        set_index: 11,
+        weight: 50,
+        reps: 5,
+      })
+      .select("id")
+      .single();
+    if (logError) throw logError;
+    staleLogId = log.id;
+
+    // Backdate via the service-role client — the trigger has no
+    // service_role exemption, but this write happens BEFORE the row is
+    // "old", so it succeeds; the client's subsequent edit is what the
+    // trigger evaluates against the now-backdated completed_at.
+    const backdate = await admin
+      .from("workout_set_logs")
+      .update({ completed_at: new Date(Date.now() - 8 * 86_400_000).toISOString() })
+      .eq("id", staleLogId);
+    expect(backdate.error).toBeNull();
+
+    const { error: updateError } = await clientOfA.client
+      .from("workout_set_logs")
+      .update({ weight: 999 })
+      .eq("id", staleLogId);
+    expect(updateError).not.toBeNull();
+    expect(updateError?.code).toBe("42501");
+
+    const { error: deleteError } = await clientOfA.client.from("workout_set_logs").delete().eq("id", staleLogId);
+    expect(deleteError).not.toBeNull();
+    expect(deleteError?.code).toBe("42501");
+  });
+});

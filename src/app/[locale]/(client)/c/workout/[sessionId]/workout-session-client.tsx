@@ -240,7 +240,7 @@ export function WorkoutSessionClient({
       if (existing) {
         const result = await updateSetAction(existing.id, values);
         if ("error" in result) {
-          toast.error(t("setEntry.saveFailed"));
+          toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.saveFailed"));
           return;
         }
         setLogs((prev) => new Map(prev).set(key, result.log));
@@ -281,7 +281,7 @@ export function WorkoutSessionClient({
     try {
       const result = await deleteSetAction(existing.id);
       if ("error" in result) {
-        toast.error(t("setEntry.deleteFailed"));
+        toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.deleteFailed"));
         return;
       }
       setLogs((prev) => {
