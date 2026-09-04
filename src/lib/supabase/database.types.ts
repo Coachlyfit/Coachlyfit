@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -531,6 +531,7 @@ export type Database = {
       }
       diet_plans: {
         Row: {
+          archived_at: string | null
           client_id: string | null
           coach_id: string
           created_at: string
@@ -542,6 +543,7 @@ export type Database = {
           start_date: string
         }
         Insert: {
+          archived_at?: string | null
           client_id?: string | null
           coach_id: string
           created_at?: string
@@ -553,6 +555,7 @@ export type Database = {
           start_date?: string
         }
         Update: {
+          archived_at?: string | null
           client_id?: string | null
           coach_id?: string
           created_at?: string
@@ -587,60 +590,117 @@ export type Database = {
           },
         ]
       }
+      email_suppressions: {
+        Row: {
+          created_at: string
+          email: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          reason?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
+          archived_at: string | null
           coach_id: string | null
           coach_notes_ar: string | null
           coach_notes_en: string | null
           created_at: string
           cues_ar: string[] | null
           cues_en: string[] | null
+          difficulty: string | null
           equipment: string | null
           id: string
           image_url: string | null
           instructions_ar: string | null
           instructions_en: string | null
+          mistakes_ar: string[] | null
+          mistakes_en: string[] | null
           muscle_group: string | null
           name_ar: string
           name_en: string
+          primary_muscles: string[] | null
+          safety_ar: string | null
+          safety_en: string | null
+          secondary_muscles: string[] | null
           source_exercise_id: string | null
+          steps_ar: string[] | null
+          steps_en: string[] | null
+          tempo: string | null
+          thumbnail_url: string | null
           video_url: string | null
+          video_url_alt: string | null
         }
         Insert: {
+          archived_at?: string | null
           coach_id?: string | null
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
           created_at?: string
           cues_ar?: string[] | null
           cues_en?: string[] | null
+          difficulty?: string | null
           equipment?: string | null
           id?: string
           image_url?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
+          mistakes_ar?: string[] | null
+          mistakes_en?: string[] | null
           muscle_group?: string | null
           name_ar: string
           name_en: string
+          primary_muscles?: string[] | null
+          safety_ar?: string | null
+          safety_en?: string | null
+          secondary_muscles?: string[] | null
           source_exercise_id?: string | null
+          steps_ar?: string[] | null
+          steps_en?: string[] | null
+          tempo?: string | null
+          thumbnail_url?: string | null
           video_url?: string | null
+          video_url_alt?: string | null
         }
         Update: {
+          archived_at?: string | null
           coach_id?: string | null
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
           created_at?: string
           cues_ar?: string[] | null
           cues_en?: string[] | null
+          difficulty?: string | null
           equipment?: string | null
           id?: string
           image_url?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
+          mistakes_ar?: string[] | null
+          mistakes_en?: string[] | null
           muscle_group?: string | null
           name_ar?: string
           name_en?: string
+          primary_muscles?: string[] | null
+          safety_ar?: string | null
+          safety_en?: string | null
+          secondary_muscles?: string[] | null
           source_exercise_id?: string | null
+          steps_ar?: string[] | null
+          steps_en?: string[] | null
+          tempo?: string | null
+          thumbnail_url?: string | null
           video_url?: string | null
+          video_url_alt?: string | null
         }
         Relationships: [
           {
@@ -1292,6 +1352,47 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          attempts: number
+          channel: string
+          created_at: string
+          id: string
+          last_error: string | null
+          notification_id: string
+          send_after: string
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          channel: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          notification_id: string
+          send_after?: string
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          channel?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          notification_id?: string
+          send_after?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1395,6 +1496,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          email_notifications: boolean
           full_name: string | null
           id: string
           locale: string
@@ -1404,6 +1506,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          email_notifications?: boolean
           full_name?: string | null
           id: string
           locale?: string
@@ -1413,6 +1516,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          email_notifications?: boolean
           full_name?: string | null
           id?: string
           locale?: string
@@ -1431,6 +1535,7 @@ export type Database = {
           label_en: string | null
           order_index: number
           program_id: string
+          weekday: number | null
         }
         Insert: {
           client_id?: string | null
@@ -1441,6 +1546,7 @@ export type Database = {
           label_en?: string | null
           order_index?: number
           program_id: string
+          weekday?: number | null
         }
         Update: {
           client_id?: string | null
@@ -1451,6 +1557,7 @@ export type Database = {
           label_en?: string | null
           order_index?: number
           program_id?: string
+          weekday?: number | null
         }
         Relationships: [
           {
@@ -1533,9 +1640,13 @@ export type Database = {
       }
       program_items: {
         Row: {
+          block: string
           client_id: string | null
           coach_id: string
+          coach_note_private: string | null
           exercise_id: string
+          group_key: string | null
+          group_kind: string | null
           id: string
           notes_ar: string | null
           notes_en: string | null
@@ -1547,9 +1658,13 @@ export type Database = {
           sets: number
         }
         Insert: {
+          block?: string
           client_id?: string | null
           coach_id: string
+          coach_note_private?: string | null
           exercise_id: string
+          group_key?: string | null
+          group_kind?: string | null
           id?: string
           notes_ar?: string | null
           notes_en?: string | null
@@ -1561,9 +1676,13 @@ export type Database = {
           sets?: number
         }
         Update: {
+          block?: string
           client_id?: string | null
           coach_id?: string
+          coach_note_private?: string | null
           exercise_id?: string
+          group_key?: string | null
+          group_kind?: string | null
           id?: string
           notes_ar?: string | null
           notes_en?: string | null
@@ -1612,8 +1731,51 @@ export type Database = {
           },
         ]
       }
+      program_revisions: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          program_id: string
+          reason: string | null
+          snapshot: Json
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          program_id: string
+          reason?: string | null
+          snapshot: Json
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          program_id?: string
+          reason?: string | null
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_revisions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_revisions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
+          archived_at: string | null
           checkin_triggered_at: string | null
           client_id: string | null
           coach_id: string
@@ -1622,10 +1784,12 @@ export type Database = {
           id: string
           name_ar: string
           name_en: string
+          schedule_mode: string
           source_template_id: string | null
           start_date: string
         }
         Insert: {
+          archived_at?: string | null
           checkin_triggered_at?: string | null
           client_id?: string | null
           coach_id: string
@@ -1634,10 +1798,12 @@ export type Database = {
           id?: string
           name_ar: string
           name_en: string
+          schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
         }
         Update: {
+          archived_at?: string | null
           checkin_triggered_at?: string | null
           client_id?: string | null
           coach_id?: string
@@ -1646,6 +1812,7 @@ export type Database = {
           id?: string
           name_ar?: string
           name_en?: string
+          schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
         }
@@ -1669,6 +1836,41 @@ export type Database = {
             columns: ["source_template_id"]
             isOneToOne: false
             referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          profile_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          profile_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1805,36 +2007,122 @@ export type Database = {
           },
         ]
       }
+      workout_exercise_results: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          difficulty: number | null
+          energy: number | null
+          id: string
+          notes: string | null
+          pain: number | null
+          program_item_id: string
+          session_id: string
+          status: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          difficulty?: number | null
+          energy?: number | null
+          id?: string
+          notes?: string | null
+          pain?: number | null
+          program_item_id: string
+          session_id: string
+          status: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          difficulty?: number | null
+          energy?: number | null
+          id?: string
+          notes?: string | null
+          pain?: number | null
+          program_item_id?: string
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercise_results_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_results_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_results_program_item_id_fkey"
+            columns: ["program_item_id"]
+            isOneToOne: false
+            referencedRelation: "program_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_sessions: {
         Row: {
           client_id: string
           coach_id: string
           completed_at: string | null
           created_at: string
+          current_item_id: string | null
           duration_seconds: number | null
+          elapsed_seconds: number
           id: string
           program_day_id: string
+          sets_completed: number | null
+          sets_prescribed: number | null
           started_at: string
+          total_volume: number | null
         }
         Insert: {
           client_id: string
           coach_id: string
           completed_at?: string | null
           created_at?: string
+          current_item_id?: string | null
           duration_seconds?: number | null
+          elapsed_seconds?: number
           id?: string
           program_day_id: string
+          sets_completed?: number | null
+          sets_prescribed?: number | null
           started_at?: string
+          total_volume?: number | null
         }
         Update: {
           client_id?: string
           coach_id?: string
           completed_at?: string | null
           created_at?: string
+          current_item_id?: string | null
           duration_seconds?: number | null
+          elapsed_seconds?: number
           id?: string
           program_day_id?: string
+          sets_completed?: number | null
+          sets_prescribed?: number | null
           started_at?: string
+          total_volume?: number | null
         }
         Relationships: [
           {
@@ -1852,6 +2140,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workout_sessions_current_item_id_fkey"
+            columns: ["current_item_id"]
+            isOneToOne: false
+            referencedRelation: "program_items"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workout_sessions_program_day_id_fkey"
             columns: ["program_day_id"]
             isOneToOne: false
@@ -1866,8 +2161,12 @@ export type Database = {
           coach_id: string
           completed_at: string
           id: string
+          notes: string | null
+          prescribed_reps: number | null
+          prescribed_weight: number | null
           program_item_id: string
           reps: number | null
+          rpe: number | null
           session_id: string
           set_index: number
           substituted_exercise_id: string | null
@@ -1878,8 +2177,12 @@ export type Database = {
           coach_id: string
           completed_at?: string
           id?: string
+          notes?: string | null
+          prescribed_reps?: number | null
+          prescribed_weight?: number | null
           program_item_id: string
           reps?: number | null
+          rpe?: number | null
           session_id: string
           set_index: number
           substituted_exercise_id?: string | null
@@ -1890,8 +2193,12 @@ export type Database = {
           coach_id?: string
           completed_at?: string
           id?: string
+          notes?: string | null
+          prescribed_reps?: number | null
+          prescribed_weight?: number | null
           program_item_id?: string
           reps?: number | null
+          rpe?: number | null
           session_id?: string
           set_index?: number
           substituted_exercise_id?: string | null
@@ -1946,25 +2253,38 @@ export type Database = {
     Views: {
       exercises_visible: {
         Row: {
+          archived_at: string | null
           coach_id: string | null
           coach_notes_ar: string | null
           coach_notes_en: string | null
           created_at: string | null
           cues_ar: string[] | null
           cues_en: string[] | null
+          difficulty: string | null
           equipment: string | null
           id: string | null
           image_url: string | null
           instructions_ar: string | null
           instructions_en: string | null
+          mistakes_ar: string[] | null
+          mistakes_en: string[] | null
           muscle_group: string | null
           my_clone_id: string | null
           name_ar: string | null
           name_en: string | null
+          primary_muscles: string[] | null
+          safety_ar: string | null
+          safety_en: string | null
+          secondary_muscles: string[] | null
           source_exercise_id: string | null
           source_name_ar: string | null
           source_name_en: string | null
+          steps_ar: string[] | null
+          steps_en: string[] | null
+          tempo: string | null
+          thumbnail_url: string | null
           video_url: string | null
+          video_url_alt: string | null
         }
         Relationships: [
           {
@@ -2188,12 +2508,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2217,11 +2537,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2242,11 +2562,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2267,11 +2587,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2284,11 +2604,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

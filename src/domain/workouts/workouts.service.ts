@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { computeSessionSummary } from "./summary";
 
 type WorkoutSession = Database["public"]["Tables"]["workout_sessions"]["Row"];
 type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
+type WorkoutExerciseResult = Database["public"]["Tables"]["workout_exercise_results"]["Row"];
 
 export type LogSetInput = {
   program_item_id: string;
@@ -13,6 +15,29 @@ export type LogSetInput = {
    * from what program_items prescribes. null/omitted = prescribed exercise,
    * same as before this field existed. */
   substituted_exercise_id?: string | null;
+  rpe?: number | null;
+  notes?: string | null;
+};
+
+export type UpdateSetInput = {
+  weight?: number | null;
+  reps?: number | null;
+  rpe?: number | null;
+  notes?: string | null;
+};
+
+export type LastPerformance = {
+  weight: number | null;
+  reps: number | null;
+  rpe: number | null;
+};
+
+export type ExerciseResultInput = {
+  status: "done" | "skipped";
+  difficulty?: number | null;
+  pain?: number | null;
+  energy?: number | null;
+  notes?: string | null;
 };
 
 export type SwapSummary = {
@@ -105,6 +130,14 @@ export class WorkoutsService {
     return data;
   }
 
+  /** Upserts on the (session_id, program_item_id, set_index) unique key
+   * (20260829000001_workout_set_logs_actuals.sql) rather than a plain
+   * insert -- a retry after a flaky connection or a resumed session on a
+   * second device overwrites the same set instead of duplicating it. The
+   * prescribed_reps/prescribed_weight snapshot is always read server-side
+   * from program_item_sets, never taken from the caller -- so editing a
+   * program's prescription later never rewrites what an already-logged set
+   * says it was prescribed against. */
   async logSet(sessionId: string, input: LogSetInput): Promise<WorkoutSetLog | null> {
     const { data: parent, error: parentError } = await this.db
       .from("workout_sessions")
@@ -114,13 +147,51 @@ export class WorkoutsService {
     if (parentError) throw parentError;
     if (!parent) return null;
 
+    const { data: prescribed } = await this.db
+      .from("program_item_sets")
+      .select("reps, weight")
+      .eq("program_item_id", input.program_item_id)
+      .eq("set_index", input.set_index)
+      .maybeSingle();
+
     const { data, error } = await this.db
       .from("workout_set_logs")
-      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, session_id: sessionId, ...input })
+      .upsert(
+        {
+          coach_id: parent.coach_id,
+          client_id: parent.client_id,
+          session_id: sessionId,
+          ...input,
+          prescribed_reps: prescribed?.reps ?? null,
+          prescribed_weight: prescribed?.weight ?? null,
+        },
+        { onConflict: "session_id,program_item_id,set_index" }
+      )
       .select()
       .single();
     if (error) throw error;
     return data;
+  }
+
+  /** Edits an already-logged set — the client mis-tapped a weight/rep, or
+   * wants to add an RPE/note after the fact. Scoped by RLS's client_own
+   * (for all); returns null on an RLS no-op rather than throwing, same
+   * convention as every other write in this service. */
+  async updateSet(logId: string, input: UpdateSetInput): Promise<WorkoutSetLog | null> {
+    const { data, error } = await this.db
+      .from("workout_set_logs")
+      .update(input)
+      .eq("id", logId)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteSet(logId: string): Promise<boolean> {
+    const { data, error } = await this.db.from("workout_set_logs").delete().eq("id", logId).select("id");
+    if (error) throw error;
+    return data.length > 0;
   }
 
   async listSetLogs(sessionId: string): Promise<WorkoutSetLog[]> {
@@ -133,10 +204,186 @@ export class WorkoutsService {
     return data;
   }
 
+  /** Latest logged set per exercise, keyed by exercise_id rather than
+   * program_item_id — a program can be re-cloned/re-assigned with new
+   * program_items for the same exercise, and history should still follow
+   * the exercise, not the row. Used to prefill SetEntrySheet and to drive
+   * suggestNextWeight (suggest.ts). One query for the whole day: RLS's
+   * client_own already scopes this to the caller's own logs, so no
+   * clientId filter is needed beyond that. */
+  async getLastPerformance(exerciseIds: string[]): Promise<Map<string, LastPerformance>> {
+    if (exerciseIds.length === 0) return new Map();
+
+    const { data, error } = await this.db
+      .from("workout_set_logs")
+      .select("weight, reps, rpe, completed_at, program_items!inner(exercise_id)")
+      .in("program_items.exercise_id", exerciseIds)
+      .order("completed_at", { ascending: false })
+      .limit(200);
+    if (error) throw error;
+
+    const byExercise = new Map<string, LastPerformance>();
+    for (const row of data as unknown as { weight: number | null; reps: number | null; rpe: number | null; program_items: { exercise_id: string } | null }[]) {
+      const exerciseId = row.program_items?.exercise_id;
+      if (!exerciseId || byExercise.has(exerciseId)) continue;
+      byExercise.set(exerciseId, { weight: row.weight, reps: row.reps, rpe: row.rpe });
+    }
+    return byExercise;
+  }
+
+  /** Marks an exercise done or skipped for a session, optionally with
+   * post-exercise feedback (difficulty/pain/energy/notes). Upserts on the
+   * (session_id, program_item_id) unique key -- a client re-opening the
+   * feedback sheet to add a note after already marking "done" updates the
+   * same row rather than erroring on the constraint. Same
+   * derive-from-parent rule as logSet: coach_id/client_id always come from
+   * the session, never the caller. */
+  async setExerciseResult(sessionId: string, programItemId: string, input: ExerciseResultInput): Promise<WorkoutExerciseResult | null> {
+    const { data: parent, error: parentError } = await this.db
+      .from("workout_sessions")
+      .select("coach_id, client_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (parentError) throw parentError;
+    if (!parent) return null;
+
+    const { data, error } = await this.db
+      .from("workout_exercise_results")
+      .upsert(
+        {
+          coach_id: parent.coach_id,
+          client_id: parent.client_id,
+          session_id: sessionId,
+          program_item_id: programItemId,
+          ...input,
+        },
+        { onConflict: "session_id,program_item_id" }
+      )
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  /** Persists in-progress elapsed time (and, optionally, which exercise the
+   * client is currently on) so a refresh/backgrounding doesn't reset the
+   * timer to 0 on resume. Fire-and-forget from the client's perspective —
+   * called on an interval, not awaited for user feedback, so this
+   * deliberately doesn't distinguish "no row" from "ok" the way other
+   * writes here do. */
+  async saveSessionProgress(sessionId: string, elapsedSeconds: number, currentItemId: string | null): Promise<void> {
+    const { error } = await this.db
+      .from("workout_sessions")
+      .update({ elapsed_seconds: elapsedSeconds, current_item_id: currentItemId })
+      .eq("id", sessionId);
+    if (error) throw error;
+  }
+
+  /** Pain reports (pain > 0) for a client, most recent first — the coach
+   * compliance view's "needs attention" signal so a client's own private
+   * one-tap feedback (ExerciseFeedbackSheet) actually reaches the coach
+   * instead of sitting unread in workout_exercise_results. RLS's
+   * coach_read (select-only) already scopes this to the caller's own
+   * clients, same as listRecentSessions/listSetLogsForClient. */
+  async listPainReports(clientId: string, limit = 10): Promise<
+    (WorkoutExerciseResult & { program_items: { exercises: { name_ar: string; name_en: string } | null } | null })[]
+  > {
+    const { data, error } = await this.db
+      .from("workout_exercise_results")
+      .select("*, program_items(exercises(name_ar, name_en))")
+      .eq("client_id", clientId)
+      .gt("pain", 0)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data;
+  }
+
+  async listExerciseResults(sessionId: string): Promise<WorkoutExerciseResult[]> {
+    const { data, error } = await this.db
+      .from("workout_exercise_results")
+      .select("*")
+      .eq("session_id", sessionId);
+    if (error) throw error;
+    return data;
+  }
+
+  /** All completed set logs for a client, resolved to their real exercise_id
+   * (via program_items, and overridden by substituted_exercise_id when the
+   * client swapped mid-session) — the input shape prs.ts and the coach's
+   * Strength tab / client's own PR cards need. `since` is an inclusive ISO
+   * timestamp, same convention as ProgressService.listCheckins; omit for
+   * full history. RLS's coach_read/client_own already scope this to either
+   * the caller's own logs (client) or their own clients' logs (coach) — no
+   * separate clientId filter needed beyond what the caller already has
+   * from their session. */
+  async listSetLogsForClient(clientId: string, since?: string): Promise<{ exercise_id: string; weight: number | null; reps: number | null; completed_at: string }[]> {
+    let q = this.db
+      .from("workout_set_logs")
+      .select("weight, reps, completed_at, substituted_exercise_id, program_items!inner(exercise_id)")
+      .eq("client_id", clientId);
+    if (since) q = q.gte("completed_at", since);
+    const { data, error } = await q.order("completed_at", { ascending: true });
+    if (error) throw error;
+
+    return (data as unknown as {
+      weight: number | null;
+      reps: number | null;
+      completed_at: string;
+      substituted_exercise_id: string | null;
+      program_items: { exercise_id: string } | null;
+    }[])
+      .filter((row) => row.program_items != null)
+      .map((row) => ({
+        exercise_id: row.substituted_exercise_id ?? row.program_items!.exercise_id,
+        weight: row.weight,
+        reps: row.reps,
+        completed_at: row.completed_at,
+      }));
+  }
+
+  /** Computes and persists the session summary (total volume, sets
+   * completed/prescribed) alongside marking it done — a cheap read for
+   * every future history-list render instead of re-aggregating
+   * workout_set_logs each time. sets_prescribed comes from the session's
+   * program_day (via program_items -> program_item_sets), not from the
+   * logs themselves, so a client who skipped exercises still shows the
+   * true prescribed count relative to what they actually did. */
   async completeSession(sessionId: string, durationSeconds: number): Promise<boolean> {
+    const { data: session, error: sessionError } = await this.db
+      .from("workout_sessions")
+      .select("program_day_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (sessionError) throw sessionError;
+
+    let totalVolume = 0;
+    let setsCompleted = 0;
+    let setsPrescribed: number | null = null;
+
+    if (session) {
+      const [{ data: logs }, { data: items }] = await Promise.all([
+        this.db.from("workout_set_logs").select("weight, reps").eq("session_id", sessionId),
+        this.db
+          .from("program_items")
+          .select("program_item_sets(id)")
+          .eq("program_day_id", session.program_day_id),
+      ]);
+      const summary = computeSessionSummary(logs ?? []);
+      totalVolume = summary.totalVolume;
+      setsCompleted = summary.setsCompleted;
+      setsPrescribed = (items ?? []).reduce((sum, item) => sum + item.program_item_sets.length, 0);
+    }
+
     const { data, error } = await this.db
       .from("workout_sessions")
-      .update({ completed_at: new Date().toISOString(), duration_seconds: durationSeconds })
+      .update({
+        completed_at: new Date().toISOString(),
+        duration_seconds: durationSeconds,
+        total_volume: totalVolume,
+        sets_completed: setsCompleted,
+        sets_prescribed: setsPrescribed,
+      })
       .eq("id", sessionId)
       .select("id");
     if (error) throw error;

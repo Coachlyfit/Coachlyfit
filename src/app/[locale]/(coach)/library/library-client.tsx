@@ -20,6 +20,7 @@ import { MUSCLE_GROUPS, FOOD_CATEGORIES, isKnownMuscleGroup } from "@/domain/lib
 import type { LibrarySource } from "@/domain/library/library.service";
 import { resolveExerciseMedia } from "@/lib/video-embed";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
+import { TrashDialog } from "@/components/shared/trash-dialog";
 import {
   searchExercisesAction,
   searchFoodsAction,
@@ -29,6 +30,8 @@ import {
   deleteFoodAction,
   moveExerciseAction,
   moveFoodAction,
+  restoreExerciseAction,
+  listArchivedExercisesAction,
 } from "./actions";
 import { ExerciseDialog } from "./exercise-dialog";
 import { FoodDialog } from "./food-dialog";
@@ -319,7 +322,15 @@ export function LibraryClient({
             )}
             <ViewSwitcher value={view} onChange={updateView} />
             {tab === "exercises" ? (
-              <ExerciseDialog locale={locale} mode="create" onSaved={invalidate} />
+              <>
+                <TrashDialog
+                  listArchived={listArchivedExercisesAction}
+                  restore={(id) => restoreExerciseAction(locale, id)}
+                  renderRow={(item) => pickLocale(item, locale, "name")}
+                  onRestored={invalidate}
+                />
+                <ExerciseDialog locale={locale} mode="create" onSaved={invalidate} />
+              </>
             ) : (
               <FoodDialog locale={locale} mode="create" onSaved={invalidate} />
             )}

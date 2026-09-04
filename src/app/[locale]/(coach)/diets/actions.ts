@@ -67,6 +67,8 @@ export async function updateDietPlanAction(locale: string, id: string, formData:
   revalidatePath(`/${locale}/diets/${id}`);
 }
 
+// Soft delete: archives instead of removing, so it can be undone from the
+// trash view. Hard delete only happens via the 30-day cron.
 export async function deleteDietPlanAction(locale: string, id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -74,9 +76,30 @@ export async function deleteDietPlanAction(locale: string, id: string): Promise<
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const deleted = await new DietPlansService(supabase).remove(id);
-  if (!deleted) return { error: "not_found_or_forbidden" };
+  const archived = await new DietPlansService(supabase).archive(id);
+  if (!archived) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets`);
+}
+
+export async function restoreDietPlanAction(locale: string, id: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const restored = await new DietPlansService(supabase).restore(id);
+  if (!restored) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets`);
+}
+
+export async function listArchivedDietPlansAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  return new DietPlansService(supabase).listArchived();
 }
 
 // Deviates from the void-on-success convention by returning the new plan's

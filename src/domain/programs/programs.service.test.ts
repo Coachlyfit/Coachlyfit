@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ProgramsService } from "./programs.service";
+import { ProgramsService, CLIENT_SAFE_ITEM_COLUMNS } from "./programs.service";
 
 /** Same hand-rolled thenable-chain fake as library.service.test.ts — no
  * mocking library. `parentRow` seeds what a parent-lookup select() resolves
@@ -8,11 +8,12 @@ function fakeSupabase(opts: {
   parentRow?: Record<string, unknown> | null;
   treeRow?: Record<string, unknown> | null;
   affected?: unknown[];
+  itemsRow?: unknown[];
 } = {}) {
-  const { parentRow = null, treeRow = null, affected = [{ id: "1" }] } = opts;
+  const { parentRow = null, treeRow = null, affected = [{ id: "1" }], itemsRow = [] } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
-  const updates: { table: string; payload: unknown; eqs: [string, unknown][] }[] = [];
+  const updates: { table: string; payload: unknown; eqs: [string, unknown][]; ins: [string, unknown[]][] }[] = [];
   const deletes: { table: string; eqs: [string, unknown][] }[] = [];
   const affectedRows = async () => ({ data: affected, error: null });
 
@@ -24,14 +25,25 @@ function fakeSupabase(opts: {
           if (cols === "coach_id, client_id") {
             return { eq: () => ({ maybeSingle: async () => ({ data: parentRow, error: null }) }) };
           }
+          // reorderItems' pre-check: select("id, group_key").eq(...).in(...)
+          if (cols === "id, group_key") {
+            return { eq: () => ({ in: async () => ({ data: itemsRow, error: null }) }) };
+          }
           // getTree: select("*, program_days(...)").eq(...).order().order().order().maybeSingle()
+          // getActiveTreeForClient additionally chains .is("archived_at", null),
+          // a 4th .order(), and .limit(1) before the same maybeSingle tail.
+          const step3 = () => ({
+            order: () => ({
+              maybeSingle: async () => ({ data: treeRow, error: null }),
+              limit: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
+            }),
+          });
+          const step2 = () => ({ order: () => step3() });
+          const step1 = () => ({ order: () => step2() });
           return {
             eq: () => ({
-              order: () => ({
-                order: () => ({
-                  order: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
-                }),
-              }),
+              ...step1(),
+              is: () => step1(),
             }),
             order: () => ({ ascending: undefined }),
           };
@@ -46,14 +58,19 @@ function fakeSupabase(opts: {
         },
         update: (payload: unknown) => {
           const eqs: [string, unknown][] = [];
+          const ins: [string, unknown[]][] = [];
           const chain = {
             eq: (col: string, val: unknown) => {
               eqs.push([col, val]);
               return chain;
             },
+            in: (col: string, vals: unknown[]) => {
+              ins.push([col, vals]);
+              return chain;
+            },
             select: affectedRows,
           };
-          updates.push({ table, payload, eqs });
+          updates.push({ table, payload, eqs, ins });
           return chain;
         },
         delete: () => {
@@ -115,6 +132,40 @@ describe("ProgramsService", () => {
 
       expect(result).toBeNull();
       expect(inserts).toHaveLength(0);
+    });
+  });
+
+  describe("CLIENT_SAFE_ITEM_COLUMNS (security)", () => {
+    // getActiveTreeForClient and the client workout session page both build
+    // their program_items select from this constant instead of `*` — this
+    // guards the one thing that actually keeps a coach's private
+    // prescription note out of a client-facing response, since RLS's
+    // client_read_own is a row policy and has no way to hide one column on
+    // an otherwise-visible row.
+    it("never includes coach_note_private", () => {
+      expect(CLIENT_SAFE_ITEM_COLUMNS).not.toMatch(/coach_note_private/);
+    });
+
+    it("includes every other current program_items column a client-facing view needs", () => {
+      for (const col of [
+        "id",
+        "coach_id",
+        "client_id",
+        "program_day_id",
+        "exercise_id",
+        "sets",
+        "reps",
+        "rest_seconds",
+        "notes_ar",
+        "notes_en",
+        "order_index",
+        "progression_rule",
+        "group_key",
+        "group_kind",
+        "block",
+      ]) {
+        expect(CLIENT_SAFE_ITEM_COLUMNS).toContain(col);
+      }
     });
   });
 
@@ -231,6 +282,60 @@ describe("ProgramsService", () => {
         ]);
       });
     });
+
+    it("allows a reorder where a group's members stay contiguous", async () => {
+      const itemsRow = [
+        { id: "a", group_key: "g1" },
+        { id: "b", group_key: "g1" },
+        { id: "c", group_key: null },
+      ];
+      const { db, updates } = fakeSupabase({ itemsRow });
+      const count = await new ProgramsService(db).reorderItems("day-1", ["c", "a", "b"]);
+      expect(count).toBe(3);
+      expect(updates).toHaveLength(3);
+    });
+
+    it("rejects a reorder that splits a group's members apart", async () => {
+      const itemsRow = [
+        { id: "a", group_key: "g1" },
+        { id: "b", group_key: "g1" },
+        { id: "c", group_key: null },
+      ];
+      const { db } = fakeSupabase({ itemsRow });
+      await expect(new ProgramsService(db).reorderItems("day-1", ["a", "c", "b"])).rejects.toThrow(
+        "group_not_contiguous"
+      );
+    });
+  });
+
+  describe("groupItems / ungroupItems", () => {
+    it("groupItems stamps a shared group_key and the given kind on every item id, returning the affected count", async () => {
+      const { db, updates } = fakeSupabase({ affected: [{ id: "a" }, { id: "b" }] });
+      const count = await new ProgramsService(db).groupItems(["a", "b"], "superset");
+
+      expect(count).toBe(2);
+      expect(updates).toHaveLength(1);
+      expect(updates[0].table).toBe("program_items");
+      expect(updates[0].payload).toMatchObject({ group_kind: "superset" });
+      expect(typeof (updates[0].payload as { group_key: string }).group_key).toBe("string");
+      expect(updates[0].ins).toEqual([["id", ["a", "b"]]]);
+    });
+
+    it("groupItems is a no-op for fewer than 2 items", async () => {
+      const { db, updates } = fakeSupabase();
+      const count = await new ProgramsService(db).groupItems(["a"], "superset");
+      expect(count).toBe(0);
+      expect(updates).toHaveLength(0);
+    });
+
+    it("ungroupItems clears group_key and group_kind on the given ids", async () => {
+      const { db, updates } = fakeSupabase({ affected: [{ id: "a" }, { id: "b" }] });
+      const count = await new ProgramsService(db).ungroupItems(["a", "b"]);
+
+      expect(count).toBe(2);
+      expect(updates[0].payload).toEqual({ group_key: null, group_kind: null });
+      expect(updates[0].ins).toEqual([["id", ["a", "b"]]]);
+    });
   });
 
   describe("cloneToClient", () => {
@@ -302,6 +407,248 @@ describe("ProgramsService", () => {
     });
   });
 
+  describe("snapshotIfAssigned", () => {
+    const tree = {
+      id: "program-1",
+      coach_id: "coach-1",
+      client_id: "client-9",
+      program_days: [],
+    };
+
+    it("inserts a program_revisions row for an assigned program and returns true", async () => {
+      const { db, inserts } = fakeSupabase({ treeRow: tree });
+      const result = await new ProgramsService(db).snapshotIfAssigned("program-1", "add_item");
+
+      expect(result).toBe(true);
+      const revisionInsert = inserts.find((i) => i.table === "program_revisions");
+      expect(revisionInsert?.payload).toMatchObject({
+        coach_id: "coach-1",
+        program_id: "program-1",
+        reason: "add_item",
+      });
+    });
+
+    it("is a no-op (returns false) for a template (client_id null)", async () => {
+      const { db, inserts } = fakeSupabase({ treeRow: { ...tree, client_id: null } });
+      const result = await new ProgramsService(db).snapshotIfAssigned("program-1");
+
+      expect(result).toBe(false);
+      expect(inserts.find((i) => i.table === "program_revisions")).toBeUndefined();
+    });
+
+    it("is a no-op (returns false) when the program isn't visible", async () => {
+      const { db, inserts } = fakeSupabase({ treeRow: null });
+      const result = await new ProgramsService(db).snapshotIfAssigned("program-1");
+
+      expect(result).toBe(false);
+      expect(inserts.find((i) => i.table === "program_revisions")).toBeUndefined();
+    });
+  });
+
+  describe("restoreRevision", () => {
+    it("clears the program's current days and re-inserts the snapshotted tree", async () => {
+      const snapshot = {
+        coach_id: "coach-1",
+        client_id: "client-9",
+        program_days: [
+          {
+            day_index: 1,
+            order_index: 0,
+            label_ar: null,
+            label_en: null,
+            weekday: null,
+            program_items: [
+              {
+                exercise_id: "ex-1",
+                sets: 1,
+                reps: "10",
+                rest_seconds: 60,
+                progression_rule: "none",
+                notes_ar: null,
+                notes_en: null,
+                order_index: 0,
+                block: "main",
+                coach_note_private: null,
+                group_key: null,
+                group_kind: null,
+                program_item_sets: [{ set_index: 1, reps: 10, weight: 40, rest_seconds: 60 }],
+              },
+            ],
+          },
+        ],
+      };
+
+      const inserts: { table: string; payload: unknown }[] = [];
+      const deletes: { table: string; eqs: [string, unknown][] }[] = [];
+      const db = {
+        from: (table: string) => ({
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { program_id: "program-1", snapshot },
+                error: null,
+              }),
+            }),
+          }),
+          delete: () => {
+            const eqs: [string, unknown][] = [];
+            const chain = {
+              eq: (col: string, val: unknown) => {
+                eqs.push([col, val]);
+                deletes.push({ table, eqs });
+                return { error: null };
+              },
+            };
+            return chain;
+          },
+          insert: (payload: unknown) => {
+            inserts.push({ table, payload });
+            return {
+              select: () => ({
+                single: async () => ({ data: { id: `new-${table}`, ...(payload as object) }, error: null }),
+              }),
+            };
+          },
+        }),
+      };
+
+      const ok = await new ProgramsService(db as never).restoreRevision("revision-1");
+      expect(ok).toBe(true);
+      expect(deletes).toContainEqual({ table: "program_days", eqs: [["program_id", "program-1"]] });
+
+      const dayInsert = inserts.find((i) => i.table === "program_days");
+      expect(dayInsert?.payload).toMatchObject({ coach_id: "coach-1", client_id: "client-9", day_index: 1 });
+
+      const itemInsert = inserts.find((i) => i.table === "program_items");
+      expect(itemInsert?.payload).toMatchObject({ exercise_id: "ex-1", block: "main" });
+
+      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
+      expect(setsInsert?.payload).toEqual([
+        expect.objectContaining({ set_index: 1, reps: 10, weight: 40 }),
+      ]);
+    });
+
+    it("returns false without touching anything when the revision isn't visible", async () => {
+      const inserts: unknown[] = [];
+      const db = {
+        from: () => ({
+          select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
+          insert: (payload: unknown) => {
+            inserts.push(payload);
+            return { select: () => ({ single: async () => ({ data: null, error: null }) }) };
+          },
+        }),
+      };
+      const ok = await new ProgramsService(db as never).restoreRevision("revision-1");
+      expect(ok).toBe(false);
+      expect(inserts).toHaveLength(0);
+    });
+  });
+
+  describe("duplicateItem", () => {
+    it("copies the source item's prescription and per-set data onto the end of the same day", async () => {
+      const source = {
+        id: "item-1",
+        coach_id: "coach-1",
+        client_id: "client-9",
+        program_day_id: "day-1",
+        exercise_id: "ex-1",
+        sets: 2,
+        reps: "8-12",
+        rest_seconds: 60,
+        progression_rule: "none",
+        notes_ar: null,
+        notes_en: null,
+        block: "main",
+        coach_note_private: "watch her knees",
+        program_item_sets: [
+          { set_index: 1, reps: 8, weight: 50, rest_seconds: 60 },
+          { set_index: 2, reps: 12, weight: 45, rest_seconds: 60 },
+        ],
+      };
+      const inserts: { table: string; payload: unknown }[] = [];
+      const db = {
+        from: (table: string) => ({
+          select: (cols?: string) => ({
+            eq: () => {
+              if (cols === "order_index") {
+                return { order: () => ({ limit: async () => ({ data: [{ order_index: 2 }], error: null }) }) };
+              }
+              return { maybeSingle: async () => ({ data: source, error: null }) };
+            },
+          }),
+          insert: (payload: unknown) => {
+            inserts.push({ table, payload });
+            return {
+              select: () => ({
+                single: async () => ({ data: { id: `new-${table}`, ...(payload as object) }, error: null }),
+              }),
+            };
+          },
+        }),
+      };
+
+      const result = await new ProgramsService(db as never).duplicateItem("item-1");
+      expect(result).not.toBeNull();
+
+      const itemInsert = inserts.find((i) => i.table === "program_items");
+      expect(itemInsert?.payload).toMatchObject({
+        exercise_id: "ex-1",
+        order_index: 3,
+        coach_note_private: "watch her knees",
+      });
+
+      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
+      expect(setsInsert?.payload).toEqual([
+        expect.objectContaining({ set_index: 1, reps: 8, weight: 50 }),
+        expect.objectContaining({ set_index: 2, reps: 12, weight: 45 }),
+      ]);
+    });
+
+    it("returns null without inserting when the source item isn't visible", async () => {
+      const inserts: unknown[] = [];
+      const db = {
+        from: () => ({
+          select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
+          insert: (payload: unknown) => {
+            inserts.push(payload);
+            return { select: () => ({ single: async () => ({ data: null, error: null }) }) };
+          },
+        }),
+      };
+      const result = await new ProgramsService(db as never).duplicateItem("item-1");
+      expect(result).toBeNull();
+      expect(inserts).toHaveLength(0);
+    });
+  });
+
+  describe("replaceItemExercise", () => {
+    it("updates exercise_id and reports true when a row was affected", async () => {
+      const updates: { payload: unknown }[] = [];
+      const db = {
+        from: () => ({
+          update: (payload: unknown) => {
+            updates.push({ payload });
+            return { eq: () => ({ select: async () => ({ data: [{ id: "item-1" }], error: null }) }) };
+          },
+        }),
+      };
+      const ok = await new ProgramsService(db as never).replaceItemExercise("item-1", "ex-2");
+      expect(ok).toBe(true);
+      expect(updates[0].payload).toEqual({ exercise_id: "ex-2" });
+    });
+
+    it("reports false when RLS matches no row", async () => {
+      const db = {
+        from: () => ({
+          update: () => ({ eq: () => ({ select: async () => ({ data: [], error: null }) }) }),
+        }),
+      };
+      const ok = await new ProgramsService(db as never).replaceItemExercise("item-1", "ex-2");
+      expect(ok).toBe(false);
+    });
+  });
+
   describe("getActiveTreeForClient", () => {
     it("scopes by client_id and takes the most recently created program", async () => {
       const eqCalls: [string, unknown][] = [];
@@ -312,11 +659,13 @@ describe("ProgramsService", () => {
             eq: (col: string, val: unknown) => {
               eqCalls.push([col, val]);
               return {
-                order: () => ({
+                is: () => ({
                   order: () => ({
                     order: () => ({
                       order: () => ({
-                        limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                        order: () => ({
+                          limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                        }),
                       }),
                     }),
                   }),

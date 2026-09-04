@@ -12,7 +12,24 @@
     "light": "Light",
     "dark": "Dark",
     "more": "More",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "errorBoundary": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Try again, or go back.",
+      "retry": "Try again"
+    },
+    "trash": {
+      "trigger": "Trash",
+      "title": "Trash",
+      "empty": "Trash is empty",
+      "restore": "Restore",
+      "restoreFailed": "Couldn't restore this item"
+    },
+    "push": {
+      "enable": "Enable push notifications",
+      "disable": "Disable push notifications",
+      "failed": "Couldn't update push notifications"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -525,7 +542,8 @@
       "copy": "Copy link",
       "copied": "Copied",
       "qrAlt": "QR code for your portal link"
-    }
+    },
+    "emailNotifications": "Email notifications"
   },
   "clients": {
     "title": "Clients",
@@ -573,7 +591,10 @@
       "empty": "No logged workouts yet.",
       "completed": "Completed",
       "inProgress": "In progress",
-      "swapped": "Swapped {original} for {substitute}"
+      "swapped": "Swapped {original} for {substitute}",
+      "painReports": "Pain reported",
+      "painReportLine": "{exercise} — pain {pain}/5 ({date})",
+      "unknownExercise": "An exercise"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -697,7 +718,8 @@
       "done": "Done",
       "doneMeta": "Done · {minutes} min",
       "exerciseCount": "{count} exercises",
-      "today": "Today"
+      "today": "Today",
+      "historyLink": "History"
     },
     "workout": {
       "setsDone": "{done} / {total} sets",
@@ -721,7 +743,44 @@
       "insteadOf": "Instead of: {name}",
       "searchExercises": "Search exercises...",
       "searching": "Searching...",
-      "noExercisesMatch": "No exercises match."
+      "noExercisesMatch": "No exercises match.",
+      "setEntry": {
+        "title": "Log set",
+        "weight": "Weight (kg)",
+        "reps": "Reps",
+        "rpe": "RPE",
+        "notesPlaceholder": "Notes (optional)",
+        "decrease": "Decrease",
+        "increase": "Increase",
+        "delete": "Delete set",
+        "save": "Save",
+        "saving": "Saving...",
+        "saveFailed": "Couldn't save that set. Try again.",
+        "deleteFailed": "Couldn't delete that set. Try again.",
+        "entryLocked": "This set is more than 7 days old and can no longer be changed."
+      },
+      "restMinus15": "Subtract 15 seconds from rest",
+      "restPlus15": "Add 15 seconds to rest",
+      "markDone": "Mark done",
+      "skipExercise": "Skip",
+      "exerciseDone": "Done",
+      "exerciseSkipped": "Skipped",
+      "feedback": {
+        "title": "How did that go?",
+        "difficulty": "Difficulty",
+        "pain": "Pain",
+        "energy": "Energy",
+        "notesPlaceholder": "Notes (optional)",
+        "skip": "Skip",
+        "save": "Save",
+        "saveFailed": "Couldn't save that. Try again."
+      },
+      "tempo": "Tempo",
+      "executionSteps": "How to do it",
+      "commonMistakes": "Common mistakes",
+      "safetyNote": "Safety note",
+      "supersetLabel": "Superset",
+      "circuitLabel": "Circuit"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -773,6 +832,17 @@
       "noPlan": "No nutrition plan yet",
       "noPlanBody": "Your coach has not assigned a nutrition plan yet.",
       "quantityUnit": "{quantity} {unit}"
+    },
+    "history": {
+      "title": "Workout history",
+      "empty": "No completed workouts yet.",
+      "workout": "Workout",
+      "completed": "Completed",
+      "inProgress": "In progress",
+      "setsDone": "{done}/{total} sets",
+      "volume": "{value}kg volume",
+      "duration": "{minutes} min",
+      "swapped": "Swapped {original} for {substitute}"
     }
   },
   "inbox": {
@@ -966,7 +1036,11 @@
       "clientNone": "No client — save as a template",
       "startDate": "Start date",
       "endDate": "End date (optional)",
-      "submit": "Create"
+      "submit": "Create",
+      "scheduleMode": "Scheduling",
+      "scheduleModeCycle": "Repeating cycle",
+      "scheduleModeWeekly": "Fixed weekdays",
+      "scheduleModeHint": "Cycle repeats the days in order from the start date. Weekly pins each day to a specific weekday."
     },
     "editDialog": {
       "title": "Edit program",
@@ -1009,14 +1083,33 @@
       "week": "Week {n}",
       "weekReadOnlyHint": "Read-only — go back to week 1 to edit",
       "bodyweight": "BW",
-      "setLine": "{reps} reps"
+      "setLine": "{reps} reps",
+      "selectItem": "Select exercise",
+      "selectedCount": "{count} selected",
+      "makeSuperset": "Make superset",
+      "makeCircuit": "Make circuit",
+      "ungroup": "Ungroup",
+      "clearSelection": "Clear",
+      "weekdayShort": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "duplicateItem": "Duplicate exercise",
+      "duplicateDay": "Duplicate day"
     },
     "dayDialog": {
       "addTitle": "Add day",
       "editTitle": "Edit day",
       "labelAr": "Label (Arabic, optional)",
       "labelEn": "Label (English, optional)",
-      "submit": "Save"
+      "submit": "Save",
+      "weekday": "Weekday",
+      "weekdayPlaceholder": "Select a weekday"
     },
     "itemDialog": {
       "addTitle": "Add exercise",
@@ -1039,7 +1132,15 @@
       "progressionPlus1Rep": "+1 rep per week",
       "notesAr": "Notes (Arabic, optional)",
       "notesEn": "Notes (English, optional)",
-      "submit": "Save"
+      "submit": "Save",
+      "block": "Block",
+      "blockKind": {
+        "warmup": "Warm-up",
+        "main": "Main",
+        "cooldown": "Cool-down"
+      },
+      "coachNotePrivate": "Private note (only you see this)",
+      "coachNotePrivateHint": "Never shown to the client — visible only in the builder."
     },
     "volume": {
       "title": "Weekly volume",
@@ -1058,7 +1159,29 @@
       "not_authenticated": "Please log in again.",
       "not_found_or_forbidden": "You can't change this program.",
       "end_date_before_start_date": "End date can't be before the start date.",
-      "unknown": "Something went wrong. Please try again."
+      "unknown": "Something went wrong. Please try again.",
+      "group_not_contiguous": "Superset/circuit items must stay next to each other."
+    },
+    "revisions": {
+      "title": "History",
+      "loading": "Loading...",
+      "empty": "No changes recorded yet.",
+      "restore": "Restore",
+      "restored": "Program restored.",
+      "unknownReason": "Program edited",
+      "confirmRestoreTitle": "Restore this version?",
+      "confirmRestoreBody": "The program will be reverted to how it looked at this point. Your current version is saved first, so you can undo this restore too.",
+      "reason": {
+        "add_day": "Day added",
+        "update_day": "Day edited",
+        "delete_day": "Day deleted",
+        "add_item": "Exercise added",
+        "update_item": "Exercise edited",
+        "delete_item": "Exercise deleted",
+        "group_items": "Superset/circuit created",
+        "ungroup_items": "Superset/circuit removed",
+        "before_restore": "Before a restore"
+      }
     }
   },
   "library": {
@@ -1123,7 +1246,26 @@
       "submit": "Add exercise",
       "cloneTitle": "Customize exercise",
       "editTitle": "Edit exercise",
-      "save": "Save"
+      "save": "Save",
+      "stepsAr": "Execution steps (Arabic)",
+      "stepsEn": "Execution steps (English)",
+      "mistakesAr": "Common mistakes (Arabic)",
+      "mistakesEn": "Common mistakes (English)",
+      "safetyAr": "Safety notes (Arabic)",
+      "safetyEn": "Safety notes (English)",
+      "tempo": "Tempo",
+      "primaryMuscles": "Primary muscles",
+      "secondaryMuscles": "Secondary muscles",
+      "difficulty": "Difficulty",
+      "difficultyPlaceholder": "Select difficulty",
+      "difficultyLevel": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "thumbnailUrl": "Thumbnail URL",
+      "videoUrlAlt": "Alternate-angle video link",
+      "linesPlaceholder": "One per line"
     },
     "food": {
       "add": "Add food",
@@ -1286,6 +1428,11 @@
         "period": "Period ends",
         "joined": "Joined"
       },
+      "view": {
+        "label": "View",
+        "list": "List",
+        "grid": "Grid"
+      },
       "recordPayment": "Record payment",
       "recordPaymentDialog": {
         "title": "Record a payment",
@@ -1445,6 +1592,12 @@
       "upload_failed": "Couldn't upload that photo. Try again.",
       "file_too_large": "Photo must be under 10 MB.",
       "invalid_file": "Choose an image file."
+    },
+    "prs": {
+      "title": "Personal records",
+      "emptyTitle": "No PRs yet",
+      "emptyDescription": "Log weight and reps during a session to start tracking personal records.",
+      "estimated1rm": "Est. 1RM {value}kg"
     }
   },
   "billing": {

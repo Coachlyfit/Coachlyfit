@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { dayIndexForDate, dayIndicesForWeek, startOfWeekSaturday, weekIndexForDate } from "./program-cycle";
+import {
+  dayIndexForDate,
+  dayIndexForDateWithMode,
+  dayIndicesForWeek,
+  dayIndicesForWeekWithMode,
+  startOfWeekSaturday,
+  weekIndexForDate,
+} from "./program-cycle";
 
 describe("dayIndexForDate", () => {
   it("day 1 lands exactly on start_date", () => {
@@ -49,6 +56,43 @@ describe("weekIndexForDate", () => {
 
   it("floors to week 1 for a date before the program started", () => {
     expect(weekIndexForDate("2026-08-01", "2026-07-01")).toBe(1);
+  });
+});
+
+describe("dayIndexForDateWithMode", () => {
+  it("cycle mode delegates straight to dayIndexForDate", () => {
+    expect(dayIndexForDateWithMode("cycle", "2026-08-01", 5, "2026-08-03", new Map())).toBe(3);
+  });
+
+  it("weekly mode resolves via the weekday lookup — 2026-08-01 is a Saturday (getUTCDay 6)", () => {
+    const weekdayToDayIndex = new Map([[6, 1]]); // Saturday -> day 1
+    expect(dayIndexForDateWithMode("weekly", "2026-08-01", 0, "2026-08-01", weekdayToDayIndex)).toBe(1);
+  });
+
+  it("weekly mode returns null (rest day) for a weekday with no mapped program_day", () => {
+    const weekdayToDayIndex = new Map([[6, 1]]);
+    // 2026-08-02 is a Sunday (getUTCDay 0), not in the map.
+    expect(dayIndexForDateWithMode("weekly", "2026-08-01", 0, "2026-08-02", weekdayToDayIndex)).toBeNull();
+  });
+
+  it("weekly mode returns null before the program started", () => {
+    const weekdayToDayIndex = new Map([[6, 1]]);
+    expect(dayIndexForDateWithMode("weekly", "2026-08-01", 0, "2026-07-31", weekdayToDayIndex)).toBeNull();
+  });
+});
+
+describe("dayIndicesForWeekWithMode", () => {
+  it("weekly mode maps each of the 7 dates through the weekday lookup", () => {
+    // Week starting Saturday 2026-08-01: Sat, Sun, Mon, Tue, Wed, Thu, Fri
+    // -> getUTCDay 6, 0, 1, 2, 3, 4, 5.
+    const weekdayToDayIndex = new Map([
+      [6, 1], // Saturday -> day 1
+      [1, 2], // Monday -> day 2
+      [3, 3], // Wednesday -> day 3
+    ]);
+    expect(dayIndicesForWeekWithMode("weekly", "2026-08-01", 0, "2026-08-01", weekdayToDayIndex)).toEqual([
+      1, null, 2, null, 3, null, null,
+    ]);
   });
 });
 

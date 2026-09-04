@@ -64,32 +64,60 @@ export default async function PrintProgramPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {day.program_items.map((item) =>
-                    item.program_item_sets.length === 0 ? (
-                      <tr key={item.id} className="border-b border-gray-200">
-                        <td className="py-1.5">{pickLocale(item.exercises, locale)}</td>
-                        <td colSpan={4} className="py-1.5 text-gray-500">
-                          —
-                        </td>
-                      </tr>
-                    ) : (
-                      item.program_item_sets.map((set, i) => (
-                        <tr key={set.id} className="border-b border-gray-200">
-                          {i === 0 && (
-                            <td className="py-1.5 align-top" rowSpan={item.program_item_sets.length}>
-                              {pickLocale(item.exercises, locale)}
-                            </td>
-                          )}
-                          <td className="py-1.5 tabular-nums">{set.set_index}</td>
-                          <td className="py-1.5 tabular-nums">{set.reps}</td>
-                          <td className="py-1.5 tabular-nums">
-                            {set.weight != null ? `${set.weight}kg` : tBuilder("bodyweight")}
+                  {(() => {
+                    // Consecutive items sharing group_key get an A1/A2-style
+                    // label — reorderItems already guarantees a group's
+                    // members are contiguous, so a running letter per new
+                    // group_key encountered is sufficient here too (same
+                    // logic as the client workout screen's itemGroups).
+                    const groupLetterByKey = new Map<string, string>();
+                    let nextLetterIndex = 0;
+                    const groupCounts = new Map<string, number>();
+                    return day.program_items.map((item) => {
+                      let label: string | null = null;
+                      if (item.group_key) {
+                        let letter = groupLetterByKey.get(item.group_key);
+                        if (!letter) {
+                          letter = String.fromCharCode(65 + nextLetterIndex);
+                          nextLetterIndex++;
+                          groupLetterByKey.set(item.group_key, letter);
+                        }
+                        const position = (groupCounts.get(item.group_key) ?? 0) + 1;
+                        groupCounts.set(item.group_key, position);
+                        label = `${letter}${position}`;
+                      }
+                      const exerciseCell = (
+                        <>
+                          {label && <span className="me-1 font-mono text-xs font-bold">{label}</span>}
+                          {pickLocale(item.exercises, locale)}
+                        </>
+                      );
+                      return item.program_item_sets.length === 0 ? (
+                        <tr key={item.id} className="border-b border-gray-200">
+                          <td className="py-1.5">{exerciseCell}</td>
+                          <td colSpan={4} className="py-1.5 text-gray-500">
+                            —
                           </td>
-                          <td className="py-1.5 tabular-nums">{set.rest_seconds ? `${set.rest_seconds}s` : "—"}</td>
                         </tr>
-                      ))
-                    )
-                  )}
+                      ) : (
+                        item.program_item_sets.map((set, i) => (
+                          <tr key={set.id} className="border-b border-gray-200">
+                            {i === 0 && (
+                              <td className="py-1.5 align-top" rowSpan={item.program_item_sets.length}>
+                                {exerciseCell}
+                              </td>
+                            )}
+                            <td className="py-1.5 tabular-nums">{set.set_index}</td>
+                            <td className="py-1.5 tabular-nums">{set.reps}</td>
+                            <td className="py-1.5 tabular-nums">
+                              {set.weight != null ? `${set.weight}kg` : tBuilder("bodyweight")}
+                            </td>
+                            <td className="py-1.5 tabular-nums">{set.rest_seconds ? `${set.rest_seconds}s` : "—"}</td>
+                          </tr>
+                        ))
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             )}

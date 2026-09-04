@@ -16,7 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, Trash2, Pencil, Printer } from "lucide-react";
+import { GripVertical, Plus, Trash2, Pencil, Printer, Link2, Link2Off, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -35,12 +35,17 @@ import {
   deleteProgramAction,
   deleteDayAction,
   deleteItemAction,
+  duplicateDayAction,
+  duplicateItemAction,
   reorderDaysAction,
   reorderItemsAction,
+  groupItemsAction,
+  ungroupItemsAction,
 } from "../actions";
 import { AddDayDialog } from "./add-day-dialog";
 import { ItemDialog } from "./item-dialog";
 import { AssignTemplateDialog } from "./assign-template-dialog";
+import { RevisionHistoryDrawer } from "./revision-history-drawer";
 import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
 import { VolumeSidebar } from "./volume-sidebar";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -55,14 +60,25 @@ function SortableItem({
   item,
   locale,
   week,
+  groupLabel,
+  selected,
+  onToggleSelect,
   onEdit,
   onDelete,
+  onDuplicate,
 }: {
   item: Item;
   locale: AppLocale;
   week: number;
+  /** "A1"/"A2"/... when this item is part of a superset/circuit, null
+   * otherwise. Purely a display label — group membership itself is
+   * item.group_key, this is just its position within the group. */
+  groupLabel: string | null;
+  selected: boolean;
+  onToggleSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) {
   const t = useTranslations("programs.builder");
   const readOnly = week !== 1;
@@ -76,20 +92,36 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 hover:border-border hover:bg-muted/50 ${
-        isDragging ? "opacity-50" : ""
-      }`}
+      className={cn(
+        "flex items-center gap-3 rounded-md border px-3 py-2.5 hover:bg-muted/50",
+        selected ? "border-primary bg-primary/5" : "border-transparent hover:border-border",
+        isDragging && "opacity-50"
+      )}
     >
       {!readOnly && (
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          aria-label="drag"
-          className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
-        >
-          <GripVertical className="size-4" />
-        </button>
+        <>
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={onToggleSelect}
+            aria-label={t("selectItem")}
+            className="size-4 shrink-0 accent-primary"
+          />
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            aria-label="drag"
+            className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+          >
+            <GripVertical className="size-4" />
+          </button>
+        </>
+      )}
+      {groupLabel && (
+        <span className="shrink-0 rounded bg-secondary px-1.5 py-0.5 font-mono text-[10px] font-semibold text-secondary-foreground">
+          {groupLabel}
+        </span>
       )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{pickLocale(item.exercises, locale)}</div>
@@ -108,6 +140,9 @@ function SortableItem({
         <>
           <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
             <Pencil className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDuplicate} title={t("duplicateItem")}>
+            <Copy className="size-4" />
           </Button>
           <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
             <Trash2 className="size-4" />
@@ -144,7 +179,67 @@ function DayCard({
   } | null>(null);
   const [pendingDeleteItem, setPendingDeleteItem] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
+  const [groupPending, startGroupTransition] = useTransition();
+
+  // Position-within-group label (A1, A2, B1, B2, ...) — a fresh letter per
+  // distinct group_key encountered, in item order. Recomputed from `items`
+  // on every render rather than stored, since it's pure display derived
+  // from group_key + order, same as displaySets' projection above.
+  const groupLabels = new Map<string, string>();
+  {
+    let letterIndex = 0;
+    const letterByGroup = new Map<string, string>();
+    for (const item of items) {
+      if (!item.group_key) continue;
+      let letter = letterByGroup.get(item.group_key);
+      if (!letter) {
+        letter = String.fromCharCode(65 + letterIndex);
+        letterIndex++;
+        letterByGroup.set(item.group_key, letter);
+      }
+      const position = items.filter((i) => i.group_key === item.group_key).indexOf(item) + 1;
+      groupLabels.set(item.id, `${letter}${position}`);
+    }
+  }
+
+  function toggleSelect(itemId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  }
+
+  function makeGroup(kind: "superset" | "circuit") {
+    const ids = Array.from(selected);
+    if (ids.length < 2) return;
+    startGroupTransition(async () => {
+      const result = await groupItemsAction(locale, programId, ids, kind);
+      if (result?.error) {
+        toast.error(tErrors(result.error));
+        return;
+      }
+      setSelected(new Set());
+      router.refresh();
+    });
+  }
+
+  function ungroupSelected() {
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    startGroupTransition(async () => {
+      const result = await ungroupItemsAction(locale, programId, ids);
+      if (result?.error) {
+        toast.error(tErrors(result.error));
+        return;
+      }
+      setSelected(new Set());
+      router.refresh();
+    });
+  }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
@@ -198,6 +293,18 @@ function DayCard({
     setPendingDeleteItem(null);
   }
 
+  async function duplicateItem(itemId: string) {
+    const result = await duplicateItemAction(locale, programId, itemId);
+    if (result?.error) toast.error(tErrors(result.error));
+    else router.refresh();
+  }
+
+  async function duplicateDay() {
+    const result = await duplicateDayAction(locale, programId, day.id);
+    if (result?.error) toast.error(tErrors(result.error));
+    else router.refresh();
+  }
+
   return (
     <Card
       onDragOver={readOnly ? undefined : (e) => e.preventDefault()}
@@ -211,6 +318,11 @@ function DayCard({
           {t("dayN", { n: day.day_index })}
           {(day.label_ar || day.label_en) && (
             <span className="font-normal text-muted-foreground">— {pickLocale(day, locale, "label")}</span>
+          )}
+          {day.weekday != null && (
+            <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium text-secondary-foreground">
+              {t(`weekdayShort.${day.weekday}`)}
+            </span>
           )}
           <span className="font-mono text-xs text-muted-foreground">({items.length})</span>
         </CardTitle>
@@ -227,6 +339,7 @@ function DayCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEditDay}>{t("editDay")}</DropdownMenuItem>
+              <DropdownMenuItem onClick={duplicateDay}>{t("duplicateDay")}</DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={onDeleteDay}>
                 {t("deleteDay")}
               </DropdownMenuItem>
@@ -234,13 +347,48 @@ function DayCard({
           </DropdownMenu>
         </div>
       </CardHeader>
+      {!readOnly && selected.size > 0 && (
+        <div className="flex items-center gap-2 border-b border-border px-6 py-2.5">
+          <span className="text-xs text-muted-foreground">{t("selectedCount", { count: selected.size })}</span>
+          {selected.size >= 2 && (
+            <>
+              <Button type="button" variant="outline" size="sm" disabled={groupPending} onClick={() => makeGroup("superset")}>
+                <Link2 className="size-4" />
+                {t("makeSuperset")}
+              </Button>
+              <Button type="button" variant="outline" size="sm" disabled={groupPending} onClick={() => makeGroup("circuit")}>
+                <Link2 className="size-4" />
+                {t("makeCircuit")}
+              </Button>
+            </>
+          )}
+          <Button type="button" variant="ghost" size="sm" disabled={groupPending} onClick={ungroupSelected}>
+            <Link2Off className="size-4" />
+            {t("ungroup")}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
+            {t("clearSelection")}
+          </Button>
+        </div>
+      )}
       <CardContent>
         {items.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">{t("noItems")}</p>
         ) : readOnly ? (
           <div className="flex flex-col gap-1">
             {items.map((item) => (
-              <SortableItem key={item.id} item={item} locale={locale} week={week} onEdit={() => {}} onDelete={() => {}} />
+              <SortableItem
+                key={item.id}
+                item={item}
+                locale={locale}
+                week={week}
+                groupLabel={groupLabels.get(item.id) ?? null}
+                selected={false}
+                onToggleSelect={() => {}}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                onDuplicate={() => {}}
+              />
             ))}
           </div>
         ) : (
@@ -253,8 +401,12 @@ function DayCard({
                     item={item}
                     locale={locale}
                     week={week}
+                    groupLabel={groupLabels.get(item.id) ?? null}
+                    selected={selected.has(item.id)}
+                    onToggleSelect={() => toggleSelect(item.id)}
                     onEdit={() => setItemDialog({ item })}
                     onDelete={() => setPendingDeleteItem(item.id)}
+                    onDuplicate={() => duplicateItem(item.id)}
                   />
                 ))}
               </div>
@@ -364,6 +516,7 @@ export function ProgramBuilder({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {isTemplate && <AssignTemplateDialog locale={locale} programId={tree.id} clients={clients} />}
+          {!isTemplate && <RevisionHistoryDrawer locale={locale} programId={tree.id} />}
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <select
               value={week}
@@ -458,6 +611,7 @@ export function ProgramBuilder({
           programId={tree.id}
           nextDayIndex={nextDayIndex}
           day={dayDialog.day}
+          scheduleMode={tree.schedule_mode as "cycle" | "weekly"}
           open={!!dayDialog}
           onOpenChange={(open) => !open && setDayDialog(null)}
         />

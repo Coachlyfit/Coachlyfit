@@ -9,14 +9,14 @@ import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { listThreadAction, sendMessageAction, markThreadReadAction } from "@/domain/messages/messages-actions";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 
-// No Realtime precedent in this codebase (see the migration comment) and a
-// coach/client chat doesn't need sub-second delivery — polling on the same
-// interval NotificationBell already establishes for "new since I last
-// looked" data.
+// Realtime delivers new messages instantly; polling stays as a fallback for
+// missed events (reconnects, dropped sockets) at the same interval
+// NotificationBell already uses.
 const POLL_INTERVAL_MS = 10_000;
 
 export function MessageThread({
@@ -47,6 +47,25 @@ export function MessageThread({
 
   useEffect(() => {
     markThreadReadAction(clientId);
+  }, [clientId]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`messages:${clientId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `client_id=eq.${clientId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
   function onSend() {

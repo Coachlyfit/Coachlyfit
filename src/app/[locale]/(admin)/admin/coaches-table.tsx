@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Search } from "lucide-react";
+import { LayoutGrid, List, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -18,6 +20,8 @@ import { formatDate, formatNumber } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import { Link } from "@/i18n/navigation";
 import { RecordPaymentDialog } from "./record-payment-dialog";
+
+const PAGE_SIZE = 24;
 
 type Coach = {
   coach_id: string;
@@ -52,8 +56,10 @@ export function CoachesTable({ locale, coaches }: { locale: AppLocale; coaches: 
   const t = useTranslations("admin.coaches");
   const [query, setQuery] = useState("");
   const [segment, setSegment] = useState<Segment>("all");
+  const [view, setView] = useState<"list" | "grid">("list");
+  const [page, setPage] = useState(1);
 
-  const shown = useMemo(() => {
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return coaches
       .filter((c) => {
@@ -71,6 +77,21 @@ export function CoachesTable({ locale, coaches }: { locale: AppLocale; coaches: 
       );
   }, [coaches, query, segment]);
 
+  const shown = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
+  );
+
+  function updateQuery(value: string) {
+    setQuery(value);
+    setPage(1);
+  }
+
+  function updateSegment(value: Segment) {
+    setSegment(value);
+    setPage(1);
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -78,7 +99,7 @@ export function CoachesTable({ locale, coaches }: { locale: AppLocale; coaches: 
           <Search className="pointer-events-none absolute inset-y-0 start-2.5 my-auto size-4 text-muted-foreground" aria-hidden="true" />
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => updateQuery(e.target.value)}
             placeholder={t("search")}
             className="h-9 ps-8"
           />
@@ -86,7 +107,7 @@ export function CoachesTable({ locale, coaches }: { locale: AppLocale; coaches: 
         <div className="overflow-x-auto">
           <Segmented
             value={segment}
-            onChange={setSegment}
+            onChange={updateSegment}
             label={t("filterLabel")}
             options={[
               { value: "all", label: t("segments.all") },
@@ -98,11 +119,55 @@ export function CoachesTable({ locale, coaches }: { locale: AppLocale; coaches: 
             ]}
           />
         </div>
+        <Segmented
+          value={view}
+          onChange={setView}
+          label={t("view.label")}
+          options={[
+            { value: "list", label: t("view.list"), icon: List },
+            { value: "grid", label: t("view.grid"), icon: LayoutGrid },
+          ]}
+        />
         <span className="ms-auto text-xs text-muted-foreground">
-          {t("shownCount", { shown: shown.length, total: coaches.length })}
+          {t("shownCount", { shown: filtered.length, total: coaches.length })}
         </span>
       </div>
 
+      {view === "grid" ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((coach) => {
+            const health = healthFor(coach.status);
+            return (
+              <Card key={coach.coach_id}>
+                <CardContent className="flex flex-col gap-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <Link href={`/admin/coaches/${coach.coach_id}`} className="font-medium hover:underline">
+                      {coach.business_name}
+                    </Link>
+                    <Badge variant={HEALTH_VARIANT[health]}>{t(`health.${health}`)}</Badge>
+                  </div>
+                  {coach.phone && <p className="font-mono text-xs text-muted-foreground">{coach.phone}</p>}
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <Badge variant="secondary">{coach.tier_key ?? "—"}</Badge>
+                    <span className="tabular-nums text-muted-foreground">
+                      {t("table.mrr")}: {coach.mrr_egp > 0 ? formatNumber(coach.mrr_egp, locale) : "—"}
+                    </span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {t("table.clients")}: {coach.client_count}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span className="tabular-nums">
+                      {coach.current_period_end ? formatDate(coach.current_period_end, locale) : "—"}
+                    </span>
+                    <RecordPaymentDialog locale={locale} coachId={coach.coach_id} />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -147,6 +212,9 @@ export function CoachesTable({ locale, coaches }: { locale: AppLocale; coaches: 
           })}
         </TableBody>
       </Table>
+      )}
+
+      <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
     </div>
   );
 }

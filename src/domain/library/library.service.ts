@@ -33,6 +33,18 @@ export type CreateExerciseInput = {
   cues_en?: string[];
   coach_notes_ar?: string;
   coach_notes_en?: string;
+  steps_ar?: string[];
+  steps_en?: string[];
+  mistakes_ar?: string[];
+  mistakes_en?: string[];
+  safety_ar?: string;
+  safety_en?: string;
+  tempo?: string;
+  primary_muscles?: string[];
+  secondary_muscles?: string[];
+  difficulty?: "beginner" | "intermediate" | "advanced";
+  thumbnail_url?: string;
+  video_url_alt?: string;
   /** Set once at creation (the clone flow) — updateExercise strips it back
    * out of any later edit payload, so provenance can't be rewritten after
    * the fact. */
@@ -155,6 +167,7 @@ export class LibraryService {
       let q = this.db
         .from("exercises_visible")
         .select("*", { count: "exact" })
+        .is("archived_at", null)
         .order("name_en")
         .order("id");
       q = applySource(q, params.source ?? "all");
@@ -289,6 +302,37 @@ export class LibraryService {
     const { data, error } = await this.db.from("exercises").delete().eq("id", id).select("id");
     if (error) throw error;
     return data.length > 0;
+  }
+
+  /** Soft delete — the coach-facing "Delete" action archives instead of
+   * hard-deleting, so a mistaken delete can be undone via restoreExercise.
+   * Only meaningful on a coach's own row; a global exercise's delete button
+   * is admin-only in the UI, same as deleteExercise above. */
+  async archiveExercise(id: string): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("exercises")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", id)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  async restoreExercise(id: string): Promise<boolean> {
+    const { data, error } = await this.db.from("exercises").update({ archived_at: null }).eq("id", id).select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  async listArchivedExercises(): Promise<Exercise[]> {
+    const { data, error } = await this.db
+      .from("exercises_visible")
+      .select("*")
+      .not("archived_at", "is", null)
+      .order("name_en")
+      .returns<Exercise[]>();
+    if (error) throw error;
+    return data;
   }
 
   async deleteFood(id: string): Promise<boolean> {

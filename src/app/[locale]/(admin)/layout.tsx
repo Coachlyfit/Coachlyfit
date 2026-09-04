@@ -32,14 +32,10 @@ export default async function AdminLayout({
   if (profile?.role !== "admin") redirect(roleHome(locale, profile?.role));
 
   return (
-    <div className="console flex min-h-dvh bg-background text-foreground">
+    <div className="flex min-h-dvh bg-background text-foreground">
       <AdminSidebar />
       <div className="flex flex-1 flex-col">
         <AdminTopbar locale={locale} fullName={profile.full_name} />
-        {/* Console register (design system §00/§04/§07/§08): mono-dominant,
-            uppercase labels, tight radii, 40px rows. Section headings and
-            table components under admin/** opt into these utilities
-            directly rather than this wrapper trying to reach through. */}
         <main className="flex-1 overflow-y-auto p-4 font-mono text-sm md:p-6">
           {children}
         </main>

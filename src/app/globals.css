@@ -213,29 +213,6 @@
   --sidebar-ring: #fb923c;
 }
 
-/* Console register — design system §00/§04/§07/§08. "Pick one register per
- * surface, never mix." Applied to the (admin) route group's content area
- * only (the sidebar chrome is already dark by its own tokens; this class
- * covers the main content). Always dark regardless of the app's light/dark
- * theme, same reasoning as `--sidebar`: an internal ops tool doesn't follow
- * the coach's theme preference. `--muted-foreground` here is the console
- * value from the spec's contrast table (#94A3B8, 6.96:1 on navy), distinct
- * from the product-register `--muted-foreground` above. */
-.console {
-  --background: #020617;
-  --foreground: #e2e8f0;
-  --card: #0f172a;
-  --card-foreground: #e2e8f0;
-  --popover: #0f172a;
-  --popover-foreground: #e2e8f0;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --border: rgba(226, 232, 240, .08);
-  --input: rgba(226, 232, 240, .14);
-  --radius: 0.375rem;
-  color-scheme: dark;
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;

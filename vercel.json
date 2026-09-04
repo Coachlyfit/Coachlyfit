@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/billing-lifecycle",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/trash-cleanup",
+      "schedule": "0 4 * * *"
     }
   ]
 }

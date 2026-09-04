@@ -4,10 +4,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
+import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { checkinStreak, adherenceAverage, weightTrend } from "@/domain/progress/stats";
 import { metricPresetI18nKey } from "@/domain/progress/metric-presets";
+import { computePersonalRecords } from "@/domain/progress/prs";
 import { pickLocale } from "@/domain/locale";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
+import { PrList, type PrListRow } from "@/components/progress/pr-list";
 import type { AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 import { CheckinForm } from "./checkin-form";
@@ -26,6 +29,7 @@ export default async function ClientProgressPage({
   const tChart = await getTranslations("progress.chart");
   const tMetrics = await getTranslations("progress.metrics");
   const tPhotos = await getTranslations("progress.photos");
+  const tPrs = await getTranslations("progress.prs");
   const supabase = await createClient();
 
   const {
@@ -47,6 +51,29 @@ export default async function ClientProgressPage({
     progress.listMedia(client!.id, "photo"),
     new MetricDefinitionsService(supabase).list(client!.coach_id),
   ]);
+
+  const setLogs = await new WorkoutsService(supabase).listSetLogsForClient(client!.id);
+  const records = computePersonalRecords(setLogs);
+  let prRows: PrListRow[] = [];
+  if (records.length > 0) {
+    const { data: exercises } = await supabase
+      .from("exercises")
+      .select("id, name_ar, name_en")
+      .in(
+        "id",
+        records.map((r) => r.exerciseId)
+      );
+    const nameById = new Map((exercises ?? []).map((e) => [e.id, { name_ar: e.name_ar, name_en: e.name_en }]));
+    prRows = records
+      .filter((r) => nameById.has(r.exerciseId))
+      .map((r) => ({
+        exerciseId: r.exerciseId,
+        exerciseName: nameById.get(r.exerciseId)!,
+        maxWeight: r.maxWeight ? { weight: r.maxWeight.weight, reps: r.maxWeight.reps } : null,
+        estimatedOneRepMax: r.estimatedOneRepMax?.value ?? null,
+      }))
+      .sort((a, b) => pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale)));
+  }
 
   const signed = await progress.signMediaUrls(media.map((m) => m.storage_path));
   const photos = media
@@ -139,6 +166,11 @@ export default async function ClientProgressPage({
       ) : (
         <EmptyState icon={LineChart} title={tChart("emptyTitle")} description={tChart("emptyClient")} />
       )}
+
+      <div className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold tracking-tight">{tPrs("title")}</h2>
+        <PrList rows={prRows} locale={locale} />
+      </div>
 
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-tight">{tPhotos("title")}</h2>

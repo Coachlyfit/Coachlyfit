@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
-import { dayIndicesForWeek, startOfWeekSaturday } from "@/domain/programs/program-cycle";
+import { dayIndicesForWeek, dayIndicesForWeekWithMode, startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,21 @@ export default async function ClientPlanPage({
   const todayIso = new Date().toISOString().slice(0, 10);
   const weekStart = startOfWeekSaturday(todayIso);
   const cycleLength = tree.program_days.length;
-  const indices = dayIndicesForWeek(tree.start_date, cycleLength, weekStart);
+  const scheduleMode = tree.schedule_mode as "cycle" | "weekly";
+  const indices =
+    scheduleMode === "weekly"
+      ? dayIndicesForWeekWithMode(
+          "weekly",
+          tree.start_date,
+          cycleLength,
+          weekStart,
+          new Map(
+            tree.program_days
+              .filter((d) => d.weekday != null)
+              .map((d) => [d.weekday as number, d.day_index])
+          )
+        )
+      : dayIndicesForWeek(tree.start_date, cycleLength, weekStart);
 
   const days = indices.map((dayIndex, i) => {
     const date = new Date(new Date(weekStart).getTime() + i * 86_400_000).toISOString().slice(0, 10);
@@ -64,7 +78,12 @@ export default async function ClientPlanPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <Link href="/c/history" className="text-sm font-medium text-primary">
+          {t("historyLink")}
+        </Link>
+      </div>
 
       <div className="flex flex-col gap-3">
         {days.map(({ date, day, isRest, isToday }) => {

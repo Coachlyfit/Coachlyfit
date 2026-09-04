@@ -12,7 +12,24 @@
     "light": "فاتح",
     "dark": "داكن",
     "more": "المزيد",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "errorBoundary": {
+      "title": "حدث خطأ ما",
+      "description": "حدث خطأ غير متوقع. حاول مرة أخرى، أو ارجع للخلف.",
+      "retry": "حاول مرة أخرى"
+    },
+    "trash": {
+      "trigger": "المحذوفات",
+      "title": "المحذوفات",
+      "empty": "لا يوجد عناصر محذوفة",
+      "restore": "استعادة",
+      "restoreFailed": "تعذّرت استعادة هذا العنصر"
+    },
+    "push": {
+      "enable": "تفعيل إشعارات الدفع",
+      "disable": "إيقاف إشعارات الدفع",
+      "failed": "تعذّر تحديث إشعارات الدفع"
+    }
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -525,7 +542,8 @@
       "copy": "انسخ الرابط",
       "copied": "اتنسخ",
       "qrAlt": "كود QR لرابط البورتال بتاعك"
-    }
+    },
+    "emailNotifications": "إشعارات البريد الإلكتروني"
   },
   "clients": {
     "title": "العملاء",
@@ -573,7 +591,10 @@
       "empty": "مفيش تمارين متسجلة لسه.",
       "completed": "خلصت",
       "inProgress": "جارية",
-      "swapped": "بدّل {original} بـ {substitute}"
+      "swapped": "بدّل {original} بـ {substitute}",
+      "painReports": "تقارير الألم",
+      "painReportLine": "{exercise} — ألم {pain}/5 ({date})",
+      "unknownExercise": "تمرين"
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
@@ -697,7 +718,8 @@
       "done": "خلصت",
       "doneMeta": "خلصت · {minutes} دقيقة",
       "exerciseCount": "{count} تمارين",
-      "today": "النهاردة"
+      "today": "النهاردة",
+      "historyLink": "السجل"
     },
     "workout": {
       "setsDone": "{done} / {total} مجموعة",
@@ -721,7 +743,44 @@
       "insteadOf": "بدل: {name}",
       "searchExercises": "دوّر على تمرين...",
       "searching": "بدوّر...",
-      "noExercisesMatch": "مفيش تمارين مطابقة."
+      "noExercisesMatch": "مفيش تمارين مطابقة.",
+      "setEntry": {
+        "title": "تسجيل المجموعة",
+        "weight": "الوزن (كجم)",
+        "reps": "التكرارات",
+        "rpe": "معدل الجهد المُدرك",
+        "notesPlaceholder": "ملاحظات (اختياري)",
+        "decrease": "إنقاص",
+        "increase": "زيادة",
+        "delete": "حذف المجموعة",
+        "save": "حفظ",
+        "saving": "جارٍ الحفظ...",
+        "saveFailed": "تعذر حفظ هذه المجموعة. حاول مرة أخرى.",
+        "deleteFailed": "تعذر حذف هذه المجموعة. حاول مرة أخرى.",
+        "entryLocked": "مضى على هذه المجموعة أكثر من 7 أيام ولم يعد بالإمكان تعديلها."
+      },
+      "restMinus15": "إنقاص 15 ثانية من الراحة",
+      "restPlus15": "إضافة 15 ثانية للراحة",
+      "markDone": "إنهاء",
+      "skipExercise": "تخطي",
+      "exerciseDone": "تم",
+      "exerciseSkipped": "تم التخطي",
+      "feedback": {
+        "title": "كيف كان أداؤك؟",
+        "difficulty": "الصعوبة",
+        "pain": "الألم",
+        "energy": "الطاقة",
+        "notesPlaceholder": "ملاحظات (اختياري)",
+        "skip": "تخطي",
+        "save": "حفظ",
+        "saveFailed": "تعذر الحفظ. حاول مرة أخرى."
+      },
+      "tempo": "الإيقاع",
+      "executionSteps": "طريقة الأداء",
+      "commonMistakes": "الأخطاء الشائعة",
+      "safetyNote": "ملاحظة سلامة",
+      "supersetLabel": "سوبرسيت",
+      "circuitLabel": "دائرة"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
@@ -773,6 +832,17 @@
       "noPlan": "لسه مفيش خطة تغذية",
       "noPlanBody": "الكابتن لسه ما حددش خطة تغذية.",
       "quantityUnit": "{quantity} {unit}"
+    },
+    "history": {
+      "title": "سجل التمارين",
+      "empty": "لا توجد تمارين مكتملة بعد.",
+      "workout": "تمرين",
+      "completed": "مكتمل",
+      "inProgress": "قيد التنفيذ",
+      "setsDone": "{done}/{total} مجموعة",
+      "volume": "{value} كجم حجم",
+      "duration": "{minutes} دقيقة",
+      "swapped": "تم استبدال {original} بـ {substitute}"
     }
   },
   "inbox": {
@@ -966,7 +1036,11 @@
       "clientNone": "من غير عميل — احفظه كقالب",
       "startDate": "تاريخ البداية",
       "endDate": "تاريخ النهاية (اختياري)",
-      "submit": "اعمل"
+      "submit": "اعمل",
+      "scheduleMode": "الجدولة",
+      "scheduleModeCycle": "دورة متكررة",
+      "scheduleModeWeekly": "أيام أسبوعية ثابتة",
+      "scheduleModeHint": "الدورة تكرر الأيام بالترتيب من تاريخ البدء. الأسبوعية تثبت كل يوم على يوم أسبوعي محدد."
     },
     "editDialog": {
       "title": "عدّل البرنامج",
@@ -1009,14 +1083,33 @@
       "week": "الأسبوع {n}",
       "weekReadOnlyHint": "للعرض فقط — ارجع للأسبوع ١ عشان تعدّل",
       "bodyweight": "وزن الجسم",
-      "setLine": "{reps} تكرار"
+      "setLine": "{reps} تكرار",
+      "selectItem": "تحديد التمرين",
+      "selectedCount": "تم تحديد {count}",
+      "makeSuperset": "دمج كسوبرسيت",
+      "makeCircuit": "دمج كدائرة",
+      "ungroup": "فصل",
+      "clearSelection": "إلغاء التحديد",
+      "weekdayShort": {
+        "0": "أحد",
+        "1": "إثنين",
+        "2": "ثلاثاء",
+        "3": "أربعاء",
+        "4": "خميس",
+        "5": "جمعة",
+        "6": "سبت"
+      },
+      "duplicateItem": "تكرار التمرين",
+      "duplicateDay": "تكرار اليوم"
     },
     "dayDialog": {
       "addTitle": "ضيف يوم",
       "editTitle": "عدّل اليوم",
       "labelAr": "التسمية (عربي، اختياري)",
       "labelEn": "التسمية (إنجليزي، اختياري)",
-      "submit": "حفظ"
+      "submit": "حفظ",
+      "weekday": "يوم الأسبوع",
+      "weekdayPlaceholder": "اختر يوم الأسبوع"
     },
     "itemDialog": {
       "addTitle": "ضيف تمرين",
@@ -1039,7 +1132,15 @@
       "progressionPlus1Rep": "+تكرار واحد كل أسبوع",
       "notesAr": "ملاحظات (عربي، اختياري)",
       "notesEn": "ملاحظات (إنجليزي، اختياري)",
-      "submit": "حفظ"
+      "submit": "حفظ",
+      "block": "المرحلة",
+      "blockKind": {
+        "warmup": "إحماء",
+        "main": "أساسي",
+        "cooldown": "تهدئة"
+      },
+      "coachNotePrivate": "ملاحظة خاصة (تراها أنت فقط)",
+      "coachNotePrivateHint": "لا تظهر للعميل أبدًا — تظهر فقط في أداة البناء."
     },
     "volume": {
       "title": "الحجم الأسبوعي",
@@ -1058,7 +1159,29 @@
       "not_authenticated": "سجّل الدخول تاني.",
       "not_found_or_forbidden": "مينفعش تعدّل البرنامج ده.",
       "end_date_before_start_date": "تاريخ النهاية لازم يكون بعد تاريخ البداية.",
-      "unknown": "حصل خطأ. جرّب تاني."
+      "unknown": "حصل خطأ. جرّب تاني.",
+      "group_not_contiguous": "يجب أن تبقى تمارين السوبرسيت/الدائرة متجاورة."
+    },
+    "revisions": {
+      "title": "السجل",
+      "loading": "جارٍ التحميل...",
+      "empty": "لا توجد تغييرات مسجلة بعد.",
+      "restore": "استعادة",
+      "restored": "تمت استعادة البرنامج.",
+      "unknownReason": "تم تعديل البرنامج",
+      "confirmRestoreTitle": "استعادة هذا الإصدار؟",
+      "confirmRestoreBody": "سيتم إرجاع البرنامج لما كان عليه في هذه اللحظة. يتم حفظ النسخة الحالية أولًا، حتى يمكنك التراجع عن هذه الاستعادة أيضًا.",
+      "reason": {
+        "add_day": "تمت إضافة يوم",
+        "update_day": "تم تعديل يوم",
+        "delete_day": "تم حذف يوم",
+        "add_item": "تمت إضافة تمرين",
+        "update_item": "تم تعديل تمرين",
+        "delete_item": "تم حذف تمرين",
+        "group_items": "تم إنشاء سوبرسيت/دائرة",
+        "ungroup_items": "تم إزالة سوبرسيت/دائرة",
+        "before_restore": "قبل الاستعادة"
+      }
     }
   },
   "library": {
@@ -1123,7 +1246,26 @@
       "submit": "ضيف التمرين",
       "cloneTitle": "خصّص التمرين",
       "editTitle": "عدّل التمرين",
-      "save": "احفظ"
+      "save": "احفظ",
+      "stepsAr": "خطوات الأداء (عربي)",
+      "stepsEn": "خطوات الأداء (إنجليزي)",
+      "mistakesAr": "الأخطاء الشائعة (عربي)",
+      "mistakesEn": "الأخطاء الشائعة (إنجليزي)",
+      "safetyAr": "ملاحظات السلامة (عربي)",
+      "safetyEn": "ملاحظات السلامة (إنجليزي)",
+      "tempo": "الإيقاع",
+      "primaryMuscles": "العضلات الأساسية",
+      "secondaryMuscles": "العضلات الثانوية",
+      "difficulty": "الصعوبة",
+      "difficultyPlaceholder": "اختر مستوى الصعوبة",
+      "difficultyLevel": {
+        "beginner": "مبتدئ",
+        "intermediate": "متوسط",
+        "advanced": "متقدم"
+      },
+      "thumbnailUrl": "رابط الصورة المصغرة",
+      "videoUrlAlt": "رابط فيديو بزاوية بديلة",
+      "linesPlaceholder": "عنصر واحد في كل سطر"
     },
     "food": {
       "add": "ضيف طعام",
@@ -1286,6 +1428,11 @@
         "period": "نهاية الفترة",
         "joined": "تاريخ الانضمام"
       },
+      "view": {
+        "label": "العرض",
+        "list": "قائمة",
+        "grid": "شبكة"
+      },
       "recordPayment": "سجّل دفعة",
       "recordPaymentDialog": {
         "title": "سجّل دفعة",
@@ -1445,6 +1592,12 @@
       "upload_failed": "مقدرناش نرفع الصورة. جرّب تاني.",
       "file_too_large": "لازم حجم الصورة يكون أقل من 10 ميجابايت.",
       "invalid_file": "اختار ملف صورة."
+    },
+    "prs": {
+      "title": "الأرقام القياسية الشخصية",
+      "emptyTitle": "لا توجد أرقام قياسية بعد",
+      "emptyDescription": "سجّل الوزن والتكرارات أثناء الجلسة لبدء تتبع الأرقام القياسية الشخصية.",
+      "estimated1rm": "تقدير أقصى وزن لمرة واحدة {value} كجم"
     }
   },
   "billing": {

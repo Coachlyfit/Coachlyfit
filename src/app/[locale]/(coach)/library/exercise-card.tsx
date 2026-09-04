@@ -62,7 +62,7 @@ export function ExerciseCard({
     );
   }
 
-  const media = resolveExerciseMedia(exercise.image_url || exercise.video_url);
+  const media = resolveExerciseMedia(exercise.thumbnail_url || exercise.image_url || exercise.video_url);
 
   return (
     <Card className="pt-0">
@@ -70,9 +70,12 @@ export function ExerciseCard({
       <CardContent className="flex flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <p className="line-clamp-2 font-medium">{name}</p>
-          <Badge variant={exercise.coach_id ? "secondary" : "outline"} className="shrink-0">
-            {badgeLabel}
-          </Badge>
+          <div className="flex shrink-0 gap-1">
+            {exercise.difficulty && (
+              <Badge variant="outline">{t(`exercise.difficultyLevel.${exercise.difficulty}`)}</Badge>
+            )}
+            <Badge variant={exercise.coach_id ? "secondary" : "outline"}>{badgeLabel}</Badge>
+          </div>
         </div>
         {isCustomized && (
           <p className="text-xs text-muted-foreground">

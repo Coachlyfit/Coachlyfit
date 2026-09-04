@@ -1,10 +1,16 @@
 "use server";
 
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { requireCoach } from "@/lib/auth/require-coach";
 
 type ActionResult = { error: string } | void;
+
+// Mirrors the coaches_slug_format CHECK constraint
+// (20260826000001_portal_branding.sql) so a malformed slug fails fast with
+// `invalid_input` instead of a raw 23514 falling through to update_failed.
+const slugSchema = z.string().regex(/^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])?$/);
 
 /** `templateId: null` clears the setting — a coach turning auto-send back
  * off, not an error state. RLS (coach_rw-equivalent policy on coaches)
@@ -14,14 +20,13 @@ export async function updateDefaultCheckinTemplateAction(
   locale: string,
   templateId: string | null
 ): Promise<ActionResult> {
-  const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  const auth = await requireCoach();
+  if ("error" in auth) return auth;
 
-  const { error } = await supabase
+  const { error } = await auth.supabase
     .from("coaches")
     .update({ default_checkin_template_id: templateId })
-    .eq("id", coachId);
+    .eq("id", auth.coachId);
   if (error) return { error: "update_failed" };
 
   revalidatePath(`/${locale}/settings`);
@@ -34,12 +39,31 @@ export async function updateDefaultCheckinTemplateAction(
  * and everything else (including a 23514 check-constraint miss) falls back
  * to the generic update_failed key. */
 export async function updateSlugAction(locale: string, slug: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  const parsed = slugSchema.safeParse(slug);
+  if (!parsed.success) return { error: "invalid_input" };
 
-  const { error } = await supabase.from("coaches").update({ slug }).eq("id", coachId);
+  const auth = await requireCoach();
+  if ("error" in auth) return auth;
+
+  const { error } = await auth.supabase.from("coaches").update({ slug: parsed.data }).eq("id", auth.coachId);
   if (error) return { error: error.code === "23505" ? "slug_taken" : "update_failed" };
+
+  revalidatePath(`/${locale}/settings`);
+}
+
+/** email_notifications lives on profiles, not coaches — this toggles the
+ * caller's own row directly rather than going through requireCoach(), so
+ * it works the same for a coach or a client (both are profiles). RLS's
+ * profiles_update_own already scopes the update to the caller. */
+export async function updateEmailNotificationsAction(locale: string, enabled: boolean): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { error } = await supabase.from("profiles").update({ email_notifications: enabled }).eq("id", user.id);
+  if (error) return { error: "update_failed" };
 
   revalidatePath(`/${locale}/settings`);
 }

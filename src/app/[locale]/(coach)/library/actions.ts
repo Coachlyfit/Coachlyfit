@@ -3,33 +3,40 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
-import { LibraryService, type LibraryQuery } from "@/domain/library/library.service";
+import { LibraryService } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
 import { createExerciseSchema, createFoodSchema } from "./schemas";
 import { linesToArray } from "./lines-to-array";
 
 type ActionResult = { error: string } | void;
 
-export async function searchExercisesAction(params: LibraryQuery = {}) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).searchExercises(params);
+// Plain reads moved to src/domain/library/library-actions.ts so a
+// client-facing component can import them without pulling in this route's
+// write actions (see that file's header comment). Re-exported here so
+// existing coach-side importers (library-client.tsx, exercise-card.tsx,
+// exercise-dialog.tsx, programs' exercise-picker/exercise-sidebar) don't
+// need to change their import path.
+import {
+  searchExercisesAction as searchExercisesActionImpl,
+  searchFoodsAction as searchFoodsActionImpl,
+  getExerciseAction as getExerciseActionImpl,
+  getFoodAction as getFoodActionImpl,
+} from "@/domain/library/library-actions";
+
+export async function searchExercisesAction(...args: Parameters<typeof searchExercisesActionImpl>) {
+  return searchExercisesActionImpl(...args);
 }
 
-export async function searchFoodsAction(params: LibraryQuery = {}) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).searchFoods(params);
+export async function searchFoodsAction(...args: Parameters<typeof searchFoodsActionImpl>) {
+  return searchFoodsActionImpl(...args);
 }
 
-// Read-only, same as the search actions above — RLS is the guard. Used by
-// "Edit my version": the card only has my_clone_id, not the clone's fields.
-export async function getExerciseAction(id: string) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).getExercise(id);
+export async function getExerciseAction(...args: Parameters<typeof getExerciseActionImpl>) {
+  return getExerciseActionImpl(...args);
 }
 
-export async function getFoodAction(id: string) {
-  const supabase = await createClient();
-  return new LibraryService(supabase).getFood(id);
+export async function getFoodAction(...args: Parameters<typeof getFoodActionImpl>) {
+  return getFoodActionImpl(...args);
 }
 
 export async function createExerciseAction(locale: string, formData: FormData): Promise<ActionResult> {
@@ -46,6 +53,18 @@ export async function createExerciseAction(locale: string, formData: FormData): 
     cues_en: formData.get("cues_en") || undefined,
     coach_notes_ar: formData.get("coach_notes_ar") || undefined,
     coach_notes_en: formData.get("coach_notes_en") || undefined,
+    steps_ar: formData.get("steps_ar") || undefined,
+    steps_en: formData.get("steps_en") || undefined,
+    mistakes_ar: formData.get("mistakes_ar") || undefined,
+    mistakes_en: formData.get("mistakes_en") || undefined,
+    safety_ar: formData.get("safety_ar") || undefined,
+    safety_en: formData.get("safety_en") || undefined,
+    tempo: formData.get("tempo") || undefined,
+    primary_muscles: formData.get("primary_muscles") || undefined,
+    secondary_muscles: formData.get("secondary_muscles") || undefined,
+    difficulty: formData.get("difficulty") || undefined,
+    thumbnail_url: formData.get("thumbnail_url") || undefined,
+    video_url_alt: formData.get("video_url_alt") || undefined,
     // Present only on the clone flow — the dialog hides this field entirely
     // for a plain "Add exercise".
     source_exercise_id: formData.get("source_exercise_id") || undefined,
@@ -56,14 +75,36 @@ export async function createExerciseAction(locale: string, formData: FormData): 
   const coachId = await resolveCoachId(supabase);
   if (!coachId) return { error: "not_authenticated" };
 
-  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
+  const {
+    video_url,
+    image_url,
+    thumbnail_url,
+    video_url_alt,
+    cues_ar,
+    cues_en,
+    steps_ar,
+    steps_en,
+    mistakes_ar,
+    mistakes_en,
+    primary_muscles,
+    secondary_muscles,
+    ...input
+  } = parsed.data;
   try {
     await new LibraryService(supabase).createExercise(coachId, {
       ...input,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
+      thumbnail_url: thumbnail_url || undefined,
+      video_url_alt: video_url_alt || undefined,
       cues_ar: linesToArray(cues_ar),
       cues_en: linesToArray(cues_en),
+      steps_ar: linesToArray(steps_ar),
+      steps_en: linesToArray(steps_en),
+      mistakes_ar: linesToArray(mistakes_ar),
+      mistakes_en: linesToArray(mistakes_en),
+      primary_muscles: linesToArray(primary_muscles),
+      secondary_muscles: linesToArray(secondary_muscles),
     });
   } catch (error) {
     // 23505 here means the coach already has a clone of this global — see
@@ -124,6 +165,18 @@ export async function updateExerciseAction(
     cues_en: formData.get("cues_en") || undefined,
     coach_notes_ar: formData.get("coach_notes_ar") || undefined,
     coach_notes_en: formData.get("coach_notes_en") || undefined,
+    steps_ar: formData.get("steps_ar") || undefined,
+    steps_en: formData.get("steps_en") || undefined,
+    mistakes_ar: formData.get("mistakes_ar") || undefined,
+    mistakes_en: formData.get("mistakes_en") || undefined,
+    safety_ar: formData.get("safety_ar") || undefined,
+    safety_en: formData.get("safety_en") || undefined,
+    tempo: formData.get("tempo") || undefined,
+    primary_muscles: formData.get("primary_muscles") || undefined,
+    secondary_muscles: formData.get("secondary_muscles") || undefined,
+    difficulty: formData.get("difficulty") || undefined,
+    thumbnail_url: formData.get("thumbnail_url") || undefined,
+    video_url_alt: formData.get("video_url_alt") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -133,14 +186,36 @@ export async function updateExerciseAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
+  const {
+    video_url,
+    image_url,
+    thumbnail_url,
+    video_url_alt,
+    cues_ar,
+    cues_en,
+    steps_ar,
+    steps_en,
+    mistakes_ar,
+    mistakes_en,
+    primary_muscles,
+    secondary_muscles,
+    ...input
+  } = parsed.data;
   try {
     const updated = await new LibraryService(supabase).updateExercise(id, {
       ...input,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
+      thumbnail_url: thumbnail_url || undefined,
+      video_url_alt: video_url_alt || undefined,
       cues_ar: linesToArray(cues_ar),
       cues_en: linesToArray(cues_en),
+      steps_ar: linesToArray(steps_ar),
+      steps_en: linesToArray(steps_en),
+      mistakes_ar: linesToArray(mistakes_ar),
+      mistakes_en: linesToArray(mistakes_en),
+      primary_muscles: linesToArray(primary_muscles),
+      secondary_muscles: linesToArray(secondary_muscles),
     });
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (error) {
@@ -183,6 +258,8 @@ export async function updateFoodAction(locale: string, id: string, formData: For
 // inherit the (coach) layout's guard, so each write re-checks auth itself.
 // RLS is still the authority on WHICH rows; this only rejects anonymous
 // callers early and turns an RLS no-op into a message instead of a lie.
+// Soft delete: archives instead of removing, so it can be undone from the
+// trash view. Hard delete only happens via the 30-day cron.
 export async function deleteExerciseAction(locale: string, id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -191,12 +268,33 @@ export async function deleteExerciseAction(locale: string, id: string): Promise<
   if (!user) return { error: "not_authenticated" };
 
   try {
-    const deleted = await new LibraryService(supabase).deleteExercise(id);
-    if (!deleted) return { error: "not_found_or_forbidden" };
+    const archived = await new LibraryService(supabase).archiveExercise(id);
+    if (!archived) return { error: "not_found_or_forbidden" };
   } catch (error) {
     return { error: libraryErrorKey(error) };
   }
   revalidatePath(`/${locale}/library`);
+}
+
+export async function restoreExerciseAction(locale: string, id: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const restored = await new LibraryService(supabase).restoreExercise(id);
+  if (!restored) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/library`);
+}
+
+export async function listArchivedExercisesAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  return new LibraryService(supabase).listArchivedExercises();
 }
 
 export async function deleteFoodAction(locale: string, id: string): Promise<ActionResult> {

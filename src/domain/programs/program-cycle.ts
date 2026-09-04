@@ -49,6 +49,46 @@ export function weekIndexForDate(startDate: string, targetDate: string, maxWeeks
   return Math.min(week, maxWeeks);
 }
 
+export type ScheduleMode = "cycle" | "weekly";
+
+/** Resolves which program_day (by its day_index, matching dayIndexForDate's
+ * return shape) is scheduled for a calendar date, honoring schedule_mode.
+ * Weekly mode: JS's getUTCDay() (0=Sun..6=Sat) against each day's weekday
+ * column, resolved via a caller-supplied lookup rather than a query here —
+ * this module stays pure/DB-free. A weekday with no matching program_day
+ * (or cycle mode with cycleLength 0) is a rest day: returns null. */
+export function dayIndexForDateWithMode(
+  mode: ScheduleMode,
+  startDate: string,
+  cycleLength: number,
+  targetDate: string,
+  weekdayToDayIndex: Map<number, number>
+): number | null {
+  if (mode === "cycle") return dayIndexForDate(startDate, cycleLength, targetDate);
+  const start = toUtcDate(startDate);
+  const target = toUtcDate(targetDate);
+  if (target < start) return null;
+  const weekday = new Date(target).getUTCDay();
+  return weekdayToDayIndex.get(weekday) ?? null;
+}
+
+/** Weekly-mode counterpart to dayIndicesForWeek — the day_index (or null
+ * for a rest day) scheduled for each of the 7 calendar dates starting at
+ * `weekStart`. */
+export function dayIndicesForWeekWithMode(
+  mode: ScheduleMode,
+  startDate: string,
+  cycleLength: number,
+  weekStartDate: string,
+  weekdayToDayIndex: Map<number, number>
+): (number | null)[] {
+  const start = toUtcDate(weekStartDate);
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(start + i * 86_400_000).toISOString().slice(0, 10);
+    return dayIndexForDateWithMode(mode, startDate, cycleLength, date, weekdayToDayIndex);
+  });
+}
+
 /** ISO date (YYYY-MM-DD) of the Saturday on/before `isoDate` — this region's
  * week start (matches the design's week ordering: Sat...Fri). JS
  * `getUTCDay()` is 0=Sunday, so Saturday is 6; the `+1) % 7` rotates the

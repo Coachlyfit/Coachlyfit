@@ -5,25 +5,54 @@ function fakeSupabase(opts: {
   parent?: unknown;
   rows?: unknown[];
   affected?: unknown[];
+  prescribed?: unknown;
+  setLogsForSummary?: unknown[];
+  itemsForSummary?: unknown[];
 } = {}) {
-  const { parent = null, rows = [], affected = [{ id: "1" }] } = opts;
+  const {
+    parent = null,
+    rows = [],
+    affected = [{ id: "1" }],
+    prescribed = null,
+    setLogsForSummary = [],
+    itemsForSummary = [],
+  } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
+  const upserts: { table: string; payload: unknown; onConflict?: string }[] = [];
   const updates: { table: string; payload: unknown }[] = [];
+  const deletes: { table: string }[] = [];
   const affectedRows = async () => ({ data: affected, error: null });
 
   const db = {
     from(table: string) {
       return {
         select: () => ({
-          eq: () => ({
-            maybeSingle: async () => ({ data: parent, error: null }),
-            order: () => ({
-              limit: () => ({
-                maybeSingle: async () => ({ data: parent, error: null }),
+          eq: () => {
+            const eqChain = {
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: table === "program_item_sets" ? prescribed : parent,
+                  error: null,
+                }),
               }),
-            }),
-          }),
+              maybeSingle: async () => ({ data: parent, error: null }),
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: parent, error: null }),
+                }),
+              }),
+              select: () => ({ id: "1" }),
+            };
+            // completeSession's summary queries: select(...).eq(...) with
+            // no further chaining, resolved directly as a thenable —
+            // matches workout_set_logs and program_items in that method.
+            const promise = Promise.resolve({
+              data: table === "workout_set_logs" ? setLogsForSummary : itemsForSummary,
+              error: null,
+            });
+            return Object.assign(promise, eqChain);
+          },
           order: () => ({ limit: async () => ({ data: rows, error: null }) }),
         }),
         insert: (payload: unknown) => {
@@ -34,15 +63,44 @@ function fakeSupabase(opts: {
             }),
           };
         },
+        upsert: (payload: unknown, opts?: { onConflict?: string }) => {
+          upserts.push({ table, payload, onConflict: opts?.onConflict });
+          return {
+            select: () => ({
+              single: async () => ({ data: { id: "new-1", ...(payload as object) }, error: null }),
+            }),
+          };
+        },
         update: (payload: unknown) => {
           updates.push({ table, payload });
+          return {
+            eq: () => {
+              // saveSessionProgress awaits .update().eq() directly, no
+              // .select() — everything else here chains .select() first.
+              const bare = Promise.resolve({ data: null, error: null });
+              return Object.assign(bare, {
+                select: (columns?: string) => {
+                  const promise = Promise.resolve({
+                    data: columns === "id" ? affected : { id: "1", ...(payload as object) },
+                    error: null,
+                  });
+                  return Object.assign(promise, {
+                    maybeSingle: async () => ({ data: { id: "1", ...(payload as object) }, error: null }),
+                  });
+                },
+              });
+            },
+          };
+        },
+        delete: () => {
+          deletes.push({ table });
           return { eq: () => ({ select: affectedRows }) };
         },
       };
     },
   };
 
-  return { db: db as never, inserts, updates };
+  return { db: db as never, inserts, upserts, updates, deletes };
 }
 
 describe("WorkoutsService", () => {
@@ -74,12 +132,16 @@ describe("WorkoutsService", () => {
     expect(inserts).toHaveLength(0);
   });
 
-  it("logSet derives coach_id/client_id from the parent session", async () => {
-    const { db, inserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
+  it("logSet derives coach_id/client_id from the parent session and upserts on the (session,item,set) key", async () => {
+    const { db, upserts } = fakeSupabase({
+      parent: { coach_id: "coach-1", client_id: "client-1" },
+      prescribed: { reps: 10, weight: 65 },
+    });
     await new WorkoutsService(db).logSet("session-1", { program_item_id: "item-1", set_index: 0, weight: 60, reps: 8 });
 
-    expect(inserts[0].table).toBe("workout_set_logs");
-    expect(inserts[0].payload).toEqual({
+    expect(upserts[0].table).toBe("workout_set_logs");
+    expect(upserts[0].onConflict).toBe("session_id,program_item_id,set_index");
+    expect(upserts[0].payload).toEqual({
       coach_id: "coach-1",
       client_id: "client-1",
       session_id: "session-1",
@@ -87,7 +149,43 @@ describe("WorkoutsService", () => {
       set_index: 0,
       weight: 60,
       reps: 8,
+      prescribed_reps: 10,
+      prescribed_weight: 65,
     });
+  });
+
+  it("logSet writes null prescribed_reps/prescribed_weight when no matching program_item_sets row exists", async () => {
+    const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" }, prescribed: null });
+    await new WorkoutsService(db).logSet("session-1", { program_item_id: "item-1", set_index: 0 });
+
+    expect(upserts[0].payload).toMatchObject({ prescribed_reps: null, prescribed_weight: null });
+  });
+
+  it("logSet returns null without upserting when the session isn't visible", async () => {
+    const { db, upserts } = fakeSupabase({ parent: null });
+    const result = await new WorkoutsService(db).logSet("session-1", { program_item_id: "item-1", set_index: 0 });
+
+    expect(result).toBeNull();
+    expect(upserts).toHaveLength(0);
+  });
+
+  it("updateSet updates the row by id", async () => {
+    const { db, updates } = fakeSupabase();
+    const result = await new WorkoutsService(db).updateSet("log-1", { weight: 62.5, reps: 9, rpe: 8 });
+
+    expect(updates[0].table).toBe("workout_set_logs");
+    expect(updates[0].payload).toEqual({ weight: 62.5, reps: 9, rpe: 8 });
+    expect(result).not.toBeNull();
+  });
+
+  it("deleteSet reports false when RLS matches no row", async () => {
+    const { db } = fakeSupabase({ affected: [] });
+    expect(await new WorkoutsService(db).deleteSet("log-1")).toBe(false);
+  });
+
+  it("deleteSet reports true when a row was actually deleted", async () => {
+    const { db } = fakeSupabase({ affected: [{ id: "log-1" }] });
+    expect(await new WorkoutsService(db).deleteSet("log-1")).toBe(true);
   });
 
   it("completeSession reports false when RLS matches no row", async () => {
@@ -98,6 +196,105 @@ describe("WorkoutsService", () => {
   it("completeSession reports true when a row was actually affected", async () => {
     const { db } = fakeSupabase({ affected: [{ id: "session-1" }] });
     expect(await new WorkoutsService(db).completeSession("session-1", 900)).toBe(true);
+  });
+
+  it("completeSession computes and persists total_volume/sets_completed/sets_prescribed from the session's logs and program", async () => {
+    const { db, updates } = fakeSupabase({
+      parent: { program_day_id: "day-1" },
+      affected: [{ id: "session-1" }],
+      setLogsForSummary: [
+        { weight: 60, reps: 8 },
+        { weight: 40, reps: 10 },
+      ],
+      itemsForSummary: [{ program_item_sets: [{ id: "s1" }, { id: "s2" }] }, { program_item_sets: [{ id: "s3" }] }],
+    });
+    await new WorkoutsService(db).completeSession("session-1", 900);
+
+    const sessionUpdate = updates.find((u) => u.table === "workout_sessions");
+    expect(sessionUpdate?.payload).toMatchObject({
+      total_volume: 880,
+      sets_completed: 2,
+      sets_prescribed: 3,
+    });
+  });
+
+  it("saveSessionProgress updates elapsed_seconds and current_item_id by session id", async () => {
+    const { db, updates } = fakeSupabase();
+    await new WorkoutsService(db).saveSessionProgress("session-1", 120, "item-1");
+
+    const progressUpdate = updates.find((u) => u.table === "workout_sessions");
+    expect(progressUpdate?.payload).toEqual({ elapsed_seconds: 120, current_item_id: "item-1" });
+  });
+
+  it("setExerciseResult derives coach_id/client_id from the parent session and upserts on (session,item)", async () => {
+    const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
+    await new WorkoutsService(db).setExerciseResult("session-1", "item-1", { status: "done" });
+
+    expect(upserts[0].table).toBe("workout_exercise_results");
+    expect(upserts[0].onConflict).toBe("session_id,program_item_id");
+    expect(upserts[0].payload).toEqual({
+      coach_id: "coach-1",
+      client_id: "client-1",
+      session_id: "session-1",
+      program_item_id: "item-1",
+      status: "done",
+    });
+  });
+
+  it("setExerciseResult returns null without upserting when the session isn't visible", async () => {
+    const { db, upserts } = fakeSupabase({ parent: null });
+    const result = await new WorkoutsService(db).setExerciseResult("session-1", "item-1", { status: "skipped" });
+
+    expect(result).toBeNull();
+    expect(upserts).toHaveLength(0);
+  });
+
+  it("listPainReports filters to pain > 0, most recent first", async () => {
+    const rows = [
+      { id: "r1", pain: 3, program_items: { exercises: { name_ar: "أ", name_en: "A" } } },
+      { id: "r2", pain: 1, program_items: { exercises: { name_ar: "ب", name_en: "B" } } },
+    ];
+    const db = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            gt: () => ({
+              order: () => ({
+                limit: async () => ({ data: rows, error: null }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
+    const result = await new WorkoutsService(db as never).listPainReports("client-1");
+    expect(result).toEqual(rows);
+  });
+
+  it("listSetLogsForClient resolves exercise_id via program_items, overridden by a swap", async () => {
+    const rows = [
+      { weight: 60, reps: 8, completed_at: "2026-01-01T10:00:00Z", substituted_exercise_id: null, program_items: { exercise_id: "ex-1" } },
+      { weight: 40, reps: 10, completed_at: "2026-01-02T10:00:00Z", substituted_exercise_id: "ex-swap", program_items: { exercise_id: "ex-2" } },
+      { weight: 20, reps: 12, completed_at: "2026-01-03T10:00:00Z", substituted_exercise_id: null, program_items: null },
+    ];
+    const db = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            order: async () => ({ data: rows, error: null }),
+            gte: () => ({ order: async () => ({ data: rows, error: null }) }),
+          }),
+        }),
+      }),
+    };
+
+    const result = await new WorkoutsService(db as never).listSetLogsForClient("client-1");
+    // Row with program_items null is dropped -- a log with no resolvable
+    // exercise_id (data integrity edge case) can't feed a per-exercise PR.
+    expect(result).toEqual([
+      { exercise_id: "ex-1", weight: 60, reps: 8, completed_at: "2026-01-01T10:00:00Z" },
+      { exercise_id: "ex-swap", weight: 40, reps: 10, completed_at: "2026-01-02T10:00:00Z" },
+    ]);
   });
 });
 

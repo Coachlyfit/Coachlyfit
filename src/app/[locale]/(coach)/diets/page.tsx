@@ -17,6 +17,7 @@ import { formatDate } from "@/lib/format";
 import { Link } from "@/i18n/navigation";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { CreateDietPlanDialog } from "./create-diet-plan-dialog";
+import { DietsTrashButton } from "./diets-trash-button";
 
 export default async function DietsPage({
   params,
@@ -39,7 +40,8 @@ export default async function DietsPage({
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={t("title")} />
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <DietsTrashButton locale={locale} />
         <CreateDietPlanDialog locale={locale} clients={clients ?? []} />
       </div>
 

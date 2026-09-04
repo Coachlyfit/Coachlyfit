@@ -13,12 +13,41 @@ export type VideoSheetExercise = {
   video_url: string | null;
   cues_ar?: string[] | null;
   cues_en?: string[] | null;
+  steps_ar?: string[] | null;
+  steps_en?: string[] | null;
+  mistakes_ar?: string[] | null;
+  mistakes_en?: string[] | null;
+  safety_ar?: string | null;
+  safety_en?: string | null;
+  tempo?: string | null;
 };
 
-function pickCues(exercise: VideoSheetExercise, locale: AppLocale): string[] {
-  const primary = locale === "ar" ? exercise.cues_ar : exercise.cues_en;
-  const fallback = locale === "ar" ? exercise.cues_en : exercise.cues_ar;
+function pickLocaleList(primary: string[] | null | undefined, fallback: string[] | null | undefined): string[] {
   return (primary?.length ? primary : fallback) ?? [];
+}
+
+function pickCues(exercise: VideoSheetExercise, locale: AppLocale): string[] {
+  return locale === "ar"
+    ? pickLocaleList(exercise.cues_ar, exercise.cues_en)
+    : pickLocaleList(exercise.cues_en, exercise.cues_ar);
+}
+
+function pickSteps(exercise: VideoSheetExercise, locale: AppLocale): string[] {
+  return locale === "ar"
+    ? pickLocaleList(exercise.steps_ar, exercise.steps_en)
+    : pickLocaleList(exercise.steps_en, exercise.steps_ar);
+}
+
+function pickMistakes(exercise: VideoSheetExercise, locale: AppLocale): string[] {
+  return locale === "ar"
+    ? pickLocaleList(exercise.mistakes_ar, exercise.mistakes_en)
+    : pickLocaleList(exercise.mistakes_en, exercise.mistakes_ar);
+}
+
+function pickSafety(exercise: VideoSheetExercise, locale: AppLocale): string | null {
+  const primary = locale === "ar" ? exercise.safety_ar : exercise.safety_en;
+  const fallback = locale === "ar" ? exercise.safety_en : exercise.safety_ar;
+  return primary || fallback || null;
 }
 
 /** The workout form-check sheet — shared by the workout runner (dark, full
@@ -44,6 +73,9 @@ export function ExerciseVideoSheet({
 
   const media = exercise ? resolveExerciseMedia(exercise.video_url) : null;
   const cues = exercise ? pickCues(exercise, locale) : [];
+  const steps = exercise ? pickSteps(exercise, locale) : [];
+  const mistakes = exercise ? pickMistakes(exercise, locale) : [];
+  const safety = exercise ? pickSafety(exercise, locale) : null;
 
   return (
     <Sheet
@@ -93,7 +125,47 @@ export function ExerciseVideoSheet({
 
             <div>
               <p className="text-[19px] font-semibold text-[#F8FAFC]">{pickLocale(exercise, locale)}</p>
+              {exercise.tempo && (
+                <p className="mt-1 font-mono text-[11px] text-[#64748B]">{t("tempo")} {exercise.tempo}</p>
+              )}
             </div>
+
+            {steps.length > 0 && (
+              <div>
+                <p className="font-mono text-[9.5px] tracking-wider text-[#64748B] uppercase">{t("executionSteps")}</p>
+                <ol className="mt-3 flex flex-col gap-3">
+                  {steps.map((step, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-primary font-mono text-[10px] font-semibold text-primary-foreground">
+                        {i + 1}
+                      </span>
+                      <p className="flex-1 text-[13.5px] leading-relaxed text-[#CBD5E1]">{step}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            {mistakes.length > 0 && (
+              <div>
+                <p className="font-mono text-[9.5px] tracking-wider text-[#64748B] uppercase">{t("commonMistakes")}</p>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {mistakes.map((mistake, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
+                      <p className="flex-1 text-[13px] leading-relaxed text-[#CBD5E1]">{mistake}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {safety && (
+              <div className="rounded-[11px] border border-destructive/30 bg-destructive/5 p-3">
+                <p className="font-mono text-[9.5px] tracking-wider text-destructive uppercase">{t("safetyNote")}</p>
+                <p className="mt-1.5 text-[13px] leading-relaxed whitespace-pre-line text-[#CBD5E1]">{safety}</p>
+              </div>
+            )}
 
             {cues.length > 0 && (
               <div>

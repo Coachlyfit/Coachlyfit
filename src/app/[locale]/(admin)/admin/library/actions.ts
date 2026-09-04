@@ -72,7 +72,13 @@ export async function createGlobalExerciseAction(
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
+  // steps_ar/en, mistakes_ar/en, primary_muscles/secondary_muscles are
+  // text[] on the service/DB side but the shared coach-side zod schema
+  // types them as a raw textarea string (line-per-item, converted via
+  // linesToArray at the coach action boundary) -- this admin form never
+  // collects them, so they're dropped here rather than converted.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to drop them from the service payload
+  const { video_url, image_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, primary_muscles, secondary_muscles, ...input } = parsed.data;
   try {
     await new LibraryService(supabase).createGlobalExercise({
       ...input,
@@ -136,7 +142,9 @@ export async function updateGlobalExerciseAction(
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { video_url, image_url, cues_ar, cues_en, ...input } = parsed.data;
+  // Same drop-not-convert reasoning as createGlobalExerciseAction above.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to drop them from the service payload
+  const { video_url, image_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, primary_muscles, secondary_muscles, ...input } = parsed.data;
   try {
     // admin_update_global is qualified `coach_id is null`, so an attempt to
     // edit a coach's private row matches 0 rows and lands here as false.

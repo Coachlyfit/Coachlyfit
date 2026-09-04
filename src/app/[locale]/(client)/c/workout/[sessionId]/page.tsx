@@ -1,7 +1,13 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { startOrResumeSessionAction, listSetLogsAction } from "@/domain/workouts/workouts-actions";
+import {
+  startOrResumeSessionAction,
+  listSetLogsAction,
+  listExerciseResultsAction,
+  getLastPerformanceAction,
+} from "@/domain/workouts/workouts-actions";
 import { weekIndexForDate } from "@/domain/programs/program-cycle";
+import { CLIENT_SAFE_ITEM_COLUMNS } from "@/domain/programs/programs.service";
 import type { AppLocale } from "@/domain/locale";
 import { WorkoutSessionClient } from "./workout-session-client";
 
@@ -19,7 +25,11 @@ export default async function WorkoutSessionPage({
   const { data: day } = await supabase
     .from("program_days")
     .select(
-      "*, programs(start_date), program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en), program_item_sets(*))"
+      // program_items is an explicit column list, not `*` — must never
+      // include coach_note_private (a coach-only prescription annotation)
+      // on a route the client's browser directly receives the response
+      // for. See CLIENT_SAFE_ITEM_COLUMNS's doc comment.
+      `*, programs(start_date), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*))`
     )
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })
@@ -31,7 +41,12 @@ export default async function WorkoutSessionPage({
   const session = await startOrResumeSessionAction(programDayId);
   if (!session) notFound();
 
-  const setLogs = await listSetLogsAction(session.id);
+  const [setLogs, exerciseResults] = await Promise.all([
+    listSetLogsAction(session.id),
+    listExerciseResultsAction(session.id),
+  ]);
+  const exerciseIds = day.program_items.map((item) => item.exercises.id);
+  const lastPerformance = await getLastPerformanceAction(exerciseIds);
   const today = new Date().toISOString().slice(0, 10);
   const week = day.programs ? weekIndexForDate(day.programs.start_date, today) : 1;
 
@@ -42,7 +57,10 @@ export default async function WorkoutSessionPage({
       week={week}
       sessionId={session.id}
       initialSetLogs={setLogs}
+      initialExerciseResults={exerciseResults}
+      lastPerformance={lastPerformance}
       alreadyCompleted={session.completed_at != null}
+      initialElapsedSeconds={session.elapsed_seconds}
     />
   );
 }

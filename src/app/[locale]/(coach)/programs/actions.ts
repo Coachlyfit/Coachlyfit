@@ -6,6 +6,7 @@ import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
 import { adjustmentSchema } from "../review/schemas";
+import { z } from "zod";
 import { createProgramSchema, daySchema, itemSchema, reorderSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
@@ -23,6 +24,7 @@ export async function createProgramAction(locale: string, formData: FormData): P
     name_en: formData.get("name_en"),
     start_date: formData.get("start_date") || "",
     end_date: formData.get("end_date") || "",
+    schedule_mode: formData.get("schedule_mode") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -48,6 +50,7 @@ export async function updateProgramAction(locale: string, id: string, formData: 
     name_en: formData.get("name_en"),
     start_date: formData.get("start_date") || "",
     end_date: formData.get("end_date") || "",
+    schedule_mode: formData.get("schedule_mode") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -57,18 +60,21 @@ export async function updateProgramAction(locale: string, id: string, formData: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { start_date, end_date, name_ar, name_en } = parsed.data;
+  const { start_date, end_date, name_ar, name_en, schedule_mode } = parsed.data;
   const updated = await new ProgramsService(supabase).update(id, {
     name_ar,
     name_en,
     start_date: start_date || undefined,
     end_date: end_date || null,
+    schedule_mode,
   });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
   revalidatePath(`/${locale}/programs/${id}`);
 }
 
+// Soft delete: archives instead of removing, so it can be undone from the
+// trash view. Hard delete only happens via the 30-day cron.
 export async function deleteProgramAction(locale: string, id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -76,9 +82,30 @@ export async function deleteProgramAction(locale: string, id: string): Promise<A
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const deleted = await new ProgramsService(supabase).remove(id);
-  if (!deleted) return { error: "not_found_or_forbidden" };
+  const archived = await new ProgramsService(supabase).archive(id);
+  if (!archived) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
+}
+
+export async function restoreProgramAction(locale: string, id: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const restored = await new ProgramsService(supabase).restore(id);
+  if (!restored) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+}
+
+export async function listArchivedProgramsAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  return new ProgramsService(supabase).listArchived();
 }
 
 // Deviates from the void-on-success convention by returning the new
@@ -106,6 +133,7 @@ export async function addDayAction(locale: string, programId: string, formData: 
     day_index: formData.get("day_index"),
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
+    weekday: formData.get("weekday") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -115,7 +143,9 @@ export async function addDayAction(locale: string, programId: string, formData: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const added = await new ProgramsService(supabase).addDay(programId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "add_day");
+  const added = await programs.addDay(programId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -130,6 +160,7 @@ export async function updateDayAction(
     day_index: formData.get("day_index") || undefined,
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
+    weekday: formData.get("weekday") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -139,7 +170,9 @@ export async function updateDayAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const updated = await new ProgramsService(supabase).updateDay(dayId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "update_day");
+  const updated = await programs.updateDay(dayId, parsed.data);
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -151,7 +184,9 @@ export async function deleteDayAction(locale: string, programId: string, dayId: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const deleted = await new ProgramsService(supabase).removeDay(dayId);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "delete_day");
+  const deleted = await programs.removeDay(dayId);
   if (!deleted) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -180,6 +215,8 @@ export async function addItemAction(
     progression_rule: formData.get("progression_rule") || undefined,
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
+    block: formData.get("block") || undefined,
+    coach_note_private: formData.get("coach_note_private") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -189,7 +226,9 @@ export async function addItemAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const added = await new ProgramsService(supabase).addItem(dayId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "add_item");
+  const added = await programs.addItem(dayId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -206,6 +245,8 @@ export async function updateItemAction(
     progression_rule: formData.get("progression_rule") || undefined,
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
+    block: formData.get("block") || undefined,
+    coach_note_private: formData.get("coach_note_private") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -215,7 +256,9 @@ export async function updateItemAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const updated = await new ProgramsService(supabase).updateItem(itemId, parsed.data);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "update_item");
+  const updated = await programs.updateItem(itemId, parsed.data);
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -227,8 +270,60 @@ export async function deleteItemAction(locale: string, programId: string, itemId
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const deleted = await new ProgramsService(supabase).removeItem(itemId);
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "delete_item");
+  const deleted = await programs.removeItem(itemId);
   if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function duplicateDayAction(locale: string, programId: string, dayId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "duplicate_day");
+  const duplicated = await programs.duplicateDay(dayId);
+  if (!duplicated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function duplicateItemAction(locale: string, programId: string, itemId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "duplicate_item");
+  const duplicated = await programs.duplicateItem(itemId);
+  if (!duplicated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function replaceItemExerciseAction(
+  locale: string,
+  programId: string,
+  itemId: string,
+  exerciseId: string
+): Promise<ActionResult> {
+  const parsed = z.string().uuid().safeParse(exerciseId);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "replace_exercise");
+  const replaced = await programs.replaceItemExercise(itemId, parsed.data);
+  if (!replaced) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
@@ -261,7 +356,81 @@ export async function reorderItemsAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  await new ProgramsService(supabase).reorderItems(dayId, parsed.data.ids);
+  try {
+    await new ProgramsService(supabase).reorderItems(dayId, parsed.data.ids);
+  } catch (err) {
+    // group_not_contiguous — the drag would split a superset/circuit's
+    // members apart; the builder should never construct such a drop in
+    // the first place, but this is the server-side backstop either way.
+    if (err instanceof Error && err.message === "group_not_contiguous") {
+      return { error: "group_not_contiguous" };
+    }
+    throw err;
+  }
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function groupItemsAction(
+  locale: string,
+  programId: string,
+  itemIds: string[],
+  kind: "superset" | "circuit"
+): Promise<ActionResult> {
+  const parsed = reorderSchema.safeParse({ ids: itemIds });
+  if (!parsed.success || parsed.data.ids.length < 2) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "group_items");
+  await programs.groupItems(parsed.data.ids, kind);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function ungroupItemsAction(locale: string, programId: string, itemIds: string[]): Promise<ActionResult> {
+  const parsed = reorderSchema.safeParse({ ids: itemIds });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "ungroup_items");
+  await programs.ungroupItems(parsed.data.ids);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function listRevisionsAction(programId: string) {
+  const supabase = await createClient();
+  return new ProgramsService(supabase).listRevisions(programId);
+}
+
+/** Restores a program to a prior snapshot -- snapshots the CURRENT state
+ * first (so restoring is itself undoable) before overwriting it, same
+ * "snapshot before you mutate" rule every other structural action here
+ * follows. */
+export async function restoreRevisionAction(
+  locale: string,
+  programId: string,
+  revisionId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "before_restore");
+  const restored = await programs.restoreRevision(revisionId);
+  if (!restored) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
