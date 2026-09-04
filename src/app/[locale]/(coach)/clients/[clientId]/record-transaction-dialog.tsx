@@ -34,6 +34,7 @@ export function RecordTransactionDialog({
 }) {
   const t = useTranslations("clients.billing.recordTransaction");
   const tErrors = useTranslations("clients.billing.errors");
+  const tCommon = useTranslations("common");
   const displayLocale = useLocale() as AppLocale;
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -166,8 +167,8 @@ export function RecordTransactionDialog({
             {proofError && <p className="text-sm text-destructive">{proofError}</p>}
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending || uploading}>
-            {t("submit")}
+          <Button type="submit" disabled={pending || uploading} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

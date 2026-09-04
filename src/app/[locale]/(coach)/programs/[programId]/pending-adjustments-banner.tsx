@@ -27,6 +27,7 @@ function AdjustmentRow({
   adjustment: StructuredAdjustment;
 }) {
   const t = useTranslations("programs.pendingAdjustments");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [applied, setApplied] = useState(false);
 
@@ -55,8 +56,8 @@ function AdjustmentRow({
         (applied ? (
           <span className="shrink-0 text-xs text-muted-foreground">{t("applied")}</span>
         ) : (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={onApply} className="shrink-0">
-            {t("apply")}
+          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={onApply} className="shrink-0 min-w-24">
+            {pending ? tCommon("pending") : t("apply")}
           </Button>
         ))}
     </div>

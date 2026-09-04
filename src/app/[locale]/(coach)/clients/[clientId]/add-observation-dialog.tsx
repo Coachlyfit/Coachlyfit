@@ -14,6 +14,7 @@ import { createObservationAction } from "../actions";
 export function AddObservationDialog({ locale, clientId }: { locale: string; clientId: string }) {
   const t = useTranslations("clients.observations");
   const tErrors = useTranslations("clients.errors");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -54,8 +55,8 @@ export function AddObservationDialog({ locale, clientId }: { locale: string; cli
           <Textarea {...register("body")} placeholder={t("placeholder")} rows={4} autoFocus />
           {errors.body && <p className="text-sm text-destructive">{errors.body.message}</p>}
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>

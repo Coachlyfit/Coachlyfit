@@ -50,6 +50,7 @@ export function AddDayDialog({
   const t = useTranslations("programs.dayDialog");
   const tBuilder = useTranslations("programs.builder");
   const tErrors = useTranslations("programs.errors");
+  const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -134,8 +135,8 @@ export function AddDayDialog({
           )}
           {errors.day_index && <p className="text-sm text-destructive">{errors.day_index.message}</p>}
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending}>
-            {t("submit")}
+          <Button type="submit" disabled={pending} className="min-w-24">
+            {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>
       </DialogContent>
