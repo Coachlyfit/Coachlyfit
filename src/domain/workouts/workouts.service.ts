@@ -13,6 +13,15 @@ export type LogSetInput = {
    * from what program_items prescribes. null/omitted = prescribed exercise,
    * same as before this field existed. */
   substituted_exercise_id?: string | null;
+  rpe?: number | null;
+  notes?: string | null;
+};
+
+export type UpdateSetInput = {
+  weight?: number | null;
+  reps?: number | null;
+  rpe?: number | null;
+  notes?: string | null;
 };
 
 export type SwapSummary = {
@@ -105,6 +114,14 @@ export class WorkoutsService {
     return data;
   }
 
+  /** Upserts on the (session_id, program_item_id, set_index) unique key
+   * (20260829000001_workout_set_logs_actuals.sql) rather than a plain
+   * insert -- a retry after a flaky connection or a resumed session on a
+   * second device overwrites the same set instead of duplicating it. The
+   * prescribed_reps/prescribed_weight snapshot is always read server-side
+   * from program_item_sets, never taken from the caller -- so editing a
+   * program's prescription later never rewrites what an already-logged set
+   * says it was prescribed against. */
   async logSet(sessionId: string, input: LogSetInput): Promise<WorkoutSetLog | null> {
     const { data: parent, error: parentError } = await this.db
       .from("workout_sessions")
@@ -114,13 +131,51 @@ export class WorkoutsService {
     if (parentError) throw parentError;
     if (!parent) return null;
 
+    const { data: prescribed } = await this.db
+      .from("program_item_sets")
+      .select("reps, weight")
+      .eq("program_item_id", input.program_item_id)
+      .eq("set_index", input.set_index)
+      .maybeSingle();
+
     const { data, error } = await this.db
       .from("workout_set_logs")
-      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, session_id: sessionId, ...input })
+      .upsert(
+        {
+          coach_id: parent.coach_id,
+          client_id: parent.client_id,
+          session_id: sessionId,
+          ...input,
+          prescribed_reps: prescribed?.reps ?? null,
+          prescribed_weight: prescribed?.weight ?? null,
+        },
+        { onConflict: "session_id,program_item_id,set_index" }
+      )
       .select()
       .single();
     if (error) throw error;
     return data;
+  }
+
+  /** Edits an already-logged set — the client mis-tapped a weight/rep, or
+   * wants to add an RPE/note after the fact. Scoped by RLS's client_own
+   * (for all); returns null on an RLS no-op rather than throwing, same
+   * convention as every other write in this service. */
+  async updateSet(logId: string, input: UpdateSetInput): Promise<WorkoutSetLog | null> {
+    const { data, error } = await this.db
+      .from("workout_set_logs")
+      .update(input)
+      .eq("id", logId)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteSet(logId: string): Promise<boolean> {
+    const { data, error } = await this.db.from("workout_set_logs").delete().eq("id", logId).select("id");
+    if (error) throw error;
+    return data.length > 0;
   }
 
   async listSetLogs(sessionId: string): Promise<WorkoutSetLog[]> {

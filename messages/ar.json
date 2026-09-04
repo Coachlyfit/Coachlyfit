@@ -726,7 +726,21 @@
       "insteadOf": "بدل: {name}",
       "searchExercises": "دوّر على تمرين...",
       "searching": "بدوّر...",
-      "noExercisesMatch": "مفيش تمارين مطابقة."
+      "noExercisesMatch": "مفيش تمارين مطابقة.",
+      "setEntry": {
+        "title": "تسجيل المجموعة",
+        "weight": "الوزن (كجم)",
+        "reps": "التكرارات",
+        "rpe": "معدل الجهد المُدرك",
+        "notesPlaceholder": "ملاحظات (اختياري)",
+        "decrease": "إنقاص",
+        "increase": "زيادة",
+        "delete": "حذف المجموعة",
+        "save": "حفظ",
+        "saving": "جارٍ الحفظ...",
+        "saveFailed": "تعذر حفظ هذه المجموعة. حاول مرة أخرى.",
+        "deleteFailed": "تعذر حذف هذه المجموعة. حاول مرة أخرى."
+      }
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",

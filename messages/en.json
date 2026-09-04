@@ -726,7 +726,21 @@
       "insteadOf": "Instead of: {name}",
       "searchExercises": "Search exercises...",
       "searching": "Searching...",
-      "noExercisesMatch": "No exercises match."
+      "noExercisesMatch": "No exercises match.",
+      "setEntry": {
+        "title": "Log set",
+        "weight": "Weight (kg)",
+        "reps": "Reps",
+        "rpe": "RPE",
+        "notesPlaceholder": "Notes (optional)",
+        "decrease": "Decrease",
+        "increase": "Increase",
+        "delete": "Delete set",
+        "save": "Save",
+        "saving": "Saving...",
+        "saveFailed": "Couldn't save that set. Try again.",
+        "deleteFailed": "Couldn't delete that set. Try again."
+      }
     },
     "checkin": {
       "backTitle": "Weekly check-in",

@@ -4,13 +4,20 @@ import { useEffect, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ChevronRight, ChevronLeft, Play } from "lucide-react";
+import { toast } from "sonner";
 import { Link } from "@/i18n/navigation";
 import { ApertureSweep } from "@/components/brand/aperture-sweep";
 import { ExerciseVideoSheet } from "@/components/workout/exercise-video-sheet";
 import { ExerciseSwapSheet, type SwapExercise } from "@/components/workout/exercise-swap-sheet";
+import { SetEntrySheet, type LoggedSetValues } from "@/components/workout/set-entry-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
-import { logSetAction, completeSessionAction } from "@/domain/workouts/workouts-actions";
+import {
+  logSetAction,
+  updateSetAction,
+  deleteSetAction,
+  completeSessionAction,
+} from "@/domain/workouts/workouts-actions";
 import { projectSetsForWeek, type ProgressionRule } from "@/domain/programs/progression";
 import { cn } from "@/lib/utils";
 
@@ -83,6 +90,8 @@ export function WorkoutSessionClient({
   const [restDuration, setRestDuration] = useState(90);
   const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(new Map());
   const [swapItem, setSwapItem] = useState<ProgramItem | null>(null);
+  const [activeSet, setActiveSet] = useState<{ item: ProgramItem; setIndex: number; prescribed: { reps: number; weight: number | null } } | null>(null);
+  const [savingSet, setSavingSet] = useState(false);
 
   function activeExercise(item: ProgramItem): SwapExercise {
     return swaps.get(item.id) ?? item.exercises;
@@ -116,21 +125,75 @@ export function WorkoutSessionClient({
     return () => clearInterval(id);
   }, [done]);
 
-  async function toggleSet(item: ProgramItem, setIndex: number, prescribedReps: number) {
+  function openSetEntry(item: ProgramItem, setIndex: number, prescribed: { reps: number; weight: number | null }) {
+    setActiveSet({ item, setIndex, prescribed });
+  }
+
+  async function saveActiveSet(values: LoggedSetValues) {
+    if (!activeSet) return;
+    const { item, setIndex, prescribed } = activeSet;
     const key = setKey(item.id, setIndex);
-    if (logs.has(key)) return; // sets are logged once, not un-toggled — matches server-authored history
-    const swap = swaps.get(item.id);
-    const log = await logSetAction(sessionId, {
-      program_item_id: item.id,
-      set_index: setIndex,
-      reps: prescribedReps,
-      substituted_exercise_id: swap ? swap.id : null,
-    });
-    if (!log) return;
-    setLogs((prev) => new Map(prev).set(key, log));
-    const duration = item.rest_seconds ?? 90;
-    setRestDuration(duration);
-    setRestS(duration);
+    const existing = logs.get(key);
+    setSavingSet(true);
+    try {
+      if (existing) {
+        const result = await updateSetAction(existing.id, values);
+        if ("error" in result) {
+          toast.error(t("setEntry.saveFailed"));
+          return;
+        }
+        setLogs((prev) => new Map(prev).set(key, result.log));
+      } else {
+        const swap = swaps.get(item.id);
+        const result = await logSetAction(sessionId, {
+          program_item_id: item.id,
+          set_index: setIndex,
+          weight: values.weight,
+          reps: values.reps ?? prescribed.reps,
+          rpe: values.rpe,
+          notes: values.notes,
+          substituted_exercise_id: swap ? swap.id : null,
+        });
+        if ("error" in result) {
+          toast.error(t("setEntry.saveFailed"));
+          return;
+        }
+        setLogs((prev) => new Map(prev).set(key, result.log));
+        const duration = item.rest_seconds ?? 90;
+        setRestDuration(duration);
+        setRestS(duration);
+      }
+      setActiveSet(null);
+    } finally {
+      setSavingSet(false);
+    }
+  }
+
+  async function deleteActiveSet() {
+    if (!activeSet) return;
+    const { item, setIndex } = activeSet;
+    const key = setKey(item.id, setIndex);
+    const existing = logs.get(key);
+    if (!existing) {
+      setActiveSet(null);
+      return;
+    }
+    setSavingSet(true);
+    try {
+      const result = await deleteSetAction(existing.id);
+      if ("error" in result) {
+        toast.error(t("setEntry.deleteFailed"));
+        return;
+      }
+      setLogs((prev) => {
+        const next = new Map(prev);
+        next.delete(key);
+        return next;
+      });
+      setActiveSet(null);
+    } finally {
+      setSavingSet(false);
+    }
   }
 
   async function onFinish() {
@@ -254,8 +317,7 @@ export function WorkoutSessionClient({
                   <button
                     key={i}
                     type="button"
-                    onClick={() => toggleSet(item, i, set.reps)}
-                    disabled={on}
+                    onClick={() => openSetEntry(item, i, { reps: set.reps, weight: set.weight ?? null })}
                     className={cn(
                       "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
                       showPrev ? "h-16" : "h-13",
@@ -320,6 +382,25 @@ export function WorkoutSessionClient({
           setSwapItem(null);
         }}
       />
+
+      {activeSet && (() => {
+        const key = setKey(activeSet.item.id, activeSet.setIndex);
+        const existing = logs.get(key);
+        const initial: LoggedSetValues = existing
+          ? { weight: existing.weight, reps: existing.reps, rpe: existing.rpe, notes: existing.notes }
+          : { weight: activeSet.prescribed.weight, reps: activeSet.prescribed.reps, rpe: null, notes: null };
+        return (
+          <SetEntrySheet
+            open={activeSet != null}
+            onOpenChange={(open) => !open && setActiveSet(null)}
+            formKey={key}
+            initial={initial}
+            onSave={saveActiveSet}
+            onDelete={existing ? deleteActiveSet : undefined}
+            saving={savingSet}
+          />
+        );
+      })()}
     </div>
   );
 }
