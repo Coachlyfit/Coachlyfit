@@ -742,7 +742,21 @@
         "deleteFailed": "Couldn't delete that set. Try again."
       },
       "restMinus15": "Subtract 15 seconds from rest",
-      "restPlus15": "Add 15 seconds to rest"
+      "restPlus15": "Add 15 seconds to rest",
+      "markDone": "Mark done",
+      "skipExercise": "Skip",
+      "exerciseDone": "Done",
+      "exerciseSkipped": "Skipped",
+      "feedback": {
+        "title": "How did that go?",
+        "difficulty": "Difficulty",
+        "pain": "Pain",
+        "energy": "Energy",
+        "notesPlaceholder": "Notes (optional)",
+        "skip": "Skip",
+        "save": "Save",
+        "saveFailed": "Couldn't save that. Try again."
+      }
     },
     "checkin": {
       "backTitle": "Weekly check-in",

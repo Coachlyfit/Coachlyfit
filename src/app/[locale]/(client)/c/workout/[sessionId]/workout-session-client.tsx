@@ -10,12 +10,14 @@ import { ApertureSweep } from "@/components/brand/aperture-sweep";
 import { ExerciseVideoSheet } from "@/components/workout/exercise-video-sheet";
 import { ExerciseSwapSheet, type SwapExercise } from "@/components/workout/exercise-swap-sheet";
 import { SetEntrySheet, type LoggedSetValues } from "@/components/workout/set-entry-sheet";
+import { ExerciseFeedbackSheet, type ExerciseFeedbackValues } from "@/components/workout/exercise-feedback-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
 import {
   logSetAction,
   updateSetAction,
   deleteSetAction,
+  setExerciseResultAction,
   completeSessionAction,
 } from "@/domain/workouts/workouts-actions";
 import { projectSetsForWeek, type ProgressionRule } from "@/domain/programs/progression";
@@ -65,6 +67,7 @@ export function WorkoutSessionClient({
   week,
   sessionId,
   initialSetLogs,
+  initialExerciseResults,
   lastPerformance,
   alreadyCompleted,
 }: {
@@ -75,6 +78,7 @@ export function WorkoutSessionClient({
   week: number;
   sessionId: string;
   initialSetLogs: WorkoutSetLog[];
+  initialExerciseResults: { program_item_id: string; status: string }[];
   /** Latest logged set per exercise_id, keyed as a plain object (server
    * actions can't return a Map) — see getLastPerformanceAction. Drives
    * suggestNextWeight and the set button's "prev" line, which reads real
@@ -100,6 +104,12 @@ export function WorkoutSessionClient({
   const [swapItem, setSwapItem] = useState<ProgramItem | null>(null);
   const [activeSet, setActiveSet] = useState<{ item: ProgramItem; setIndex: number; prescribed: { reps: number; weight: number | null } } | null>(null);
   const [savingSet, setSavingSet] = useState(false);
+  const [exerciseResults, setExerciseResults] = useState<Map<string, "done" | "skipped">>(() => {
+    const map = new Map<string, "done" | "skipped">();
+    for (const r of initialExerciseResults) map.set(r.program_item_id, r.status as "done" | "skipped");
+    return map;
+  });
+  const [feedbackItem, setFeedbackItem] = useState<ProgramItem | null>(null);
 
   function activeExercise(item: ProgramItem): SwapExercise {
     return swaps.get(item.id) ?? item.exercises;
@@ -215,6 +225,41 @@ export function WorkoutSessionClient({
     } finally {
       setSavingSet(false);
     }
+  }
+
+  function markDone(item: ProgramItem) {
+    setFeedbackItem(item);
+  }
+
+  async function skipExercise(item: ProgramItem) {
+    const result = await setExerciseResultAction(sessionId, item.id, { status: "skipped" });
+    if ("error" in result) {
+      toast.error(t("feedback.saveFailed"));
+      return;
+    }
+    setExerciseResults((prev) => new Map(prev).set(item.id, "skipped"));
+  }
+
+  async function saveExerciseFeedback(values: ExerciseFeedbackValues) {
+    if (!feedbackItem) return;
+    const result = await setExerciseResultAction(sessionId, feedbackItem.id, { status: "done", ...values });
+    if ("error" in result) {
+      toast.error(t("feedback.saveFailed"));
+      return;
+    }
+    setExerciseResults((prev) => new Map(prev).set(feedbackItem.id, "done"));
+    setFeedbackItem(null);
+  }
+
+  async function skipFeedback() {
+    if (!feedbackItem) return;
+    const result = await setExerciseResultAction(sessionId, feedbackItem.id, { status: "done" });
+    if ("error" in result) {
+      toast.error(t("feedback.saveFailed"));
+      return;
+    }
+    setExerciseResults((prev) => new Map(prev).set(feedbackItem.id, "done"));
+    setFeedbackItem(null);
   }
 
   async function onFinish() {
@@ -380,6 +425,32 @@ export function WorkoutSessionClient({
                 );
               })}
             </div>
+            <div className="mt-3 flex items-center gap-2">
+              {exerciseResults.get(item.id) === "done" && (
+                <span className="text-[11px] font-medium text-primary">{t("exerciseDone")}</span>
+              )}
+              {exerciseResults.get(item.id) === "skipped" && (
+                <span className="text-[11px] font-medium text-[#64748B]">{t("exerciseSkipped")}</span>
+              )}
+              {!exerciseResults.has(item.id) && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => markDone(item)}
+                    className="text-[11.5px] font-medium text-primary"
+                  >
+                    {t("markDone")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => skipExercise(item)}
+                    className="text-[11.5px] font-medium text-[#64748B]"
+                  >
+                    {t("skipExercise")}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           );
         })}
@@ -449,6 +520,13 @@ export function WorkoutSessionClient({
           />
         );
       })()}
+
+      <ExerciseFeedbackSheet
+        open={feedbackItem != null}
+        onOpenChange={(open) => !open && setFeedbackItem(null)}
+        onSave={saveExerciseFeedback}
+        onSkip={skipFeedback}
+      />
     </div>
   );
 }

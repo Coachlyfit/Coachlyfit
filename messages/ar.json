@@ -742,7 +742,21 @@
         "deleteFailed": "تعذر حذف هذه المجموعة. حاول مرة أخرى."
       },
       "restMinus15": "إنقاص 15 ثانية من الراحة",
-      "restPlus15": "إضافة 15 ثانية للراحة"
+      "restPlus15": "إضافة 15 ثانية للراحة",
+      "markDone": "إنهاء",
+      "skipExercise": "تخطي",
+      "exerciseDone": "تم",
+      "exerciseSkipped": "تم التخطي",
+      "feedback": {
+        "title": "كيف كان أداؤك؟",
+        "difficulty": "الصعوبة",
+        "pain": "الألم",
+        "energy": "الطاقة",
+        "notesPlaceholder": "ملاحظات (اختياري)",
+        "skip": "تخطي",
+        "save": "حفظ",
+        "saveFailed": "تعذر الحفظ. حاول مرة أخرى."
+      }
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",

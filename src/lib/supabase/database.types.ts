@@ -1805,6 +1805,77 @@ export type Database = {
           },
         ]
       }
+      workout_exercise_results: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          difficulty: number | null
+          energy: number | null
+          id: string
+          notes: string | null
+          pain: number | null
+          program_item_id: string
+          session_id: string
+          status: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          difficulty?: number | null
+          energy?: number | null
+          id?: string
+          notes?: string | null
+          pain?: number | null
+          program_item_id: string
+          session_id: string
+          status: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          difficulty?: number | null
+          energy?: number | null
+          id?: string
+          notes?: string | null
+          pain?: number | null
+          program_item_id?: string
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercise_results_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_results_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_results_program_item_id_fkey"
+            columns: ["program_item_id"]
+            isOneToOne: false
+            referencedRelation: "program_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_sessions: {
         Row: {
           client_id: string

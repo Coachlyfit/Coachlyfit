@@ -3,6 +3,7 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type WorkoutSession = Database["public"]["Tables"]["workout_sessions"]["Row"];
 type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
+type WorkoutExerciseResult = Database["public"]["Tables"]["workout_exercise_results"]["Row"];
 
 export type LogSetInput = {
   program_item_id: string;
@@ -28,6 +29,14 @@ export type LastPerformance = {
   weight: number | null;
   reps: number | null;
   rpe: number | null;
+};
+
+export type ExerciseResultInput = {
+  status: "done" | "skipped";
+  difficulty?: number | null;
+  pain?: number | null;
+  energy?: number | null;
+  notes?: string | null;
 };
 
 export type SwapSummary = {
@@ -219,6 +228,49 @@ export class WorkoutsService {
       byExercise.set(exerciseId, { weight: row.weight, reps: row.reps, rpe: row.rpe });
     }
     return byExercise;
+  }
+
+  /** Marks an exercise done or skipped for a session, optionally with
+   * post-exercise feedback (difficulty/pain/energy/notes). Upserts on the
+   * (session_id, program_item_id) unique key -- a client re-opening the
+   * feedback sheet to add a note after already marking "done" updates the
+   * same row rather than erroring on the constraint. Same
+   * derive-from-parent rule as logSet: coach_id/client_id always come from
+   * the session, never the caller. */
+  async setExerciseResult(sessionId: string, programItemId: string, input: ExerciseResultInput): Promise<WorkoutExerciseResult | null> {
+    const { data: parent, error: parentError } = await this.db
+      .from("workout_sessions")
+      .select("coach_id, client_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (parentError) throw parentError;
+    if (!parent) return null;
+
+    const { data, error } = await this.db
+      .from("workout_exercise_results")
+      .upsert(
+        {
+          coach_id: parent.coach_id,
+          client_id: parent.client_id,
+          session_id: sessionId,
+          program_item_id: programItemId,
+          ...input,
+        },
+        { onConflict: "session_id,program_item_id" }
+      )
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async listExerciseResults(sessionId: string): Promise<WorkoutExerciseResult[]> {
+    const { data, error } = await this.db
+      .from("workout_exercise_results")
+      .select("*")
+      .eq("session_id", sessionId);
+    if (error) throw error;
+    return data;
   }
 
   async completeSession(sessionId: string, durationSeconds: number): Promise<boolean> {

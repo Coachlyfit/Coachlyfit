@@ -173,6 +173,29 @@ describe("WorkoutsService", () => {
     const { db } = fakeSupabase({ affected: [{ id: "session-1" }] });
     expect(await new WorkoutsService(db).completeSession("session-1", 900)).toBe(true);
   });
+
+  it("setExerciseResult derives coach_id/client_id from the parent session and upserts on (session,item)", async () => {
+    const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
+    await new WorkoutsService(db).setExerciseResult("session-1", "item-1", { status: "done" });
+
+    expect(upserts[0].table).toBe("workout_exercise_results");
+    expect(upserts[0].onConflict).toBe("session_id,program_item_id");
+    expect(upserts[0].payload).toEqual({
+      coach_id: "coach-1",
+      client_id: "client-1",
+      session_id: "session-1",
+      program_item_id: "item-1",
+      status: "done",
+    });
+  });
+
+  it("setExerciseResult returns null without upserting when the session isn't visible", async () => {
+    const { db, upserts } = fakeSupabase({ parent: null });
+    const result = await new WorkoutsService(db).setExerciseResult("session-1", "item-1", { status: "skipped" });
+
+    expect(result).toBeNull();
+    expect(upserts).toHaveLength(0);
+  });
 });
 
 describe("groupSwapsBySession", () => {

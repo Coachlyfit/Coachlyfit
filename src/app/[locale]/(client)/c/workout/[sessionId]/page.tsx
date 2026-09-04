@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   startOrResumeSessionAction,
   listSetLogsAction,
+  listExerciseResultsAction,
   getLastPerformanceAction,
 } from "@/domain/workouts/workouts-actions";
 import { weekIndexForDate } from "@/domain/programs/program-cycle";
@@ -35,7 +36,10 @@ export default async function WorkoutSessionPage({
   const session = await startOrResumeSessionAction(programDayId);
   if (!session) notFound();
 
-  const setLogs = await listSetLogsAction(session.id);
+  const [setLogs, exerciseResults] = await Promise.all([
+    listSetLogsAction(session.id),
+    listExerciseResultsAction(session.id),
+  ]);
   const exerciseIds = day.program_items.map((item) => item.exercises.id);
   const lastPerformance = await getLastPerformanceAction(exerciseIds);
   const today = new Date().toISOString().slice(0, 10);
@@ -48,6 +52,7 @@ export default async function WorkoutSessionPage({
       week={week}
       sessionId={session.id}
       initialSetLogs={setLogs}
+      initialExerciseResults={exerciseResults}
       lastPerformance={lastPerformance}
       alreadyCompleted={session.completed_at != null}
     />
