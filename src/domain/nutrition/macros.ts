@@ -7,7 +7,8 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
  * (foods.kcal/protein_g/carb_g/fat_g) scaled by quantity — quantity is
  * always "how many of the food's own stored serving", so no unit
  * conversion happens here. */
-export function itemMacros(quantity: number, food: MacroFood): MacroTotals {
+export function itemMacros(quantity: number, food: MacroFood | null | undefined): MacroTotals {
+  if (!food) return { kcal: 0, protein_g: 0, carb_g: 0, fat_g: 0 };
   return {
     kcal: round1(food.kcal * quantity),
     protein_g: round1(food.protein_g * quantity),
@@ -28,7 +29,7 @@ function sum(totals: MacroTotals[]): MacroTotals {
   );
 }
 
-export type MealItemLike = { quantity: number; food: MacroFood };
+export type MealItemLike = { quantity: number; food: MacroFood | null | undefined };
 
 /** Total macros for one meal — the live donut in the meal panel. */
 export function mealMacros(items: MealItemLike[]): MacroTotals {

@@ -66,7 +66,7 @@ export default async function ClientDietPage({
                       <span>{pickLocale(item.foods, locale)}</span>
                       <span className="font-mono text-xs text-muted-foreground tabular-nums">
                         {t("quantityUnit", { quantity: item.quantity, unit: item.unit })} ·{" "}
-                        {Math.round(item.foods.kcal * item.quantity)}kcal
+                        {Math.round((item.foods?.kcal ?? 0) * item.quantity)}kcal
                       </span>
                     </li>
                   ))}

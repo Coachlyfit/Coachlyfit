@@ -89,7 +89,7 @@ function SortableFoodItem({
             {t("quantityUnit", { quantity: item.quantity, unit: item.unit })}
           </span>
           <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums">
-            {Math.round(item.foods.kcal * item.quantity)}kcal
+            {Math.round((item.foods?.kcal ?? 0) * item.quantity)}kcal
           </span>
         </div>
       </div>
