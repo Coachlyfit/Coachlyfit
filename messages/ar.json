@@ -1335,6 +1335,12 @@
       "global": "مكتبة التمارين",
       "mine": "تماريني"
     },
+    "foodSource": {
+      "label": "المصدر",
+      "all": "الكل",
+      "global": "مكتبة الأطعمة",
+      "mine": "أطعمتي"
+    },
     "emptyStates": {
       "clearFilter": "امسح الفلتر",
       "searchAll": "دوّر في كل التمارين",

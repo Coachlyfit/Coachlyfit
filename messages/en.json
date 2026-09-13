@@ -1335,6 +1335,12 @@
       "global": "Exercise Library",
       "mine": "My Exercises"
     },
+    "foodSource": {
+      "label": "Source",
+      "all": "All",
+      "global": "Food Library",
+      "mine": "My Foods"
+    },
     "emptyStates": {
       "clearFilter": "Clear filter",
       "searchAll": "Search all exercises",

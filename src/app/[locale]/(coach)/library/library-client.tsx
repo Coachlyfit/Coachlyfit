@@ -314,7 +314,11 @@ export function LibraryClient({
               placeholder={t("search")}
               className="w-full sm:w-56"
             />
-            <SourceFilter value={source} onChange={updateSource} />
+            <SourceFilter
+              value={source}
+              onChange={updateSource}
+              namespace={tab === "exercises" ? "library.source" : "library.foodSource"}
+            />
             {tab === "exercises" ? (
               <GroupFilter kind="exercises" value={groupExercise} onChange={updateGroupExercise} />
             ) : (
