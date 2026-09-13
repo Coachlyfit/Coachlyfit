@@ -79,7 +79,7 @@ export function TeamCard({ members }: { members: TeamMember[] }) {
   }
 
   return (
-    <Card className="max-w-md">
+    <Card>
       <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
         <CardTitle className="text-base">{t("title")}</CardTitle>
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -850,7 +850,6 @@
   },
   "inbox": {
     "title": "Inbox",
-    "empty": "No conversations yet.",
     "emptyThread": "No messages yet. Say hello.",
     "placeholder": "Type a message…",
     "send": "Send",
@@ -867,6 +866,27 @@
     "errors": {
       "invalid_input": "Please check the message and try again.",
       "no_recipients": "You don't have any active clients yet."
+    },
+    "search": "Search conversations…",
+    "filter": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "view": {
+      "label": "View",
+      "list": "List",
+      "grid": "Grid"
+    },
+    "unreadCount": "{count, plural, one {# unread} other {# unread}}",
+    "you": "You:",
+    "noMessages": "No messages yet",
+    "noResults": "No conversations match.",
+    "compose": {
+      "trigger": "New message",
+      "title": "New message",
+      "client": "Client",
+      "placeholder": "Type a message…",
+      "submit": "Send"
     }
   },
   "forms": {

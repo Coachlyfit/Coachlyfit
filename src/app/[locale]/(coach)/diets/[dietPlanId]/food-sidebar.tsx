@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { FOOD_CATEGORIES } from "@/domain/library/taxonomy";
 import type { DietPlanTree } from "@/domain/nutrition/diet-plans.service";
 import { searchFoodsAction } from "../../library/actions";
+import { FoodDialog } from "../../library/food-dialog";
 import { MealItemDialog } from "./meal-item-dialog";
 import type { PickedFood } from "./food-picker";
 
@@ -37,11 +40,14 @@ export function FoodSidebar({
   const t = useTranslations("diets.foodSidebar");
   const tBuilder = useTranslations("diets.builder");
   const tCategories = useTranslations("library.foodCategories");
+  const tLibrary = useTranslations("library.food");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [mealId, setMealId] = useState(meals[0]?.id ?? "");
   const [picked, setPicked] = useState<PickedFood | null>(null);
+  const [creating, setCreating] = useState(false);
   const debounced = useDebouncedValue(query, 300);
+  const queryClient = useQueryClient();
 
   const { data, isPending } = useQuery({
     queryKey: ["diets", "food-sidebar", debounced, category],
@@ -65,7 +71,18 @@ export function FoodSidebar({
           </option>
         ))}
       </select>
-      <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("searchPlaceholder")} />
+      <div className="flex items-center gap-2">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("searchPlaceholder")}
+          className="flex-1"
+        />
+        <Button type="button" variant="outline" size="sm" onClick={() => setCreating(true)}>
+          <Plus className="size-4" />
+          {tLibrary("add")}
+        </Button>
+      </div>
       <div className="flex flex-wrap gap-1">
         <button
           type="button"
@@ -92,7 +109,13 @@ export function FoodSidebar({
       <div className="flex max-h-80 flex-col gap-1 overflow-y-auto">
         {isPending && <p className="p-3 text-center text-sm text-muted-foreground">{t("loading")}</p>}
         {!isPending && foods?.length === 0 && (
-          <p className="p-3 text-center text-sm text-muted-foreground">{t("noResults")}</p>
+          <div className="flex flex-col items-center gap-2 p-3 text-center text-sm text-muted-foreground">
+            <p>{t("noResults")}</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setCreating(true)}>
+              <Plus className="size-4" />
+              {tLibrary("add")}
+            </Button>
+          </div>
         )}
         {foods?.map((food) => (
           <button
@@ -121,6 +144,19 @@ export function FoodSidebar({
           onOpenChange={(open) => !open && setPicked(null)}
         />
       )}
+
+      <FoodDialog
+        locale={locale}
+        mode="create"
+        hideTrigger
+        open={creating}
+        onOpenChange={setCreating}
+        onSaved={(created) => {
+          queryClient.invalidateQueries({ queryKey: ["diets", "food-sidebar"] });
+          queryClient.invalidateQueries({ queryKey: ["diets", "food-picker"] });
+          if (created) setPicked(created as unknown as PickedFood);
+        }}
+      />
     </div>
   );
 }

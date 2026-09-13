@@ -25,13 +25,17 @@ export function FoodDialog({
   open,
   onOpenChange,
   onSaved,
+  hideTrigger,
 }: {
   locale: AppLocale;
   mode: Mode;
   item?: Food;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onSaved: () => void;
+  onSaved: (created?: Food) => void;
+  /** Suppresses the built-in "create" trigger button for callers (e.g. the
+   * diet plan's food picker) that open this dialog from their own button. */
+  hideTrigger?: boolean;
 }) {
   const t = useTranslations("library.food");
   const tCommon = useTranslations("common");
@@ -88,13 +92,13 @@ export function FoodDialog({
         mode === "edit" && item
           ? await updateFoodAction(locale, item.id, formData)
           : await createFoodAction(locale, formData);
-      if (result?.error) {
+      if (result && "error" in result) {
         setFormError(result.error);
         return;
       }
       if (mode === "create") reset();
       setOpen(false);
-      onSaved();
+      onSaved(result && "food" in result ? (result.food as Food) : undefined);
     });
   });
 
@@ -104,7 +108,7 @@ export function FoodDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
-      {mode === "create" && (
+      {mode === "create" && !hideTrigger && (
         <DialogTrigger render={<Button size="sm" />}>
           <Plus className="size-4" />
           {t("add")}

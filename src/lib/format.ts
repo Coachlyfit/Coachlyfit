@@ -32,3 +32,36 @@ export function formatNumber(value: number, locale: AppLocale, options?: Intl.Nu
     ...options,
   });
 }
+
+// Each entry: the minimum diff (in seconds) to qualify for this unit, the
+// unit's own size in seconds (the divisor), and the Intl unit to report.
+// Checked largest-first so a 3-day-old message reports "3 days" rather than
+// falling through to hours.
+const RELATIVE_UNIT_BOUNDARIES: Array<{ minSeconds: number; unitSeconds: number; unit: Intl.RelativeTimeFormatUnit }> = [
+  { minSeconds: 60 * 60 * 24, unitSeconds: 60 * 60 * 24, unit: "day" },
+  { minSeconds: 60 * 60, unitSeconds: 60 * 60, unit: "hour" },
+  { minSeconds: 60, unitSeconds: 60, unit: "minute" },
+];
+
+/** "2h ago" style label for inbox previews. Falls back to formatDate's short
+ * form past a week — nobody needs "23 days ago" precision, they need the
+ * date. Same -EG locale + latn digits convention as formatDate/formatNumber. */
+export function formatRelativeTime(value: string | Date, locale: AppLocale): string {
+  const date = new Date(value);
+  const diffSeconds = Math.max(0, (Date.now() - date.getTime()) / 1000);
+  const relativeFormatter = new Intl.RelativeTimeFormat(rtfLocale(locale), { numeric: "auto" });
+
+  if (diffSeconds < 60) return relativeFormatter.format(0, "second");
+  if (diffSeconds >= 60 * 60 * 24 * 7) return formatDate(date, locale, { dateStyle: "short" });
+
+  for (const boundary of RELATIVE_UNIT_BOUNDARIES) {
+    if (diffSeconds >= boundary.minSeconds) {
+      return relativeFormatter.format(-Math.floor(diffSeconds / boundary.unitSeconds), boundary.unit);
+    }
+  }
+  return relativeFormatter.format(0, "second");
+}
+
+function rtfLocale(locale: AppLocale): string {
+  return locale === "ar" ? "ar-EG-u-nu-latn" : "en-EG-u-nu-latn";
+}

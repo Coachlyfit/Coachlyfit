@@ -65,7 +65,7 @@ export function PaymentMethodsCard({ methods }: { methods: PaymentMethod[] }) {
   }
 
   return (
-    <Card className="max-w-md">
+    <Card>
       <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
         <CardTitle className="text-base">{t("title")}</CardTitle>
         <Dialog open={open} onOpenChange={setOpen}>

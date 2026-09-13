@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { searchFoodsAction } from "../../library/actions";
+import { FoodDialog } from "../../library/food-dialog";
 
 export type PickedFood = {
   id: string;
@@ -32,8 +35,11 @@ export function FoodPicker({
   onSelect: (food: PickedFood) => void;
 }) {
   const t = useTranslations("diets.itemDialog");
+  const tLibrary = useTranslations("library.food");
   const [query, setQuery] = useState("");
+  const [creating, setCreating] = useState(false);
   const debounced = useDebouncedValue(query, 300);
+  const queryClient = useQueryClient();
 
   const { data, isPending } = useQuery({
     queryKey: ["diets", "food-picker", debounced],
@@ -43,17 +49,30 @@ export function FoodPicker({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <Input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder={t("searchPlaceholder")}
-      />
+      <div className="flex items-center gap-2">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("searchPlaceholder")}
+          className="flex-1"
+        />
+        <Button type="button" variant="outline" size="sm" onClick={() => setCreating(true)}>
+          <Plus className="size-4" />
+          {tLibrary("add")}
+        </Button>
+      </div>
       <div className="flex max-h-72 w-full flex-col gap-1 overflow-y-auto rounded-md border border-border p-1">
         {isPending && (
           <p className="p-3 text-center text-sm text-muted-foreground">{t("loading")}</p>
         )}
         {!isPending && foods?.length === 0 && (
-          <p className="p-3 text-center text-sm text-muted-foreground">{t("noResults")}</p>
+          <div className="flex flex-col items-center gap-2 p-3 text-center text-sm text-muted-foreground">
+            <p>{t("noResults")}</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setCreating(true)}>
+              <Plus className="size-4" />
+              {tLibrary("add")}
+            </Button>
+          </div>
         )}
         {foods?.map((food) => (
           <button
@@ -71,6 +90,19 @@ export function FoodPicker({
           </button>
         ))}
       </div>
+
+      <FoodDialog
+        locale={locale}
+        mode="create"
+        hideTrigger
+        open={creating}
+        onOpenChange={setCreating}
+        onSaved={(created) => {
+          queryClient.invalidateQueries({ queryKey: ["diets", "food-picker"] });
+          queryClient.invalidateQueries({ queryKey: ["diets", "food-sidebar"] });
+          if (created) onSelect(created as unknown as PickedFood);
+        }}
+      />
     </div>
   );
 }

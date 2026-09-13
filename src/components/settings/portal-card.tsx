@@ -73,7 +73,7 @@ export function PortalCard({ slug }: { slug: string }) {
   }
 
   return (
-    <Card className="max-w-md">
+    <Card>
       <CardHeader>
         <CardTitle className="text-base">{t("title")}</CardTitle>
       </CardHeader>
