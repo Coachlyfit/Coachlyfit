@@ -84,7 +84,7 @@ export default async function PrintDietPlanPage({
                         <td className="py-1.5 tabular-nums">
                           {item.quantity} {item.unit}
                         </td>
-                        <td className="py-1.5 tabular-nums">{Math.round(item.foods.kcal * item.quantity)}</td>
+                        <td className="py-1.5 tabular-nums">{Math.round((item.foods?.kcal ?? 0) * item.quantity)}</td>
                       </tr>
                     ))}
                   </tbody>
