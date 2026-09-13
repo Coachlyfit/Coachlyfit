@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { AdminSidebar } from "@/components/dashboard/admin-sidebar";
 import { AdminTopbar } from "@/components/dashboard/admin-topbar";
+import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 
 /** Mirrors the (coach) layout — same getUser()-not-getSession() reasoning,
  * same roleHome bounce. Note this guard does NOT cover the admin server
@@ -33,6 +34,7 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-dvh bg-background text-foreground">
+      <PresenceHeartbeat />
       <AdminSidebar />
       <div className="flex flex-1 flex-col">
         <AdminTopbar locale={locale} fullName={profile.full_name} />

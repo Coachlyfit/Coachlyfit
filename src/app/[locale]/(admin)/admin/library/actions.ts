@@ -1,37 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { LibraryService, type LibraryQuery, type LibraryPage } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { createExerciseSchema, createFoodSchema } from "@/app/[locale]/(coach)/library/schemas";
 import { linesToArray } from "@/app/[locale]/(coach)/library/lines-to-array";
 
 type ActionResult = { error: string } | void;
-
-/** The (admin) layout guard does NOT cover these — a server action is an
- * individually addressable POST endpoint. RLS and the definer functions are
- * the real authority; this just fails fast with a usable message. */
-async function requireAdmin(): Promise<
-  { supabase: SupabaseClient<Database>; error?: never } | { supabase?: never; error: string }
-> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (profile?.role !== "admin") return { error: "forbidden" };
-
-  return { supabase };
-}
 
 function emptyPage(params: LibraryQuery): LibraryPage<never> {
   return { rows: [], total: 0, page: params.page ?? 1, pageSize: params.pageSize ?? 24 };

@@ -4,10 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
 import { NotificationsService } from "@/domain/notifications/notifications.service";
+import { PresenceService } from "@/domain/presence/presence.service";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
 import { PageTitle } from "@/components/dashboard/page-title";
+import { AutoRefresh } from "@/components/dashboard/auto-refresh";
 import { Link } from "@/i18n/navigation";
+import { OnlineClients } from "./online-clients";
 
 const RECENT_SUBMISSIONS_LIMIT = 5;
 const RECENT_WINDOW_DAYS = 7;
@@ -40,6 +43,7 @@ export default async function DashboardPage({
     { data: recentSubmissions },
     { data: payments },
     { count: pendingReviewCount },
+    onlineClients,
   ] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", user!.id).single(),
     supabase.from("clients").select("id", { count: "exact", head: true }).neq("status", "archived"),
@@ -68,6 +72,7 @@ export default async function DashboardPage({
       .select("amount_egp")
       .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
     supabase.from("checkins").select("id", { count: "exact", head: true }).is("reviewed_at", null),
+    new PresenceService(supabase).list({ pageSize: 10 }),
   ]);
 
   const tier = subscription?.subscription_tiers;
@@ -80,8 +85,15 @@ export default async function DashboardPage({
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={t("welcome", { name: profile?.full_name ?? "" })} />
+      <AutoRefresh />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardContent className="pt-6">
+            <div className={kpiLabelClass()}>{t("kpi.online")}</div>
+            <p className="mt-2 text-3xl font-semibold tabular-nums text-success">{onlineClients.online}</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="pt-6">
             <div className={kpiLabelClass()}>{t("kpi.clients")}</div>
@@ -210,6 +222,8 @@ export default async function DashboardPage({
           )}
         </Card>
       </div>
+
+      <OnlineClients locale={locale} clients={onlineClients.rows} />
 
       {periodValue && (
         <p className="text-sm text-muted-foreground">

@@ -337,17 +337,17 @@ export function WorkoutSessionClient({
 
   if (done) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-[#0F172A] px-8 py-10 text-center text-[#E2E8F0]">
-        <ApertureSweep size={104} className="text-[#E2E8F0]" />
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-card px-8 py-10 text-center text-card-foreground">
+        <ApertureSweep size={104} className="text-card-foreground" />
         <div>
-          <p className="text-xl font-semibold text-[#F8FAFC]">{t("finishDone")}</p>
-          <p className="mt-2.5 max-w-xs text-[13.5px] leading-relaxed text-[#94A3B8]">
+          <p className="text-xl font-semibold text-foreground">{t("finishDone")}</p>
+          <p className="mt-2.5 max-w-xs text-[13.5px] leading-relaxed text-muted-foreground">
             {t("doneBody", { sets: doneCount, duration: mmss(elapsedS) })}
           </p>
         </div>
         <Link
           href="/c"
-          className="flex h-12 items-center rounded-[11px] border border-[#334155] px-7 text-sm font-semibold text-[#E2E8F0]"
+          className="flex h-12 items-center rounded-[11px] border border-border px-7 text-sm font-semibold text-foreground"
         >
           {t("close")}
         </Link>
@@ -356,23 +356,23 @@ export function WorkoutSessionClient({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#020617] text-[#E2E8F0]">
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 pt-14.5 pb-3.5">
+    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+      <div className="flex items-center gap-3 border-b border-border px-5 pt-14.5 pb-3.5">
         <button
           type="button"
           onClick={() => router.push("/c")}
           aria-label={t("close")}
-          className="flex size-11 -ms-3 shrink-0 items-center justify-center text-[#94A3B8]"
+          className="flex size-11 -ms-3 shrink-0 items-center justify-center text-muted-foreground"
         >
           <BackIcon className="size-5" aria-hidden="true" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold text-[#F8FAFC]">
+          <p className="truncate text-base font-semibold text-foreground">
             {day.label_ar || day.label_en ? pickLocale(day, locale, "label") : t("todayWorkout")}
           </p>
-          <p className="mt-0.5 font-mono text-[10.5px] text-[#64748B]">{t("setsDone", { done: doneCount, total: totalSets })}</p>
+          <p className="mt-0.5 font-mono text-[10.5px] text-muted-foreground">{t("setsDone", { done: doneCount, total: totalSets })}</p>
         </div>
-        <p className="shrink-0 font-mono text-[17px] font-semibold text-[#EA580C]">{mmss(elapsedS)}</p>
+        <p className="shrink-0 font-mono text-[17px] font-semibold text-primary">{mmss(elapsedS)}</p>
       </div>
 
       {restTimer.isResting && (
@@ -416,7 +416,7 @@ export function WorkoutSessionClient({
           return (
           <div key={group[0].id} className="flex flex-col gap-2.5">
             {showBlockHeader && (
-              <p className="mt-1 px-1 text-[13px] font-semibold text-[#F8FAFC] first:mt-0">
+              <p className="mt-1 px-1 text-[13px] font-semibold text-foreground first:mt-0">
                 {t(`blockKind.${group[0].block}`)}
               </p>
             )}
@@ -436,19 +436,19 @@ export function WorkoutSessionClient({
           const prevSets = prevByItem?.get(item.id) ?? null;
           const groupLabel = group.length > 1 ? `${String.fromCharCode(65 + groupIdx)}${positionInGroup + 1}` : null;
           return (
-          <div key={item.id} className="rounded-2xl bg-[#0F172A] p-4">
+          <div key={item.id} className="rounded-2xl bg-card p-4">
             <div className="mb-3.5 flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setVideoExercise(activeExercise(item))}
-                className="relative flex size-none h-13.5 w-19.5 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-[repeating-linear-gradient(135deg,#131C2F_0_7px,#1B2437_7px_14px)]"
+                className="relative flex size-none h-13.5 w-19.5 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-muted"
               >
-                <span className="flex size-7 items-center justify-center rounded-full bg-[#F8FAFC]/95">
-                  <Play className="size-3 fill-[#0F172A] text-[#0F172A] ms-0.5" aria-hidden="true" />
+                <span className="flex size-7 items-center justify-center rounded-full bg-card/95">
+                  <Play className="size-3 fill-card-foreground text-card-foreground ms-0.5" aria-hidden="true" />
                 </span>
               </button>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[14.5px] font-semibold text-[#F8FAFC]">
+                <p className="truncate text-[14.5px] font-semibold text-card-foreground">
                   {groupLabel && (
                     <span className="me-1.5 rounded bg-primary/20 px-1.5 py-0.5 font-mono text-[10px] font-bold text-primary">
                       {groupLabel}
@@ -457,12 +457,12 @@ export function WorkoutSessionClient({
                   {pickLocale(activeExercise(item), locale)}
                 </p>
                 {swaps.has(item.id) && (
-                  <p className="mt-0.5 truncate text-[10px] text-[#64748B]">
+                  <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
                     {t("insteadOf", { name: pickLocale(item.exercises, locale) })}
                   </p>
                 )}
                 <div className="mt-1 flex items-center gap-2.5">
-                  <span className="font-mono text-[11px] text-[#64748B]">
+                  <span className="font-mono text-[11px] text-muted-foreground">
                     {displaySets.length} × {repsRangeLabel(displaySets)}
                   </span>
                   {activeExercise(item).video_url && (
@@ -477,7 +477,7 @@ export function WorkoutSessionClient({
                   <button
                     type="button"
                     onClick={() => setSwapItem(item)}
-                    className="text-[11.5px] font-medium text-[#64748B]"
+                    className="text-[11.5px] font-medium text-muted-foreground"
                   >
                     {t("swap")}
                   </button>
@@ -503,7 +503,7 @@ export function WorkoutSessionClient({
                     className={cn(
                       "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
                       showPrev ? "h-16" : "h-13",
-                      on ? "border-primary bg-primary text-primary-foreground" : "border-[#1E293B] text-[#64748B]"
+                      on ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"
                     )}
                   >
                     <span className="font-mono text-sm font-semibold">
@@ -524,7 +524,7 @@ export function WorkoutSessionClient({
                 <span className="text-[11px] font-medium text-primary">{t("exerciseDone")}</span>
               )}
               {exerciseResults.get(item.id) === "skipped" && (
-                <span className="text-[11px] font-medium text-[#64748B]">{t("exerciseSkipped")}</span>
+                <span className="text-[11px] font-medium text-muted-foreground">{t("exerciseSkipped")}</span>
               )}
               {!exerciseResults.has(item.id) && (
                 <>
@@ -538,7 +538,7 @@ export function WorkoutSessionClient({
                   <button
                     type="button"
                     onClick={() => skipExercise(item)}
-                    className="text-[11.5px] font-medium text-[#64748B]"
+                    className="text-[11.5px] font-medium text-muted-foreground"
                   >
                     {t("skipExercise")}
                   </button>
@@ -558,7 +558,7 @@ export function WorkoutSessionClient({
           onClick={onFinish}
           className={cn(
             "mt-1.5 h-12.5 w-full rounded-[11px] text-[15px] font-semibold",
-            allDone ? "bg-primary text-primary-foreground" : "bg-[#1E293B] text-[#94A3B8]"
+            allDone ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
           )}
         >
           {allDone ? t("finishDone") : t("finish")}

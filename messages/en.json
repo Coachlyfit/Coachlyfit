@@ -46,7 +46,8 @@
     "coach": "Coach",
     "inbox": "Inbox",
     "diets": "Nutrition",
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "online": "Online"
   },
   "palette": {
     "navigation": "Navigation",
@@ -426,7 +427,9 @@
       "phone": "Mobile number",
       "otpLabel": "The code you received",
       "otpSend": "Send code",
-      "otpSubmit": "Confirm and continue"
+      "otpSubmit": "Confirm and continue",
+      "closedTitle": "Signups are paused",
+      "closedBody": "New signups are temporarily closed. Please check back soon."
     },
     "checkEmail": {
       "title": "Check your email",
@@ -443,7 +446,18 @@
       "otp_invalid": "That code isn't right. Please try again.",
       "otp_expired": "This code has expired. Request a new one.",
       "phone_taken": "An account with this number already exists.",
-      "reset_link_expired": "That reset link has expired. Request a new one."
+      "reset_link_expired": "That reset link has expired. Request a new one.",
+      "signups_closed": "New signups are temporarily closed."
+    },
+    "maintenance": {
+      "title": "Down for maintenance",
+      "body": "We're doing some quick maintenance. Please check back shortly.",
+      "signOut": "Sign out"
+    },
+    "suspended": {
+      "title": "Account suspended",
+      "body": "Your account has been suspended. Contact {email} for help.",
+      "signOut": "Sign out"
     }
   },
   "dashboard": {
@@ -461,9 +475,15 @@
     },
     "kpi": {
       "clients": "Active clients",
+      "online": "Online now",
       "submissions": "Recent submissions",
       "submissionsWindow": "Last 7 days",
       "mrr": "MRR · EGP"
+    },
+    "online": {
+      "title": "Online now",
+      "empty": "No clients online right now.",
+      "never": "Never"
     },
     "pendingReview": "{count} check-ins waiting for review",
     "queue": {
@@ -1406,6 +1426,22 @@
   },
   "admin": {
     "title": "Admin",
+    "online": {
+      "title": "Online users",
+      "online": "Online now",
+      "offline": "Offline",
+      "total": "Total users",
+      "search": "Search by name",
+      "unassigned": "Unassigned",
+      "never": "Never",
+      "empty": "No clients here.",
+      "noResults": "No matches for your search.",
+      "table": {
+        "name": "Name",
+        "status": "Status",
+        "lastSeen": "Last seen"
+      }
+    },
     "impersonation": {
       "action": "Impersonate",
       "confirmTitle": "Impersonate this coach?",
@@ -1540,6 +1576,70 @@
       "table": {
         "body": "Feedback",
         "date": "Date"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "saved": "Saved.",
+      "save": "Save",
+      "tabs": {
+        "general": "General",
+        "platform": "Platform",
+        "plans": "Plans",
+        "users": "Users"
+      },
+      "general": {
+        "brandingTitle": "Branding",
+        "appNameAr": "App name (Arabic)",
+        "appNameEn": "App name (English)",
+        "supportEmail": "Support email",
+        "invalidEmail": "Enter a valid email.",
+        "announcementTitle": "Announcement banner",
+        "announcementEnabled": "Show banner",
+        "announcementTextAr": "Banner text (Arabic)",
+        "announcementTextEn": "Banner text (English)"
+      },
+      "platform": {
+        "togglesTitle": "Platform toggles",
+        "maintenanceMode": "Maintenance mode",
+        "maintenanceModeHint": "Blocks coaches and clients from the app. Admins are unaffected.",
+        "signupsEnabled": "Signups open",
+        "signupsEnabledHint": "Turn off to hide new signups.",
+        "billingTitle": "Trial length",
+        "trialDays": "Trial days"
+      },
+      "plans": {
+        "saved": "Plan saved.",
+        "save": "Save",
+        "nameAr": "Name (Arabic)",
+        "nameEn": "Name (English)",
+        "price": "Price (EGP/month)",
+        "maxClients": "Max clients",
+        "isActive": "Active",
+        "features": {
+          "forms_builder": "Forms builder",
+          "custom_library": "Custom library",
+          "priority_support": "Priority support",
+          "white_label": "White label"
+        }
+      },
+      "users": {
+        "searchPlaceholder": "Search by name, email or phone",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "role": "Role",
+        "suspended": "Suspended",
+        "roleAdmin": "Admin",
+        "roleCoach": "Coach",
+        "roleClient": "Client",
+        "you": "You"
+      },
+      "errors": {
+        "invalid_input": "Please check the form and try again.",
+        "forbidden": "You don't have access to do that.",
+        "update_failed": "Couldn't save. Try again.",
+        "not_authenticated": "You don't have access to do that."
       }
     }
   },
