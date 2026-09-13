@@ -115,14 +115,22 @@ export class WorkoutsService {
     return data;
   }
 
-  /** The in-progress or most recently completed session for a program_day,
-   * so the workout screen can resume with already-toggled sets rather than
-   * starting a duplicate session if the client backgrounds the app. */
-  async getSessionForDay(programDayId: string): Promise<WorkoutSession | null> {
+  /** The in-progress or most recently completed session for a program_day
+   * within [weekStartIso, weekStartIso + 7 days), so the workout screen can
+   * resume with already-toggled sets rather than starting a duplicate
+   * session if the client backgrounds the app -- scoped to the calendar
+   * week because program_day_id repeats every cycle (cycle/weekly schedule
+   * modes both reuse the same program_days row across weeks, see
+   * program-cycle.ts), so an unscoped lookup would resurface a completed
+   * session from a previous week as still "done" and block re-logging. */
+  async getSessionForDay(programDayId: string, weekStartIso: string): Promise<WorkoutSession | null> {
+    const weekEndIso = new Date(new Date(weekStartIso).getTime() + 7 * 86_400_000).toISOString();
     const { data, error } = await this.db
       .from("workout_sessions")
       .select("*")
       .eq("program_day_id", programDayId)
+      .gte("started_at", `${weekStartIso}T00:00:00.000Z`)
+      .lt("started_at", weekEndIso)
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
