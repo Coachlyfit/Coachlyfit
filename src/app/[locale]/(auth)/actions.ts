@@ -4,7 +4,14 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
-import { loginSchema, signupCoachSchema, phoneSchema, verifyOtpSchema } from "./schemas";
+import {
+  loginSchema,
+  signupCoachSchema,
+  phoneSchema,
+  verifyOtpSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "./schemas";
 
 // redirect() throws rather than returning, so every success path ends in
 // `void` here and only the failure paths produce a value.
@@ -120,4 +127,36 @@ export async function verifyOtpAction(locale: string, formData: FormData): Promi
   if (error || !data.user) return { error: "otp_invalid" };
 
   redirect(roleHome(locale, "coach"));
+}
+
+/** Always redirects to the same "check your email" state whether or not the
+ * address has an account — resetPasswordForEmail's own error (e.g. address
+ * not found) must not be surfaced, or the form becomes an account-existence
+ * oracle. */
+export async function forgotPasswordAction(locale: string, formData: FormData): Promise<ActionResult> {
+  const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${appUrl}/auth/confirm?next=/${locale}/reset-password`,
+  });
+
+  redirect(`/${locale}/forgot-password/check-email`);
+}
+
+/** Requires the recovery session that /auth/confirm establishes before
+ * landing here — updateUser fails with no session, which the form surfaces
+ * as update_failed. */
+export async function resetPasswordAction(locale: string, formData: FormData): Promise<ActionResult> {
+  const parsed = resetPasswordSchema.safeParse({ password: formData.get("password") });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error || !data.user) return { error: "update_failed" };
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
+  redirect(roleHome(locale, profile?.role));
 }

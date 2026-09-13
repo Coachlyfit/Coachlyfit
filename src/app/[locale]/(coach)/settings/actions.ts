@@ -67,3 +67,21 @@ export async function updateEmailNotificationsAction(locale: string, enabled: bo
 
   revalidatePath(`/${locale}/settings`);
 }
+
+const emailSchema = z.string().email();
+
+/** Doesn't change the session email immediately — Supabase sends a
+ * confirmation link to the new address first, and the change only takes
+ * effect once that's clicked (routing back through /auth/confirm). */
+export async function changeEmailAction(locale: string, email: string): Promise<ActionResult> {
+  const parsed = emailSchema.safeParse(email);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const { error } = await supabase.auth.updateUser(
+    { email: parsed.data },
+    { emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/settings` }
+  );
+  if (error) return { error: "update_failed" };
+}

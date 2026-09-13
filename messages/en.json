@@ -391,7 +391,25 @@
       "password": "Password",
       "submit": "Log in",
       "noAccount": "Don't have an account?",
-      "signUpLink": "Start your free trial"
+      "signUpLink": "Start your free trial",
+      "forgotPassword": "Forgot password?"
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send you a link to reset it.",
+      "email": "Email",
+      "submit": "Send reset link",
+      "backToLogin": "Back to log in",
+      "checkEmail": {
+        "title": "Check your email",
+        "body": "If an account exists for that address, we've sent a link to reset your password."
+      }
+    },
+    "resetPassword": {
+      "title": "Choose a new password",
+      "subtitle": "Enter a new password for your account.",
+      "password": "New password",
+      "submit": "Save password"
     },
     "signup": {
       "title": "Start your free trial",
@@ -424,7 +442,8 @@
       "otp_send_failed": "Couldn't send the code. Please try again.",
       "otp_invalid": "That code isn't right. Please try again.",
       "otp_expired": "This code has expired. Request a new one.",
-      "phone_taken": "An account with this number already exists."
+      "phone_taken": "An account with this number already exists.",
+      "reset_link_expired": "That reset link has expired. Request a new one."
     }
   },
   "dashboard": {
@@ -463,6 +482,12 @@
     "businessName": "Business name",
     "email": "Email",
     "locale": "Interface language",
+    "changeEmail": {
+      "label": "Email",
+      "change": "Change",
+      "save": "Save",
+      "checkNewEmail": "Check your new inbox to confirm the change."
+    },
     "signOut": "Sign out",
     "checkinTemplateTitle": "Automatic check-in",
     "checkinTemplateHint": "When a plan's duration ends, automatically send the client this form.",

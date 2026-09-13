@@ -13,6 +13,7 @@ import { CustomMetricsCard } from "@/components/settings/custom-metrics-card";
 import { TeamCard } from "@/components/settings/team-card";
 import { PortalCard } from "@/components/settings/portal-card";
 import { EmailNotificationsToggle } from "@/components/settings/email-notifications-toggle";
+import { ChangeEmailForm } from "@/components/settings/change-email-form";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
 import { TeamService } from "@/domain/team/team.service";
@@ -75,10 +76,7 @@ export default async function SettingsPage({
               <span className="text-sm text-muted-foreground">{t("businessName")}</span>
               <span className="text-sm font-medium">{coach?.business_name}</span>
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">{t("email")}</span>
-              <span className="text-sm font-medium">{user?.email}</span>
-            </div>
+            <ChangeEmailForm currentEmail={user?.email ?? ""} />
             <EmailNotificationsToggle locale={locale} enabled={profile?.email_notifications ?? true} />
             <form action={signOutAction.bind(null, locale)}>
               <Button type="submit" variant="outline" className="w-full">

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link } from "@/i18n/navigation";
 import { loginSchema, type LoginInput } from "../schemas";
 import { signInAction } from "../actions";
 
@@ -44,7 +45,12 @@ export function LoginForm({ locale }: { locale: string }) {
         )}
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">{t("password")}</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">{t("password")}</Label>
+          <Link href="/forgot-password" className="text-xs text-muted-foreground underline underline-offset-4">
+            {t("forgotPassword")}
+          </Link>
+        </div>
         <Input
           id="password"
           type="password"
