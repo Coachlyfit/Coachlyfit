@@ -6,14 +6,10 @@ import { createHash, randomBytes } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
+import { createRlsUser, trackRlsUser } from "./rls-test-helpers";
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-const admin = createClient<Database>(URL, SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
 
 function anonClient() {
   return createClient<Database>(URL, ANON_KEY, {
@@ -22,20 +18,12 @@ function anonClient() {
 }
 
 async function createCoach(tag: string) {
-  const email = `invite-coach-${tag}-${Date.now()}@example.test`;
-  const password = "correct horse battery staple";
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { role: "coach", full_name: `Coach ${tag}`, business_name: `${tag} Gym`, locale: "ar" },
+  return createRlsUser(`invite-coach-${tag}`, {
+    role: "coach",
+    full_name: `Coach ${tag}`,
+    business_name: `${tag} Gym`,
+    locale: "ar",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-
-  const client = anonClient();
-  const signIn = await client.auth.signInWithPassword({ email, password });
-  if (signIn.error) throw signIn.error;
-  return { userId: data.user.id, client };
 }
 
 /** Mirrors InvitesService.createInvite (src/domain/clients/invites.service.ts)
@@ -88,6 +76,7 @@ describe("invite acceptance", () => {
       password,
       options: { data: { role: "client", full_name: "Karim", locale: "ar" } },
     });
+    if (signUp.data.user) trackRlsUser(signUp.data.user.id);
     expect(signUp.error).toBeNull();
     expect(signUp.data.session).not.toBeNull(); // confirmations off locally
 
@@ -117,20 +106,22 @@ describe("invite acceptance", () => {
     const { token } = await createInvite(coachA.client, coachA.userId, "Nour");
 
     const first = anonClient();
-    await first.auth.signUp({
+    const firstSignUp = await first.auth.signUp({
       email: `nour-${Date.now()}@example.test`,
       password: "correct horse battery staple",
       options: { data: { role: "client", full_name: "Nour", locale: "ar" } },
     });
+    if (firstSignUp.data.user) trackRlsUser(firstSignUp.data.user.id);
     const firstAccept = await first.rpc("accept_invite", { p_token: token });
     expect(firstAccept.error).toBeNull();
 
     const second = anonClient();
-    await second.auth.signUp({
+    const secondSignUp = await second.auth.signUp({
       email: `nour-2nd-${Date.now()}@example.test`,
       password: "correct horse battery staple",
       options: { data: { role: "client", full_name: "Nour Impostor", locale: "ar" } },
     });
+    if (secondSignUp.data.user) trackRlsUser(secondSignUp.data.user.id);
     const secondAccept = await second.rpc("accept_invite", { p_token: token });
     expect(secondAccept.error).not.toBeNull();
   });

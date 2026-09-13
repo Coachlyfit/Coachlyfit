@@ -1,52 +1,22 @@
 // The single most important test in this codebase: every coach-scoped
 // table must return zero rows for a foreign tenant, and reject writes that
 // try to cross the boundary. Runs against the local Supabase stack
-// (`supabase start`) via the anon + service_role keys in .env.local.
+// (`supabase start`) via the anon + service_role keys in .env.test.local.
 //
 // A coach-scoped table added without a case here is, per the build plan,
 // treated as unfinished.
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
-
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-if (!URL || !ANON_KEY || !SERVICE_KEY) {
-  throw new Error(
-    "Missing Supabase env vars for the RLS suite — run `supabase start` and check .env.local."
-  );
-}
-
-const admin = createClient<Database>(URL, SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+import { rlsAdmin as admin, createRlsUser } from "./rls-test-helpers";
 
 async function createCoach(tag: string) {
-  const email = `coach-${tag}-${Date.now()}@example.test`;
-  const password = "correct horse battery staple";
-
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: {
-      role: "coach",
-      full_name: `Coach ${tag}`,
-      business_name: `${tag} Fitness`,
-      locale: "ar",
-    },
+  return createRlsUser(`coach-${tag}`, {
+    role: "coach",
+    full_name: `Coach ${tag}`,
+    business_name: `${tag} Fitness`,
+    locale: "ar",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-
-  const client = createClient<Database>(URL, ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const signIn = await client.auth.signInWithPassword({ email, password });
-  if (signIn.error) throw signIn.error;
-
-  return { userId: data.user.id, client };
 }
 
 /** Links an already-authenticated user as a client of `coachId`, bypassing

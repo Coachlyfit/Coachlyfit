@@ -3,55 +3,31 @@
 // permits. These tests are the actual guarantee behind "a coach never sees
 // another coach's exercises" and "an admin can curate global rows without
 // getting write access to every coach's private ones".
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
 import { LibraryService } from "@/domain/library/library.service";
-
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-const service = createClient<Database>(URL, SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
-
-async function signIn(email: string, password: string) {
-  const client = createClient<Database>(URL, ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return client;
-}
-
-const PASSWORD = "correct horse battery staple";
+import { rlsAdmin as service, createRlsUser } from "./rls-test-helpers";
 
 async function createCoach(tag: string) {
-  const email = `source-coach-${tag}-${Date.now()}@example.test`;
-  const { data, error } = await service.auth.admin.createUser({
-    email,
-    password: PASSWORD,
-    email_confirm: true,
-    user_metadata: { role: "coach", full_name: `Coach ${tag}`, business_name: `${tag} Gym`, locale: "en" },
+  return createRlsUser(`source-coach-${tag}`, {
+    role: "coach",
+    full_name: `Coach ${tag}`,
+    business_name: `${tag} Gym`,
+    locale: "en",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-  return { userId: data.user.id, client: await signIn(email, PASSWORD) };
 }
 
 async function createAdmin() {
-  const email = `source-admin-${Date.now()}@example.test`;
-  const { data, error } = await service.auth.admin.createUser({
-    email,
-    password: PASSWORD,
-    email_confirm: true,
-    user_metadata: { role: "admin", full_name: "Platform Admin", locale: "en" },
+  const { userId, client } = await createRlsUser("source-admin", {
+    role: "admin",
+    full_name: "Platform Admin",
+    locale: "en",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
   // The signup trigger only mints coach/client rows, so force the role.
-  const update = await service.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
+  const update = await service.from("profiles").update({ role: "admin" }).eq("id", userId);
   if (update.error) throw update.error;
-  return { userId: data.user.id, client: await signIn(email, PASSWORD) };
+  return { userId, client };
 }
 
 let coachA: { userId: string; client: SupabaseClient<Database> };

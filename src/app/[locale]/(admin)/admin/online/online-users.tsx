@@ -79,13 +79,17 @@ export function OnlineUsers({ locale, rows }: { locale: AppLocale; rows: OnlineU
       {groups.length === 0 ? (
         <EmptyState icon={Radio} title={t("noResults")} />
       ) : (
-        <Tabs value={tabValue} onValueChange={(v) => selectTab(v as string)}>
-          <TabsList className="h-auto flex-wrap">
+        <Tabs value={tabValue} onValueChange={(v) => selectTab(v as string)} className="gap-4">
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-1.5 bg-transparent p-0">
             {groups.map((g) => {
               const key = tabKey(g.coach);
               const label = g.coach ? g.coach.name : t("unassigned");
               return (
-                <TabsTrigger key={key} value={key} className="gap-1.5">
+                <TabsTrigger
+                  key={key}
+                  value={key}
+                  className="h-8 flex-none gap-1.5 rounded-full border border-border bg-card px-3 after:hidden data-active:border-primary data-active:bg-primary/10 data-active:text-foreground"
+                >
                   {g.coach && (
                     <span className={`size-1.5 shrink-0 rounded-full ${g.coach.online ? "bg-success" : "bg-muted-foreground/40"}`} />
                   )}

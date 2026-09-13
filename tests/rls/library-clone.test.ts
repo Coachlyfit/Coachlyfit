@@ -4,54 +4,30 @@
 // enforced by Postgres (the partial unique index, the on-delete-set-null FK,
 // and the exercises_visible/foods_visible views), not by the UI — plus it
 // closes library-source.test.ts's existing zero-food-RLS-coverage gap.
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
 import { LibraryService } from "@/domain/library/library.service";
-
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-const service = createClient<Database>(URL, SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
-
-async function signIn(email: string, password: string) {
-  const client = createClient<Database>(URL, ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return client;
-}
-
-const PASSWORD = "correct horse battery staple";
+import { rlsAdmin as service, createRlsUser } from "./rls-test-helpers";
 
 async function createCoach(tag: string) {
-  const email = `clone-coach-${tag}-${Date.now()}@example.test`;
-  const { data, error } = await service.auth.admin.createUser({
-    email,
-    password: PASSWORD,
-    email_confirm: true,
-    user_metadata: { role: "coach", full_name: `Coach ${tag}`, business_name: `${tag} Gym`, locale: "en" },
+  return createRlsUser(`clone-coach-${tag}`, {
+    role: "coach",
+    full_name: `Coach ${tag}`,
+    business_name: `${tag} Gym`,
+    locale: "en",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-  return { userId: data.user.id, client: await signIn(email, PASSWORD) };
 }
 
 async function createAdmin() {
-  const email = `clone-admin-${Date.now()}@example.test`;
-  const { data, error } = await service.auth.admin.createUser({
-    email,
-    password: PASSWORD,
-    email_confirm: true,
-    user_metadata: { role: "admin", full_name: "Platform Admin", locale: "en" },
+  const { userId, client } = await createRlsUser("clone-admin", {
+    role: "admin",
+    full_name: "Platform Admin",
+    locale: "en",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-  const update = await service.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
+  const update = await service.from("profiles").update({ role: "admin" }).eq("id", userId);
   if (update.error) throw update.error;
-  return { userId: data.user.id, client: await signIn(email, PASSWORD) };
+  return { userId, client };
 }
 
 let coachA: { userId: string; client: SupabaseClient<Database> };

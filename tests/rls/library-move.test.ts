@@ -4,36 +4,19 @@
 // rejected — exactly what KanbanBoard's onMove ultimately depends on. The
 // drag GESTURE itself is dnd-kit's own tested pointer-sensor mechanism, not
 // something re-verified here.
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
 import { LibraryService } from "@/domain/library/library.service";
-
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-const admin = createClient<Database>(URL, SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+import { rlsAdmin as admin, createRlsUser } from "./rls-test-helpers";
 
 async function createCoach(tag: string) {
-  const email = `move-coach-${tag}-${Date.now()}@example.test`;
-  const password = "correct horse battery staple";
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { role: "coach", full_name: `Coach ${tag}`, business_name: `${tag} Gym`, locale: "ar" },
+  return createRlsUser(`move-coach-${tag}`, {
+    role: "coach",
+    full_name: `Coach ${tag}`,
+    business_name: `${tag} Gym`,
+    locale: "ar",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-
-  const client = createClient<Database>(URL, ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const signIn = await client.auth.signInWithPassword({ email, password });
-  if (signIn.error) throw signIn.error;
-  return { userId: data.user.id, client };
 }
 
 let coach: { userId: string; client: SupabaseClient<Database> };
