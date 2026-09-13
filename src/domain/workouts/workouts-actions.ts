@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService, type LogSetInput, type UpdateSetInput, type ExerciseResultInput } from "./workouts.service";
+import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 
 const setFieldsSchema = {
   weight: z.coerce.number().min(0).max(999).multipleOf(0.25).optional().nullable(),
@@ -32,8 +33,8 @@ export async function startOrResumeSessionAction(programDayId: string) {
   const supabase = await createClient();
   const workouts = new WorkoutsService(supabase);
 
-  const existing = await workouts.getSessionForDay(programDayId);
-  if (existing && existing.completed_at == null) return existing;
+  const weekStart = startOfWeekSaturday(new Date().toISOString().slice(0, 10));
+  const existing = await workouts.getSessionForDay(programDayId, weekStart);
   if (existing) return existing;
 
   return workouts.startSession(programDayId);

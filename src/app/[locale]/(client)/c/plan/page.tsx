@@ -69,7 +69,7 @@ export default async function ClientPlanPage({
       await Promise.all(
         days
           .filter((d) => d.day && !d.isRest)
-          .map(async (d) => [d.day!.id, await workouts.getSessionForDay(d.day!.id)] as const)
+          .map(async (d) => [d.day!.id, await workouts.getSessionForDay(d.day!.id, weekStart)] as const)
       )
     ).filter(([, session]) => session?.completed_at != null)
   );

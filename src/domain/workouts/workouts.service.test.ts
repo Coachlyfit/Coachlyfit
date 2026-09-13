@@ -249,6 +249,61 @@ describe("WorkoutsService", () => {
     expect(upserts).toHaveLength(0);
   });
 
+  it("getSessionForDay ignores a completed session from a previous week", async () => {
+    // Bug regression: program_day_id repeats every cycle/week, so a naive
+    // "latest session for this day" lookup resurfaces last week's completed
+    // session as still "done" and blocks logging a new one this week.
+    const rows = [{ id: "session-old", program_day_id: "day-1", started_at: "2026-09-06T10:00:00.000Z", completed_at: "2026-09-06T10:30:00.000Z" }];
+    const db = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            gte: () => ({
+              lt: () => ({
+                order: () => ({
+                  limit: () => ({
+                    maybeSingle: async () => ({
+                      data: rows.find((r) => r.started_at >= "2026-09-13T00:00:00.000Z" && r.started_at < "2026-09-20T00:00:00.000Z") ?? null,
+                      error: null,
+                    }),
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
+    const result = await new WorkoutsService(db as never).getSessionForDay("day-1", "2026-09-13");
+    expect(result).toBeNull();
+  });
+
+  it("getSessionForDay returns a session started within the given week", async () => {
+    const rows = [{ id: "session-new", program_day_id: "day-1", started_at: "2026-09-14T10:00:00.000Z", completed_at: null }];
+    const db = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            gte: () => ({
+              lt: () => ({
+                order: () => ({
+                  limit: () => ({
+                    maybeSingle: async () => ({
+                      data: rows.find((r) => r.started_at >= "2026-09-13T00:00:00.000Z" && r.started_at < "2026-09-20T00:00:00.000Z") ?? null,
+                      error: null,
+                    }),
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
+    const result = await new WorkoutsService(db as never).getSessionForDay("day-1", "2026-09-13");
+    expect(result?.id).toBe("session-new");
+  });
+
   it("listPainReports filters to pain > 0, most recent first", async () => {
     const rows = [
       { id: "r1", pain: 3, program_items: { exercises: { name_ar: "أ", name_en: "A" } } },
