@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
+import { getPlatformSettings } from "@/lib/platform-settings";
 import { SignupForm } from "./signup-form";
 import { OtpForm } from "./otp-form";
 
@@ -13,6 +14,18 @@ export default async function SignupPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("auth.signup");
+  const settings = await getPlatformSettings();
+
+  if (!settings.platform.signups_enabled) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("closedTitle")}</CardTitle>
+          <CardDescription>{t("closedBody")}</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <Card>

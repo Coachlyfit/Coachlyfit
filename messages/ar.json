@@ -46,7 +46,8 @@
     "coach": "الكابتن",
     "inbox": "الرسائل",
     "diets": "التغذية",
-    "feedback": "الملاحظات"
+    "feedback": "الملاحظات",
+    "online": "متصل الآن"
   },
   "palette": {
     "navigation": "التنقل",
@@ -426,7 +427,9 @@
       "phone": "رقم الموبايل",
       "otpLabel": "الكود اللي وصلك",
       "otpSend": "ابعتلي الكود",
-      "otpSubmit": "أكّد وكمّل"
+      "otpSubmit": "أكّد وكمّل",
+      "closedTitle": "التسجيل متوقف مؤقتًا",
+      "closedBody": "التسجيل الجديد مغلق مؤقتًا. برجاء المحاولة لاحقًا."
     },
     "checkEmail": {
       "title": "شيك على إيميلك",
@@ -443,7 +446,18 @@
       "otp_invalid": "الكود ده مش مظبوط. جرّب تاني.",
       "otp_expired": "الكود ده خلصت صلاحيته. اطلب واحد جديد.",
       "phone_taken": "فيه حساب متسجل بالرقم ده خلاص.",
-      "reset_link_expired": "رابط الاسترجاع ده خلصت صلاحيته. اطلب واحد جديد."
+      "reset_link_expired": "رابط الاسترجاع ده خلصت صلاحيته. اطلب واحد جديد.",
+      "signups_closed": "التسجيل الجديد مغلق مؤقتًا."
+    },
+    "maintenance": {
+      "title": "الموقع تحت الصيانة",
+      "body": "نقوم ببعض أعمال الصيانة السريعة. برجاء المحاولة بعد قليل.",
+      "signOut": "تسجيل الخروج"
+    },
+    "suspended": {
+      "title": "الحساب موقوف",
+      "body": "تم إيقاف حسابك. تواصل مع {email} للمساعدة.",
+      "signOut": "تسجيل الخروج"
     }
   },
   "dashboard": {
@@ -461,9 +475,15 @@
     },
     "kpi": {
       "clients": "العملاء النشطين",
+      "online": "متصل الآن",
       "submissions": "ردود جديدة",
       "submissionsWindow": "آخر ٧ أيام",
       "mrr": "دخل شهري · ج.م"
+    },
+    "online": {
+      "title": "متصل الآن",
+      "empty": "مفيش عميل متصل دلوقتي.",
+      "never": "أبدًا"
     },
     "pendingReview": "{count} متابعة مستنياك تراجعها",
     "queue": {
@@ -1406,6 +1426,22 @@
   },
   "admin": {
     "title": "الإدارة",
+    "online": {
+      "title": "المستخدمون المتصلون",
+      "online": "متصل الآن",
+      "offline": "غير متصل",
+      "total": "إجمالي المستخدمين",
+      "search": "ابحث بالاسم",
+      "unassigned": "بدون كابتن",
+      "never": "أبدًا",
+      "empty": "مفيش عملاء هنا.",
+      "noResults": "مفيش نتايج لبحثك.",
+      "table": {
+        "name": "الاسم",
+        "status": "الحالة",
+        "lastSeen": "آخر ظهور"
+      }
+    },
     "impersonation": {
       "action": "ادخل كأنك المدرب",
       "confirmTitle": "تدخل كأنك المدرب ده؟",
@@ -1540,6 +1576,70 @@
       "table": {
         "body": "الملاحظة",
         "date": "التاريخ"
+      }
+    },
+    "settings": {
+      "title": "الإعدادات",
+      "saved": "تم الحفظ.",
+      "save": "حفظ",
+      "tabs": {
+        "general": "عام",
+        "platform": "المنصة",
+        "plans": "الباقات",
+        "users": "المستخدمون"
+      },
+      "general": {
+        "brandingTitle": "الهوية",
+        "appNameAr": "اسم التطبيق (عربي)",
+        "appNameEn": "اسم التطبيق (إنجليزي)",
+        "supportEmail": "بريد الدعم",
+        "invalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
+        "announcementTitle": "شريط الإعلانات",
+        "announcementEnabled": "إظهار الشريط",
+        "announcementTextAr": "نص الإعلان (عربي)",
+        "announcementTextEn": "نص الإعلان (إنجليزي)"
+      },
+      "platform": {
+        "togglesTitle": "إعدادات المنصة",
+        "maintenanceMode": "وضع الصيانة",
+        "maintenanceModeHint": "يمنع المدربين والعملاء من الدخول. المدراء غير متأثرين.",
+        "signupsEnabled": "التسجيل مفتوح",
+        "signupsEnabledHint": "أوقفه لإخفاء التسجيل الجديد.",
+        "billingTitle": "مدة الفترة التجريبية",
+        "trialDays": "عدد أيام التجربة"
+      },
+      "plans": {
+        "saved": "تم حفظ الباقة.",
+        "save": "حفظ",
+        "nameAr": "الاسم (عربي)",
+        "nameEn": "الاسم (إنجليزي)",
+        "price": "السعر (جنيه/شهر)",
+        "maxClients": "أقصى عدد عملاء",
+        "isActive": "فعّالة",
+        "features": {
+          "forms_builder": "منشئ النماذج",
+          "custom_library": "مكتبة مخصصة",
+          "priority_support": "دعم أولوية",
+          "white_label": "علامة بيضاء"
+        }
+      },
+      "users": {
+        "searchPlaceholder": "ابحث بالاسم أو البريد أو الهاتف",
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "role": "الدور",
+        "suspended": "موقوف",
+        "roleAdmin": "مدير",
+        "roleCoach": "مدرب",
+        "roleClient": "عميل",
+        "you": "أنت"
+      },
+      "errors": {
+        "invalid_input": "برجاء مراجعة النموذج والمحاولة مرة أخرى.",
+        "forbidden": "ليس لديك صلاحية لهذا.",
+        "update_failed": "تعذر الحفظ. حاول مرة أخرى.",
+        "not_authenticated": "ليس لديك صلاحية لهذا."
       }
     }
   },

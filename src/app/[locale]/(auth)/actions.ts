@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
+import { getPlatformSettings } from "@/lib/platform-settings";
 import {
   loginSchema,
   signupCoachSchema,
@@ -39,7 +40,7 @@ export async function signInAction(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, suspended_at")
     .eq("id", data.user.id)
     .single();
 
@@ -47,6 +48,7 @@ export async function signInAction(
   // password login must never inherit a stale impersonation banner from an
   // earlier session on this browser.
   (await cookies()).delete("impersonating");
+  if (profile?.suspended_at) redirect(`/${locale}/suspended`);
   redirect(roleHome(locale, profile?.role));
 }
 
@@ -62,6 +64,9 @@ export async function signUpCoachAction(
     locale,
   });
   if (!parsed.success) return { error: "invalid_input" };
+
+  const settings = await getPlatformSettings();
+  if (!settings.platform.signups_enabled) return { error: "signups_closed" };
 
   const supabase = await createClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -98,6 +103,9 @@ export async function sendOtpAction(locale: string, formData: FormData): Promise
     locale,
   });
   if (!parsed.success) return { error: "invalid_input" };
+
+  const settings = await getPlatformSettings();
+  if (!settings.platform.signups_enabled) return { error: "signups_closed" };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({

@@ -3,11 +3,14 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { getPlatformSettings } from "@/lib/platform-settings";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
+import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
 import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
+import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 
 export default async function CoachLayout({
   children,
@@ -28,11 +31,15 @@ export default async function CoachLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name")
+    .select("role, full_name, suspended_at")
     .eq("id", user.id)
     .single();
 
   if (profile?.role !== "coach") redirect(roleHome(locale, profile?.role));
+  if (profile.suspended_at) redirect(`/${locale}/suspended`);
+
+  const settings = await getPlatformSettings();
+  if (settings.platform.maintenance_mode) redirect(`/${locale}/maintenance`);
 
   const coachId = await resolveCoachId(supabase);
   if (coachId === user.id) {
@@ -63,9 +70,19 @@ export default async function CoachLayout({
 
   return (
     <div className="flex min-h-dvh">
+      {/* Don't mark the real coach "online" while an admin is impersonating
+       * them -- that's the admin's activity, not the coach's. */}
+      {!impersonating && <PresenceHeartbeat />}
       <Sidebar />
       <div className="flex flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
+        {settings.announcement.enabled && (
+          <AnnouncementBanner
+            locale={locale as "ar" | "en"}
+            text_ar={settings.announcement.text_ar}
+            text_en={settings.announcement.text_en}
+          />
+        )}
         <Topbar locale={locale} fullName={profile.full_name} />
         <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 md:pb-6">
           {children}

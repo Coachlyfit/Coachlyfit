@@ -1583,6 +1583,35 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1590,9 +1619,11 @@ export type Database = {
           email_notifications: boolean
           full_name: string | null
           id: string
+          last_seen_at: string | null
           locale: string
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          suspended_at: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1600,9 +1631,11 @@ export type Database = {
           email_notifications?: boolean
           full_name?: string | null
           id: string
+          last_seen_at?: string | null
           locale?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          suspended_at?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -1610,9 +1643,11 @@ export type Database = {
           email_notifications?: boolean
           full_name?: string | null
           id?: string
+          last_seen_at?: string | null
           locale?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          suspended_at?: string | null
         }
         Relationships: []
       }
@@ -2540,12 +2575,50 @@ export type Database = {
           trial_ends_at: string
         }[]
       }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+          suspended_at: string
+        }[]
+      }
       admin_metrics: { Args: never; Returns: Json }
       admin_promote_exercise: { Args: { p_id: string }; Returns: undefined }
       admin_promote_food: { Args: { p_id: string }; Returns: undefined }
+      admin_set_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["user_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      admin_set_suspended: {
+        Args: { p_suspended: boolean; p_user_id: string }
+        Returns: undefined
+      }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
       get_portal_branding: { Args: { p_slug: string }; Returns: Json }
+      list_online_users: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: {
+          avatar_url: string
+          coach_id: string
+          coach_name: string
+          last_seen_at: string
+          name: string
+          online: boolean
+          online_count: number
+          role: Database["public"]["Enums"]["user_role"]
+          total_count: number
+          user_id: string
+        }[]
+      }
       mark_checkin_adjustment_applied: {
         Args: { p_checkin_id: string }
         Returns: {
@@ -2650,6 +2723,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
       client_status: "invited" | "active" | "archived"

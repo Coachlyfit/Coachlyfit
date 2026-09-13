@@ -18,7 +18,7 @@ const HREFS: Record<string, string> = {
   pricing: "#pricing",
 };
 
-export function Footer() {
+export function Footer({ supportEmail }: { supportEmail: string }) {
   const t = useTranslations("marketing.footer");
   const year = new Date().getFullYear();
 
@@ -39,7 +39,7 @@ export function Footer() {
               <div className="mt-3.5 flex flex-col gap-2.5">
                 {COLUMNS[col].map((link) => {
                   const href = HREFS[link];
-                  const label = t(`columns.${col}.${link}`);
+                  const label = link === "email" ? supportEmail : t(`columns.${col}.${link}`);
                   // Only the same-page anchors are real destinations today.
                   // The rest render as plain text rather than dead links to
                   // pages that don't exist yet.

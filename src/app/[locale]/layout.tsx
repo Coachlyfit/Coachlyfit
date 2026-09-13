@@ -7,13 +7,14 @@ import { routing, type AppLocale } from "@/i18n/routing";
 import { fontMono, fontSans } from "@/lib/fonts";
 import { Providers } from "@/components/providers/providers";
 import { NavigationProgress } from "@/components/navigation-progress";
+import { getPlatformSettings } from "@/lib/platform-settings";
 import "../globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-const titleByLocale: Record<AppLocale, string> = {
-  en: "Coachlyfit — Coach your clients your way",
-  ar: "كوتشلي فِت — درّب عملاءك بطريقتك",
+const titleSuffixByLocale: Record<AppLocale, string> = {
+  en: "— Coach your clients your way",
+  ar: "— درّب عملاءك بطريقتك",
 };
 
 const descriptionByLocale: Record<AppLocale, string> = {
@@ -28,14 +29,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const appLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
-  const title = titleByLocale[appLocale];
+  const settings = await getPlatformSettings();
+  const appName = appLocale === "ar" ? settings.branding.app_name_ar : settings.branding.app_name_en;
+  const title = `${appName} ${titleSuffixByLocale[appLocale]}`;
   const description = descriptionByLocale[appLocale];
 
   return {
     metadataBase: new URL(siteUrl),
-    title: { default: title, template: `%s · Coachlyfit` },
+    title: { default: title, template: `%s · ${appName}` },
     description,
-    applicationName: "Coachlyfit",
+    applicationName: appName,
     // Favicon: src/app/icon.svg (light, file-convention) plus an explicit
     // dark-mode pairing here, per identity spec v2 (`brand id/README.md`,
     // "Favicon"). v1 tried to switch light/dark *inside* the SVG via an
@@ -66,7 +69,7 @@ export async function generateMetadata({
       type: "website",
       title,
       description,
-      siteName: "Coachlyfit",
+      siteName: appName,
       locale: appLocale === "ar" ? "ar_EG" : "en_US",
       url: `/${appLocale}`,
     },

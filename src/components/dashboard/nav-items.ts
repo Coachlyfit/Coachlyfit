@@ -9,12 +9,13 @@ import {
   Settings,
   MessageCircle,
   MessageSquareText,
+  Radio,
   type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "billing" | "settings" | "admin" | "inbox" | "feedback";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "billing" | "settings" | "admin" | "inbox" | "feedback" | "online";
   icon: LucideIcon;
 };
 
@@ -43,8 +44,10 @@ export const NAV_ITEMS: NavItem[] = [
 // layout bounces on role), so sharing one array would render dead links.
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin", labelKey: "admin", icon: LayoutDashboard },
+  { href: "/admin/online", labelKey: "online", icon: Radio },
   { href: "/admin/library", labelKey: "library", icon: Dumbbell },
   { href: "/admin/feedback", labelKey: "feedback", icon: MessageSquareText },
+  { href: "/admin/settings", labelKey: "settings", icon: Settings },
 ];
 
 // Bottom tab bar caps at 5 items (bottom-nav-limit); the rest live behind
