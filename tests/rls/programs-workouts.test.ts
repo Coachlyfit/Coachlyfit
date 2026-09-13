@@ -5,69 +5,35 @@
 // suite proves it to be — a bug that lets a coach's own child insert carry
 // the wrong client_id, or that lets a foreign coach read a client's
 // program tree, leaks a client's entire training history across tenants.
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
-
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-if (!URL || !ANON_KEY || !SERVICE_KEY) {
-  throw new Error(
-    "Missing Supabase env vars for the RLS suite — run `supabase start` and check .env.local."
-  );
-}
-
-const admin = createClient<Database>(URL, SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
-
-const PASSWORD = "correct horse battery staple";
+import { rlsAdmin as admin, createRlsUser } from "./rls-test-helpers";
 
 async function createCoach(tag: string) {
-  const email = `pw-coach-${tag}-${Date.now()}@example.test`;
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password: PASSWORD,
-    email_confirm: true,
-    user_metadata: { role: "coach", full_name: `Coach ${tag}`, business_name: `${tag} Fitness`, locale: "en" },
+  return createRlsUser(`pw-coach-${tag}`, {
+    role: "coach",
+    full_name: `Coach ${tag}`,
+    business_name: `${tag} Fitness`,
+    locale: "en",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-
-  const client = createClient<Database>(URL, ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const signIn = await client.auth.signInWithPassword({ email, password: PASSWORD });
-  if (signIn.error) throw signIn.error;
-
-  return { userId: data.user.id, client };
 }
 
 async function createClientOf(coachId: string, tag: string) {
-  const email = `pw-client-${tag}-${Date.now()}@example.test`;
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password: PASSWORD,
-    email_confirm: true,
-    user_metadata: { role: "client", full_name: `Client ${tag}`, locale: "en" },
+  const { userId, client } = await createRlsUser(`pw-client-${tag}`, {
+    role: "client",
+    full_name: `Client ${tag}`,
+    locale: "en",
   });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
 
   const { data: row, error: rowError } = await admin
     .from("clients")
-    .insert({ coach_id: coachId, profile_id: data.user.id, display_name: `Client ${tag}` })
+    .insert({ coach_id: coachId, profile_id: userId, display_name: `Client ${tag}` })
     .select("id")
     .single();
   if (rowError) throw rowError;
 
-  const client = createClient<Database>(URL, ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const signIn = await client.auth.signInWithPassword({ email, password: PASSWORD });
-  if (signIn.error) throw signIn.error;
-
-  return { userId: data.user.id, clientRowId: row.id as string, client };
+  return { userId, clientRowId: row.id as string, client };
 }
 
 /** Full program tree via the coach's own RLS-scoped client, exactly the

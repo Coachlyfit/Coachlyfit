@@ -4,40 +4,17 @@
 // non-admin gets rejected, AND admin still can't read client-owned tables
 // directly (see build plan: "confirm an admin session cannot select from
 // checkins or body_metrics").
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
-
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-const admin = createClient<Database>(URL, SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+import { rlsAdmin as admin, createRlsUser } from "./rls-test-helpers";
 
 async function createUser(tag: string, role: "coach" | "admin") {
-  const email = `admin-test-${tag}-${Date.now()}@example.test`;
-  const password = "correct horse battery staple";
   const meta =
     role === "coach"
       ? { role, full_name: `Coach ${tag}`, business_name: `${tag} Gym`, locale: "ar" }
       : { role, full_name: `Admin ${tag}`, locale: "ar" };
-
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: meta,
-  });
-  if (error || !data.user) throw error ?? new Error("createUser returned no user");
-
-  const client = createClient<Database>(URL, ANON_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const signIn = await client.auth.signInWithPassword({ email, password });
-  if (signIn.error) throw signIn.error;
-  return { userId: data.user.id, client };
+  return createRlsUser(`admin-test-${tag}`, meta);
 }
 
 let coach: { userId: string; client: SupabaseClient<Database> };
