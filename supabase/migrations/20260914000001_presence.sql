@@ -79,9 +79,13 @@ begin
     with base as (
       -- Clients (a coach's roster). Archived clients never counted as
       -- online -- they're not meaningfully "on the platform" any more.
+      -- Column named base_name, not name: plpgsql implicitly declares every
+      -- RETURNS TABLE column as a variable in scope for the whole function
+      -- body, so a same-named CTE column here raises 42702 "column
+      -- reference is ambiguous" against the output column `name`.
       select
         p.id as user_id,
-        coalesce(cl.display_name, p.full_name) as name,
+        coalesce(cl.display_name, p.full_name) as base_name,
         p.avatar_url,
         p.role,
         cl.coach_id,
@@ -100,7 +104,7 @@ begin
       -- a coach currently has zero clients.
       select
         c.id as user_id,
-        p.full_name as name,
+        p.full_name as base_name,
         p.avatar_url,
         p.role,
         c.id as coach_id,
@@ -113,11 +117,11 @@ begin
     filtered as (
       select *
       from base
-      where p_search is null or p_search = '' or name ilike '%' || p_search || '%'
+      where p_search is null or p_search = '' or base_name ilike '%' || p_search || '%'
     )
     select
       user_id,
-      name,
+      base_name as name,
       avatar_url,
       role,
       coach_id,
@@ -129,7 +133,7 @@ begin
         where last_seen_at is not null and last_seen_at >= now() - interval '5 minutes'
       ) over () as online_count
     from filtered
-    order by online desc, last_seen_at desc nulls last, name
+    order by online desc, last_seen_at desc nulls last, base_name
     limit p_limit offset p_offset;
 end;
 $$;
