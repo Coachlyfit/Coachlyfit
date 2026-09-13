@@ -850,7 +850,6 @@
   },
   "inbox": {
     "title": "الرسائل",
-    "empty": "مفيش محادثات لسه.",
     "emptyThread": "مفيش رسائل لسه. ابعت أول رسالة.",
     "placeholder": "اكتب رسالة…",
     "send": "ابعت",
@@ -867,6 +866,27 @@
     "errors": {
       "invalid_input": "راجع الرسالة وجرّب تاني.",
       "no_recipients": "لسه معندكش عملاء نشطين."
+    },
+    "search": "دور على محادثة…",
+    "filter": {
+      "all": "الكل",
+      "unread": "لسه ما اتقرتش"
+    },
+    "view": {
+      "label": "العرض",
+      "list": "قائمة",
+      "grid": "شبكة"
+    },
+    "unreadCount": "{count, plural, one {# رسالة جديدة} other {# رسايل جديدة}}",
+    "you": "انت:",
+    "noMessages": "مفيش رسائل لسه",
+    "noResults": "مفيش محادثات مطابقة.",
+    "compose": {
+      "trigger": "رسالة جديدة",
+      "title": "رسالة جديدة",
+      "client": "العميل",
+      "placeholder": "اكتب رسالة…",
+      "submit": "ابعت"
     }
   },
   "forms": {
@@ -1334,6 +1354,12 @@
       "all": "الكل",
       "global": "مكتبة التمارين",
       "mine": "تماريني"
+    },
+    "foodSource": {
+      "label": "المصدر",
+      "all": "الكل",
+      "global": "مكتبة الأطعمة",
+      "mine": "أطعمتي"
     },
     "emptyStates": {
       "clearFilter": "امسح الفلتر",

@@ -2,6 +2,24 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
+type InboxThreadRow = Database["public"]["Views"]["coach_inbox_threads"]["Row"];
+
+// Supabase's generated view types mark every column nullable (views carry no
+// NOT NULL metadata), but client_id/coach_id/display_name/status/unread_count
+// are guaranteed non-null by the underlying clients columns and the view's
+// own `coalesce(..., 0)`. Only the last-message columns are genuinely
+// nullable (a client with no messages yet). Narrow once here so every
+// consumer isn't re-checking columns that can't actually be null.
+export type InboxThread = {
+  client_id: string;
+  coach_id: string;
+  display_name: string;
+  status: InboxThreadRow["status"];
+  last_body: string | null;
+  last_sender_role: "coach" | "client" | null;
+  last_message_at: string | null;
+  unread_count: number;
+};
 
 export type SendMessageInput = {
   sender_role: "coach" | "client";
@@ -18,6 +36,32 @@ const THREAD_LIMIT = 50;
  * trusted from arbitrary request input beyond that resolved identity. */
 export class MessagesService {
   constructor(private db: SupabaseClient<Database>) {}
+
+  /** Inbox summary: one row per active client, via the coach_inbox_threads
+   * view (last message + unread count precomputed in SQL, not N+1 queries).
+   * Sorted unread-first, then most-recently-active, then name — a coach's
+   * attention should land on what needs a reply, not just what's newest. */
+  async listInbox(): Promise<InboxThread[]> {
+    const { data, error } = await this.db.from("coach_inbox_threads").select("*").eq("status", "active");
+    if (error) throw error;
+    const threads: InboxThread[] = data.map((row) => ({
+      client_id: row.client_id as string,
+      coach_id: row.coach_id as string,
+      display_name: row.display_name as string,
+      status: row.status,
+      last_body: row.last_body,
+      last_sender_role: row.last_sender_role as "coach" | "client" | null,
+      last_message_at: row.last_message_at,
+      unread_count: row.unread_count ?? 0,
+    }));
+    return threads.sort((a, b) => {
+      if ((a.unread_count > 0) !== (b.unread_count > 0)) return a.unread_count > 0 ? -1 : 1;
+      const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+      const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
+      return a.display_name.localeCompare(b.display_name);
+    });
+  }
 
   async listThread(clientId: string, limit = THREAD_LIMIT): Promise<Message[]> {
     const { data, error } = await this.db

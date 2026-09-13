@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Bell } from "lucide-react";
+import { toast } from "sonner";
+import { Bell, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Notification } from "@/domain/notifications/notifications.service";
 import { listNotificationsAction, markNotificationsReadAction } from "./notifications-actions";
+import { usePushSubscription } from "./use-push-subscription";
 
 const KINDS = ["exercise_promoted", "food_promoted", "new_message"] as const;
 
@@ -18,8 +20,18 @@ function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
 
 export function NotificationBell({ locale }: { locale: AppLocale }) {
   const t = useTranslations("notifications");
+  const tPush = useTranslations("common.push");
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const push = usePushSubscription();
+
+  async function togglePush() {
+    try {
+      await push.toggle();
+    } catch {
+      toast.error(tPush("failed"));
+    }
+  }
 
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications"],
@@ -81,6 +93,21 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
               </li>
             ))}
           </ul>
+        )}
+        {push.supported && (
+          <>
+            <div className="my-2 border-t border-border" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2"
+              disabled={push.pending}
+              onClick={togglePush}
+            >
+              <BellRing className="size-4" />
+              {push.subscribed ? tPush("disable") : tPush("enable")}
+            </Button>
+          </>
         )}
       </PopoverContent>
     </Popover>

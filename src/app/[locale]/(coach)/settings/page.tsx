@@ -65,44 +65,48 @@ export default async function SettingsPage({
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={t("title")} />
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle className="text-base">{t("account")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-muted-foreground">{t("businessName")}</span>
-            <span className="text-sm font-medium">{coach?.business_name}</span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-muted-foreground">{t("email")}</span>
-            <span className="text-sm font-medium">{user?.email}</span>
-          </div>
-          <EmailNotificationsToggle locale={locale} enabled={profile?.email_notifications ?? true} />
-          <form action={signOutAction.bind(null, locale)}>
-            <Button type="submit" variant="outline" className="w-full">
-              {t("signOut")}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle className="text-base">{t("checkinTemplateTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <p className="text-sm text-muted-foreground">{t("checkinTemplateHint")}</p>
-          <CheckinTemplatePicker
-            templates={checkinTemplates ?? []}
-            defaultTemplateId={coach?.default_checkin_template_id ?? null}
-          />
-        </CardContent>
-      </Card>
-      <PackagesCard packages={packages} />
-      <PaymentMethodsCard methods={paymentMethods} />
-      <CustomMetricsCard metrics={customMetrics} />
-      <TeamCard members={teamMembers} />
-      <PortalCard slug={coach?.slug ?? ""} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("account")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-muted-foreground">{t("businessName")}</span>
+              <span className="text-sm font-medium">{coach?.business_name}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-muted-foreground">{t("email")}</span>
+              <span className="text-sm font-medium">{user?.email}</span>
+            </div>
+            <EmailNotificationsToggle locale={locale} enabled={profile?.email_notifications ?? true} />
+            <form action={signOutAction.bind(null, locale)}>
+              <Button type="submit" variant="outline" className="w-full">
+                {t("signOut")}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("checkinTemplateTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">{t("checkinTemplateHint")}</p>
+            <CheckinTemplatePicker
+              templates={checkinTemplates ?? []}
+              defaultTemplateId={coach?.default_checkin_template_id ?? null}
+            />
+          </CardContent>
+        </Card>
+        <PackagesCard packages={packages} />
+        <PaymentMethodsCard methods={paymentMethods} />
+        <CustomMetricsCard metrics={customMetrics} />
+        <TeamCard members={teamMembers} />
+        <div className="lg:col-span-2">
+          <PortalCard slug={coach?.slug ?? ""} />
+        </div>
+      </div>
     </div>
   );
 }

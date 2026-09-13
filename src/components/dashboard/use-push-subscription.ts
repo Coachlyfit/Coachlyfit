@@ -1,10 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { Bell, BellOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { subscribePushAction, unsubscribePushAction } from "@/lib/notifications/push-actions";
 
 // Base64url VAPID public key -> Uint8Array, the shape applicationServerKey
@@ -18,8 +14,8 @@ function urlBase64ToUint8Array(base64: string) {
 
 /** Push is opt-in per browser/device (no subscription = no toggle state to
  * restore from the server on load — checking permission + an existing
- * PushManager subscription is the only source of truth). Not rendered when
- * the VAPID key isn't configured or the browser lacks Push API support. */
+ * PushManager subscription is the only source of truth). Not supported
+ * when the VAPID key isn't configured or the browser lacks Push API. */
 // Reads only stable globals (env var baked in at build, browser feature
 // presence) — never changes after mount, so it's safe as a lazy initial
 // state instead of an effect-driven setState.
@@ -29,8 +25,7 @@ function pushSupported() {
   return "serviceWorker" in navigator && "PushManager" in window;
 }
 
-export function PushSubscribeButton() {
-  const t = useTranslations("common.push");
+export function usePushSubscription() {
   const [supported] = useState(pushSupported);
   const [subscribed, setSubscribed] = useState(false);
   const [pending, setPending] = useState(false);
@@ -66,24 +61,10 @@ export function PushSubscribeButton() {
       if (!json.keys?.p256dh || !json.keys?.auth) throw new Error("missing_keys");
       await subscribePushAction({ endpoint: subscription.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth });
       setSubscribed(true);
-    } catch {
-      toast.error(t("failed"));
     } finally {
       setPending(false);
     }
   }
 
-  if (!supported) return null;
-
-  return (
-    <Button
-      variant="outline"
-      size="icon-sm"
-      aria-label={subscribed ? t("disable") : t("enable")}
-      disabled={pending}
-      onClick={toggle}
-    >
-      {subscribed ? <Bell className="size-4" /> : <BellOff className="size-4" />}
-    </Button>
-  );
+  return { supported, subscribed, pending, toggle };
 }

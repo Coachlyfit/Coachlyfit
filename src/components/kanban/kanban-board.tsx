@@ -50,7 +50,7 @@ export function KanbanBoard<T extends { id: string }>({
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:snap-none">
+      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:flex-wrap md:snap-none md:overflow-x-visible">
         {columns.map((col) => {
           const columnItems = items.filter((item) => getGroup(item) === col.key);
           return (
@@ -87,7 +87,7 @@ function KanbanColumnDroppable({
   return (
     <div
       className={cn(
-        "flex w-[78vw] max-w-72 shrink-0 snap-start flex-col rounded-lg border border-border bg-muted/30 transition-colors sm:w-64",
+        "flex w-[78vw] max-w-72 shrink-0 snap-start flex-col rounded-lg border border-border bg-muted/30 transition-colors sm:w-64 md:w-64",
         isOver && "bg-muted"
       )}
     >

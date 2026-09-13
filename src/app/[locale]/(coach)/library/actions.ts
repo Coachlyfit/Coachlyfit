@@ -114,7 +114,10 @@ export async function createExerciseAction(locale: string, formData: FormData): 
   revalidatePath(`/${locale}/library`);
 }
 
-export async function createFoodAction(locale: string, formData: FormData): Promise<ActionResult> {
+export async function createFoodAction(
+  locale: string,
+  formData: FormData
+): Promise<ActionResult | { food: Awaited<ReturnType<LibraryService["createFood"]>> }> {
   const parsed = createFoodSchema.safeParse({
     name_ar: formData.get("name_ar"),
     name_en: formData.get("name_en"),
@@ -134,12 +137,14 @@ export async function createFoodAction(locale: string, formData: FormData): Prom
   const coachId = await resolveCoachId(supabase);
   if (!coachId) return { error: "not_authenticated" };
 
+  let food;
   try {
-    await new LibraryService(supabase).createFood(coachId, parsed.data);
+    food = await new LibraryService(supabase).createFood(coachId, parsed.data);
   } catch (error) {
     return { error: libraryErrorKey(error) };
   }
   revalidatePath(`/${locale}/library`);
+  return { food };
 }
 
 // Mirrors deleteExerciseAction/deleteFoodAction below: RLS's update_own

@@ -6,8 +6,9 @@ import type { LibrarySource } from "@/domain/library/library.service";
 
 const SOURCES = ["all", "global", "mine"] as const satisfies readonly LibrarySource[];
 
-/** [All] [Exercise Library] [My Exercises]. Labels differ for admins, who
- * think in "global / coach-created", so the namespace is a prop. */
+/** [All] [Exercise Library] [My Exercises] (or Food Library / My Foods on the
+ * foods tab). Labels differ for admins, who think in "global / coach-created",
+ * so the namespace is a prop. */
 export function SourceFilter({
   value,
   onChange,
@@ -15,7 +16,7 @@ export function SourceFilter({
 }: {
   value: LibrarySource;
   onChange: (value: LibrarySource) => void;
-  namespace?: "library.source" | "admin.library.source";
+  namespace?: "library.source" | "library.foodSource" | "admin.library.source";
 }) {
   const t = useTranslations(namespace);
 
