@@ -15,8 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { pickLocale, type AppLocale } from "@/domain/locale";
+import { MUSCLE_GROUPS, FOOD_CATEGORIES } from "@/domain/library/taxonomy";
 import type { LibrarySource } from "@/domain/library/library.service";
 import { SourceFilter } from "@/app/[locale]/(coach)/library/source-filter";
+import { ViewSwitcher, type LibraryView } from "@/app/[locale]/(coach)/library/view-switcher";
+import { KanbanBoard } from "@/components/kanban/kanban-board";
 import {
   adminSearchExercisesAction,
   adminSearchFoodsAction,
@@ -26,6 +29,8 @@ import {
   promoteFoodAction,
 } from "./actions";
 import { GlobalExerciseDialog } from "./global-exercise-dialog";
+import { AdminExerciseCard } from "./admin-exercise-card";
+import { AdminFoodCard } from "./admin-food-card";
 
 type ExercisePage = Awaited<ReturnType<typeof adminSearchExercisesAction>>;
 type FoodPage = Awaited<ReturnType<typeof adminSearchFoodsAction>>;
@@ -47,7 +52,10 @@ export function LibraryAdminClient({
   const t = useTranslations("library");
   const tAdmin = useTranslations("admin.library");
   const tErrors = useTranslations("library.errors");
+  const tGroups = useTranslations("library.muscleGroups");
+  const tCategories = useTranslations("library.foodCategories");
   const [tab, setTab] = useState<"exercises" | "foods">("exercises");
+  const [view, setView] = useState<LibraryView>("list");
   const [search, setSearch] = useState("");
   const [source, setSource] = useState<LibrarySource>("all");
   const [pageExercise, setPageExercise] = useState(1);
@@ -164,6 +172,7 @@ export function LibraryAdminClient({
               placeholder={t("search")}
               className="sm:w-56"
             />
+            <ViewSwitcher value={view} onChange={setView} />
             {tab === "exercises" && <GlobalExerciseDialog locale={locale} onSaved={invalidate} />}
           </div>
         </div>
@@ -171,7 +180,7 @@ export function LibraryAdminClient({
         <TabsContent value="exercises" className="mt-4 flex flex-col gap-3">
           {exercises.length === 0 ? (
             <EmptyState icon={Dumbbell} title={emptyTitle} />
-          ) : (
+          ) : view === "list" ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -232,6 +241,38 @@ export function LibraryAdminClient({
                 ))}
               </TableBody>
             </Table>
+          ) : view === "card" ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {exercises.map((ex) => (
+                <AdminExerciseCard
+                  key={ex.id}
+                  exercise={ex}
+                  locale={locale}
+                  onEdit={() => setEditing(ex)}
+                  onDelete={() => setPendingDelete({ kind: "exercise", id: ex.id })}
+                  onPromote={() => setPendingPromote({ kind: "exercise", id: ex.id })}
+                />
+              ))}
+            </div>
+          ) : (
+            <KanbanBoard
+              columns={MUSCLE_GROUPS.map((g) => ({ key: g, label: tGroups(g) }))}
+              items={exercises}
+              getGroup={(ex) => ex.muscle_group ?? "other"}
+              isDraggable={() => false}
+              onMove={() => {}}
+              renderCard={(ex) => (
+                <AdminExerciseCard
+                  exercise={ex}
+                  locale={locale}
+                  onEdit={() => setEditing(ex)}
+                  onDelete={() => setPendingDelete({ kind: "exercise", id: ex.id })}
+                  onPromote={() => setPendingPromote({ kind: "exercise", id: ex.id })}
+                  variant="compact"
+                />
+              )}
+              emptyLabel={t("empty")}
+            />
           )}
           <Pagination
             page={pageExercise}
@@ -245,7 +286,7 @@ export function LibraryAdminClient({
         <TabsContent value="foods" className="mt-4 flex flex-col gap-3">
           {foods.length === 0 ? (
             <EmptyState icon={Dumbbell} title={emptyTitle} />
-          ) : (
+          ) : view === "list" ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -293,6 +334,36 @@ export function LibraryAdminClient({
                 ))}
               </TableBody>
             </Table>
+          ) : view === "card" ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {foods.map((food) => (
+                <AdminFoodCard
+                  key={food.id}
+                  food={food}
+                  locale={locale}
+                  onDelete={() => setPendingDelete({ kind: "food", id: food.id })}
+                  onPromote={() => setPendingPromote({ kind: "food", id: food.id })}
+                />
+              ))}
+            </div>
+          ) : (
+            <KanbanBoard
+              columns={FOOD_CATEGORIES.map((c) => ({ key: c, label: tCategories(c) }))}
+              items={foods}
+              getGroup={(food) => food.category}
+              isDraggable={() => false}
+              onMove={() => {}}
+              renderCard={(food) => (
+                <AdminFoodCard
+                  food={food}
+                  locale={locale}
+                  onDelete={() => setPendingDelete({ kind: "food", id: food.id })}
+                  onPromote={() => setPendingPromote({ kind: "food", id: food.id })}
+                  variant="compact"
+                />
+              )}
+              emptyLabel={t("empty")}
+            />
           )}
           <Pagination
             page={pageFood}
