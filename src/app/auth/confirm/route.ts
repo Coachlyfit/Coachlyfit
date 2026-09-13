@@ -40,6 +40,18 @@ export async function GET(request: NextRequest) {
         if (acceptError) {
           redirect(`/ar/join/${inviteToken}?error=invalid_invite`);
         }
+      } else if (next.includes("/c") && !impersonating) {
+        // A client-invite confirm link should always carry invite_token
+        // (embedded in emailRedirectTo at signup). If it's missing here,
+        // Supabase's redirect allow-list likely doesn't match the exact
+        // emailRedirectTo URL and stripped the query string — the account
+        // still gets confirmed/logged in, but the client never gets linked
+        // to their coach and stays stuck on status='invited' with no error
+        // anywhere. Log loud so this isn't silent next time.
+        console.error(
+          "[auth/confirm] client login confirmed with no invite_token — check Supabase Auth redirect URL allow-list matches emailRedirectTo exactly",
+          { next }
+        );
       }
       // Team invite signups only get their coach link on confirmation when
       // email confirmations are on — the immediate-session case is already
