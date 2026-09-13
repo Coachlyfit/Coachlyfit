@@ -1,14 +1,10 @@
--- Fixes a bug in 20260914000001_presence.sql's list_online_users(): the
--- original CTE column `name` collided with the function's RETURNS TABLE
--- output column of the same name -- plpgsql implicitly declares every
--- RETURNS TABLE column as a variable in scope for the whole function body,
--- so referencing `name` bare inside the query raised
--- 42702 "column reference \"name\" is ambiguous". Hit in production on
--- first load of /admin/online (Vercel runtime error, digest 2218339886).
---
--- Fix: renamed the CTE column to base_name, aliased back to `name` only in
--- the final select list. See 20260914000001_presence.sql's inline comment
--- for the same explanation.
+-- Second round of the same bug class as this filename's original fix:
+-- every CTE column whose name matches a RETURNS TABLE output column is
+-- ambiguous in plpgsql, not just `name` -- `user_id` also collided (hit in
+-- production on /dashboard and /admin/online, digest 1924104686 /
+-- 2398786381). Rather than chase each output column one at a time,
+-- prefixed every CTE column with r_ so none of them can collide with an
+-- output column ever again.
 create or replace function public.list_online_users(
   p_search text default null,
   p_limit int default 50,
@@ -41,13 +37,13 @@ begin
   return query
     with base as (
       select
-        p.id as user_id,
-        coalesce(cl.display_name, p.full_name) as base_name,
-        p.avatar_url,
-        p.role,
-        cl.coach_id,
-        coachp.full_name as coach_name,
-        p.last_seen_at
+        p.id as r_user_id,
+        coalesce(cl.display_name, p.full_name) as r_name,
+        p.avatar_url as r_avatar_url,
+        p.role as r_role,
+        cl.coach_id as r_coach_id,
+        coachp.full_name as r_coach_name,
+        p.last_seen_at as r_last_seen_at
       from public.clients cl
       join public.profiles p on p.id = cl.profile_id
       left join public.profiles coachp on coachp.id = cl.coach_id
@@ -57,13 +53,13 @@ begin
       union all
 
       select
-        c.id as user_id,
-        p.full_name as base_name,
-        p.avatar_url,
-        p.role,
-        c.id as coach_id,
-        p.full_name as coach_name,
-        p.last_seen_at
+        c.id as r_user_id,
+        p.full_name as r_name,
+        p.avatar_url as r_avatar_url,
+        p.role as r_role,
+        c.id as r_coach_id,
+        p.full_name as r_coach_name,
+        p.last_seen_at as r_last_seen_at
       from public.coaches c
       join public.profiles p on p.id = c.id
       where v_is_admin
@@ -71,23 +67,24 @@ begin
     filtered as (
       select *
       from base
-      where p_search is null or p_search = '' or base_name ilike '%' || p_search || '%'
+      where p_search is null or p_search = '' or r_name ilike '%' || p_search || '%'
     )
     select
-      user_id,
-      base_name as name,
-      avatar_url,
-      role,
-      coach_id,
-      coach_name,
-      last_seen_at,
-      (last_seen_at is not null and last_seen_at >= now() - interval '5 minutes') as online,
-      count(*) over () as total_count,
+      r_user_id,
+      r_name,
+      r_avatar_url,
+      r_role,
+      r_coach_id,
+      r_coach_name,
+      r_last_seen_at,
+      (r_last_seen_at is not null and r_last_seen_at >= now() - interval '5 minutes'),
+      count(*) over (),
       count(*) filter (
-        where last_seen_at is not null and last_seen_at >= now() - interval '5 minutes'
-      ) over () as online_count
+        where r_last_seen_at is not null and r_last_seen_at >= now() - interval '5 minutes'
+      ) over ()
     from filtered
-    order by online desc, last_seen_at desc nulls last, base_name
+    order by (r_last_seen_at is not null and r_last_seen_at >= now() - interval '5 minutes') desc,
+      r_last_seen_at desc nulls last, r_name
     limit p_limit offset p_offset;
 end;
 $$;
