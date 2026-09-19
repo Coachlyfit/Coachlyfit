@@ -45,6 +45,11 @@ function FinalCta() {
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 function jsonLd(locale: AppLocale) {
+  const isAr = locale === "ar";
+  const description = isAr
+    ? "نماذج، برامج تدريبية، متابعات وفواتير في مكان واحد — مبني لمدربي اللياقة في مصر والمنطقة."
+    : "Forms, programs, check-ins and invoices in one place — built for fitness coaches in Egypt and the region.";
+
   return {
     "@context": "https://schema.org",
     "@graph": [
@@ -53,7 +58,27 @@ function jsonLd(locale: AppLocale) {
         "@id": `${siteUrl}/#organization`,
         name: "Coachlyfit",
         url: siteUrl,
-        logo: `${siteUrl}/icon.svg`,
+        logo: `${siteUrl}/brand/app-icon.svg`,
+        description,
+        sameAs: [],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: "Coachlyfit",
+        publisher: { "@id": `${siteUrl}/#organization` },
+        inLanguage: locale,
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${siteUrl}/${locale}/#webpage`,
+        url: `${siteUrl}/${locale}`,
+        name: "Coachlyfit — Coach your clients your way",
+        isPartOf: { "@id": `${siteUrl}/#website` },
+        about: { "@id": `${siteUrl}/#organization` },
+        description,
+        inLanguage: locale,
       },
       {
         "@type": "SoftwareApplication",
@@ -61,8 +86,69 @@ function jsonLd(locale: AppLocale) {
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         url: `${siteUrl}/${locale}`,
-        offers: { "@type": "Offer", availability: "https://schema.org/InStock" },
+        description,
+        offers: {
+          "@type": "Offer",
+          availability: "https://schema.org/InStock",
+          price: "0",
+          priceCurrency: "EGP",
+        },
         publisher: { "@id": `${siteUrl}/#organization` },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: isAr ? "هل يحتاج عميلي إلى تطبيق؟" : "Does my client need to install an app?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: isAr
+                ? "لا. يتلقى رابطًا عبر واتساب، يفتحه في متصفحه ويجب. لا حساب، لا تنزيل."
+                : "No. They get a link over WhatsApp, open it in their browser, and answer. No account, no download.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: isAr ? "هل يمكنني نقل عملائي من جدول بيانات؟" : "Can I move my clients over from a spreadsheet?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: isAr
+                ? "نعم. الصق القائمة كما هي وسنطابق الأعمدة ونعرض لك النتيجة قبل الاستيراد."
+                : "Yes. Paste the list exactly as it is and we'll match the columns and show you the result before anything is imported.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: isAr ? "كيف أحصل على أرباحي؟" : "How do I get paid?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: isAr
+                ? "انستاباي أو فوري أو فيزا. المال يذهب مباشرة إلى حسابك."
+                : "InstaPay, Fawry or Visa. Money goes straight to your account, and we don't take a cut.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: isAr ? "ماذا لو كان لدي عملاء أكثر من(plan يسمح)؟" : "What if I have more clients than my plan allows?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: isAr
+                ? "يمكنك الترقية في أي وقت والفرق يُحسب نسبيًا للأيام المتبقية."
+                : "You can move up a plan at any time and the difference is prorated across the remaining days.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: isAr ? "أين يتم تخزين صور العملاء؟" : "Where are client photos stored?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: isAr
+                ? "مشفرة ومرئية لك فقط. يمكن للعميل طلب حذفها في أي وقت."
+                : "Encrypted, and visible only to you. A client can ask for them to be deleted at any time.",
+            },
+          },
+        ],
       },
     ],
   };

@@ -22,6 +22,33 @@ const descriptionByLocale: Record<AppLocale, string> = {
   ar: "نماذج، برامج تدريبية، متابعات وفواتير في مكان واحد — مبني لمدربي اللياقة في مصر والمنطقة.",
 };
 
+const keywordsByLocale: Record<AppLocale, string[]> = {
+  en: [
+    "fitness coach software",
+    "client management for coaches",
+    "personal trainer app",
+    "workout builder",
+    "fitness forms",
+    "coach invoicing",
+    "client check-ins",
+    "gym management Egypt",
+    "fitness coaching platform",
+    "personal training software",
+  ],
+  ar: [
+    "برنامج مدرب اللياقة",
+    "إدارة عملاء المدربين",
+    "تطبيق المدرب الشخصي",
+    "منشئ التمارين",
+    "نماذج اللياقة",
+    "فواتير المدربين",
+    "متابعة العملاء",
+    "إدارة صالات رياضية مصر",
+    "منصة تدريب اللياقة",
+    "برنامج التدريب الشخصي",
+  ],
+};
+
 export async function generateMetadata({
   params,
 }: {
@@ -38,7 +65,10 @@ export async function generateMetadata({
     metadataBase: new URL(siteUrl),
     title: { default: title, template: `%s · ${appName}` },
     description,
+    keywords: keywordsByLocale[appLocale],
     applicationName: appName,
+    creator: "Coachlyfit",
+    publisher: "Coachlyfit",
     // Favicon: src/app/icon.svg (light, file-convention) plus an explicit
     // dark-mode pairing here, per identity spec v2 (`brand id/README.md`,
     // "Favicon"). v1 tried to switch light/dark *inside* the SVG via an
