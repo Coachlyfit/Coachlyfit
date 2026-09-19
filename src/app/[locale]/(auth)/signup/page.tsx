@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,6 +7,25 @@ import type { AppLocale } from "@/i18n/routing";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { SignupForm } from "./signup-form";
 import { OtpForm } from "./otp-form";
+
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isAr = locale === "ar";
+  return {
+    title: isAr ? "إنشاء حساب" : "Sign up",
+    description: isAr
+      ? "ابدأ تجربتك المجانية مع Coachlyfit — نماذج، برامج، متابعات وفواتير."
+      : "Start your free trial with Coachlyfit — forms, programs, check-ins and invoices.",
+    robots: { index: true, follow: true },
+    alternates: { canonical: `${siteUrl}/${locale}/signup` },
+  };
+}
 
 export default async function SignupPage({
   params,
