@@ -21,7 +21,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: `${siteUrl}/opengraph-image`,
         sizes: "1200x630",
         type: "image/png",
-        form: "wide",
+        form_factor: "wide",
       },
     ],
     categories: ["business", "productivity", "health"],
