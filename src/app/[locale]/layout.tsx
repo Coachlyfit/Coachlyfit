@@ -82,6 +82,7 @@ export async function generateMetadata({
     // apple-touch-icon (apple-icon.tsx) is unaffected, file-convention as before.
     icons: {
       icon: [
+        { url: "/favicon.ico", sizes: "48x48" },
         { url: "/icon.svg", type: "image/svg+xml" },
         {
           url: "/brand/favicon-dark.svg",
