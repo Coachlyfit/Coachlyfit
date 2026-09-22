@@ -186,7 +186,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))`
+        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))`
       )
       .eq("client_id", clientId)
       .is("archived_at", null)
@@ -204,7 +204,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
       )
       .eq("id", programId)
       .order("order_index", { referencedTable: "program_days" })
