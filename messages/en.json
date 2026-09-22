@@ -1126,6 +1126,13 @@
       "client": "Client",
       "submit": "Assign"
     },
+    "saveAsTemplateDialog": {
+      "title": "Save as template",
+      "description": "Creates a reusable template from this program — the program itself stays unchanged.",
+      "nameAr": "Template name (Arabic)",
+      "nameEn": "Template name (English)",
+      "submit": "Save as template"
+    },
     "deleteProgram": "Delete program",
     "confirmDeleteProgramTitle": "Delete this program?",
     "confirmDeleteProgramBody": "This moves the program to Trash. You can restore it from there for 30 days.",
@@ -1254,6 +1261,9 @@
         "delete_item": "Exercise deleted",
         "group_items": "Superset/circuit created",
         "ungroup_items": "Superset/circuit removed",
+        "duplicate_day": "Day duplicated",
+        "duplicate_item": "Exercise duplicated",
+        "replace_exercise": "Exercise replaced",
         "before_restore": "Before a restore"
       }
     }
@@ -2008,6 +2018,13 @@
       "description": "Creates a copy of this plan for the client you pick — the template stays unchanged.",
       "client": "Client",
       "submit": "Assign"
+    },
+    "saveAsTemplateDialog": {
+      "title": "Save as template",
+      "description": "Creates a reusable template from this nutrition plan — the plan itself stays unchanged.",
+      "nameAr": "Template name (Arabic)",
+      "nameEn": "Template name (English)",
+      "submit": "Save as template"
     },
     "deletePlan": "Delete plan",
     "confirmDeletePlanTitle": "Delete this plan?",

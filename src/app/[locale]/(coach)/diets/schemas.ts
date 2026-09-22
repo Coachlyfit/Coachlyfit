@@ -33,7 +33,15 @@ export const mealItemSchema = z.object({
 
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });
 
+// Names for the template a coach saves out of an assigned plan — same
+// bounds as createDietPlanSchema's name_ar/name_en.
+export const saveAsTemplateSchema = z.object({
+  name_ar: z.string().min(1).max(100),
+  name_en: z.string().min(1).max(100),
+});
+
 export type CreateDietPlanInput = z.infer<typeof createDietPlanSchema>;
 export type MealFormInput = z.input<typeof mealSchema>;
 export type MealItemFormInput = z.input<typeof mealItemSchema>;
 export type MealItemInput = z.output<typeof mealItemSchema>;
+export type SaveAsTemplateInput = z.infer<typeof saveAsTemplateSchema>;

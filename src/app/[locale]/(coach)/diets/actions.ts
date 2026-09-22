@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
-import { createDietPlanSchema, mealSchema, mealItemSchema, reorderSchema } from "./schemas";
+import { createDietPlanSchema, mealSchema, mealItemSchema, reorderSchema, saveAsTemplateSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
 type CreateResult = { error: string } | { id: string };
@@ -120,6 +120,35 @@ export async function cloneDietPlanAction(
   if (!cloned) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets`);
   return { id: cloned.id };
+}
+
+// Reverse of cloneDietPlanAction: saves an assigned plan back out as a
+// template. Same id-returning deviation, for the same reason.
+export async function saveDietPlanAsTemplateAction(
+  locale: string,
+  dietPlanId: string,
+  formData: FormData
+): Promise<CreateResult> {
+  const parsed = saveAsTemplateSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const saved = await new DietPlansService(supabase).saveAsTemplate(
+    dietPlanId,
+    parsed.data.name_ar,
+    parsed.data.name_en
+  );
+  if (!saved) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets`);
+  return { id: saved.id };
 }
 
 export async function addMealAction(locale: string, dietPlanId: string, formData: FormData): Promise<ActionResult> {

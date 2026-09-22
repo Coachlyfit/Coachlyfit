@@ -231,6 +231,31 @@ describe("DietPlansService", () => {
       expect(result).toBeNull();
       expect(inserts).toHaveLength(0);
     });
+
+    it("saveAsTemplate clones an assigned plan back to client_id null with no source_template_id and no end_date", async () => {
+      const assigned = {
+        id: "plan-1",
+        coach_id: "coach-1",
+        client_id: "client-9",
+        name_ar: "خطة",
+        name_en: "Plan",
+        start_date: "2026-08-01",
+        end_date: "2026-09-01",
+        meals: [],
+      };
+      const { db, inserts } = fakeSupabase({ treeRow: assigned });
+      const result = await new DietPlansService(db).saveAsTemplate("plan-1", "قالب جديد", "New template");
+
+      expect(result).not.toBeNull();
+      const planInsert = inserts.find((i) => i.table === "diet_plans");
+      expect(planInsert?.payload).toMatchObject({
+        client_id: null,
+        source_template_id: null,
+        end_date: null,
+        name_ar: "قالب جديد",
+        name_en: "New template",
+      });
+    });
   });
 
   describe("getActiveTreeForClient", () => {
