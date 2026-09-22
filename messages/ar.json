@@ -1665,7 +1665,7 @@
     "markAllRead": "علّم الكل مقروء",
     "exercise_promoted": "\"{name}\" اتضاف لمكتبة التمارين العامة.",
     "food_promoted": "\"{name}\" اتضاف لمكتبة الأطعمة العامة.",
-    "new_message": "وصلتك رسالة جديدة.",
+    "new_message": "وصلتك رسالة جديدة من {name}.",
     "unknown": "عندك إشعار جديد."
   },
   "progress": {

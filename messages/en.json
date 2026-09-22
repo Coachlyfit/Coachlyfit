@@ -1665,7 +1665,7 @@
     "markAllRead": "Mark all as read",
     "exercise_promoted": "\"{name}\" was added to the global Exercise Library.",
     "food_promoted": "\"{name}\" was added to the global Food Library.",
-    "new_message": "You have a new message.",
+    "new_message": "New message from {name}.",
     "unknown": "You have a new notification."
   },
   "progress": {

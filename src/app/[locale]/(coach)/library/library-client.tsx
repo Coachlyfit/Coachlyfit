@@ -4,7 +4,7 @@ import { useState } from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Copy, Dumbbell, Film, Image as ImageIcon, Link2, Minus, Pencil, Trash2 } from "lucide-react";
+import { Copy, Dumbbell, Film, Link2, Minus, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -293,7 +293,16 @@ export function LibraryClient({
     const media = resolveExerciseMedia(url);
     if (!media) return <Minus className="size-4 text-muted-foreground/40" aria-label={tMedia("none")} />;
     if (media.kind === "image")
-      return <ImageIcon className="size-4 text-muted-foreground" aria-label={tMedia("image")} />;
+      return (
+        <img
+          src={media.src}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="size-8 rounded-sm object-cover"
+          aria-label={tMedia("image")}
+        />
+      );
     if (media.kind === "embed")
       return <Film className="size-4 text-muted-foreground" aria-label={tMedia("video")} />;
     return <Link2 className="size-4 text-muted-foreground" aria-label={tMedia("link")} />;
@@ -390,7 +399,7 @@ export function LibraryClient({
                             {ex.equipment || "—"}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
-                            {mediaIndicator(ex.image_url || ex.video_url)}
+                            {mediaIndicator(ex.thumbnail_url || ex.image_url || ex.video_url)}
                           </TableCell>
                           <TableCell>
                             <Badge variant={ex.coach_id ? "secondary" : "outline"}>
