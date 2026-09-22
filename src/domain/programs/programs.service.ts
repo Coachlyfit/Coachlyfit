@@ -186,7 +186,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))`
+        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))`
       )
       .eq("client_id", clientId)
       .is("archived_at", null)
@@ -204,7 +204,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
       )
       .eq("id", programId)
       .order("order_index", { referencedTable: "program_days" })
@@ -237,10 +237,19 @@ export class ProgramsService {
     return data.length > 0;
   }
 
-  /** Clones a template's whole tree onto a client. Three sequential inserts,
-   * no transaction (PostgREST has none) — ponytail: a partial clone leaves
-   * an orphan program the coach can delete; add an RPC if that ever bites. */
-  async cloneToClient(programId: string, clientId: string): Promise<Program | null> {
+  /** Deep-copies a whole program tree, retargeting every row's client_id.
+   * `clientId` non-null assigns the copy to that client; null produces a
+   * template. Three sequential inserts, no transaction (PostgREST has none)
+   * — ponytail: a partial clone leaves an orphan program the coach can
+   * delete; add an RPC if that ever bites.
+   *
+   * `source_template_id` is stamped only when cloning *out* to a client: a
+   * template saved back from an assigned program has no source template. */
+  private async cloneTree(
+    programId: string,
+    clientId: string | null,
+    overrides: Partial<Pick<Program, "name_ar" | "name_en" | "end_date">> = {}
+  ): Promise<Program | null> {
     const tree = await this.getTree(programId);
     if (!tree) return null;
 
@@ -253,6 +262,9 @@ export class ProgramsService {
         name_en: tree.name_en,
         start_date: tree.start_date,
         end_date: tree.end_date,
+        schedule_mode: tree.schedule_mode,
+        source_template_id: clientId ? tree.id : null,
+        ...overrides,
       })
       .select()
       .single();
@@ -269,6 +281,7 @@ export class ProgramsService {
           order_index: day.order_index,
           label_ar: day.label_ar,
           label_en: day.label_en,
+          weekday: day.weekday,
         })
         .select()
         .single();
@@ -289,6 +302,10 @@ export class ProgramsService {
             notes_ar: item.notes_ar,
             notes_en: item.notes_en,
             order_index: item.order_index,
+            block: item.block,
+            coach_note_private: item.coach_note_private,
+            group_key: item.group_key,
+            group_kind: item.group_kind,
           })
           .select()
           .single();
@@ -314,6 +331,24 @@ export class ProgramsService {
     }
 
     return cloned;
+  }
+
+  /** Clones a template's whole tree onto a client. */
+  async cloneToClient(programId: string, clientId: string): Promise<Program | null> {
+    return this.cloneTree(programId, clientId);
+  }
+
+  /** The reverse of cloneToClient: copies an assigned program back out as a
+   * reusable template. `end_date` is dropped — a template's dates are
+   * placeholders that cloneToClient overwrites on assignment anyway, and
+   * carrying a past end date forward is noise. `start_date` is not null, so
+   * it rides along. */
+  async saveAsTemplate(programId: string, name_ar?: string, name_en?: string): Promise<Program | null> {
+    return this.cloneTree(programId, null, {
+      end_date: null,
+      ...(name_ar ? { name_ar } : {}),
+      ...(name_en ? { name_en } : {}),
+    });
   }
 
   /** Derives coach_id/client_id from the parent `programs` row (RLS-scoped

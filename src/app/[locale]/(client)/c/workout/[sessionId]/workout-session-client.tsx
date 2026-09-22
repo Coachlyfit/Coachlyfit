@@ -39,6 +39,8 @@ type ProgramItem = Omit<Database["public"]["Tables"]["program_items"]["Row"], "c
     | "name_en"
     | "muscle_group"
     | "video_url"
+    | "image_url"
+    | "thumbnail_url"
     | "cues_ar"
     | "cues_en"
     | "steps_ar"

@@ -70,6 +70,13 @@ export const itemSchema = z.object({
 
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });
 
+// Names for the template a coach saves out of an assigned program — same
+// bounds as createProgramSchema's name_ar/name_en.
+export const saveAsTemplateSchema = z.object({
+  name_ar: z.string().min(1).max(100),
+  name_en: z.string().min(1).max(100),
+});
+
 // schedule_mode has a zod .default(), which makes RHF's input type (what the
 // form actually manages before validation) diverge from the output type
 // (schedule_mode always present after parsing) — same z.input/z.output split
@@ -84,3 +91,4 @@ export type DayInput = z.output<typeof daySchema>;
 export type SetFormInput = z.input<typeof setInputSchema>;
 export type ItemFormInput = z.input<typeof itemSchema>;
 export type ItemInput = z.output<typeof itemSchema>;
+export type SaveAsTemplateInput = z.infer<typeof saveAsTemplateSchema>;

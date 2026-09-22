@@ -7,7 +7,7 @@ import { ProgramsService } from "@/domain/programs/programs.service";
 import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
 import { adjustmentSchema } from "../review/schemas";
 import { z } from "zod";
-import { createProgramSchema, daySchema, itemSchema, reorderSchema } from "./schemas";
+import { createProgramSchema, daySchema, itemSchema, reorderSchema, saveAsTemplateSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
 type CreateResult = { error: string } | { id: string };
@@ -126,6 +126,36 @@ export async function cloneProgramAction(
   if (!cloned) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
   return { id: cloned.id };
+}
+
+// Reverse of cloneProgramAction: saves an assigned program back out as a
+// template. Same id-returning deviation, for the same reason — the dialog
+// redirects into the new template right after saving.
+export async function saveProgramAsTemplateAction(
+  locale: string,
+  programId: string,
+  formData: FormData
+): Promise<CreateResult> {
+  const parsed = saveAsTemplateSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const saved = await new ProgramsService(supabase).saveAsTemplate(
+    programId,
+    parsed.data.name_ar,
+    parsed.data.name_en
+  );
+  if (!saved) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+  return { id: saved.id };
 }
 
 export async function addDayAction(locale: string, programId: string, formData: FormData): Promise<ActionResult> {

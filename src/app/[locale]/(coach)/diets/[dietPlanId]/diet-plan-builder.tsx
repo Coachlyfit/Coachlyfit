@@ -40,6 +40,7 @@ import {
 import { AddMealDialog } from "./add-meal-dialog";
 import { MealItemDialog } from "./meal-item-dialog";
 import { AssignDietTemplateDialog } from "./assign-diet-template-dialog";
+import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 import { FoodSidebar, FOOD_DRAG_MIME } from "./food-sidebar";
 import { MacroSidebar } from "./macro-sidebar";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -329,6 +330,9 @@ export function DietPlanBuilder({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {isTemplate && <AssignDietTemplateDialog locale={locale} dietPlanId={tree.id} clients={clients} />}
+          {!isTemplate && (
+            <SaveAsTemplateDialog locale={locale} dietPlanId={tree.id} nameAr={tree.name_ar} nameEn={tree.name_en} />
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Link

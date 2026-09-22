@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Notification } from "@/domain/notifications/notifications.service";
+import { Link } from "@/i18n/navigation";
 import { listNotificationsAction, markNotificationsReadAction } from "./notifications-actions";
 import { usePushSubscription } from "./use-push-subscription";
 
@@ -42,10 +43,20 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
 
   function message(notification: Notification) {
     if (!isKnownKind(notification.kind)) return t("unknown");
+    const payload = (notification.payload ?? {}) as Record<string, unknown>;
+    if (notification.kind === "new_message") {
+      return t("new_message", { name: (payload.sender_name as string | null) ?? t("unknown") });
+    }
     // payload is jsonb, so it arrives as an untyped object — pickLocale
     // reads the same name_ar/name_en pair the promote function wrote.
-    const payload = (notification.payload ?? {}) as Record<string, unknown>;
     return t(notification.kind, { name: pickLocale(payload, locale) });
+  }
+
+  function href(notification: Notification): string | null {
+    if (notification.kind !== "new_message") return null;
+    const payload = (notification.payload ?? {}) as Record<string, unknown>;
+    const clientId = payload.client_id as string | null;
+    return clientId ? `/inbox/${clientId}` : null;
   }
 
   async function onOpenChange(next: boolean) {
@@ -53,6 +64,14 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     // Mark read on close, not on open: opening and immediately clearing the
     // badge would hide what the user came to look at.
     if (!next && unread > 0) {
+      await markNotificationsReadAction();
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    }
+  }
+
+  async function onItemClick() {
+    setOpen(false);
+    if (unread > 0) {
       await markNotificationsReadAction();
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     }
@@ -80,18 +99,23 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
           <p className="py-4 text-center text-sm text-muted-foreground">{t("empty")}</p>
         ) : (
           <ul className="flex flex-col gap-1">
-            {notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className={
-                  notification.read_at
-                    ? "rounded-md p-2 text-sm text-muted-foreground"
-                    : "rounded-md bg-muted/60 p-2 text-sm"
-                }
-              >
-                {message(notification)}
-              </li>
-            ))}
+            {notifications.map((notification) => {
+              const itemClassName = notification.read_at
+                ? "block rounded-md p-2 text-sm text-muted-foreground"
+                : "block rounded-md bg-muted/60 p-2 text-sm";
+              const target = href(notification);
+              return (
+                <li key={notification.id}>
+                  {target ? (
+                    <Link href={target} className={`${itemClassName} hover:bg-muted`} onClick={onItemClick}>
+                      {message(notification)}
+                    </Link>
+                  ) : (
+                    <span className={itemClassName}>{message(notification)}</span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
         {push.supported && (

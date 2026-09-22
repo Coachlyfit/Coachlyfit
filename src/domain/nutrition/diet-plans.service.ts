@@ -147,10 +147,17 @@ export class DietPlansService {
     return data.length > 0;
   }
 
-  /** Clones a template's whole tree onto a client — same three-sequential-
-   * inserts, no-transaction tradeoff as ProgramsService.cloneToClient.
-   * Stamps source_template_id so listClonedInstances can find this row. */
-  async cloneToClient(dietPlanId: string, clientId: string): Promise<DietPlan | null> {
+  /** Deep-copies a whole diet plan tree, retargeting every row's client_id.
+   * `clientId` non-null assigns the copy to that client; null produces a
+   * template. Same three-sequential-inserts, no-transaction tradeoff as
+   * ProgramsService.cloneToClient. Stamps source_template_id only when
+   * cloning *out* to a client, so listClonedInstances can find this row —
+   * a template saved back from an assigned plan has no source template. */
+  private async cloneTree(
+    dietPlanId: string,
+    clientId: string | null,
+    overrides: Partial<Pick<DietPlan, "name_ar" | "name_en" | "end_date">> = {}
+  ): Promise<DietPlan | null> {
     const tree = await this.getTree(dietPlanId);
     if (!tree) return null;
 
@@ -163,7 +170,8 @@ export class DietPlansService {
         name_en: tree.name_en,
         start_date: tree.start_date,
         end_date: tree.end_date,
-        source_template_id: tree.id,
+        source_template_id: clientId ? tree.id : null,
+        ...overrides,
       })
       .select()
       .single();
@@ -201,6 +209,21 @@ export class DietPlansService {
     }
 
     return cloned;
+  }
+
+  /** Clones a template's whole tree onto a client. */
+  async cloneToClient(dietPlanId: string, clientId: string): Promise<DietPlan | null> {
+    return this.cloneTree(dietPlanId, clientId);
+  }
+
+  /** The reverse of cloneToClient: copies an assigned plan back out as a
+   * reusable template. `end_date` is dropped — see ProgramsService.saveAsTemplate. */
+  async saveAsTemplate(dietPlanId: string, name_ar?: string, name_en?: string): Promise<DietPlan | null> {
+    return this.cloneTree(dietPlanId, null, {
+      end_date: null,
+      ...(name_ar ? { name_ar } : {}),
+      ...(name_en ? { name_en } : {}),
+    });
   }
 
   /** Derives coach_id/client_id from the parent `diet_plans` row (RLS-scoped

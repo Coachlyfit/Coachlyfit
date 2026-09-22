@@ -338,43 +338,50 @@ describe("ProgramsService", () => {
     });
   });
 
-  describe("cloneToClient", () => {
-    it("stamps the new client_id on program/days/items, and clones progression_rule + per-set data", async () => {
-      const tree = {
-        id: "template-1",
-        coach_id: "coach-1",
-        client_id: null,
-        name_ar: "برنامج",
-        name_en: "Program",
-        start_date: "2026-08-01",
-        end_date: null,
-        program_days: [
-          {
-            id: "day-1",
-            day_index: 1,
-            order_index: 0,
-            label_ar: null,
-            label_en: null,
-            program_items: [
-              {
-                id: "item-1",
-                exercise_id: "ex-1",
-                sets: 2,
-                reps: "8-12",
-                rest_seconds: 60,
-                progression_rule: "plus_2_5kg_week",
-                notes_ar: null,
-                notes_en: null,
-                order_index: 0,
-                program_item_sets: [
-                  { id: "set-1", set_index: 1, reps: 8, weight: 50, rest_seconds: 60 },
-                  { id: "set-2", set_index: 2, reps: 12, weight: 45, rest_seconds: 60 },
-                ],
-              },
-            ],
-          },
-        ],
-      };
+  describe("cloneToClient / saveAsTemplate", () => {
+    const tree = {
+      id: "template-1",
+      coach_id: "coach-1",
+      client_id: null,
+      name_ar: "برنامج",
+      name_en: "Program",
+      start_date: "2026-08-01",
+      end_date: null,
+      schedule_mode: "weekly",
+      program_days: [
+        {
+          id: "day-1",
+          day_index: 1,
+          order_index: 0,
+          label_ar: null,
+          label_en: null,
+          weekday: 3,
+          program_items: [
+            {
+              id: "item-1",
+              exercise_id: "ex-1",
+              sets: 2,
+              reps: "8-12",
+              rest_seconds: 60,
+              progression_rule: "plus_2_5kg_week",
+              notes_ar: null,
+              notes_en: null,
+              order_index: 0,
+              block: "warmup",
+              coach_note_private: "watch the knee",
+              group_key: "g1",
+              group_kind: "superset",
+              program_item_sets: [
+                { id: "set-1", set_index: 1, reps: 8, weight: 50, rest_seconds: 60 },
+                { id: "set-2", set_index: 2, reps: 12, weight: 45, rest_seconds: 60 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    it("stamps the new client_id + source_template_id, and clones schedule_mode/weekday/block/group/progression/per-set data", async () => {
       const { db, inserts } = fakeSupabase({ treeRow: tree });
       const result = await new ProgramsService(db).cloneToClient("template-1", "client-9");
 
@@ -384,13 +391,22 @@ describe("ProgramsService", () => {
       const itemInsert = inserts.find((i) => i.table === "program_items");
       const setsInsert = inserts.find((i) => i.table === "program_item_sets");
 
-      expect(programInsert?.payload).toMatchObject({ client_id: "client-9", coach_id: "coach-1" });
-      expect(dayInsert?.payload).toMatchObject({ client_id: "client-9", coach_id: "coach-1" });
+      expect(programInsert?.payload).toMatchObject({
+        client_id: "client-9",
+        coach_id: "coach-1",
+        schedule_mode: "weekly",
+        source_template_id: "template-1",
+      });
+      expect(dayInsert?.payload).toMatchObject({ client_id: "client-9", coach_id: "coach-1", weekday: 3 });
       expect(itemInsert?.payload).toMatchObject({
         client_id: "client-9",
         coach_id: "coach-1",
         exercise_id: "ex-1",
         progression_rule: "plus_2_5kg_week",
+        block: "warmup",
+        coach_note_private: "watch the knee",
+        group_key: "g1",
+        group_kind: "superset",
       });
       expect(setsInsert?.payload).toEqual([
         expect.objectContaining({ client_id: "client-9", coach_id: "coach-1", set_index: 1, reps: 8, weight: 50 }),
@@ -398,12 +414,32 @@ describe("ProgramsService", () => {
       ]);
     });
 
-    it("returns null without inserting when the template tree isn't visible", async () => {
+    it("returns null without inserting when the source tree isn't visible", async () => {
       const { db, inserts } = fakeSupabase({ treeRow: null });
       const result = await new ProgramsService(db).cloneToClient("template-1", "client-9");
 
       expect(result).toBeNull();
       expect(inserts).toHaveLength(0);
+    });
+
+    it("saveAsTemplate clones an assigned program back to client_id null with no source_template_id and no end_date", async () => {
+      const assigned = { ...tree, id: "program-1", client_id: "client-9", end_date: "2026-09-01" };
+      const { db, inserts } = fakeSupabase({ treeRow: assigned });
+      const result = await new ProgramsService(db).saveAsTemplate("program-1", "قالب جديد", "New template");
+
+      expect(result).not.toBeNull();
+      const programInsert = inserts.find((i) => i.table === "programs");
+      expect(programInsert?.payload).toMatchObject({
+        client_id: null,
+        source_template_id: null,
+        end_date: null,
+        name_ar: "قالب جديد",
+        name_en: "New template",
+      });
+      const dayInsert = inserts.find((i) => i.table === "program_days");
+      const itemInsert = inserts.find((i) => i.table === "program_items");
+      expect(dayInsert?.payload).toMatchObject({ client_id: null });
+      expect(itemInsert?.payload).toMatchObject({ client_id: null });
     });
   });
 
