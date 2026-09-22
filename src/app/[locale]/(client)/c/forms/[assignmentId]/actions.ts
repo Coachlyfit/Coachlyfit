@@ -21,12 +21,15 @@ export async function submitFormAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
+  // maybeSingle, not single: a confirmed client with no coach link yet
+  // (invite never accepted) is an expected zero-row case, not a query
+  // error to swallow — see 20260922000001_link_client_invite_on_signup.sql.
   const { data: client } = await supabase
     .from("clients")
     .select("id")
     .eq("profile_id", user.id)
-    .single();
-  if (!client) return { error: "not_authenticated" };
+    .maybeSingle();
+  if (!client) return { error: "not_linked" };
 
   try {
     await new SubmissionsService(supabase).submit(client.id, assignmentId, parsed.data);

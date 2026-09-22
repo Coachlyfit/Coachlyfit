@@ -14,7 +14,10 @@ async function currentClientRow(supabase: Awaited<ReturnType<typeof createClient
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data } = await supabase.from("clients").select("id, coach_id").eq("profile_id", user.id).single();
+  // maybeSingle, not single: a confirmed client with no coach link yet
+  // (invite never accepted) is an expected zero-row case, not a query
+  // error to swallow — see 20260922000001_link_client_invite_on_signup.sql.
+  const { data } = await supabase.from("clients").select("id, coach_id").eq("profile_id", user.id).maybeSingle();
   return data;
 }
 
@@ -32,7 +35,7 @@ export async function submitCheckinAction(locale: string, formData: FormData): P
 
   const supabase = await createClient();
   const client = await currentClientRow(supabase);
-  if (!client) return { error: "not_authenticated" };
+  if (!client) return { error: "not_linked" };
 
   await new ProgressService(supabase).submitCheckin(client.coach_id, client.id, parsed.data);
   revalidatePath(`/${locale}/c/progress`);
@@ -50,7 +53,7 @@ export async function addBodyMetricAction(locale: string, formData: FormData): P
 
   const supabase = await createClient();
   const client = await currentClientRow(supabase);
-  if (!client) return { error: "not_authenticated" };
+  if (!client) return { error: "not_linked" };
 
   await new ProgressService(supabase).addBodyMetric(client.coach_id, client.id, parsed.data);
   revalidatePath(`/${locale}/c/progress`);
@@ -63,7 +66,7 @@ export async function addProgressPhotoAction(
 ): Promise<ActionResult> {
   const supabase = await createClient();
   const client = await currentClientRow(supabase);
-  if (!client) return { error: "not_authenticated" };
+  if (!client) return { error: "not_linked" };
 
   // RLS would already block reading a foreign path, but a dangling media
   // row pointing outside this client's own folder is still garbage —

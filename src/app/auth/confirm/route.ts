@@ -30,15 +30,22 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      // Client invite signups only get their coach link on confirmation
-      // when email confirmations are on — the immediate-session case is
-      // already handled in join/[token]/actions.ts.
+      // handle_new_user() already links a client-invite signup at signup
+      // time (see 20260922000001_link_client_invite_on_signup.sql), so by
+      // the time a confirm link is clicked this call almost always finds
+      // accepted_at already set and raises P0002 "already been used" — not
+      // a real failure. This RPC only still does real work for a user
+      // created before that migration shipped. Don't bounce a confirmed
+      // user to a dead join link over an already-linked invite; just log.
       if (inviteToken) {
         const { error: acceptError } = await supabase.rpc("accept_invite", {
           p_token: inviteToken,
         });
         if (acceptError) {
-          redirect(`/ar/join/${inviteToken}?error=invalid_invite`);
+          console.error("[auth/confirm] accept_invite failed (likely already linked)", {
+            inviteToken,
+            error: acceptError,
+          });
         }
       } else if (next.includes("/c") && !impersonating) {
         // A client-invite confirm link should always carry invite_token

@@ -458,6 +458,11 @@
       "title": "Account suspended",
       "body": "Your account has been suspended. Contact {email} for help.",
       "signOut": "Sign out"
+    },
+    "notLinked": {
+      "title": "Your account isn't connected to a coach",
+      "body": "Your invite hasn't been fully confirmed yet. Contact your coach, or reach out to {email} for help.",
+      "signOut": "Sign out"
     }
   },
   "dashboard": {
@@ -1071,6 +1076,7 @@
     "errors": {
       "invalid_input": "Please check the form and try again.",
       "not_authenticated": "Please log in again.",
+      "not_linked": "Your account isn't connected to a coach yet. Contact your coach or support.",
       "publish_failed": "Couldn't publish this form. Please try again.",
       "submit_failed": "Couldn't submit this form. Please try again.",
       "not_found": "This form could not be found."
@@ -1744,6 +1750,7 @@
     "errors": {
       "invalid_input": "Please check the form and try again.",
       "not_authenticated": "Please log in again.",
+      "not_linked": "Your account isn't connected to a coach yet. Contact your coach or support.",
       "upload_failed": "Couldn't upload that photo. Try again.",
       "file_too_large": "Photo must be under 10 MB.",
       "invalid_file": "Choose an image file."

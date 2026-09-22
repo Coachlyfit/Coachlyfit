@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { hashInviteToken } from "@/domain/clients/invites.service";
 import { joinSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
@@ -27,7 +27,12 @@ export async function acceptInviteSignupAction(
     email,
     password,
     options: {
-      data: { role: "client", full_name: fullName, locale },
+      // invite_token_hash lets handle_new_user() link clients.profile_id
+      // to their coach in the same transaction as the profile row — see
+      // supabase/migrations/20260922000001_link_client_invite_on_signup.sql.
+      // The raw invite_token in emailRedirectTo below is now belt-and-braces
+      // (a fallback for pre-migration users), not load-bearing.
+      data: { role: "client", full_name: fullName, locale, invite_token_hash: hashInviteToken(token) },
       emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/c&invite_token=${token}`,
     },
   });
@@ -35,17 +40,9 @@ export async function acceptInviteSignupAction(
     return { error: error.code === "user_already_exists" ? "email_taken" : "signup_failed" };
   }
 
-  // Confirmations off (local dev): session exists now, so we can link the
-  // invite right away. Confirmations on (a real project's default): no
-  // session yet — /auth/confirm does the linking after the user clicks
-  // through, using the same invite_token carried in emailRedirectTo above.
+  // The trigger has already linked the client by the time this runs,
+  // whether or not a session exists yet.
   if (data.session) {
-    const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim();
-    const { error: acceptError } = await supabase.rpc("accept_invite", {
-      p_token: token,
-      p_ip: ip,
-    });
-    if (acceptError) return { error: "invalid_invite" };
     redirect(`/${locale}/c`);
   }
   redirect(`/${locale}/signup/check-email`);

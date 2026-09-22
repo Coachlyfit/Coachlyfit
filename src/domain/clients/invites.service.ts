@@ -6,7 +6,7 @@ function generateToken() {
   return randomBytes(24).toString("base64url");
 }
 
-function hashToken(token: string) {
+export function hashInviteToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
@@ -41,7 +41,7 @@ export class InvitesService {
     const { error: inviteError } = await this.db.from("invites").insert({
       coach_id: coachId,
       client_id: client.id,
-      token_hash: hashToken(token),
+      token_hash: hashInviteToken(token),
     });
     if (inviteError) throw inviteError;
 
@@ -56,7 +56,7 @@ export class InvitesService {
     const { error } = await this.db.from("invites").insert({
       coach_id: coachId,
       client_id: clientId,
-      token_hash: hashToken(token),
+      token_hash: hashInviteToken(token),
     });
     if (error) throw error;
     return { token };
