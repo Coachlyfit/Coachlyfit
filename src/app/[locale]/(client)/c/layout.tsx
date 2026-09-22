@@ -37,6 +37,13 @@ export default async function ClientLayout({
   if (profile?.role !== "client") redirect(roleHome(locale, profile?.role));
   if (profile.suspended_at) redirect(`/${locale}/suspended`);
 
+  // A confirmed client account with no clients.profile_id link (invite
+  // never accepted — see 20260922000001_link_client_invite_on_signup.sql)
+  // must not reach forms it can't submit. maybeSingle, not single: zero
+  // rows here is an expected state, not a query error to swallow.
+  const { data: clientRow } = await supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle();
+  if (!clientRow) redirect(`/${locale}/not-linked`);
+
   const settings = await getPlatformSettings();
   if (settings.platform.maintenance_mode) redirect(`/${locale}/maintenance`);
 

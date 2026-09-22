@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { InvitesService } from "./invites.service";
+import { InvitesService, hashInviteToken } from "./invites.service";
 
 // A minimal fake standing in for SupabaseClient — this is the payoff of
 // "services take a DB client in the constructor": no real Postgres, no
@@ -25,6 +25,18 @@ function fakeSupabase(clientRow: { id: string }) {
 
   return { db: db as never, calls };
 }
+
+describe("hashInviteToken", () => {
+  it("matches Postgres's digest(token, 'sha256') encoding — must stay in lockstep with the SQL side", () => {
+    // Same hash the handle_new_user() trigger looks up by
+    // (20260922000001_link_client_invite_on_signup.sql) and the same
+    // algorithm accept_invite() uses server-side. If this ever drifts,
+    // every new client invite silently fails to link.
+    expect(hashInviteToken("x")).toBe(
+      "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881"
+    );
+  });
+});
 
 describe("InvitesService", () => {
   it("creates a client row and a hashed invite, returning the plaintext token once", async () => {
