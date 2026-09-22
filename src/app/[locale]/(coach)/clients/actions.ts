@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { getRootDomain } from "@/lib/tenant/portal-slug";
 import { InvitesService } from "@/domain/clients/invites.service";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
@@ -12,8 +13,11 @@ import { createInviteSchema, createSubscriptionSchema, recordTransactionSchema, 
 type ActionResult = { error: string } | { joinUrl: string };
 type VoidActionResult = { error: string } | void;
 
-function joinUrl(locale: string, token: string) {
-  return `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/join/${token}`;
+// Branded on the coach's own portal subdomain (same domain shown for the
+// login portal in PortalCard) so a client sees the coach's identity, not the
+// bare platform domain, when opening the invite.
+function joinUrl(locale: string, token: string, slug: string) {
+  return `https://${slug}.${getRootDomain()}/${locale}/join/${token}`;
 }
 
 export async function createClientInviteAction(
@@ -34,11 +38,13 @@ export async function createClientInviteAction(
   if (!user) return { error: "not_authenticated" };
   const coachId = await resolveCoachId(supabase);
   if (!coachId) return { error: "not_authenticated" };
+  const { data: coach } = await supabase.from("coaches").select("slug").eq("id", coachId).single();
+  if (!coach) return { error: "not_authenticated" };
 
   try {
     const { token } = await new InvitesService(supabase).createInvite(coachId, parsed.data);
     revalidatePath(`/${locale}/clients`);
-    return { joinUrl: joinUrl(locale, token) };
+    return { joinUrl: joinUrl(locale, token, coach.slug) };
   } catch {
     // Most likely the client-cap trigger (private.enforce_client_cap) —
     // the tier limit is enforced in the DB, not just the UI.
@@ -57,10 +63,12 @@ export async function regenerateInviteAction(
   if (!user) return { error: "not_authenticated" };
   const coachId = await resolveCoachId(supabase);
   if (!coachId) return { error: "not_authenticated" };
+  const { data: coach } = await supabase.from("coaches").select("slug").eq("id", coachId).single();
+  if (!coach) return { error: "not_authenticated" };
 
   try {
     const { token } = await new InvitesService(supabase).regenerateInvite(coachId, clientId);
-    return { joinUrl: joinUrl(locale, token) };
+    return { joinUrl: joinUrl(locale, token, coach.slug) };
   } catch {
     return { error: "signup_failed" };
   }
