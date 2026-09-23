@@ -37,3 +37,11 @@ export const createObservationSchema = z.object({
 });
 
 export type CreateObservationInput = z.infer<typeof createObservationSchema>;
+
+export const updateClientSchema = z.object({
+  displayName: z.string().min(2).max(100),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().min(6).max(30).optional().or(z.literal("")),
+});
+
+export type UpdateClientInput = z.infer<typeof updateClientSchema>;

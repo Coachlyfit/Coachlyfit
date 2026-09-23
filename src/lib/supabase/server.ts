@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { getRootDomain } from "@/lib/tenant/portal-slug";
 import type { Database } from "./database.types";
 
 // Request-scoped client for Server Components / Route Handlers / Server
@@ -7,6 +8,8 @@ import type { Database } from "./database.types";
 // exactly as it does in the browser — this is not an elevated client.
 export async function createClient() {
   const cookieStore = await cookies();
+  const rootDomain = getRootDomain();
+  const cookieDomain = rootDomain === "localhost" ? undefined : `.${rootDomain}`;
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +22,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             for (const { name, value, options } of cookiesToSet) {
-              cookieStore.set(name, value, options);
+              cookieStore.set(name, value, { ...options, domain: cookieDomain });
             }
           } catch {
             // Called from a Server Component render — a middleware refresh

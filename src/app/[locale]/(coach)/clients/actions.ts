@@ -8,7 +8,14 @@ import { InvitesService } from "@/domain/clients/invites.service";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { ObservationsService } from "@/domain/clients/observations.service";
-import { createInviteSchema, createSubscriptionSchema, recordTransactionSchema, createObservationSchema } from "./schemas";
+import { ClientsService } from "@/domain/clients/clients.service";
+import {
+  createInviteSchema,
+  createSubscriptionSchema,
+  recordTransactionSchema,
+  createObservationSchema,
+  updateClientSchema,
+} from "./schemas";
 
 type ActionResult = { error: string } | { joinUrl: string };
 type VoidActionResult = { error: string } | void;
@@ -232,5 +239,56 @@ export async function deleteObservationAction(
 
   const deleted = await new ObservationsService(supabase).remove(observationId);
   if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function updateClientAction(
+  locale: string,
+  clientId: string,
+  formData: FormData
+): Promise<VoidActionResult> {
+  const parsed = updateClientSchema.safeParse({
+    displayName: formData.get("displayName") || undefined,
+    email: formData.get("email") || undefined,
+    phone: formData.get("phone") || undefined,
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const ok = await new ClientsService(supabase).update(clientId, {
+    display_name: parsed.data.displayName,
+    email: parsed.data.email,
+    phone: parsed.data.phone,
+  });
+  if (!ok) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients`);
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function setClientArchivedAction(
+  locale: string,
+  clientId: string,
+  archived: boolean
+): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  try {
+    const ok = await new ClientsService(supabase).setArchived(clientId, archived);
+    if (!ok) return { error: "not_found_or_forbidden" };
+  } catch {
+    // Restoring past the seat cap trips clients_enforce_cap_on_restore
+    // (same DB-level guard createClientInviteAction relies on).
+    return { error: "client_limit_reached" };
+  }
+  revalidatePath(`/${locale}/clients`);
   revalidatePath(`/${locale}/clients/${clientId}`);
 }

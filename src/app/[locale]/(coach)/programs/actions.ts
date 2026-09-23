@@ -114,7 +114,8 @@ export async function listArchivedProgramsAction() {
 export async function cloneProgramAction(
   locale: string,
   programId: string,
-  clientId: string
+  clientId: string,
+  replaceActive = false
 ): Promise<CreateResult> {
   const supabase = await createClient();
   const {
@@ -122,9 +123,10 @@ export async function cloneProgramAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const cloned = await new ProgramsService(supabase).cloneToClient(programId, clientId);
+  const cloned = await new ProgramsService(supabase).cloneToClient(programId, clientId, replaceActive);
   if (!cloned) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
+  revalidatePath(`/${locale}/clients/${clientId}`);
   return { id: cloned.id };
 }
 

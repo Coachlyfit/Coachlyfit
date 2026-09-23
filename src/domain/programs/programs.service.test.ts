@@ -64,11 +64,23 @@ function fakeSupabase(opts: {
               eqs.push([col, val]);
               return chain;
             },
+            neq: (col: string, val: unknown) => {
+              eqs.push([col, val]);
+              return chain;
+            },
+            is: (col: string, val: unknown) => {
+              eqs.push([col, val]);
+              return chain;
+            },
             in: (col: string, vals: unknown[]) => {
               ins.push([col, vals]);
               return chain;
             },
             select: affectedRows,
+            // cloneToClient's replaceActive branch awaits the chain
+            // directly with no .select() tail — make the chain thenable so
+            // that resolves too, same as the real PostgrestFilterBuilder.
+            then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
           };
           updates.push({ table, payload, eqs, ins });
           return chain;
@@ -420,6 +432,33 @@ describe("ProgramsService", () => {
 
       expect(result).toBeNull();
       expect(inserts).toHaveLength(0);
+    });
+
+    it("starts the cloned program today, not on the template's own start_date", async () => {
+      const { db, inserts } = fakeSupabase({ treeRow: tree });
+      await new ProgramsService(db).cloneToClient("template-1", "client-9");
+
+      const programInsert = inserts.find((i) => i.table === "programs");
+      const today = new Date().toISOString().slice(0, 10);
+      expect((programInsert?.payload as { start_date: string }).start_date).toBe(today);
+    });
+
+    it("replaceActive archives the client's other active programs after cloning, leaving the clone alone", async () => {
+      const { db, updates } = fakeSupabase({ treeRow: tree });
+      const result = await new ProgramsService(db).cloneToClient("template-1", "client-9", true);
+
+      const archiveUpdate = updates.find((u) => u.table === "programs");
+      expect(archiveUpdate?.payload).toMatchObject({ archived_at: expect.any(String) });
+      expect(archiveUpdate?.eqs).toContainEqual(["client_id", "client-9"]);
+      expect(archiveUpdate?.eqs).toContainEqual(["archived_at", null]);
+      expect(archiveUpdate?.eqs).toContainEqual(["id", result?.id]);
+    });
+
+    it("does not touch other programs when replaceActive is left false", async () => {
+      const { db, updates } = fakeSupabase({ treeRow: tree });
+      await new ProgramsService(db).cloneToClient("template-1", "client-9");
+
+      expect(updates.find((u) => u.table === "programs")).toBeUndefined();
     });
 
     it("saveAsTemplate clones an assigned program back to client_id null with no source_template_id and no end_date", async () => {

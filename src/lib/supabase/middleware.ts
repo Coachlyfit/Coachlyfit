@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getRootDomain } from "@/lib/tenant/portal-slug";
 import type { Database } from "./database.types";
 
 // Refreshes the Supabase auth cookie on every request. Server Actions and
@@ -9,6 +10,9 @@ import type { Database } from "./database.types";
 // null (surfaced to users as "not_authenticated" on actions like check-in).
 // https://supabase.com/docs/guides/auth/server-side/nextjs#update-the-middleware
 export async function updateSession(request: NextRequest, response: NextResponse) {
+  const rootDomain = getRootDomain();
+  const cookieDomain = rootDomain === "localhost" ? undefined : `.${rootDomain}`;
+
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -22,7 +26,7 @@ export async function updateSession(request: NextRequest, response: NextResponse
             request.cookies.set(name, value);
           }
           for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set(name, value, options);
+            response.cookies.set(name, value, { ...options, domain: cookieDomain });
           }
         },
       },

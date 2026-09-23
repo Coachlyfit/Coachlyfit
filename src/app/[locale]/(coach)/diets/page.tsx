@@ -24,10 +24,10 @@ export default async function DietsPage({
   searchParams,
 }: {
   params: Promise<{ locale: AppLocale }>;
-  searchParams: Promise<{ scope?: string }>;
+  searchParams: Promise<{ scope?: string; client?: string }>;
 }) {
   const { locale } = await params;
-  const { scope: rawScope } = await searchParams;
+  const { scope: rawScope, client: defaultClientId } = await searchParams;
   const scope: DietPlanScope = rawScope === "templates" ? "templates" : rawScope === "assigned" ? "assigned" : "all";
   const t = await getTranslations("diets");
   const supabase = await createClient();
@@ -42,7 +42,12 @@ export default async function DietsPage({
       <PageTitle title={t("title")} />
       <div className="flex items-center justify-end gap-2">
         <DietsTrashButton locale={locale} />
-        <CreateDietPlanDialog locale={locale} clients={clients ?? []} />
+        <CreateDietPlanDialog
+          locale={locale}
+          clients={clients ?? []}
+          defaultClientId={defaultClientId}
+          defaultOpen={!!defaultClientId}
+        />
       </div>
 
       <div className="flex gap-2">

@@ -59,7 +59,18 @@ function fakeSupabase(
               eqs.push([col, val]);
               return chain;
             },
+            neq: (col: string, val: unknown) => {
+              eqs.push([col, val]);
+              return chain;
+            },
+            is: (col: string, val: unknown) => {
+              eqs.push([col, val]);
+              return chain;
+            },
             select: affectedRows,
+            // cloneToClient's replaceActive branch awaits the chain
+            // directly with no .select() tail — see ProgramsService's test.
+            then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
           };
           updates.push({ table, payload, eqs });
           return chain;
@@ -230,6 +241,46 @@ describe("DietPlansService", () => {
 
       expect(result).toBeNull();
       expect(inserts).toHaveLength(0);
+    });
+
+    it("starts the cloned plan today, not on the template's own start_date", async () => {
+      const tree = {
+        id: "template-1",
+        coach_id: "coach-1",
+        client_id: null,
+        name_ar: "خطة",
+        name_en: "Plan",
+        start_date: "2026-08-01",
+        end_date: null,
+        meals: [],
+      };
+      const { db, inserts } = fakeSupabase({ treeRow: tree });
+      await new DietPlansService(db).cloneToClient("template-1", "client-9");
+
+      const planInsert = inserts.find((i) => i.table === "diet_plans");
+      const today = new Date().toISOString().slice(0, 10);
+      expect((planInsert?.payload as { start_date: string }).start_date).toBe(today);
+    });
+
+    it("replaceActive archives the client's other active plans after cloning, leaving the clone alone", async () => {
+      const tree = {
+        id: "template-1",
+        coach_id: "coach-1",
+        client_id: null,
+        name_ar: "خطة",
+        name_en: "Plan",
+        start_date: "2026-08-01",
+        end_date: null,
+        meals: [],
+      };
+      const { db, updates } = fakeSupabase({ treeRow: tree });
+      const result = await new DietPlansService(db).cloneToClient("template-1", "client-9", true);
+
+      const archiveUpdate = updates.find((u) => u.table === "diet_plans");
+      expect(archiveUpdate?.payload).toMatchObject({ archived_at: expect.any(String) });
+      expect(archiveUpdate?.eqs).toContainEqual(["client_id", "client-9"]);
+      expect(archiveUpdate?.eqs).toContainEqual(["archived_at", null]);
+      expect(archiveUpdate?.eqs).toContainEqual(["id", result?.id]);
     });
 
     it("saveAsTemplate clones an assigned plan back to client_id null with no source_template_id and no end_date", async () => {

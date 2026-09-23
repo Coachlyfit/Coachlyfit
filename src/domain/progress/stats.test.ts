@@ -3,6 +3,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import {
   adherenceAverage,
   checkinStreak,
+  isClientLate,
   lastCheckinDate,
   longestStreak,
   parseRange,
@@ -186,5 +187,26 @@ describe("parseRange", () => {
   it("passes through valid values", () => {
     expect(parseRange("7d")).toBe("7d");
     expect(parseRange("all")).toBe("all");
+  });
+});
+
+describe("isClientLate", () => {
+  const today = new Date("2026-08-15T00:00:00Z");
+
+  it("is never late when invited or archived, regardless of check-in history", () => {
+    expect(isClientLate("invited", null, today)).toBe(false);
+    expect(isClientLate("archived", "2020-01-01", today)).toBe(false);
+  });
+
+  it("is late when active with no check-in at all", () => {
+    expect(isClientLate("active", null, today)).toBe(true);
+  });
+
+  it("is late when active and the last check-in is more than 7 days old", () => {
+    expect(isClientLate("active", "2026-08-07", today)).toBe(true);
+  });
+
+  it("is not late when active and checked in within 7 days", () => {
+    expect(isClientLate("active", "2026-08-09", today)).toBe(false);
   });
 });
