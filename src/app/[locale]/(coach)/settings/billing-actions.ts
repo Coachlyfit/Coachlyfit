@@ -37,6 +37,23 @@ export async function createPackageAction(locale: string, formData: FormData): P
   revalidatePath(`/${locale}/settings`);
 }
 
+export async function updatePackageAction(locale: string, id: string, formData: FormData): Promise<ActionResult> {
+  const parsed = packageSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+    duration_days: formData.get("duration_days"),
+    price_egp: formData.get("price_egp"),
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  await new ClientBillingService(supabase).updatePackage(id, parsed.data);
+  revalidatePath(`/${locale}/settings`);
+}
+
 export async function deletePackageAction(locale: string, id: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
