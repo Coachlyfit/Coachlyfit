@@ -93,6 +93,9 @@ export function SubscriptionCard({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {(status === "expired" || status === "canceled") && (
+            <StartSubscriptionDialog locale={locale} clientId={clientId} packages={packages} />
+          )}
           {subscription.status === "active" && (
             <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => runAction(freezeSubscriptionAction)} className="min-w-24">
               <Snowflake className="size-4" />

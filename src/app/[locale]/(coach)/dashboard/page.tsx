@@ -149,7 +149,7 @@ export default async function DashboardPage({
         </Link>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+      <div className="grid items-start gap-4 lg:grid-cols-[1.35fr_1fr]">
         <Card className="overflow-hidden py-0">
           <div className="flex items-center gap-2 border-b border-border px-5 py-4">
             <span className="text-sm font-semibold">{t("queue.title")}</span>
