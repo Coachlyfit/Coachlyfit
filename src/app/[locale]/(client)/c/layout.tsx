@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { signOutAction } from "@/lib/auth/sign-out-action";
 import { getPlatformSettings } from "@/lib/platform-settings";
+import { ClientBillingService } from "@/domain/billing/client-billing.service";
+import { subscriptionDisplayStatus, type ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,13 @@ export default async function ClientLayout({
   // rows here is an expected state, not a query error to swallow.
   const { data: clientRow } = await supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle();
   if (!clientRow) redirect(`/${locale}/not-linked`);
+
+  const billing = new ClientBillingService(supabase);
+  const subscription = await billing.getActiveSubscription(clientRow.id);
+  const status = subscription
+    ? subscriptionDisplayStatus({ status: subscription.status as ClientSubscriptionStatus, end_date: subscription.end_date }, new Date())
+    : "expired";
+  if (status !== "active") redirect(`/${locale}/expired`);
 
   const settings = await getPlatformSettings();
   if (settings.platform.maintenance_mode) redirect(`/${locale}/maintenance`);
