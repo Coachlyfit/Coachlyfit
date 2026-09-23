@@ -248,7 +248,7 @@ export class ProgramsService {
   private async cloneTree(
     programId: string,
     clientId: string | null,
-    overrides: Partial<Pick<Program, "name_ar" | "name_en" | "end_date">> = {}
+    overrides: Partial<Pick<Program, "name_ar" | "name_en" | "start_date" | "end_date">> = {}
   ): Promise<Program | null> {
     const tree = await this.getTree(programId);
     if (!tree) return null;
@@ -333,9 +333,29 @@ export class ProgramsService {
     return cloned;
   }
 
-  /** Clones a template's whole tree onto a client. */
-  async cloneToClient(programId: string, clientId: string): Promise<Program | null> {
-    return this.cloneTree(programId, clientId);
+  /** Clones a template's whole tree onto a client, starting today — not the
+   * template's own start_date, which is almost always in the past by the
+   * time it's assigned and would otherwise throw off the cloned program's
+   * calculated current week/day (program-cycle.ts). When `replaceActive` is
+   * set, the client's other currently-active (non-archived) programs are
+   * soft-archived right after, same as the coach's own "Delete" action —
+   * restorable from Trash, never destroyed. */
+  async cloneToClient(programId: string, clientId: string, replaceActive = false): Promise<Program | null> {
+    const today = new Date().toISOString().slice(0, 10);
+    const cloned = await this.cloneTree(programId, clientId, { start_date: today });
+    if (!cloned) return null;
+
+    if (replaceActive) {
+      const { error } = await this.db
+        .from("programs")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("client_id", clientId)
+        .neq("id", cloned.id)
+        .is("archived_at", null);
+      if (error) throw error;
+    }
+
+    return cloned;
   }
 
   /** The reverse of cloneToClient: copies an assigned program back out as a

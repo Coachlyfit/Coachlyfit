@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
+import { StickyNote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { ObservationsService } from "@/domain/clients/observations.service";
 import type { AppLocale } from "@/domain/locale";
@@ -20,7 +22,9 @@ export async function ObservationsSection({ clientId, locale }: { clientId: stri
       </div>
       {observations.length === 0 ? (
         <Card>
-          <CardContent className="py-6 text-center text-sm text-muted-foreground">{t("empty")}</CardContent>
+          <CardContent className="py-2">
+            <EmptyState icon={StickyNote} title={t("empty")} />
+          </CardContent>
         </Card>
       ) : (
         <div className="flex flex-col gap-2">

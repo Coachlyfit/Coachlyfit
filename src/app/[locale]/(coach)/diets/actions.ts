@@ -108,7 +108,8 @@ export async function listArchivedDietPlansAction() {
 export async function cloneDietPlanAction(
   locale: string,
   dietPlanId: string,
-  clientId: string
+  clientId: string,
+  replaceActive = false
 ): Promise<CreateResult> {
   const supabase = await createClient();
   const {
@@ -116,9 +117,10 @@ export async function cloneDietPlanAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const cloned = await new DietPlansService(supabase).cloneToClient(dietPlanId, clientId);
+  const cloned = await new DietPlansService(supabase).cloneToClient(dietPlanId, clientId, replaceActive);
   if (!cloned) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets`);
+  revalidatePath(`/${locale}/clients/${clientId}`);
   return { id: cloned.id };
 }
 

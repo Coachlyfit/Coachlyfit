@@ -645,7 +645,8 @@
       "swapped": "بدّل {original} بـ {substitute}",
       "painReports": "تقارير الألم",
       "painReportLine": "{exercise} — ألم {pain}/5 ({date})",
-      "unknownExercise": "تمرين"
+      "unknownExercise": "تمرين",
+      "sessionStats": "{completed}/{prescribed} سِت · {volume} كجم حجم تدريبي"
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
@@ -716,6 +717,76 @@
       "add": "إضافة ملاحظة",
       "placeholder": "اكتب ملاحظة خاصة عن هذا العميل...",
       "submit": "حفظ"
+    },
+    "profile": {
+      "message": "مراسلة",
+      "edit": "تعديل بيانات العميل",
+      "archive": "أرشفة العميل",
+      "restore": "استرجاع العميل",
+      "archivedBanner": "العميل ده متأرشف.",
+      "confirmArchiveTitle": "تأرشف العميل ده؟",
+      "confirmArchiveBody": "خططه وتاريخه هيفضلوا زي ما هما. تقدر تسترجعه من هنا في أي وقت.",
+      "joined": "انضم في {date}",
+      "editDialog": {
+        "title": "تعديل بيانات العميل",
+        "name": "الاسم",
+        "email": "الإيميل",
+        "phone": "التليفون",
+        "submit": "حفظ"
+      },
+      "attention": {
+        "painReports": "{count, plural, one {تقرير ألم واحد في آخر أسبوعين} other {# تقارير ألم في آخر أسبوعين}}",
+        "pendingReview": "{count, plural, one {تشيك إن واحد محتاج مراجعة} other {# تشيك إن محتاجين مراجعة}}",
+        "late": "مسجّلش تشيك إن من أكتر من أسبوع",
+        "unreadMessages": "{count, plural, one {رسالة واحدة لسه ماتقرتش} other {# رسائل لسه ماتقرتش}}",
+        "subscriptionExpired": "الاشتراك خلص",
+        "subscriptionEnding": "{days, plural, one {الاشتراك بيخلص بكرة} other {الاشتراك بيخلص خلال # أيام}}",
+        "noProgram": "مفيش برنامج تدريبي شغّال"
+      },
+      "training": {
+        "empty": "لا يوجد برنامج تدريبي",
+        "emptyDescription": "العميل ده لسه معندوش برنامج تدريبي شغّال.",
+        "assign": "تعيين من قالب",
+        "create": "إنشاء برنامج",
+        "open": "فتح البرنامج",
+        "replace": "استبدال",
+        "weekAndDay": "أسبوع {week} · {day}",
+        "restDay": "يوم راحة",
+        "dayN": "يوم {n}",
+        "weekly": "أيام ثابتة",
+        "cycle": "دورة متكررة",
+        "dateRange": "{start} – {end}",
+        "startedOn": "بدأ في {date}",
+        "dayCount": "{count} أيام تدريب",
+        "lastWorkout": "آخر تمرين {date} · {completed}/{prescribed} سِت"
+      },
+      "nutrition": {
+        "empty": "لا توجد خطة تغذية",
+        "emptyDescription": "العميل ده لسه معندوش خطة تغذية شغّالة.",
+        "assign": "تعيين من قالب",
+        "create": "إنشاء خطة",
+        "open": "فتح الخطة",
+        "replace": "استبدال",
+        "dateRange": "{start} – {end}",
+        "startedOn": "بدأت في {date}",
+        "kcal": "سعر حراري / يوم",
+        "protein": "{grams} جم بروتين",
+        "carbs": "{grams} جم كارب",
+        "fat": "{grams} جم دهون",
+        "mealCount": "{count} وجبات"
+      },
+      "assignDialog": {
+        "template": "القالب",
+        "submit": "تعيين",
+        "assignDescription": "بينشئ نسخة من القالب ده للعميل.",
+        "replaceDescription": "بينشئ نسخة من القالب ده للعميل وينقل الخطة الحالية لسلة المهملات — تقدر تسترجعها من هناك."
+      },
+      "tabs": {
+        "progress": "التقدم",
+        "sessions": "الجلسات",
+        "billing": "الفواتير",
+        "notes": "الملاحظات"
+      }
     }
   },
   "join": {

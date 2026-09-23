@@ -123,3 +123,19 @@ export function lastCheckinDate(checkins: Pick<CheckinRow, "checkin_date">[]): s
   if (checkins.length === 0) return null;
   return checkins.reduce((latest, c) => (c.checkin_date > latest ? c.checkin_date : latest), checkins[0].checkin_date);
 }
+
+export const LATE_AFTER_DAYS = 7;
+
+/** A client is "late" once they're active and have gone quiet — no
+ * check-in ever, or none within LATE_AFTER_DAYS. Invited/archived clients
+ * are never late; there's nothing to be late on. Pulled out of the client
+ * roster page so the profile's attention strip can flag the same thing. */
+export function isClientLate(
+  status: "invited" | "active" | "archived",
+  lastActive: string | null,
+  today: Date
+): boolean {
+  if (status !== "active") return false;
+  const cutoff = new Date(today.getTime() - LATE_AFTER_DAYS * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return !lastActive || lastActive < cutoff;
+}

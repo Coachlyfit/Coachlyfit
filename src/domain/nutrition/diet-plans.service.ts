@@ -156,7 +156,7 @@ export class DietPlansService {
   private async cloneTree(
     dietPlanId: string,
     clientId: string | null,
-    overrides: Partial<Pick<DietPlan, "name_ar" | "name_en" | "end_date">> = {}
+    overrides: Partial<Pick<DietPlan, "name_ar" | "name_en" | "start_date" | "end_date">> = {}
   ): Promise<DietPlan | null> {
     const tree = await this.getTree(dietPlanId);
     if (!tree) return null;
@@ -211,9 +211,25 @@ export class DietPlansService {
     return cloned;
   }
 
-  /** Clones a template's whole tree onto a client. */
-  async cloneToClient(dietPlanId: string, clientId: string): Promise<DietPlan | null> {
-    return this.cloneTree(dietPlanId, clientId);
+  /** Clones a template's whole tree onto a client, starting today — see
+   * ProgramsService.cloneToClient for why. `replaceActive` soft-archives
+   * the client's other active plans after cloning, same as there. */
+  async cloneToClient(dietPlanId: string, clientId: string, replaceActive = false): Promise<DietPlan | null> {
+    const today = new Date().toISOString().slice(0, 10);
+    const cloned = await this.cloneTree(dietPlanId, clientId, { start_date: today });
+    if (!cloned) return null;
+
+    if (replaceActive) {
+      const { error } = await this.db
+        .from("diet_plans")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("client_id", clientId)
+        .neq("id", cloned.id)
+        .is("archived_at", null);
+      if (error) throw error;
+    }
+
+    return cloned;
   }
 
   /** The reverse of cloneToClient: copies an assigned plan back out as a

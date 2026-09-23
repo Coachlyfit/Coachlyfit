@@ -31,16 +31,25 @@ const NO_CLIENT = "__template__";
 export function CreateProgramDialog({
   locale,
   clients,
+  defaultClientId,
+  defaultOpen = false,
+  trigger,
 }: {
   locale: string;
   clients: { id: string; display_name: string }[];
+  /** Preselects a client and defaults start_date to today — used when
+   * arriving here from that client's profile ("Create plan" on an empty
+   * TrainingCard). */
+  defaultClientId?: string;
+  defaultOpen?: boolean;
+  trigger?: React.ReactNode;
 }) {
   const t = useTranslations("programs.createDialog");
   const tPrograms = useTranslations("programs");
   const tErrors = useTranslations("programs.errors");
   const tCommon = useTranslations("common");
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -52,7 +61,11 @@ export function CreateProgramDialog({
     formState: { errors },
   } = useForm<CreateProgramFormInput>({
     resolver: zodResolver(createProgramSchema),
-    defaultValues: { client_id: "", schedule_mode: "cycle" },
+    defaultValues: {
+      client_id: defaultClientId ?? "",
+      schedule_mode: "cycle",
+      start_date: defaultClientId ? new Date().toISOString().slice(0, 10) : undefined,
+    },
   });
 
   const onSubmit = handleSubmit((data) => {
@@ -80,7 +93,7 @@ export function CreateProgramDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
         <Plus className="size-4" />
-        {tPrograms("new")}
+        {trigger ?? tPrograms("new")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

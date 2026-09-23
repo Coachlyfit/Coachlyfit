@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Dumbbell, AlertTriangle } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { computePersonalRecords } from "@/domain/progress/prs";
@@ -9,19 +9,19 @@ import { PrList, type PrListRow } from "@/components/progress/pr-list";
 import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 
-/** Coach-facing compliance view — sits alongside ProgressSection on the
- * client detail page. Read-only: RLS's coach_read (select-only) on
- * workout_sessions/workout_set_logs already scopes this to the caller's
- * own clients, no separate authorization needed here. */
+/** Coach-facing compliance view — the Sessions tab on the client profile.
+ * Read-only: RLS's coach_read (select-only) on workout_sessions/
+ * workout_set_logs already scopes this to the caller's own clients, no
+ * separate authorization needed here. Pain reports moved out to
+ * AttentionStrip, which surfaces across every tab instead of only here. */
 export async function WorkoutSection({ clientId, locale }: { clientId: string; locale: AppLocale }) {
   const t = await getTranslations("clients.workouts");
   const tPrs = await getTranslations("progress.prs");
   const supabase = await createClient();
   const workouts = new WorkoutsService(supabase);
-  const [sessions, logs, painReports] = await Promise.all([
+  const [sessions, logs] = await Promise.all([
     workouts.listRecentSessions(clientId),
     workouts.listSetLogsForClient(clientId),
-    workouts.listPainReports(clientId),
   ]);
 
   const records = computePersonalRecords(logs);
@@ -48,33 +48,6 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
 
   return (
     <div className="flex flex-col gap-4">
-      {painReports.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-destructive">
-            <AlertTriangle className="size-4" aria-hidden="true" />
-            {t("painReports")}
-          </p>
-          {painReports.map((report) => (
-            <p key={report.id} className="text-xs text-muted-foreground">
-              {t("painReportLine", {
-                exercise: report.program_items?.exercises
-                  ? pickBilingual(
-                      {
-                        ar: report.program_items.exercises.name_ar,
-                        en: report.program_items.exercises.name_en,
-                      },
-                      locale
-                    )
-                  : t("unknownExercise"),
-                pain: report.pain ?? 0,
-                date: formatDate(report.created_at, locale, { dateStyle: "medium" }),
-              })}
-              {report.notes ? ` — ${report.notes}` : ""}
-            </p>
-          ))}
-        </div>
-      )}
-
       <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
       {sessions.length === 0 ? (
         <EmptyState icon={Dumbbell} title={t("empty")} />
@@ -99,6 +72,15 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
                       {done ? t("completed") : t("inProgress")}
                     </span>
                   </div>
+                  {done && (session.sets_prescribed ?? 0) > 0 && (
+                    <p className="text-xs text-muted-foreground tabular-nums">
+                      {t("sessionStats", {
+                        completed: session.sets_completed ?? 0,
+                        prescribed: session.sets_prescribed ?? 0,
+                        volume: Math.round(session.total_volume ?? 0),
+                      })}
+                    </p>
+                  )}
                   {session.swaps.map((swap, i) => (
                     <p key={i} className="text-xs text-muted-foreground">
                       {t("swapped", {

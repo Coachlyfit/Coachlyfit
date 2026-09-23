@@ -24,10 +24,10 @@ export default async function ProgramsPage({
   searchParams,
 }: {
   params: Promise<{ locale: AppLocale }>;
-  searchParams: Promise<{ scope?: string }>;
+  searchParams: Promise<{ scope?: string; client?: string }>;
 }) {
   const { locale } = await params;
-  const { scope: rawScope } = await searchParams;
+  const { scope: rawScope, client: defaultClientId } = await searchParams;
   const scope: ProgramScope = rawScope === "templates" ? "templates" : rawScope === "assigned" ? "assigned" : "all";
   const t = await getTranslations("programs");
   const supabase = await createClient();
@@ -42,7 +42,12 @@ export default async function ProgramsPage({
       <PageTitle title={t("title")} />
       <div className="flex items-center justify-end gap-2">
         <ProgramsTrashButton locale={locale} />
-        <CreateProgramDialog locale={locale} clients={clients ?? []} />
+        <CreateProgramDialog
+          locale={locale}
+          clients={clients ?? []}
+          defaultClientId={defaultClientId}
+          defaultOpen={!!defaultClientId}
+        />
       </div>
 
       <div className="flex gap-2">

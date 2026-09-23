@@ -98,13 +98,9 @@ export function ClientsTable({ locale, clients }: { locale: AppLocale; clients: 
                     >
                       {client.display_name[0]}
                     </div>
-                    {client.status === "active" ? (
-                      <Link href={`/clients/${client.id}`} className="hover:underline">
-                        {client.display_name}
-                      </Link>
-                    ) : (
-                      client.display_name
-                    )}
+                    <Link href={`/clients/${client.id}`} className="hover:underline">
+                      {client.display_name}
+                    </Link>
                   </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{client.email || client.phone || "—"}</TableCell>

@@ -1,15 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
-import { adherenceAverage, lastCheckinDate } from "@/domain/progress/stats";
+import { adherenceAverage, isClientLate, lastCheckinDate } from "@/domain/progress/stats";
 import type { AppLocale } from "@/domain/locale";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { InviteClientDialog } from "./invite-client-dialog";
 import { ClientsTable } from "./clients-table";
 
-// A client is "late" if their most recent check-in is older than this, or
-// they have none at all. Matches the design's "متأخر" filter.
-const LATE_AFTER_DAYS = 7;
 const RECENT_CHECKIN_WINDOW_DAYS = 90;
 
 export default async function ClientsPage({
@@ -43,9 +40,7 @@ export default async function ClientsPage({
     else checkinsByClient.set(row.client_id, [row]);
   }
 
-  const lateCutoff = new Date(new Date().getTime() - LATE_AFTER_DAYS * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  const today = new Date();
 
   const rows = (clients ?? []).map((client) => {
     const clientCheckins = checkinsByClient.get(client.id) ?? [];
@@ -54,7 +49,7 @@ export default async function ClientsPage({
       ...client,
       adherence: adherenceAverage(clientCheckins),
       lastActive,
-      isLate: client.status === "active" && (!lastActive || lastActive < lateCutoff),
+      isLate: isClientLate(client.status, lastActive, today),
     };
   });
 

@@ -31,16 +31,24 @@ const NO_CLIENT = "__template__";
 export function CreateDietPlanDialog({
   locale,
   clients,
+  defaultClientId,
+  defaultOpen = false,
+  trigger,
 }: {
   locale: string;
   clients: { id: string; display_name: string }[];
+  /** Preselects a client and defaults start_date to today — see
+   * CreateProgramDialog's defaultClientId for why. */
+  defaultClientId?: string;
+  defaultOpen?: boolean;
+  trigger?: React.ReactNode;
 }) {
   const t = useTranslations("diets.createDialog");
   const tDiets = useTranslations("diets");
   const tErrors = useTranslations("diets.errors");
   const tCommon = useTranslations("common");
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -52,7 +60,10 @@ export function CreateDietPlanDialog({
     formState: { errors },
   } = useForm<CreateDietPlanInput>({
     resolver: zodResolver(createDietPlanSchema),
-    defaultValues: { client_id: "" },
+    defaultValues: {
+      client_id: defaultClientId ?? "",
+      start_date: defaultClientId ? new Date().toISOString().slice(0, 10) : undefined,
+    },
   });
 
   const onSubmit = handleSubmit((data) => {
@@ -79,7 +90,7 @@ export function CreateDietPlanDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
         <Plus className="size-4" />
-        {tDiets("new")}
+        {trigger ?? tDiets("new")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

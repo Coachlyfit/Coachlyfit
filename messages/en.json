@@ -645,7 +645,8 @@
       "swapped": "Swapped {original} for {substitute}",
       "painReports": "Pain reported",
       "painReportLine": "{exercise} — pain {pain}/5 ({date})",
-      "unknownExercise": "An exercise"
+      "unknownExercise": "An exercise",
+      "sessionStats": "{completed}/{prescribed} sets · {volume} kg volume"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -716,6 +717,76 @@
       "add": "Add note",
       "placeholder": "Write a private note about this client...",
       "submit": "Save"
+    },
+    "profile": {
+      "message": "Message",
+      "edit": "Edit client",
+      "archive": "Archive client",
+      "restore": "Restore client",
+      "archivedBanner": "This client is archived.",
+      "confirmArchiveTitle": "Archive this client?",
+      "confirmArchiveBody": "Their plans and history stay intact. You can restore them from here any time.",
+      "joined": "Joined {date}",
+      "editDialog": {
+        "title": "Edit client",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "submit": "Save"
+      },
+      "attention": {
+        "painReports": "{count, plural, one {# pain report in the last 2 weeks} other {# pain reports in the last 2 weeks}}",
+        "pendingReview": "{count, plural, one {# check-in awaiting review} other {# check-ins awaiting review}}",
+        "late": "Hasn't checked in for over a week",
+        "unreadMessages": "{count, plural, one {# unread message} other {# unread messages}}",
+        "subscriptionExpired": "Subscription has expired",
+        "subscriptionEnding": "{days, plural, one {Subscription ends tomorrow} other {Subscription ends in # days}}",
+        "noProgram": "No active workout plan"
+      },
+      "training": {
+        "empty": "No workout plan assigned",
+        "emptyDescription": "This client doesn't have an active workout plan yet.",
+        "assign": "Assign from template",
+        "create": "Create plan",
+        "open": "Open plan",
+        "replace": "Replace",
+        "weekAndDay": "Week {week} · {day}",
+        "restDay": "Rest day",
+        "dayN": "Day {n}",
+        "weekly": "Fixed weekdays",
+        "cycle": "Repeating cycle",
+        "dateRange": "{start} – {end}",
+        "startedOn": "Started {date}",
+        "dayCount": "{count} training days",
+        "lastWorkout": "Last workout {date} · {completed}/{prescribed} sets"
+      },
+      "nutrition": {
+        "empty": "No diet plan assigned",
+        "emptyDescription": "This client doesn't have an active nutrition plan yet.",
+        "assign": "Assign from template",
+        "create": "Create plan",
+        "open": "Open plan",
+        "replace": "Replace",
+        "dateRange": "{start} – {end}",
+        "startedOn": "Started {date}",
+        "kcal": "kcal / day",
+        "protein": "{grams}g protein",
+        "carbs": "{grams}g carbs",
+        "fat": "{grams}g fat",
+        "mealCount": "{count} meals"
+      },
+      "assignDialog": {
+        "template": "Template",
+        "submit": "Assign",
+        "assignDescription": "Creates a copy of this template for the client.",
+        "replaceDescription": "Creates a copy of this template for the client and moves their current plan to Trash — you can restore it from there."
+      },
+      "tabs": {
+        "progress": "Progress",
+        "sessions": "Sessions",
+        "billing": "Billing",
+        "notes": "Notes"
+      }
     }
   },
   "join": {
