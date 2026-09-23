@@ -64,6 +64,17 @@ export class ClientBillingService {
     return data;
   }
 
+  async updatePackage(id: string, input: CreatePackageInput): Promise<ClientPackage> {
+    const { data, error } = await this.db
+      .from("client_packages")
+      .update(input)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   async deletePackage(id: string): Promise<boolean> {
     const { data, error } = await this.db.from("client_packages").delete().eq("id", id).select("id");
     if (error) throw error;

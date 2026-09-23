@@ -463,6 +463,12 @@
       "title": "Your account isn't connected to a coach",
       "body": "Your invite hasn't been fully confirmed yet. Contact your coach, or reach out to {email} for help.",
       "signOut": "Sign out"
+    },
+    "expired": {
+      "title": "Your subscription has expired",
+      "body": "Your subscription has expired and access is paused until it's renewed. Contact {email} for help.",
+      "bodyWithCoach": "Your subscription has expired and access is paused until it's renewed. Contact {coach} to renew.",
+      "signOut": "Sign out"
     }
   },
   "dashboard": {
@@ -524,11 +530,12 @@
       "add": "Add package",
       "nameAr": "Name (Arabic)",
       "nameEn": "Name (English)",
-      "duration": "Duration",
+      "duration": "Duration (days)",
       "durationDays": "{count} days",
       "price": "Price",
       "egp": "EGP",
       "submit": "Save",
+      "edit": "Edit package",
       "empty": "No packages yet. Add one so you can subscribe clients to it.",
       "confirmDeleteTitle": "Delete this package?",
       "delete": "Delete"

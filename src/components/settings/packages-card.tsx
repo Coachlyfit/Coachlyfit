@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
-import { createPackageAction, deletePackageAction } from "@/app/[locale]/(coach)/settings/billing-actions";
+import {
+  createPackageAction,
+  updatePackageAction,
+  deletePackageAction,
+} from "@/app/[locale]/(coach)/settings/billing-actions";
 
 const packageFormSchema = z.object({
   name_ar: z.string().min(1).max(100),
@@ -34,6 +38,7 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
   const tErrors = useTranslations("settings.errors");
   const locale = useLocale() as AppLocale;
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Package | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -44,6 +49,18 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
     formState: { errors },
   } = useForm<PackageFormInput>({ resolver: zodResolver(packageFormSchema) });
 
+  function openCreate() {
+    setEditing(null);
+    reset({ name_ar: "", name_en: "", duration_days: undefined, price_egp: undefined });
+    setOpen(true);
+  }
+
+  function openEdit(pkg: Package) {
+    setEditing(pkg);
+    reset({ name_ar: pkg.name_ar, name_en: pkg.name_en, duration_days: pkg.duration_days, price_egp: pkg.price_egp });
+    setOpen(true);
+  }
+
   const onSubmit = handleSubmit((data) => {
     const formData = new FormData();
     formData.set("name_ar", data.name_ar);
@@ -51,12 +68,15 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
     formData.set("duration_days", String(data.duration_days));
     formData.set("price_egp", String(data.price_egp));
     startTransition(async () => {
-      const result = await createPackageAction(locale, formData);
+      const result = editing
+        ? await updatePackageAction(locale, editing.id, formData)
+        : await createPackageAction(locale, formData);
       if (result?.error) {
         toast.error(tErrors(result.error));
         return;
       }
       reset();
+      setEditing(null);
       setOpen(false);
     });
   });
@@ -74,14 +94,20 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
         <CardTitle className="text-base">{t("title")}</CardTitle>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
+        <Dialog
+          open={open}
+          onOpenChange={(o) => {
+            setOpen(o);
+            if (!o) setEditing(null);
+          }}
+        >
+          <DialogTrigger render={<Button type="button" variant="outline" size="sm" onClick={openCreate} />}>
             <Plus className="size-4" />
             {t("add")}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("add")}</DialogTitle>
+              <DialogTitle>{editing ? t("edit") : t("add")}</DialogTitle>
             </DialogHeader>
             <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
               <div className="flex flex-col gap-2">
@@ -136,7 +162,10 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
                   <TableCell className="tabular-nums text-muted-foreground">
                     {formatNumber(pkg.price_egp, locale)} {t("egp")}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="flex items-center gap-1">
+                    <Button type="button" variant="ghost" size="icon-sm" onClick={() => openEdit(pkg)}>
+                      <Pencil className="size-4" />
+                    </Button>
                     <Button
                       type="button"
                       variant="ghost"
