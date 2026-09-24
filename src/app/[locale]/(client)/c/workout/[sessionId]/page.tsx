@@ -8,6 +8,7 @@ import {
 } from "@/domain/workouts/workouts-actions";
 import { weekIndexForDate } from "@/domain/programs/program-cycle";
 import { CLIENT_SAFE_ITEM_COLUMNS } from "@/domain/programs/programs.service";
+import { LedgerService } from "@/domain/ledger/ledger.service";
 import type { AppLocale } from "@/domain/locale";
 import { WorkoutSessionClient } from "./workout-session-client";
 
@@ -41,9 +42,10 @@ export default async function WorkoutSessionPage({
   const session = await startOrResumeSessionAction(programDayId);
   if (!session) notFound();
 
-  const [setLogs, exerciseResults] = await Promise.all([
+  const [setLogs, exerciseResults, adjustedItemReasons] = await Promise.all([
     listSetLogsAction(session.id),
     listExerciseResultsAction(session.id),
+    new LedgerService(supabase).listActiveAdjustedItemIds(session.client_id),
   ]);
   const exerciseIds = day.program_items.map((item) => item.exercises.id);
   const lastPerformance = await getLastPerformanceAction(exerciseIds);
@@ -61,6 +63,7 @@ export default async function WorkoutSessionPage({
       lastPerformance={lastPerformance}
       alreadyCompleted={session.completed_at != null}
       initialElapsedSeconds={session.elapsed_seconds}
+      adjustedItemReasons={Object.fromEntries(adjustedItemReasons)}
     />
   );
 }

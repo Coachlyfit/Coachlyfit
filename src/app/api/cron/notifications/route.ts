@@ -6,6 +6,7 @@ import { nextDeliveryOutcome, MAX_ATTEMPTS } from "@/domain/notifications/delive
 import {
   renderNotificationEmail,
   renderPushNotification,
+  notificationNeedsPickedName,
   type NotificationKind,
 } from "@/domain/notifications/email-templates";
 import { pickLocale } from "@/domain/locale";
@@ -97,7 +98,7 @@ async function processEmailBatch(supabase: ReturnType<typeof createAdminClient>,
       locale,
       notification.kind as NotificationKind,
       profile.full_name,
-      notification.kind === "new_message" ? null : pickLocale(payload, locale)
+      notificationNeedsPickedName(notification.kind) ? pickLocale(payload, locale) : null
     );
 
     const { error: sendError } = await resend.emails.send({ from: FROM_ADDRESS, to: recipientEmail, subject, html });
@@ -149,7 +150,7 @@ async function processPushBatch(supabase: ReturnType<typeof createAdminClient>, 
     const { title, body } = renderPushNotification(
       locale,
       notification.kind as NotificationKind,
-      notification.kind === "new_message" ? null : pickLocale(payload, locale)
+      notificationNeedsPickedName(notification.kind) ? pickLocale(payload, locale) : null
     );
     const message = JSON.stringify({ title, body, url: "/" });
 

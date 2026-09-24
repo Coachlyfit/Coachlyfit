@@ -10,10 +10,13 @@ import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { dayIndexForDate, dayIndexForDateWithMode, startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { checkinStreak, longestStreak, weightTrend } from "@/domain/progress/stats";
+import { LedgerService } from "@/domain/ledger/ledger.service";
+import type { StructuredAdjustment } from "@/domain/progress/review.service";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 import { tintFor } from "@/lib/tint";
 import { TodayExercisePreview } from "./today-exercise-preview";
+import { CoachDecisionCard } from "./coach-decision-card";
 
 export default async function ClientHomePage({
   params,
@@ -41,10 +44,11 @@ export default async function ClientHomePage({
   const programs = new ProgramsService(supabase);
   const workouts = new WorkoutsService(supabase);
 
-  const [existingCheckin, history, tree] = await Promise.all([
+  const [existingCheckin, history, tree, latestDecision] = await Promise.all([
     clientRow ? progress.getCheckin(clientRow.id, todayIso) : null,
     clientRow ? progress.listCheckins(clientRow.id) : [],
     clientRow ? programs.getActiveTreeForClient(clientRow.id) : null,
+    clientRow ? new LedgerService(supabase).latestUnseenForClient(clientRow.id) : null,
   ]);
 
   const cycleLength = tree?.program_days.length ?? 0;
@@ -115,6 +119,20 @@ export default async function ClientHomePage({
           </div>
         </CardContent>
       </Card>
+
+      <CoachDecisionCard
+        decision={
+          latestDecision
+            ? {
+                id: latestDecision.id,
+                decision: latestDecision.decision as "keep" | "adjust" | "call",
+                reasonKey: latestDecision.reason_key,
+                clientNote: latestDecision.client_note,
+                adjustments: (latestDecision.adjustments ?? []) as unknown as StructuredAdjustment[],
+              }
+            : null
+        }
+      />
 
       {checkinDue && (
         <Link

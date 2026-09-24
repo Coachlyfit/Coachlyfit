@@ -13,7 +13,11 @@ import { Link } from "@/i18n/navigation";
 import { listNotificationsAction, markNotificationsReadAction } from "./notifications-actions";
 import { usePushSubscription } from "./use-push-subscription";
 
-const KINDS = ["exercise_promoted", "food_promoted", "new_message"] as const;
+// coach_decision is client-only (see the migration's notify_on_decision
+// trigger — it only ever inserts to a client's profile_id), so it never
+// reaches this coach/admin-side bell; only decision_outcome shows up here,
+// for the coach's own copy of that notification.
+const KINDS = ["exercise_promoted", "food_promoted", "new_message", "decision_outcome"] as const;
 
 function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
   return (KINDS as readonly string[]).includes(kind);
@@ -21,6 +25,7 @@ function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
 
 export function NotificationBell({ locale }: { locale: AppLocale }) {
   const t = useTranslations("notifications");
+  const tOutcome = useTranslations("ledger.outcome");
   const tPush = useTranslations("common.push");
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -47,16 +52,25 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     if (notification.kind === "new_message") {
       return t("new_message", { name: (payload.sender_name as string | null) ?? t("unknown") });
     }
+    if (notification.kind === "decision_outcome") {
+      return t("decision_outcome", { status: tOutcome(payload.outcome_status as string) });
+    }
     // payload is jsonb, so it arrives as an untyped object — pickLocale
     // reads the same name_ar/name_en pair the promote function wrote.
     return t(notification.kind, { name: pickLocale(payload, locale) });
   }
 
   function href(notification: Notification): string | null {
-    if (notification.kind !== "new_message") return null;
     const payload = (notification.payload ?? {}) as Record<string, unknown>;
-    const clientId = payload.client_id as string | null;
-    return clientId ? `/inbox/${clientId}` : null;
+    if (notification.kind === "new_message") {
+      const clientId = payload.client_id as string | null;
+      return clientId ? `/inbox/${clientId}` : null;
+    }
+    if (notification.kind === "decision_outcome") {
+      const clientId = payload.client_id as string | null;
+      return clientId ? `/clients/${clientId}?tab=decisions` : null;
+    }
+    return null;
   }
 
   async function onOpenChange(next: boolean) {

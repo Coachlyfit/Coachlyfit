@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
+import { LedgerService } from "@/domain/ledger/ledger.service";
 import { adjustmentSchema } from "../review/schemas";
 import { z } from "zod";
 import { createProgramSchema, daySchema, itemSchema, reorderSchema, saveAsTemplateSchema } from "./schemas";
@@ -506,6 +507,14 @@ export async function applyAdjustmentAction(
 
   const programs = new ProgramsService(supabase);
 
+  // Snapshot BEFORE the mutation, same "once per user gesture, before the
+  // edit it's about to apply" rule every other structural action in this
+  // file follows — this is the one that was missing it (the checkin-review
+  // adjustment path predates the ledger). Its revision id is what links
+  // the ledger decision to the actual program change (markApplied below).
+  const revisionId = await programs.snapshotIfAssigned(programId, "apply_adjustment");
+
+  let affectedItemIds: string[] = [];
   switch (parsed.data.key) {
     case "reduceLoad": {
       let itemIds = parsed.data.itemIds;
@@ -516,10 +525,12 @@ export async function applyAdjustmentAction(
         itemIds = activeTree ? activeTree.program_days.flatMap((d) => d.program_items.map((i) => i.id)) : [];
       }
       if (itemIds.length > 0) await programs.applyLoadReduction(itemIds, parsed.data.percent);
+      affectedItemIds = itemIds;
       break;
     }
     case "removeMovement":
       for (const itemId of parsed.data.itemIds) await programs.removeItem(itemId);
+      affectedItemIds = parsed.data.itemIds;
       break;
     default:
       // extraWarmup/extraRestDay are message-only — nothing to mutate.
@@ -527,5 +538,6 @@ export async function applyAdjustmentAction(
   }
 
   await new ReviewService(supabase).markAdjustmentApplied(checkinId);
+  await new LedgerService(supabase).markApplied(checkinId, { revisionId, affectedItemIds });
   revalidatePath(`/${locale}/programs/${programId}`);
 }

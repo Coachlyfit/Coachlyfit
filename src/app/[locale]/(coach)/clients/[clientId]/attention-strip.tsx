@@ -26,7 +26,9 @@ export async function AttentionStrip({ clientId }: { clientId: string }) {
   const now = new Date();
   const painSince = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [painReports, pendingCheckins, recentCheckins, thread, subscription, program] = await Promise.all([
+  const outcomeSince = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [painReports, pendingCheckins, recentCheckins, thread, subscription, program, needsFollowUp] = await Promise.all([
     supabase
       .from("workout_exercise_results")
       .select("id", { count: "exact", head: true })
@@ -48,6 +50,16 @@ export async function AttentionStrip({ clientId }: { clientId: string }) {
       .limit(1)
       .maybeSingle(),
     getActiveProgram(clientId),
+    // A Coaching Ledger decision the outcome cron just re-checked and
+    // found NOT resolved — see domain/ledger/outcomes.ts. "worse" or
+    // "persisting" only: "not_evaluable" means there was nothing to check
+    // (no items applied), not a problem worth flagging.
+    supabase
+      .from("coaching_decisions")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", clientId)
+      .in("outcome_status", ["worse", "persisting"])
+      .gte("evaluated_at", outcomeSince),
   ]);
 
   const items: Item[] = [];
@@ -100,6 +112,15 @@ export async function AttentionStrip({ clientId }: { clientId: string }) {
 
   if (!program) {
     items.push({ key: "no-program", icon: Dumbbell, text: t("noProgram") });
+  }
+
+  if ((needsFollowUp.count ?? 0) > 0) {
+    items.push({
+      key: "decision-follow-up",
+      icon: AlertTriangle,
+      text: t("decisionNeedsFollowUp"),
+      href: `/clients/${clientId}?tab=decisions`,
+    });
   }
 
   if (items.length === 0) return null;
