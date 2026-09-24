@@ -232,39 +232,73 @@ export function WorkoutSessionClient({
     });
   }
 
+  // Optimistic-update pattern used throughout this file: apply the change
+  // to local state and close/advance the UI immediately (this is a client
+  // logging their own workout — the write is single-row and scoped to
+  // their own session, so it's safe to assume success), then reconcile
+  // with the server response in the background. On an error, roll back to
+  // the snapshot taken before the optimistic apply and surface a toast —
+  // the user sees the entry disappear/revert rather than a frozen sheet.
+  // `savingSet` still exists as a light guard against double-submitting the
+  // same sheet, not as a blocking spinner.
+
   async function saveActiveSet(values: LoggedSetValues) {
     if (!activeSet) return;
     const { item, setIndex, prescribed } = activeSet;
     const key = setKey(item.id, setIndex);
     const existing = logs.get(key);
+    if (savingSet) return;
     setSavingSet(true);
+
+    const logsSnapshot = logs;
+    const isNewSet = !existing;
+
+    // Close the sheet and reflect the entry immediately — the optimistic
+    // row is replaced with the server's real row a moment later, or rolled
+    // back on failure.
+    const optimisticLog: WorkoutSetLog = {
+      ...(existing ?? {
+        id: `optimistic-${key}`,
+        session_id: sessionId,
+        program_item_id: item.id,
+        set_index: setIndex,
+        client_id: "",
+        coach_id: "",
+        completed_at: new Date().toISOString(),
+        prescribed_reps: prescribed.reps,
+        prescribed_weight: prescribed.weight,
+        substituted_exercise_id: swaps.get(item.id)?.id ?? null,
+      }),
+      weight: values.weight,
+      reps: values.reps ?? prescribed.reps,
+      rpe: values.rpe,
+      notes: values.notes ?? null,
+    };
+    setLogs((prev) => new Map(prev).set(key, optimisticLog));
+    setActiveSet(null);
+    if (isNewSet) restTimer.start(item.rest_seconds ?? 90);
+
     try {
-      if (existing) {
-        const result = await updateSetAction(existing.id, values);
-        if ("error" in result) {
-          toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.saveFailed"));
-          return;
-        }
-        setLogs((prev) => new Map(prev).set(key, result.log));
-      } else {
-        const swap = swaps.get(item.id);
-        const result = await logSetAction(sessionId, {
-          program_item_id: item.id,
-          set_index: setIndex,
-          weight: values.weight,
-          reps: values.reps ?? prescribed.reps,
-          rpe: values.rpe,
-          notes: values.notes,
-          substituted_exercise_id: swap ? swap.id : null,
-        });
-        if ("error" in result) {
-          toast.error(t("setEntry.saveFailed"));
-          return;
-        }
-        setLogs((prev) => new Map(prev).set(key, result.log));
-        restTimer.start(item.rest_seconds ?? 90);
+      const result = existing ? await updateSetAction(existing.id, values) : await logSetAction(sessionId, {
+        program_item_id: item.id,
+        set_index: setIndex,
+        weight: values.weight,
+        reps: values.reps ?? prescribed.reps,
+        rpe: values.rpe,
+        notes: values.notes,
+        substituted_exercise_id: swaps.get(item.id)?.id ?? null,
+      });
+      if ("error" in result) {
+        setLogs(logsSnapshot);
+        if (isNewSet) restTimer.skip();
+        toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.saveFailed"));
+        return;
       }
-      setActiveSet(null);
+      setLogs((prev) => new Map(prev).set(key, result.log));
+    } catch {
+      setLogs(logsSnapshot);
+      if (isNewSet) restTimer.skip();
+      toast.error(t("setEntry.saveFailed"));
     } finally {
       setSavingSet(false);
     }
@@ -279,19 +313,27 @@ export function WorkoutSessionClient({
       setActiveSet(null);
       return;
     }
+    if (savingSet) return;
     setSavingSet(true);
+
+    const logsSnapshot = logs;
+    setLogs((prev) => {
+      const next = new Map(prev);
+      next.delete(key);
+      return next;
+    });
+    setActiveSet(null);
+
     try {
       const result = await deleteSetAction(existing.id);
       if ("error" in result) {
+        setLogs(logsSnapshot);
         toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.deleteFailed"));
         return;
       }
-      setLogs((prev) => {
-        const next = new Map(prev);
-        next.delete(key);
-        return next;
-      });
-      setActiveSet(null);
+    } catch {
+      setLogs(logsSnapshot);
+      toast.error(t("setEntry.deleteFailed"));
     } finally {
       setSavingSet(false);
     }
@@ -302,39 +344,74 @@ export function WorkoutSessionClient({
   }
 
   async function skipExercise(item: ProgramItem) {
-    const result = await setExerciseResultAction(sessionId, item.id, { status: "skipped" });
-    if ("error" in result) {
-      toast.error(t("feedback.saveFailed"));
-      return;
-    }
+    const resultsSnapshot = exerciseResults;
     setExerciseResults((prev) => new Map(prev).set(item.id, "skipped"));
+    try {
+      const result = await setExerciseResultAction(sessionId, item.id, { status: "skipped" });
+      if ("error" in result) {
+        setExerciseResults(resultsSnapshot);
+        toast.error(t("feedback.saveFailed"));
+      }
+    } catch {
+      setExerciseResults(resultsSnapshot);
+      toast.error(t("feedback.saveFailed"));
+    }
   }
 
   async function saveExerciseFeedback(values: ExerciseFeedbackValues) {
     if (!feedbackItem) return;
-    const result = await setExerciseResultAction(sessionId, feedbackItem.id, { status: "done", ...values });
-    if ("error" in result) {
-      toast.error(t("feedback.saveFailed"));
-      return;
-    }
-    setExerciseResults((prev) => new Map(prev).set(feedbackItem.id, "done"));
+    const item = feedbackItem;
+    const resultsSnapshot = exerciseResults;
+    setExerciseResults((prev) => new Map(prev).set(item.id, "done"));
     setFeedbackItem(null);
+    try {
+      const result = await setExerciseResultAction(sessionId, item.id, { status: "done", ...values });
+      if ("error" in result) {
+        setExerciseResults(resultsSnapshot);
+        toast.error(t("feedback.saveFailed"));
+      }
+    } catch {
+      setExerciseResults(resultsSnapshot);
+      toast.error(t("feedback.saveFailed"));
+    }
   }
 
   async function skipFeedback() {
     if (!feedbackItem) return;
-    const result = await setExerciseResultAction(sessionId, feedbackItem.id, { status: "done" });
-    if ("error" in result) {
-      toast.error(t("feedback.saveFailed"));
-      return;
-    }
-    setExerciseResults((prev) => new Map(prev).set(feedbackItem.id, "done"));
+    const item = feedbackItem;
+    const resultsSnapshot = exerciseResults;
+    setExerciseResults((prev) => new Map(prev).set(item.id, "done"));
     setFeedbackItem(null);
+    try {
+      const result = await setExerciseResultAction(sessionId, item.id, { status: "done" });
+      if ("error" in result) {
+        setExerciseResults(resultsSnapshot);
+        toast.error(t("feedback.saveFailed"));
+      }
+    } catch {
+      setExerciseResults(resultsSnapshot);
+      toast.error(t("feedback.saveFailed"));
+    }
   }
 
+  const [finishing, setFinishing] = useState(false);
+
   async function onFinish() {
-    await completeSessionAction(sessionId, elapsedS);
+    if (finishing) return;
+    setFinishing(true);
+    // Reflect completion immediately -- there's nowhere useful for the
+    // client to keep interacting with this session while the write lands,
+    // and the summary screen doesn't depend on the server response.
     setDone(true);
+    try {
+      await completeSessionAction(sessionId, elapsedS);
+    } catch {
+      // The session write is idempotent server-side (completeSessionAction
+      // just stamps completed_at); if it failed, the next visit to this
+      // session will simply retry via alreadyCompleted's normal path, so
+      // there's no local rollback needed here -- just let the user know.
+      toast.error(t("finishSaveFailed"));
+    }
   }
 
   if (done) {
@@ -558,8 +635,9 @@ export function WorkoutSessionClient({
         <button
           type="button"
           onClick={onFinish}
+          disabled={finishing}
           className={cn(
-            "mt-1.5 h-12.5 w-full rounded-[11px] text-[15px] font-semibold",
+            "mt-1.5 h-12.5 w-full rounded-[11px] text-[15px] font-semibold disabled:opacity-60",
             allDone ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
           )}
         >

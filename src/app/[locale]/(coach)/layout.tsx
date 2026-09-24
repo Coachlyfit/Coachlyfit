@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
-import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { getAuthUser, getViewerProfile, getRequestCoachId } from "@/lib/auth/session";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
@@ -23,25 +23,26 @@ export default async function CoachLayout({
   const supabase = await createClient();
 
   // getUser() (not getSession()) — revalidates the JWT against the Auth
-  // server rather than trusting a locally-decoded cookie.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // server rather than trusting a locally-decoded cookie. Cached via
+  // React.cache (see src/lib/auth/session.ts) so this and the queries below
+  // run once per request and share results with the page underneath,
+  // instead of every layer re-deriving the same answers serially.
+  const user = await getAuthUser();
   if (!user) redirect(`/${locale}/login`);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, full_name, suspended_at")
-    .eq("id", user.id)
-    .single();
+  // profile / platform settings / tenant coachId are independent of one
+  // another -- none needs another's result -- so fetch them together
+  // instead of one at a time.
+  const [profile, settings, coachId] = await Promise.all([
+    getViewerProfile(),
+    getPlatformSettings(),
+    getRequestCoachId(),
+  ]);
 
   if (profile?.role !== "coach") redirect(roleHome(locale, profile?.role));
   if (profile.suspended_at) redirect(`/${locale}/suspended`);
-
-  const settings = await getPlatformSettings();
   if (settings.platform.maintenance_mode) redirect(`/${locale}/maintenance`);
 
-  const coachId = await resolveCoachId(supabase);
   if (coachId === user.id) {
     // The tenant owner -- unchanged existing gate.
     const { data: coach } = await supabase

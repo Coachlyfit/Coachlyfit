@@ -854,6 +854,7 @@
       "setsDone": "{done} / {total} sets",
       "finish": "Finish workout",
       "finishDone": "Workout finished",
+      "finishSaveFailed": "Couldn't save your finished workout. Your coach may not see it yet.",
       "skipRest": "Skip",
       "watchForm": "Watch form check",
       "doneTitle": "Workout logged",
