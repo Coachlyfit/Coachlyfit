@@ -519,6 +519,122 @@ export type Database = {
           },
         ]
       }
+      coaching_decisions: {
+        Row: {
+          adjustments: Json
+          affected_item_ids: string[]
+          applied_at: string | null
+          checkin_id: string | null
+          client_id: string
+          client_note: string | null
+          client_seen_at: string | null
+          coach_id: string
+          created_at: string
+          decided_by: string | null
+          decision: string
+          evaluated_at: string | null
+          evidence: Json
+          id: string
+          outcome_evidence: Json | null
+          outcome_status: string
+          program_id: string | null
+          reason_key: string
+          revision_id: string | null
+        }
+        Insert: {
+          adjustments?: Json
+          affected_item_ids?: string[]
+          applied_at?: string | null
+          checkin_id?: string | null
+          client_id: string
+          client_note?: string | null
+          client_seen_at?: string | null
+          coach_id: string
+          created_at?: string
+          decided_by?: string | null
+          decision: string
+          evaluated_at?: string | null
+          evidence?: Json
+          id?: string
+          outcome_evidence?: Json | null
+          outcome_status?: string
+          program_id?: string | null
+          reason_key: string
+          revision_id?: string | null
+        }
+        Update: {
+          adjustments?: Json
+          affected_item_ids?: string[]
+          applied_at?: string | null
+          checkin_id?: string | null
+          client_id?: string
+          client_note?: string | null
+          client_seen_at?: string | null
+          coach_id?: string
+          created_at?: string
+          decided_by?: string | null
+          decision?: string
+          evaluated_at?: string | null
+          evidence?: Json
+          id?: string
+          outcome_evidence?: Json | null
+          outcome_status?: string
+          program_id?: string | null
+          reason_key?: string
+          revision_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_decisions_checkin_id_fkey"
+            columns: ["checkin_id"]
+            isOneToOne: true
+            referencedRelation: "checkins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "program_revisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coaches: {
         Row: {
           business_name: string
@@ -2673,6 +2789,36 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "checkins"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mark_decision_seen: {
+        Args: { p_decision_id: string }
+        Returns: {
+          adjustments: Json
+          affected_item_ids: string[]
+          applied_at: string | null
+          checkin_id: string | null
+          client_id: string
+          client_note: string | null
+          client_seen_at: string | null
+          coach_id: string
+          created_at: string
+          decided_by: string | null
+          decision: string
+          evaluated_at: string | null
+          evidence: Json
+          id: string
+          outcome_evidence: Json | null
+          outcome_status: string
+          program_id: string | null
+          reason_key: string
+          revision_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "coaching_decisions"
           isOneToOne: true
           isSetofReturn: false
         }

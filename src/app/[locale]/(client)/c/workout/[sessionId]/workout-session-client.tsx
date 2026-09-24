@@ -91,6 +91,7 @@ export function WorkoutSessionClient({
   lastPerformance,
   alreadyCompleted,
   initialElapsedSeconds,
+  adjustedItemReasons,
 }: {
   locale: AppLocale;
   day: ProgramDay;
@@ -111,8 +112,14 @@ export function WorkoutSessionClient({
    * a backgrounded/refreshed session picks up here instead of restarting
    * the timer at 0. */
   initialElapsedSeconds: number;
+  /** program_item_id -> reason_key for items an applied Coaching Ledger
+   * decision touched recently (LedgerService.listActiveAdjustedItemIds) —
+   * plain object, same server-action-can't-return-a-Map reasoning as
+   * lastPerformance. Drives the "why" chip below the exercise name. */
+  adjustedItemReasons: Record<string, string>;
 }) {
   const t = useTranslations("client.workout");
+  const tReason = useTranslations("review.reason.options");
   const router = useRouter();
   const BackIcon = locale === "ar" ? ChevronRight : ChevronLeft;
 
@@ -538,6 +545,11 @@ export function WorkoutSessionClient({
                 {swaps.has(item.id) && (
                   <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
                     {t("insteadOf", { name: pickLocale(item.exercises, locale) })}
+                  </p>
+                )}
+                {adjustedItemReasons[item.id] && (
+                  <p className="mt-0.5 truncate text-[10px] text-primary">
+                    {t("adjustedChip", { reason: tReason(adjustedItemReasons[item.id]) })}
                   </p>
                 )}
                 <div className="mt-1 flex items-center gap-2.5">

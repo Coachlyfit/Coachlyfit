@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
 import { NotificationsService } from "@/domain/notifications/notifications.service";
 import { PresenceService } from "@/domain/presence/presence.service";
+import { LedgerService } from "@/domain/ledger/ledger.service";
+import { OutcomeBadge } from "@/components/ledger/outcome-badge";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
 import { PageTitle } from "@/components/dashboard/page-title";
@@ -14,6 +16,7 @@ import { OnlineClients } from "./online-clients";
 
 const RECENT_SUBMISSIONS_LIMIT = 5;
 const RECENT_WINDOW_DAYS = 7;
+const FOLLOW_UPS_LIMIT = 5;
 
 function kpiLabelClass() {
   return "font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground";
@@ -44,6 +47,7 @@ export default async function DashboardPage({
     { data: payments },
     { count: pendingReviewCount },
     onlineClients,
+    recentOutcomes,
   ] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", user!.id).single(),
     supabase.from("clients").select("id", { count: "exact", head: true }).neq("status", "archived"),
@@ -73,6 +77,7 @@ export default async function DashboardPage({
       .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
     supabase.from("checkins").select("id", { count: "exact", head: true }).is("reviewed_at", null),
     new PresenceService(supabase).list({ pageSize: 10 }),
+    new LedgerService(supabase).listRecentOutcomes(),
   ]);
 
   const tier = subscription?.subscription_tiers;
@@ -147,6 +152,28 @@ export default async function DashboardPage({
             <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
           )}
         </Link>
+      )}
+
+      {recentOutcomes.length > 0 && (
+        <Card className="overflow-hidden py-0">
+          <div className="flex items-center gap-2 border-b border-border px-5 py-4">
+            <span className="text-sm font-semibold">{t("followUps.title")}</span>
+          </div>
+          <div className="flex flex-col">
+            {recentOutcomes.slice(0, FOLLOW_UPS_LIMIT).map((decision) => (
+              <Link
+                key={decision.id}
+                href={`/clients/${decision.client_id}?tab=decisions`}
+                className="flex items-center gap-3 border-b border-border/60 px-5 py-3 last:border-0 hover:bg-muted/50"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{decision.clients?.display_name}</p>
+                </div>
+                <OutcomeBadge status={decision.outcome_status as "worse" | "persisting" | "resolved" | "not_evaluable" | "pending"} />
+              </Link>
+            ))}
+          </div>
+        </Card>
       )}
 
       <div className="grid items-start gap-4 lg:grid-cols-[1.35fr_1fr]">

@@ -505,6 +505,11 @@
     "activity": {
       "title": "آخر نشاط",
       "empty": "مفيش حاجة لسه."
+    },
+    "followUps": {
+      "title": "متابعات",
+      "empty": "لسه مفيش نتايج للمراجعة.",
+      "viewAll": "عرض"
     }
   },
   "settings": {
@@ -748,7 +753,8 @@
         "unreadMessages": "{count, plural, one {رسالة واحدة لسه ماتقرتش} other {# رسائل لسه ماتقرتش}}",
         "subscriptionExpired": "الاشتراك خلص",
         "subscriptionEnding": "{days, plural, one {الاشتراك بيخلص بكرة} other {الاشتراك بيخلص خلال # أيام}}",
-        "noProgram": "مفيش برنامج تدريبي شغّال"
+        "noProgram": "مفيش برنامج تدريبي شغّال",
+        "decisionNeedsFollowUp": "تعديل أخير في الخطة محتاج متابعة"
       },
       "training": {
         "empty": "لا يوجد برنامج تدريبي",
@@ -792,8 +798,14 @@
         "progress": "التقدم",
         "sessions": "الجلسات",
         "billing": "الفواتير",
-        "notes": "الملاحظات"
+        "notes": "الملاحظات",
+        "decisions": "القرارات"
       }
+    },
+    "decisions": {
+      "title": "قرارات الكوتش",
+      "empty": "لسه مفيش قرارات.",
+      "decidedBy": "بواسطة {name}"
     }
   },
   "join": {
@@ -912,7 +924,8 @@
       "commonMistakes": "الأخطاء الشائعة",
       "safetyNote": "ملاحظة سلامة",
       "supersetLabel": "سوبرسيت",
-      "circuitLabel": "دائرة"
+      "circuitLabel": "دائرة",
+      "adjustedChip": "اتعدّل الأسبوع ده — {reason}"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
@@ -975,6 +988,14 @@
       "volume": "{value} كجم حجم",
       "duration": "{minutes} دقيقة",
       "swapped": "تم استبدال {original} بـ {substitute}"
+    },
+    "decisionCard": {
+      "title": "تحديث من الكوتش",
+      "reasonPrefix": "السبب:",
+      "changesPrefix": "اللي اتغيّر:",
+      "evidencePrefix": "ليه:",
+      "seeStory": "شوف قصة خطتك",
+      "dismiss": "إخفاء"
     }
   },
   "inbox": {
@@ -1745,7 +1766,8 @@
     "exercise_promoted": "\"{name}\" اتضاف لمكتبة التمارين العامة.",
     "food_promoted": "\"{name}\" اتضاف لمكتبة الأطعمة العامة.",
     "new_message": "وصلتك رسالة جديدة من {name}.",
-    "unknown": "عندك إشعار جديد."
+    "unknown": "عندك إشعار جديد.",
+    "decision_outcome": "تحديث على النتيجة: {status}"
   },
   "progress": {
     "title": "التقدّم",
@@ -1849,6 +1871,10 @@
       "emptyTitle": "لا توجد أرقام قياسية بعد",
       "emptyDescription": "سجّل الوزن والتكرارات أثناء الجلسة لبدء تتبع الأرقام القياسية الشخصية.",
       "estimated1rm": "تقدير أقصى وزن لمرة واحدة {value} كجم"
+    },
+    "planStory": {
+      "title": "قصة خطتي",
+      "empty": "لسه مفيش قرارات من الكوتش — هتظهر هنا أول ما يراجع تشيك إن."
     }
   },
   "billing": {
@@ -1983,6 +2009,25 @@
       "invalid_input": "من فضلك راجع البيانات وجرّب تاني.",
       "not_authenticated": "من فضلك سجّل دخول تاني.",
       "review_failed": "المراجعة معملتش سيف. جرّب تاني."
+    },
+    "evidence": {
+      "title": "حاجات لاحظناها",
+      "painRepeat": "{count, plural, one {حصل ألم في التمرين ده في تشيك إن واحد قريب} other {حصل ألم في التمرين ده في # تشيكات قريبة}}",
+      "missedReps": "{count, plural, one {مقدرش يعمل العدد المطلوب في تمرين قريب} other {مقدرش يعمل العدد المطلوب في # تمرينات قريبة}}",
+      "repeatedNote": "{count, plural, one {نفس الملاحظة قالها قبل كده} other {نفس الملاحظة قالها في # تشيكات قبل كده}}"
+    },
+    "reason": {
+      "title": "السبب",
+      "clientNotePlaceholder": "ملاحظة اختيارية سطر واحد هيشوفها العميل (280 حرف كحد أقصى)",
+      "options": {
+        "protect_joint": "حماية مفصل",
+        "recover_fatigue": "التعافي من التعب",
+        "rebuild_consistency": "استعادة الانتظام",
+        "progress_ready": "جاهز للتقدم",
+        "technique_focus": "التركيز على التكنيك",
+        "schedule_fit": "مناسب للجدول",
+        "other": "سبب تاني"
+      }
     }
   },
   "onboarding": {
@@ -2184,5 +2229,26 @@
       "invalid_input": "راجع رسالتك وجرّب تاني.",
       "not_authenticated": "سجّل الدخول تاني."
     }
+  },
+  "ledger": {
+    "outcome": {
+      "pending": "لسه مستنيين",
+      "resolved": "اتحل",
+      "persisting": "لسه مستمر",
+      "worse": "زاد",
+      "not_evaluable": "مفيش بيانات كفاية"
+    },
+    "decisionLabel": {
+      "keep": "البرنامج فضل زي ما هو",
+      "adjust": "اتعدّل",
+      "call": "هيتم الاتصال"
+    },
+    "evidenceLabel": "السبب",
+    "changesLabel": "اللي اتغيّر",
+    "outcomeLabel": "النتيجة",
+    "appliedOn": "اتطبّق {date}",
+    "checkedOn": "اتراجع {date}",
+    "noChanges": "مفيش تغييرات على البرنامج المرة دي.",
+    "byName": "بواسطة {name}"
   }
 }
