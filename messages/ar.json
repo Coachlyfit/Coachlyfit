@@ -854,6 +854,7 @@
       "setsDone": "{done} / {total} مجموعة",
       "finish": "إنهاء التمرين",
       "finishDone": "خلّصت التمرين",
+      "finishSaveFailed": "تعذر حفظ التمرين. ممكن كابتنك ميشوفوش لسه.",
       "skipRest": "تخطّي",
       "watchForm": "شوف الأداء الصح",
       "doneTitle": "التمرين اتسجل",
