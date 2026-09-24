@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser, getViewerProfile } from "@/lib/auth/session";
 import { roleHome } from "@/lib/auth/role-home";
 import { AdminSidebar } from "@/components/dashboard/admin-sidebar";
 import { AdminTopbar } from "@/components/dashboard/admin-topbar";
@@ -17,19 +17,14 @@ export default async function AdminLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Cached via React.cache (see src/lib/auth/session.ts) so this and the
+  // profile fetch run once per request and share their result with the
+  // page underneath instead of both layers re-deriving them serially.
+  const user = await getAuthUser();
   if (!user) redirect(`/${locale}/login`);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, full_name")
-    .eq("id", user.id)
-    .single();
-
+  const profile = await getViewerProfile();
   if (profile?.role !== "admin") redirect(roleHome(locale, profile?.role));
 
   return (
