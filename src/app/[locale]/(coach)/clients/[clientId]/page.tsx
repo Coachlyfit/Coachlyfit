@@ -17,12 +17,14 @@ import { ProgressSection } from "./progress-section";
 import { ProgressSkeleton } from "./progress-skeleton";
 import { WorkoutSection } from "./workout-section";
 import { WorkoutSkeleton } from "./workout-skeleton";
+import { DecisionsSection } from "./decisions-section";
+import { DecisionsSkeleton } from "./decisions-skeleton";
 import { BillingSection } from "./billing-section";
 import { BillingSkeleton } from "./billing-skeleton";
 import { ObservationsSection } from "./observations-section";
 import { ObservationsSkeleton } from "./observations-skeleton";
 
-const TABS: ClientTab[] = ["progress", "sessions", "billing", "notes"];
+const TABS: ClientTab[] = ["progress", "sessions", "decisions", "billing", "notes"];
 
 export default async function ClientDetailPage({
   params,
@@ -78,6 +80,11 @@ export default async function ClientDetailPage({
         {tab === "sessions" && (
           <Suspense fallback={<WorkoutSkeleton />}>
             <WorkoutSection clientId={clientId} locale={locale} />
+          </Suspense>
+        )}
+        {tab === "decisions" && (
+          <Suspense fallback={<DecisionsSkeleton />}>
+            <DecisionsSection clientId={clientId} locale={locale} />
           </Suspense>
         )}
         {tab === "billing" && (

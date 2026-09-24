@@ -11,6 +11,9 @@ import { computePersonalRecords } from "@/domain/progress/prs";
 import { pickLocale } from "@/domain/locale";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
+import { PlanStory } from "@/components/ledger/plan-story";
+import { LedgerService } from "@/domain/ledger/ledger.service";
+import { toPlanStoryEntry } from "@/domain/ledger/view";
 import type { AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 import { CheckinForm } from "./checkin-form";
@@ -30,6 +33,7 @@ export default async function ClientProgressPage({
   const tMetrics = await getTranslations("progress.metrics");
   const tPhotos = await getTranslations("progress.photos");
   const tPrs = await getTranslations("progress.prs");
+  const tPlanStory = await getTranslations("progress.planStory");
   const supabase = await createClient();
 
   const {
@@ -55,6 +59,9 @@ export default async function ClientProgressPage({
     progress.listMedia(client!.id, "photo"),
     new MetricDefinitionsService(supabase).list(client!.coach_id),
   ]);
+
+  const planStoryDecisions = await new LedgerService(supabase).listForClient(client!.id);
+  const planStoryEntries = planStoryDecisions.map((d) => toPlanStoryEntry(d));
 
   const setLogs = await new WorkoutsService(supabase).listSetLogsForClient(client!.id);
   const records = computePersonalRecords(setLogs);
@@ -133,6 +140,11 @@ export default async function ClientProgressPage({
           coachId={client!.coach_id}
           clientId={client!.id}
         />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold tracking-tight">{tPlanStory("title")}</h2>
+        <PlanStory locale={locale} entries={planStoryEntries} emptyTitle={tPlanStory("empty")} />
       </div>
 
       <div className="flex items-center justify-between">

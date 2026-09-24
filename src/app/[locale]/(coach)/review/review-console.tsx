@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight, Moon, Scale, Dumbbell, Gauge, X } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Moon, Scale, Dumbbell, Gauge, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import { tintFor } from "@/lib/tint";
 import { cn } from "@/lib/utils";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { StructuredAdjustment } from "@/domain/progress/review.service";
+import type { Signal } from "@/domain/ledger/signals";
+import { REASON_KEYS, type ReasonKey } from "@/domain/ledger/reasons";
 import { Link } from "@/i18n/navigation";
 import { listActiveProgramItemsAction } from "../programs/actions";
 import { submitReviewAction, markCheckinSeenAction } from "./actions";
@@ -39,7 +41,14 @@ export type ReviewQueueEntry = {
   notes: string | null;
   similarNotes: { checkinDate: string; text: string }[];
   photos: Partial<Record<ReviewPose, ReviewPhotoPair>>;
+  /** Evidence the platform noticed on its own (domain/ledger/signals.ts) —
+   * rendered above the decision panel and, once the coach acts, snapshotted
+   * onto the ledger record as the rationale for that decision. */
+  signals: Signal[];
+  suggestedReason: ReasonKey;
 };
+
+const CLIENT_NOTE_MAX = 280;
 
 type Decision = "keep" | "adjust" | "call";
 
@@ -240,6 +249,8 @@ function ReviewEntryPanel({
   const [reduceLoadItemIds, setReduceLoadItemIds] = useState<Set<string>>(new Set());
   const [showReduceLoadPicker, setShowReduceLoadPicker] = useState(false);
   const [removeMovementItemIds, setRemoveMovementItemIds] = useState<Set<string>>(new Set());
+  const [reasonKey, setReasonKey] = useState<ReasonKey>(entry.suggestedReason);
+  const [clientNote, setClientNote] = useState("");
   const [reply, setReply] = useState("");
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -266,8 +277,23 @@ function ReviewEntryPanel({
     enabled: needsActiveExercises,
   });
 
+  // The program items behind pain/missed-reps evidence — pre-checked the
+  // first time the coach turns on a picker below, so "Adjust" usually
+  // means confirming what the platform already flagged rather than
+  // re-finding it from scratch. repeated_note evidence has no
+  // programItemId (nothing to reduce load or remove), so it's excluded.
+  const evidenceItemIds = useMemo(
+    () => new Set(entry.signals.flatMap((s) => (s.kind === "pain_repeat" || s.kind === "missed_reps" ? [s.programItemId] : []))),
+    [entry.signals]
+  );
+
   function toggleAdjustment(key: string) {
+    const turningOn = !adjustments.has(key);
     toggleInSet(setAdjustments, key);
+    if (turningOn && evidenceItemIds.size > 0) {
+      if (key === "reduceLoad" && reduceLoadItemIds.size === 0) setReduceLoadItemIds(new Set(evidenceItemIds));
+      if (key === "removeMovement" && removeMovementItemIds.size === 0) setRemoveMovementItemIds(new Set(evidenceItemIds));
+    }
   }
 
   function appendChip(text: string) {
@@ -296,6 +322,9 @@ function ReviewEntryPanel({
     formData.set("checkinId", entry.checkinId);
     formData.set("decision", decision);
     formData.set("coachReply", reply.trim());
+    formData.set("reasonKey", reasonKey);
+    if (clientNote.trim()) formData.set("clientNote", clientNote.trim());
+    formData.set("evidence", JSON.stringify(entry.signals));
     if (decision === "adjust") {
       formData.set("adjustments", JSON.stringify(buildStructuredAdjustments()));
     }
@@ -502,6 +531,8 @@ function ReviewEntryPanel({
 
       {/* Right rail */}
       <div className="flex flex-col gap-4 lg:sticky lg:top-4">
+        <EvidenceCard signals={entry.signals} />
+
         <Card>
           <CardContent className="flex flex-col gap-2 pt-6">
             <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t("decision.title")}</p>
@@ -532,6 +563,36 @@ function ReviewEntryPanel({
                   </span>
                 </button>
               ))}
+            </div>
+
+            <div className="mt-1 flex flex-col gap-2 border-t border-border pt-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t("reason.title")}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {REASON_KEYS.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setReasonKey(key)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium",
+                      reasonKey === key
+                        ? "border-primary bg-accent-tint text-accent-tint-foreground"
+                        : "border-border text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    {t(`reason.options.${key}`)}
+                  </button>
+                ))}
+              </div>
+              <Textarea
+                value={clientNote}
+                onChange={(e) => setClientNote(e.target.value.slice(0, CLIENT_NOTE_MAX))}
+                placeholder={t("reason.clientNotePlaceholder")}
+                className="min-h-16"
+              />
+              <p className="text-end font-mono text-[10px] text-muted-foreground">
+                {clientNote.length}/{CLIENT_NOTE_MAX}
+              </p>
             </div>
 
             {decision === "adjust" && (
@@ -695,6 +756,34 @@ function StatCard({
             {delta}
           </p>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Evidence the platform noticed on its own (domain/ledger/signals.ts),
+ * rendered above the decision panel so "Adjust" starts from what's already
+ * flagged instead of the coach re-finding it in the stats/notes above.
+ * Renders nothing when there's no evidence — same "no permanently-empty
+ * box" rule as AttentionStrip. */
+function EvidenceCard({ signals }: { signals: Signal[] }) {
+  const t = useTranslations("review.evidence");
+  if (signals.length === 0) return null;
+
+  return (
+    <Card className="border-warning-tint-foreground/30 bg-warning-tint">
+      <CardContent className="flex flex-col gap-2 pt-6">
+        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-warning-tint-foreground">{t("title")}</p>
+        {signals.map((signal, i) => (
+          <div key={i} className="flex items-start gap-2 text-sm text-warning-tint-foreground">
+            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <span>
+              {signal.kind === "pain_repeat" && t("painRepeat", { count: signal.count })}
+              {signal.kind === "missed_reps" && t("missedReps", { count: signal.count })}
+              {signal.kind === "repeated_note" && t("repeatedNote", { count: signal.count })}
+            </span>
+          </div>
+        ))}
       </CardContent>
     </Card>
   );
