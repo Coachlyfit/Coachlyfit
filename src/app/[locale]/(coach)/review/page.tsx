@@ -4,6 +4,9 @@ import { ReviewService } from "@/domain/progress/review.service";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { findSimilarNotes } from "@/domain/progress/note-similarity";
 import { weightTrend, adherenceAverage } from "@/domain/progress/stats";
+import { LedgerService } from "@/domain/ledger/ledger.service";
+import { detectPainRepeat, detectMissedReps, repeatedNoteSignal, type Signal } from "@/domain/ledger/signals";
+import { suggestReason } from "@/domain/ledger/reasons";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
@@ -48,8 +51,9 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
   }
 
   const clientIds = [...new Set(queue.map((c) => c.client_id))];
+  const now = new Date();
 
-  const [{ data: allCheckins }, { data: allMedia }, { data: allSessions }] = await Promise.all([
+  const [{ data: allCheckins }, { data: allMedia }, { data: allSessions }, signalInputs] = await Promise.all([
     supabase
       .from("checkins")
       .select("*")
@@ -68,6 +72,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
       .in("client_id", clientIds)
       .not("completed_at", "is", null)
       .gte("completed_at", isoDaysAgo(WORKOUT_WINDOW_DAYS)),
+    new LedgerService(supabase).loadSignalInputs(clientIds),
   ]);
 
   const checkins = allCheckins ?? [];
@@ -94,9 +99,18 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
     const priorNotes = clientCheckins
       .filter((c) => c.id !== item.id)
       .map((c) => ({ checkin_date: c.checkin_date, notes: c.notes }));
-    const similarNotes = item.notes
-      ? findSimilarNotes(item.notes, priorNotes).map((n) => ({ checkinDate: n.checkin_date, text: n.text }))
-      : [];
+    const rawSimilarNotes = item.notes ? findSimilarNotes(item.notes, priorNotes) : [];
+    const similarNotes = rawSimilarNotes.map((n) => ({ checkinDate: n.checkin_date, text: n.text }));
+
+    // Evidence the platform noticed on its own — see domain/ledger/signals.ts.
+    // Keyed by program_item_id, which is exactly what the adjustment
+    // picker below (ExerciseMultiSelect) already operates on.
+    const signals: Signal[] = [
+      ...detectPainRepeat(signalInputs.resultsByClient.get(item.client_id) ?? [], now),
+      ...detectMissedReps(signalInputs.logsByClient.get(item.client_id) ?? []),
+    ];
+    const noteSignal = repeatedNoteSignal(rawSimilarNotes);
+    if (noteSignal) signals.push(noteSignal);
 
     const clientMedia = media.filter(
       (m): m is MediaRow & { pose: ReviewPose } => m.client_id === item.client_id && POSES.includes(m.pose as ReviewPose)
@@ -132,6 +146,8 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
       notes: item.notes,
       similarNotes,
       photos,
+      signals,
+      suggestedReason: suggestReason(signals),
     };
   });
 

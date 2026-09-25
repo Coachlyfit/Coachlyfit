@@ -505,6 +505,11 @@
     "activity": {
       "title": "Recent activity",
       "empty": "Nothing yet."
+    },
+    "followUps": {
+      "title": "Follow-ups",
+      "empty": "No outcomes to review yet.",
+      "viewAll": "View"
     }
   },
   "settings": {
@@ -748,7 +753,8 @@
         "unreadMessages": "{count, plural, one {# unread message} other {# unread messages}}",
         "subscriptionExpired": "Subscription has expired",
         "subscriptionEnding": "{days, plural, one {Subscription ends tomorrow} other {Subscription ends in # days}}",
-        "noProgram": "No active workout plan"
+        "noProgram": "No active workout plan",
+        "decisionNeedsFollowUp": "A recent plan change needs a follow-up"
       },
       "training": {
         "empty": "No workout plan assigned",
@@ -795,8 +801,14 @@
         "progress": "Progress",
         "sessions": "Sessions",
         "billing": "Billing",
-        "notes": "Notes"
+        "notes": "Notes",
+        "decisions": "Decisions"
       }
+    },
+    "decisions": {
+      "title": "Coaching decisions",
+      "empty": "No coaching decisions yet.",
+      "decidedBy": "by {name}"
     }
   },
   "join": {
@@ -871,6 +883,7 @@
       "setsDone": "{done} / {total} sets",
       "finish": "Finish workout",
       "finishDone": "Workout finished",
+      "finishSaveFailed": "Couldn't save your finished workout. Your coach may not see it yet.",
       "skipRest": "Skip",
       "watchForm": "Watch form check",
       "doneTitle": "Workout logged",
@@ -931,7 +944,8 @@
       "commonMistakes": "Common mistakes",
       "safetyNote": "Safety note",
       "supersetLabel": "Superset",
-      "circuitLabel": "Circuit"
+      "circuitLabel": "Circuit",
+      "adjustedChip": "Adjusted this week — {reason}"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -995,6 +1009,14 @@
       "volume": "{value}kg volume",
       "duration": "{minutes} min",
       "swapped": "Swapped {original} for {substitute}"
+    },
+    "decisionCard": {
+      "title": "Update from your coach",
+      "reasonPrefix": "Why:",
+      "changesPrefix": "What changed:",
+      "evidencePrefix": "Because:",
+      "seeStory": "See your plan story",
+      "dismiss": "Dismiss"
     }
   },
   "inbox": {
@@ -1870,7 +1892,8 @@
     "exercise_promoted": "\"{name}\" was added to the global Exercise Library.",
     "food_promoted": "\"{name}\" was added to the global Food Library.",
     "new_message": "New message from {name}.",
-    "unknown": "You have a new notification."
+    "unknown": "You have a new notification.",
+    "decision_outcome": "Outcome update: {status}"
   },
   "progress": {
     "title": "Progress",
@@ -1974,6 +1997,10 @@
       "emptyTitle": "No PRs yet",
       "emptyDescription": "Log weight and reps during a session to start tracking personal records.",
       "estimated1rm": "Est. 1RM {value}kg"
+    },
+    "planStory": {
+      "title": "My Plan Story",
+      "empty": "No coaching decisions yet — they'll show up here once your coach reviews a check-in."
     }
   },
   "billing": {
@@ -2108,6 +2135,25 @@
       "invalid_input": "Please check the form and try again.",
       "not_authenticated": "Please log in again.",
       "review_failed": "Couldn't save that review. Try again."
+    },
+    "evidence": {
+      "title": "What we noticed",
+      "painRepeat": "{count, plural, one {Reported pain on this exercise in # session} other {Reported pain on this exercise in # sessions}}",
+      "missedReps": "{count, plural, one {Missed target reps in # recent session} other {Missed target reps in # recent sessions}}",
+      "repeatedNote": "{count, plural, one {Matches a note from # earlier check-in} other {Matches notes from # earlier check-ins}}"
+    },
+    "reason": {
+      "title": "Reason",
+      "clientNotePlaceholder": "Optional one-line note the client will see (max 280 characters)",
+      "options": {
+        "protect_joint": "Protecting a joint",
+        "recover_fatigue": "Recovering from fatigue",
+        "rebuild_consistency": "Rebuilding consistency",
+        "progress_ready": "Ready to progress",
+        "technique_focus": "Technique focus",
+        "schedule_fit": "Fitting the schedule",
+        "other": "Other"
+      }
     }
   },
   "onboarding": {
@@ -2312,5 +2358,26 @@
       "invalid_input": "Please check your message and try again.",
       "not_authenticated": "Please log in again."
     }
+  },
+  "ledger": {
+    "outcome": {
+      "pending": "Pending",
+      "resolved": "Resolved",
+      "persisting": "Still working on it",
+      "worse": "Got worse",
+      "not_evaluable": "Not enough data yet"
+    },
+    "decisionLabel": {
+      "keep": "Kept as-is",
+      "adjust": "Adjusted",
+      "call": "Call scheduled"
+    },
+    "evidenceLabel": "Why",
+    "changesLabel": "What changed",
+    "outcomeLabel": "Result",
+    "appliedOn": "Applied {date}",
+    "checkedOn": "Checked {date}",
+    "noChanges": "No program changes this time.",
+    "byName": "by {name}"
   }
 }

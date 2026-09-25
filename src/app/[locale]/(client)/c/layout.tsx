@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
+import { getAuthUser, getViewerProfile } from "@/lib/auth/session";
 import { signOutAction } from "@/lib/auth/sign-out-action";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
@@ -25,25 +26,28 @@ export default async function ClientLayout({
   const supabase = await createClient();
   const t = await getTranslations("common");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Cached via React.cache (see src/lib/auth/session.ts) so this and the
+  // profile fetch below run once per request and share their result with
+  // the page underneath, instead of both layers re-deriving them serially.
+  const user = await getAuthUser();
   if (!user) redirect(`/${locale}/login`);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, suspended_at")
-    .eq("id", user.id)
-    .single();
+  // profile, the client row, and platform settings are all independent of
+  // one another, so fetch them together instead of one at a time. The
+  // active-subscription check below does depend on the client row, so it
+  // has to wait for that one result.
+  const [profile, clientRow, settings] = await Promise.all([
+    getViewerProfile(),
+    supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle().then((r) => r.data),
+    getPlatformSettings(),
+  ]);
 
   if (profile?.role !== "client") redirect(roleHome(locale, profile?.role));
   if (profile.suspended_at) redirect(`/${locale}/suspended`);
 
   // A confirmed client account with no clients.profile_id link (invite
   // never accepted — see 20260922000001_link_client_invite_on_signup.sql)
-  // must not reach forms it can't submit. maybeSingle, not single: zero
-  // rows here is an expected state, not a query error to swallow.
-  const { data: clientRow } = await supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle();
+  // must not reach forms it can't submit.
   if (!clientRow) redirect(`/${locale}/not-linked`);
 
   const billing = new ClientBillingService(supabase);
@@ -53,7 +57,6 @@ export default async function ClientLayout({
     : "expired";
   if (status !== "active") redirect(`/${locale}/expired`);
 
-  const settings = await getPlatformSettings();
   if (settings.platform.maintenance_mode) redirect(`/${locale}/maintenance`);
 
   return (

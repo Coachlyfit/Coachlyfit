@@ -511,11 +511,11 @@ describe("ProgramsService", () => {
       program_days: [],
     };
 
-    it("inserts a program_revisions row for an assigned program and returns true", async () => {
+    it("inserts a program_revisions row for an assigned program and returns its id", async () => {
       const { db, inserts } = fakeSupabase({ treeRow: tree });
       const result = await new ProgramsService(db).snapshotIfAssigned("program-1", "add_item");
 
-      expect(result).toBe(true);
+      expect(result).toBe("new-program_revisions");
       const revisionInsert = inserts.find((i) => i.table === "program_revisions");
       expect(revisionInsert?.payload).toMatchObject({
         coach_id: "coach-1",
@@ -524,19 +524,19 @@ describe("ProgramsService", () => {
       });
     });
 
-    it("is a no-op (returns false) for a template (client_id null)", async () => {
+    it("is a no-op (returns null) for a template (client_id null)", async () => {
       const { db, inserts } = fakeSupabase({ treeRow: { ...tree, client_id: null } });
       const result = await new ProgramsService(db).snapshotIfAssigned("program-1");
 
-      expect(result).toBe(false);
+      expect(result).toBeNull();
       expect(inserts.find((i) => i.table === "program_revisions")).toBeUndefined();
     });
 
-    it("is a no-op (returns false) when the program isn't visible", async () => {
+    it("is a no-op (returns null) when the program isn't visible", async () => {
       const { db, inserts } = fakeSupabase({ treeRow: null });
       const result = await new ProgramsService(db).snapshotIfAssigned("program-1");
 
-      expect(result).toBe(false);
+      expect(result).toBeNull();
       expect(inserts.find((i) => i.table === "program_revisions")).toBeUndefined();
     });
   });

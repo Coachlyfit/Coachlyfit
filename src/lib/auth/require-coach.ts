@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
-import { resolveCoachId } from "./resolve-coach-id";
+import { getRequestCoachId } from "./session";
 
 /** Collapses the "getUser() -> resolveCoachId() -> bail if either is null"
  * preamble repeated at the top of most coach-side server actions into one
@@ -17,7 +17,7 @@ export async function requireCoach(): Promise<
   | { supabase: SupabaseClient<Database>; coachId: string }
 > {
   const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
+  const coachId = await getRequestCoachId();
   if (!coachId) return { error: "not_authenticated" };
   return { supabase, coachId };
 }

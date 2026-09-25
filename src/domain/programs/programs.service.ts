@@ -997,19 +997,28 @@ export class ProgramsService {
    * would be noise with no real undo value (see the migration's header
    * comment). No-op (returns null, snapshots nothing) for a template or an
    * invisible/nonexistent program — the caller doesn't need to branch on
-   * "assigned vs template" itself. */
-  async snapshotIfAssigned(programId: string, reason?: string): Promise<boolean> {
+   * "assigned vs template" itself. Returns the new revision's id (rather
+   * than a bare boolean) so a caller that needs to LINK the snapshot to
+   * something else — applyAdjustmentAction linking it to a
+   * coaching_decisions row, see ledger.service.ts's markApplied — doesn't
+   * have to re-fetch it; existing callers that only checked truthiness or
+   * ignored the result keep working unchanged against a string | null. */
+  async snapshotIfAssigned(programId: string, reason?: string): Promise<string | null> {
     const tree = await this.getTree(programId);
-    if (!tree || tree.client_id == null) return false;
+    if (!tree || tree.client_id == null) return null;
 
-    const { error } = await this.db.from("program_revisions").insert({
-      coach_id: tree.coach_id,
-      program_id: programId,
-      snapshot: tree as unknown as Database["public"]["Tables"]["program_revisions"]["Insert"]["snapshot"],
-      reason,
-    });
+    const { data, error } = await this.db
+      .from("program_revisions")
+      .insert({
+        coach_id: tree.coach_id,
+        program_id: programId,
+        snapshot: tree as unknown as Database["public"]["Tables"]["program_revisions"]["Insert"]["snapshot"],
+        reason,
+      })
+      .select("id")
+      .single();
     if (error) throw error;
-    return true;
+    return data.id;
   }
 
   async listRevisions(programId: string, limit = 20) {

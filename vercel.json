@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/trash-cleanup",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/ledger-outcomes",
+      "schedule": "30 3 * * *"
     }
   ]
 }

@@ -1,13 +1,23 @@
 /** Plain-HTML email bodies for each notification kind — no react-email
- * dependency, just template strings, since this is three short bilingual
- * emails, not a component library. Mirrors the same three kinds and the
- * same copy the in-app bell already shows (notification-bell.tsx's KINDS +
- * messages/*.json's notifications.* strings), so an email and its bell
- * entry never disagree about what happened. */
+ * dependency, just template strings, since these are short bilingual
+ * emails, not a component library. Mirrors the same kinds and the same
+ * copy the in-app bell shows for the ones it renders (notification-bell.tsx's
+ * KINDS + messages/*.json's notifications.* strings) — coach_decision is
+ * client-only and never reaches the coach-side bell (see the migration's
+ * notify_on_decision trigger), so it has email/push copy only. */
 
-export type NotificationKind = "exercise_promoted" | "food_promoted" | "new_message";
+export type NotificationKind = "exercise_promoted" | "food_promoted" | "new_message" | "coach_decision" | "decision_outcome";
 
 export type EmailLocale = "ar" | "en";
+
+// Only the promoted-content kinds carry a name_ar/name_en pair in their
+// payload — everything else (new_message, and the ledger's two kinds)
+// renders generic copy with no payload lookup, same "short bilingual
+// email, no detail embedded" choice new_message already made.
+const NAMED_KINDS = new Set<NotificationKind>(["exercise_promoted", "food_promoted"]);
+export function notificationNeedsPickedName(kind: string): boolean {
+  return NAMED_KINDS.has(kind as NotificationKind);
+}
 
 const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string>; greeting: string; footer: string }> = {
   en: {
@@ -15,6 +25,8 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       exercise_promoted: "An exercise you added is now in the global library",
       food_promoted: "A food you added is now in the global library",
       new_message: "You have a new message",
+      coach_decision: "Your coach updated your plan",
+      decision_outcome: "An update on a recent plan change",
     },
     greeting: "Hi",
     footer: "You're receiving this because you have email notifications turned on. You can turn them off in Settings.",
@@ -24,6 +36,8 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       exercise_promoted: "تمت إضافة تمرين أضفته إلى المكتبة العامة",
       food_promoted: "تمت إضافة طعام أضفته إلى المكتبة العامة",
       new_message: "لديك رسالة جديدة",
+      coach_decision: "الكوتش عدّل خطتك",
+      decision_outcome: "تحديث بخصوص تعديل تم على خطتك مؤخرًا",
     },
     greeting: "مرحبًا",
     footer: "تصلك هذه الرسالة لأن إشعارات البريد الإلكتروني مفعّلة لديك. يمكنك إيقافها من الإعدادات.",
@@ -39,6 +53,10 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return `تمت إضافة "${name}" إلى مكتبة الأطعمة العامة.`;
       case "new_message":
         return "لديك رسالة جديدة بانتظارك.";
+      case "coach_decision":
+        return "راجع كوتشك آخر تشيك إن وعدّل خطتك. افتح التطبيق لمعرفة التفاصيل.";
+      case "decision_outcome":
+        return "فيه تحديث على نتيجة تعديل تم على خطتك. افتح التطبيق لمعرفة التفاصيل.";
     }
   }
   switch (kind) {
@@ -48,6 +66,10 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return `"${name}" was added to the global Food Library.`;
     case "new_message":
       return "You have a new message waiting.";
+    case "coach_decision":
+      return "Your coach reviewed your check-in and updated your plan. Open the app for details.";
+    case "decision_outcome":
+      return "There's an update on the result of a recent plan change. Open the app for details.";
   }
 }
 
