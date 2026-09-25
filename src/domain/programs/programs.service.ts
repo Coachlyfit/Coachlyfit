@@ -1,12 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ProgressionRule } from "./progression";
+import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 
 type Program = Database["public"]["Tables"]["programs"]["Row"];
 type ProgramDay = Database["public"]["Tables"]["program_days"]["Row"];
 type ProgramItem = Database["public"]["Tables"]["program_items"]["Row"];
 type ProgramItemSet = Database["public"]["Tables"]["program_item_sets"]["Row"];
+type ProgramActivity = Database["public"]["Tables"]["program_activities"]["Row"];
+type RehabProtocol = Database["public"]["Tables"]["rehab_protocols"]["Row"];
+type RehabPhase = Database["public"]["Tables"]["rehab_phases"]["Row"];
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
+type DietPlan = Database["public"]["Tables"]["diet_plans"]["Row"];
 
 export type ProgramScope = "all" | "assigned" | "templates";
 
@@ -16,7 +21,7 @@ export type ProgramScope = "all" | "assigned" | "templates";
  * table (e.g. the workout session page's own direct query) so there is one
  * place to update when a column is added. */
 export const CLIENT_SAFE_ITEM_COLUMNS =
-  "id, coach_id, client_id, program_day_id, exercise_id, sets, reps, rest_seconds, notes_ar, notes_en, order_index, progression_rule, group_key, group_kind, block";
+  "id, coach_id, client_id, program_day_id, exercise_id, sets, reps, rest_seconds, notes_ar, notes_en, order_index, progression_rule, group_key, group_kind, block, rehab_phase_id";
 
 export type CreateProgramInput = {
   client_id?: string | null;
@@ -27,12 +32,28 @@ export type CreateProgramInput = {
   schedule_mode?: "cycle" | "weekly";
 };
 
-export type CreateDayInput = { day_index: number; label_ar?: string; label_en?: string; weekday?: number | null };
+export type CreateDayInput = {
+  day_index: number;
+  label_ar?: string;
+  label_en?: string;
+  weekday?: number | null;
+  notes_ar?: string;
+  notes_en?: string;
+  diet_plan_id?: string | null;
+};
 export type UpdateDayInput = Partial<CreateDayInput>;
 
 /** One prescribed set — the week-1 base that `progression.ts` projects onto
- * weeks 2-12. `weight: null` means bodyweight/unloaded. */
-export type SetInput = { reps: number; weight?: number | null; rest_seconds?: number | null };
+ * weeks 2-12. `weight: null` means bodyweight/unloaded. Exactly one of
+ * `reps`/`duration_seconds` is set — a duration set (a rehab hold, a
+ * stretch) has `reps` omitted, everything else has `duration_seconds`
+ * omitted. Matches the DB's program_item_sets_reps_or_duration check. */
+export type SetInput = {
+  reps?: number | null;
+  weight?: number | null;
+  rest_seconds?: number | null;
+  duration_seconds?: number | null;
+};
 
 export type CreateItemInput = {
   exercise_id: string;
@@ -40,12 +61,59 @@ export type CreateItemInput = {
   progression_rule?: ProgressionRule;
   notes_ar?: string;
   notes_en?: string;
-  block?: "warmup" | "main" | "cooldown";
+  block?: "warmup" | "main" | "cooldown" | "mobility" | "rehab";
+  /** Only meaningful when block = 'rehab' — which phase of the protocol
+   * this item belongs to, so the client only sees it while that phase is
+   * active (see day-plan.ts). */
+  rehab_phase_id?: string | null;
   /** Coach-only annotation, never selected in a client-facing query — see
    * CLIENT_SAFE_ITEM_COLUMNS. */
   coach_note_private?: string;
 };
 export type UpdateItemInput = Partial<CreateItemInput>;
+
+export type CreateActivityInput = {
+  kind: "cardio" | "recovery";
+  modality: string;
+  duration_min?: number | null;
+  distance_km?: number | null;
+  intensity?: "low" | "moderate" | "high" | "intervals" | null;
+  hr_zone?: number | null;
+  kcal_target?: number | null;
+  pace?: string | null;
+  notes_ar?: string | null;
+  notes_en?: string | null;
+  log_required?: boolean;
+};
+export type UpdateActivityInput = Partial<CreateActivityInput>;
+
+export type CreateRehabProtocolInput = {
+  body_area: string;
+  injury_ar?: string | null;
+  injury_en?: string | null;
+  restrictions_ar?: string | null;
+  restrictions_en?: string | null;
+  instructions_ar?: string | null;
+  instructions_en?: string | null;
+};
+export type UpdateRehabProtocolInput = Partial<CreateRehabProtocolInput>;
+
+export type CreateRehabPhaseInput = {
+  name_ar: string;
+  name_en: string;
+  from_week: number;
+  to_week: number;
+  goals_ar?: string | null;
+  goals_en?: string | null;
+  progression_criteria_ar?: string | null;
+  progression_criteria_en?: string | null;
+};
+export type UpdateRehabPhaseInput = Partial<CreateRehabPhaseInput>;
+
+export type DietVariant = Pick<
+  DietPlan,
+  "id" | "name_ar" | "name_en" | "target_kcal" | "target_protein_g" | "target_carb_g" | "target_fat_g"
+>;
 
 export type ProgramTree = Program & {
   program_days: (ProgramDay & {
@@ -69,7 +137,14 @@ export type ProgramTree = Program & {
       >;
       program_item_sets: ProgramItemSet[];
     })[];
+    program_activities: ProgramActivity[];
   })[];
+  rehab_protocols: (RehabProtocol & { rehab_phases: RehabPhase[] })[];
+  /** Every program-owned nutrition variant (diet_plans where program_id =
+   * this program), independent of which days link to which — the sidebar's
+   * variant list and the day→variant assignment grid both read from here
+   * rather than re-deriving it from program_days.diet_plan_id. */
+  diet_variants: DietVariant[];
 };
 
 /** `client_id is null` on a nullable-FK own filter, the same idiom as
@@ -85,11 +160,13 @@ function applyScope<Q extends { is: (c: "client_id", v: null) => Q; not: (c: "cl
 
 /** Legacy sets/reps/rest_seconds snapshot derived from a per-set array —
  * written alongside program_item_sets so any reader not yet migrated to the
- * real per-set data (item.sets/item.reps) still sees something sane. */
+ * real per-set data (item.sets/item.reps) still sees something sane. A
+ * duration-only set (reps null) has no rep range to summarize; falls back
+ * to "0" rather than crashing Math.min/max on an empty numeric list. */
 function legacySnapshot(sets: SetInput[]) {
-  const reps = sets.map((s) => s.reps);
-  const min = Math.min(...reps);
-  const max = Math.max(...reps);
+  const reps = sets.map((s) => s.reps).filter((r): r is number => r != null);
+  const min = reps.length > 0 ? Math.min(...reps) : 0;
+  const max = reps.length > 0 ? Math.max(...reps) : 0;
   return {
     sets: sets.length,
     reps: min === max ? String(min) : `${min}-${max}`,
@@ -103,9 +180,10 @@ function setRows(sets: SetInput[], coachId: string, clientId: string | null, pro
     client_id: clientId,
     program_item_id: programItemId,
     set_index: i + 1,
-    reps: set.reps,
+    reps: set.reps ?? null,
     weight: set.weight ?? null,
     rest_seconds: set.rest_seconds ?? null,
+    duration_seconds: set.duration_seconds ?? null,
   }));
 }
 
@@ -124,6 +202,18 @@ function setRows(sets: SetInput[], coachId: string, clientId: string | null, pro
  * parent's ids. If the parent isn't visible, nothing is inserted. */
 export class ProgramsService {
   constructor(private db: SupabaseClient<Database>) {}
+
+  /** RLS-scoped existence check for a caller-supplied client_id — `clients`
+   * itself is coach_rw-gated, so a row only comes back if it belongs to
+   * this coach's tenant. Guards every write that would otherwise take
+   * client_id verbatim from an argument (create, cloneToClient): the FK
+   * alone doesn't stop a coach from pointing a program at another coach's
+   * client id, since foreign-key checks run with RLS bypassed. */
+  private async assertOwnClient(clientId: string): Promise<void> {
+    const { data, error } = await this.db.from("clients").select("id").eq("id", clientId).maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("client_not_found_or_forbidden");
+  }
 
   async list(scope: ProgramScope = "all") {
     let q = this.db
@@ -186,7 +276,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))`
+        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)`
       )
       .eq("client_id", clientId)
       .is("archived_at", null)
@@ -194,6 +284,7 @@ export class ProgramsService {
       .order("order_index", { referencedTable: "program_days" })
       .order("order_index", { referencedTable: "program_days.program_items" })
       .order("set_index", { referencedTable: "program_days.program_items.program_item_sets" })
+      .order("order_index", { referencedTable: "program_days.program_activities" })
       .limit(1)
       .maybeSingle();
     if (error) throw error;
@@ -204,18 +295,20 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)))"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)"
       )
       .eq("id", programId)
       .order("order_index", { referencedTable: "program_days" })
       .order("order_index", { referencedTable: "program_days.program_items" })
       .order("set_index", { referencedTable: "program_days.program_items.program_item_sets" })
+      .order("order_index", { referencedTable: "program_days.program_activities" })
       .maybeSingle();
     if (error) throw error;
     return data as ProgramTree | null;
   }
 
   async create(coachId: string, input: CreateProgramInput): Promise<Program> {
+    if (input.client_id) await this.assertOwnClient(input.client_id);
     const { data, error } = await this.db
       .from("programs")
       .insert({ coach_id: coachId, client_id: input.client_id ?? null, ...input })
@@ -270,6 +363,68 @@ export class ProgramsService {
       .single();
     if (programError) throw programError;
 
+    // Rehab protocols/phases are cloned before days so program_items can be
+    // rewired to the CLONED phase id below, not the source one — a phase id
+    // pointing at another program's row would be meaningless (and RLS would
+    // just hide it since coach_id there wouldn't match the read scope).
+    const phaseIdMap = new Map<string, string>();
+    for (const protocol of tree.rehab_protocols) {
+      const { data: clonedProtocol, error: protocolError } = await this.db
+        .from("rehab_protocols")
+        .insert({
+          coach_id: tree.coach_id,
+          client_id: clientId,
+          program_id: cloned.id,
+          body_area: protocol.body_area,
+          injury_ar: protocol.injury_ar,
+          injury_en: protocol.injury_en,
+          restrictions_ar: protocol.restrictions_ar,
+          restrictions_en: protocol.restrictions_en,
+          instructions_ar: protocol.instructions_ar,
+          instructions_en: protocol.instructions_en,
+          order_index: protocol.order_index,
+        })
+        .select()
+        .single();
+      if (protocolError) throw protocolError;
+
+      if (protocol.rehab_phases.length > 0) {
+        const { data: clonedPhases, error: phasesError } = await this.db
+          .from("rehab_phases")
+          .insert(
+            protocol.rehab_phases.map((phase) => ({
+              coach_id: tree.coach_id,
+              client_id: clientId,
+              protocol_id: clonedProtocol.id,
+              name_ar: phase.name_ar,
+              name_en: phase.name_en,
+              from_week: phase.from_week,
+              to_week: phase.to_week,
+              goals_ar: phase.goals_ar,
+              goals_en: phase.goals_en,
+              progression_criteria_ar: phase.progression_criteria_ar,
+              progression_criteria_en: phase.progression_criteria_en,
+              order_index: phase.order_index,
+            }))
+          )
+          .select();
+        if (phasesError) throw phasesError;
+        protocol.rehab_phases.forEach((phase, i) => phaseIdMap.set(phase.id, clonedPhases[i].id));
+      }
+    }
+
+    // Nutrition variants: cloned as program-owned diet_plans (program_id =
+    // the CLONED program), independently of which days link to which — the
+    // day→variant rewiring happens in the program_days loop below via
+    // dietPlanIdMap. Delegated to DietPlansService.cloneTreeForProgram so
+    // the meal/meal_item walk isn't duplicated here.
+    const dietPlanIdMap = new Map<string, string>();
+    const dietPlansService = new DietPlansService(this.db);
+    for (const variant of tree.diet_variants) {
+      const clonedVariant = await dietPlansService.cloneTreeForProgram(variant.id, clientId, cloned.id);
+      if (clonedVariant) dietPlanIdMap.set(variant.id, clonedVariant.id);
+    }
+
     for (const day of tree.program_days) {
       const { data: clonedDay, error: dayError } = await this.db
         .from("program_days")
@@ -282,6 +437,9 @@ export class ProgramsService {
           label_ar: day.label_ar,
           label_en: day.label_en,
           weekday: day.weekday,
+          notes_ar: day.notes_ar,
+          notes_en: day.notes_en,
+          diet_plan_id: day.diet_plan_id ? (dietPlanIdMap.get(day.diet_plan_id) ?? null) : null,
         })
         .select()
         .single();
@@ -303,6 +461,7 @@ export class ProgramsService {
             notes_en: item.notes_en,
             order_index: item.order_index,
             block: item.block,
+            rehab_phase_id: item.rehab_phase_id ? (phaseIdMap.get(item.rehab_phase_id) ?? null) : null,
             coach_note_private: item.coach_note_private,
             group_key: item.group_key,
             group_kind: item.group_kind,
@@ -323,10 +482,34 @@ export class ProgramsService {
               reps: set.reps,
               weight: set.weight,
               rest_seconds: set.rest_seconds,
+              duration_seconds: set.duration_seconds,
             }))
           );
           if (setsError) throw setsError;
         }
+      }
+
+      if (day.program_activities.length > 0) {
+        const { error: activitiesError } = await this.db.from("program_activities").insert(
+          day.program_activities.map((activity) => ({
+            coach_id: tree.coach_id,
+            client_id: clientId,
+            program_day_id: clonedDay.id,
+            kind: activity.kind,
+            modality: activity.modality,
+            duration_min: activity.duration_min,
+            distance_km: activity.distance_km,
+            intensity: activity.intensity,
+            hr_zone: activity.hr_zone,
+            kcal_target: activity.kcal_target,
+            pace: activity.pace,
+            notes_ar: activity.notes_ar,
+            notes_en: activity.notes_en,
+            log_required: activity.log_required,
+            order_index: activity.order_index,
+          }))
+        );
+        if (activitiesError) throw activitiesError;
       }
     }
 
@@ -341,6 +524,7 @@ export class ProgramsService {
    * soft-archived right after, same as the coach's own "Delete" action —
    * restorable from Trash, never destroyed. */
   async cloneToClient(programId: string, clientId: string, replaceActive = false): Promise<Program | null> {
+    await this.assertOwnClient(clientId);
     const today = new Date().toISOString().slice(0, 10);
     const cloned = await this.cloneTree(programId, clientId, { start_date: today });
     if (!cloned) return null;
@@ -432,6 +616,7 @@ export class ProgramsService {
         notes_ar: input.notes_ar,
         notes_en: input.notes_en,
         block: input.block ?? "main",
+        rehab_phase_id: input.rehab_phase_id ?? null,
         coach_note_private: input.coach_note_private,
       })
       .select()
@@ -518,6 +703,7 @@ export class ProgramsService {
         notes_en: source.notes_en,
         order_index: nextOrderIndex,
         block: source.block,
+        rehab_phase_id: source.rehab_phase_id,
         coach_note_private: source.coach_note_private,
       })
       .select()
@@ -535,6 +721,7 @@ export class ProgramsService {
           reps: set.reps,
           weight: set.weight,
           rest_seconds: set.rest_seconds,
+          duration_seconds: set.duration_seconds,
         }))
       );
       if (setsError) throw setsError;
@@ -554,7 +741,7 @@ export class ProgramsService {
   async duplicateDay(dayId: string): Promise<ProgramDay | null> {
     const { data: source, error: sourceError } = await this.db
       .from("program_days")
-      .select("*, program_items(*, program_item_sets(*))")
+      .select("*, program_items(*, program_item_sets(*)), program_activities(*)")
       .eq("id", dayId)
       .maybeSingle();
     if (sourceError) throw sourceError;
@@ -581,6 +768,9 @@ export class ProgramsService {
         label_ar: source.label_ar,
         label_en: source.label_en,
         weekday: source.weekday,
+        notes_ar: source.notes_ar,
+        notes_en: source.notes_en,
+        diet_plan_id: source.diet_plan_id,
       })
       .select()
       .single();
@@ -606,6 +796,7 @@ export class ProgramsService {
           notes_en: item.notes_en,
           order_index: item.order_index,
           block: item.block,
+          rehab_phase_id: item.rehab_phase_id,
           coach_note_private: item.coach_note_private,
         })
         .select()
@@ -623,10 +814,37 @@ export class ProgramsService {
             reps: set.reps,
             weight: set.weight,
             rest_seconds: set.rest_seconds,
+            duration_seconds: set.duration_seconds,
           }))
         );
         if (setsError) throw setsError;
       }
+    }
+
+    const sourceActivities = (source.program_activities as ProgramActivity[]).sort(
+      (a, b) => a.order_index - b.order_index
+    );
+    if (sourceActivities.length > 0) {
+      const { error: activitiesError } = await this.db.from("program_activities").insert(
+        sourceActivities.map((activity) => ({
+          coach_id: source.coach_id,
+          client_id: source.client_id,
+          program_day_id: newDay.id,
+          kind: activity.kind,
+          modality: activity.modality,
+          duration_min: activity.duration_min,
+          distance_km: activity.distance_km,
+          intensity: activity.intensity,
+          hr_zone: activity.hr_zone,
+          kcal_target: activity.kcal_target,
+          pace: activity.pace,
+          notes_ar: activity.notes_ar,
+          notes_en: activity.notes_en,
+          log_required: activity.log_required,
+          order_index: activity.order_index,
+        }))
+      );
+      if (activitiesError) throw activitiesError;
     }
 
     return newDay;
@@ -843,6 +1061,9 @@ export class ProgramsService {
           label_ar: day.label_ar,
           label_en: day.label_en,
           weekday: day.weekday,
+          notes_ar: day.notes_ar,
+          notes_en: day.notes_en,
+          diet_plan_id: day.diet_plan_id,
         })
         .select()
         .single();
@@ -864,6 +1085,7 @@ export class ProgramsService {
             notes_en: item.notes_en,
             order_index: item.order_index,
             block: item.block,
+            rehab_phase_id: item.rehab_phase_id,
             coach_note_private: item.coach_note_private,
             group_key: item.group_key,
             group_kind: item.group_kind,
@@ -882,13 +1104,173 @@ export class ProgramsService {
               reps: set.reps,
               weight: set.weight,
               rest_seconds: set.rest_seconds,
+              duration_seconds: set.duration_seconds,
             }))
           );
           if (setsError) throw setsError;
         }
       }
+
+      if (day.program_activities.length > 0) {
+        const { error: activitiesError } = await this.db.from("program_activities").insert(
+          day.program_activities.map((activity) => ({
+            coach_id: snapshot.coach_id,
+            client_id: snapshot.client_id,
+            program_day_id: newDay.id,
+            kind: activity.kind,
+            modality: activity.modality,
+            duration_min: activity.duration_min,
+            distance_km: activity.distance_km,
+            intensity: activity.intensity,
+            hr_zone: activity.hr_zone,
+            kcal_target: activity.kcal_target,
+            pace: activity.pace,
+            notes_ar: activity.notes_ar,
+            notes_en: activity.notes_en,
+            log_required: activity.log_required,
+            order_index: activity.order_index,
+          }))
+        );
+        if (activitiesError) throw activitiesError;
+      }
     }
 
     return true;
+  }
+
+  // ---------------------------------------------------------------------
+  // Cardio/recovery activities — same parent-derivation rule as addItem:
+  // coach_id/client_id always come from the RLS-scoped parent program_days
+  // row, never a caller argument.
+  // ---------------------------------------------------------------------
+
+  async addActivity(dayId: string, input: CreateActivityInput): Promise<ProgramActivity | null> {
+    const { data: parent, error: parentError } = await this.db
+      .from("program_days")
+      .select("coach_id, client_id")
+      .eq("id", dayId)
+      .maybeSingle();
+    if (parentError) throw parentError;
+    if (!parent) return null;
+
+    const { data, error } = await this.db
+      .from("program_activities")
+      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, program_day_id: dayId, ...input })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async updateActivity(activityId: string, input: UpdateActivityInput): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("program_activities")
+      .update(input)
+      .eq("id", activityId)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  async removeActivity(activityId: string): Promise<boolean> {
+    const { data, error } = await this.db.from("program_activities").delete().eq("id", activityId).select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  /** Copies one activity (a cardio/recovery entry a coach built once, e.g.
+   * "20min LISS") onto several other days of the same program — the
+   * builder's "also add to Mon/Wed/Fri" flow, so a coach doesn't rebuild
+   * the same cardio prescription by hand on every day it repeats. Re-reads
+   * the source (RLS-scoped) rather than trusting a caller-supplied copy,
+   * and re-derives each target day's own coach_id/client_id the same way
+   * every other write in this service does — a dayId the caller can't see
+   * is silently skipped, not an error, since this is a best-effort batch. */
+  async copyActivityToDays(activityId: string, dayIds: string[]): Promise<number> {
+    const { data: source, error: sourceError } = await this.db
+      .from("program_activities")
+      .select("*")
+      .eq("id", activityId)
+      .maybeSingle();
+    if (sourceError) throw sourceError;
+    if (!source) return 0;
+
+    const { data: days, error: daysError } = await this.db
+      .from("program_days")
+      .select("id, coach_id, client_id")
+      .in("id", dayIds);
+    if (daysError) throw daysError;
+    if (!days || days.length === 0) return 0;
+
+    const { data, error } = await this.db.from("program_activities").insert(
+      days.map((day) => ({
+        coach_id: day.coach_id,
+        client_id: day.client_id,
+        program_day_id: day.id,
+        kind: source.kind,
+        modality: source.modality,
+        duration_min: source.duration_min,
+        distance_km: source.distance_km,
+        intensity: source.intensity,
+        hr_zone: source.hr_zone,
+        kcal_target: source.kcal_target,
+        pace: source.pace,
+        notes_ar: source.notes_ar,
+        notes_en: source.notes_en,
+        log_required: source.log_required,
+        order_index: source.order_index,
+      }))
+    ).select("id");
+    if (error) throw error;
+    return data.length;
+  }
+
+  async reorderActivities(dayId: string, orderedIds: string[]): Promise<number> {
+    let count = 0;
+    for (let i = 0; i < orderedIds.length; i++) {
+      const { data, error } = await this.db
+        .from("program_activities")
+        .update({ order_index: i })
+        .eq("id", orderedIds[i])
+        .eq("program_day_id", dayId)
+        .select("id");
+      if (error) throw error;
+      count += data.length;
+    }
+    return count;
+  }
+
+  // ---------------------------------------------------------------------
+  // Nutrition day-links — assigning/overriding which diet_plans variant a
+  // day shows. The variant itself is created/edited via DietPlansService
+  // (createForProgram/customizeForDay); this only manages the day's link.
+  // ---------------------------------------------------------------------
+
+  /** Points one or more days at a nutrition variant — the assignment
+   * grid's click. Validates the variant belongs to THIS program first (a
+   * coach picking from the program's own variant list can't be tricked
+   * into linking another program's plan id), and re-derives each day's
+   * scope from its own row rather than trusting the caller, same rule as
+   * copyActivityToDays. Passing dietPlanId null unlinks the given days. */
+  async setDayNutrition(programId: string, dayIds: string[], dietPlanId: string | null): Promise<number> {
+    if (dietPlanId) {
+      const { data: variant, error: variantError } = await this.db
+        .from("diet_plans")
+        .select("id")
+        .eq("id", dietPlanId)
+        .eq("program_id", programId)
+        .maybeSingle();
+      if (variantError) throw variantError;
+      if (!variant) throw new Error("diet_plan_not_in_program");
+    }
+
+    const { data, error } = await this.db
+      .from("program_days")
+      .update({ diet_plan_id: dietPlanId })
+      .eq("program_id", programId)
+      .in("id", dayIds)
+      .select("id");
+    if (error) throw error;
+    return data.length;
   }
 }

@@ -386,7 +386,7 @@ export function DietPlanBuilder({
         </div>
         <aside className="flex flex-col gap-4">
           <FoodSidebar locale={locale} dietPlanId={tree.id} meals={meals} />
-          <MacroSidebar meals={meals} />
+          <MacroSidebar locale={locale} dietPlanId={tree.id} meals={meals} targets={tree} />
         </aside>
       </div>
 

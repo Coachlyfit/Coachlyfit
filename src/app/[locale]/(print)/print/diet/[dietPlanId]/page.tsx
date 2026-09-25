@@ -46,9 +46,13 @@ export default async function PrintDietPlanPage({
             : `${formatDate(tree.start_date, locale)} · ${tDiets("ongoing")}`}
         </p>
         <p className="mt-2 font-mono text-sm tabular-nums">
-          {t("planTotals")}: {Math.round(planTotals.kcal)} {tMacros("kcal")} · {planTotals.protein_g}g{" "}
+          {t("planTotals")}: {Math.round(planTotals.kcal)}
+          {tree.target_kcal != null && ` / ${tree.target_kcal}`} {tMacros("kcal")} · {planTotals.protein_g}g{" "}
           {tMacros("protein")} · {planTotals.carb_g}g {tMacros("carbs")} · {planTotals.fat_g}g {tMacros("fat")}
         </p>
+        {(tree.notes_ar || tree.notes_en) && (
+          <p className="mt-1 text-sm text-gray-700">{pickLocale(tree, locale, "notes")}</p>
+        )}
       </header>
 
       <div className="flex flex-col gap-6">
@@ -59,6 +63,9 @@ export default async function PrintDietPlanPage({
               <div className="flex items-baseline justify-between">
                 <h2 className="text-lg font-semibold">
                   {meal.label_ar || meal.label_en ? pickLocale(meal, locale, "label") : tBuilder("untitledMeal")}
+                  {meal.time_of_day && (
+                    <span className="ms-2 font-mono text-xs font-normal text-gray-600">{meal.time_of_day.slice(0, 5)}</span>
+                  )}
                 </h2>
                 {meal.meal_items.length > 0 && (
                   <span className="font-mono text-xs tabular-nums text-gray-600">

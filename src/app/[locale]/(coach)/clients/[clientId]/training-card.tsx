@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Dumbbell, ExternalLink } from "lucide-react";
+import { Dumbbell, ExternalLink, HeartPulse } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +8,10 @@ import { createClient } from "@/lib/supabase/server";
 import { Link } from "@/i18n/navigation";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
-import { dayIndexForDate, dayIndexForDateWithMode, weekIndexForDate } from "@/domain/programs/program-cycle";
+import { dayIndexForDate, dayIndexForDateWithMode, dayIndicesForWeek, dayIndicesForWeekWithMode, startOfWeekSaturday, weekIndexForDate } from "@/domain/programs/program-cycle";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
+import { ActivityLogsService } from "@/domain/workouts/activity-logs.service";
 import { getActiveProgram } from "./data";
 import { AssignPlanDialog } from "./assign-plan-dialog";
 
@@ -65,11 +66,42 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
   const isRestDay = todayIndex != null && (!todayDay || todayDay.program_items.length === 0);
   const week = weekIndexForDate(program.start_date, todayIso);
 
-  const [templates, recentSessions] = await Promise.all([
+  const [templates, recentSessions, painReports] = await Promise.all([
     new ProgramsService(supabase).list("templates"),
     new WorkoutsService(supabase).listRecentSessions(clientId, 1),
+    new WorkoutsService(supabase).listPainReports(clientId, 3),
   ]);
   const lastSession = recentSessions.find((s) => s.completed_at != null) ?? null;
+
+  // Cardio prescribed vs logged this week — one count each, from the 7
+  // program_activities scheduled across this Sat-Fri week (may repeat a
+  // day more than once if the cycle is short) and how many of those actual
+  // (day, activity) pairs have a matching activity_logs row.
+  const weekStart = startOfWeekSaturday(todayIso);
+  const weekIndices =
+    program.schedule_mode === "weekly"
+      ? dayIndicesForWeekWithMode(
+          "weekly",
+          program.start_date,
+          cycleLength,
+          weekStart,
+          new Map(program.program_days.filter((d) => d.weekday != null).map((d) => [d.weekday as number, d.day_index]))
+        )
+      : dayIndicesForWeek(program.start_date, cycleLength, weekStart);
+  const weekDates = Array.from({ length: 7 }, (_, i) => new Date(new Date(weekStart).getTime() + i * 86_400_000).toISOString().slice(0, 10));
+  const weekDays = weekIndices.map((idx) => (idx != null ? program.program_days.find((d) => d.day_index === idx) : null));
+  const activityLogs = new ActivityLogsService(supabase);
+  const cardioByDate = await Promise.all(
+    weekDays.map(async (d, i) => {
+      const cardioActivities = (d?.program_activities ?? []).filter((a) => a.kind === "cardio");
+      if (cardioActivities.length === 0) return { prescribed: 0, done: 0 };
+      const logs = await activityLogs.listForDate(clientId, weekDates[i]);
+      const loggedIds = new Set(logs.map((l) => l.program_activity_id));
+      return { prescribed: cardioActivities.length, done: cardioActivities.filter((a) => loggedIds.has(a.id)).length };
+    })
+  );
+  const cardioPrescribedCount = cardioByDate.reduce((sum, d) => sum + d.prescribed, 0);
+  const cardioDoneCount = cardioByDate.reduce((sum, d) => sum + d.done, 0);
 
   return (
     <Card>
@@ -106,6 +138,30 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
               prescribed: lastSession.sets_prescribed ?? 0,
             })}
           </p>
+        )}
+
+        {cardioPrescribedCount > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {t("cardioThisWeek", { done: cardioDoneCount, total: cardioPrescribedCount })}
+          </p>
+        )}
+
+        {painReports.length > 0 && (
+          <div className="flex flex-col gap-1 rounded-md border border-warning-tint bg-warning-tint/40 p-2.5">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-warning-tint-foreground">
+              <HeartPulse className="size-3.5" aria-hidden="true" />
+              {t("recentPain")}
+            </p>
+            {painReports.map((report) => (
+              <p key={report.id} className="text-xs text-warning-tint-foreground/80">
+                {t("painLine", {
+                  exercise: report.program_items?.exercises ? pickLocale(report.program_items.exercises, locale) : "",
+                  pain: report.pain ?? 0,
+                  date: formatDate(report.created_at, locale),
+                })}
+              </p>
+            ))}
+          </div>
         )}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">

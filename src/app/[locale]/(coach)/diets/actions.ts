@@ -4,7 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
-import { createDietPlanSchema, mealSchema, mealItemSchema, reorderSchema, saveAsTemplateSchema } from "./schemas";
+import {
+  createDietPlanSchema,
+  dietTargetsSchema,
+  mealSchema,
+  mealItemSchema,
+  reorderSchema,
+  saveAsTemplateSchema,
+} from "./schemas";
 
 type ActionResult = { error: string } | void;
 type CreateResult = { error: string } | { id: string };
@@ -55,16 +62,50 @@ export async function updateDietPlanAction(locale: string, id: string, formData:
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { start_date, end_date, name_ar, name_en } = parsed.data;
+  const { start_date, end_date, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g, notes_ar, notes_en } =
+    parsed.data;
   const updated = await new DietPlansService(supabase).update(id, {
     name_ar,
     name_en,
     start_date: start_date || undefined,
     end_date: end_date || null,
+    target_kcal,
+    target_protein_g,
+    target_carb_g,
+    target_fat_g,
+    notes_ar: notes_ar || null,
+    notes_en: notes_en || null,
   });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets`);
   revalidatePath(`/${locale}/diets/${id}`);
+}
+
+// Targets-only update — the macro sidebar's own small form, separate from
+// the full plan-edit dialog so setting a target doesn't require touching
+// name/dates too.
+export async function updateDietTargetsAction(
+  locale: string,
+  dietPlanId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = dietTargetsSchema.safeParse({
+    target_kcal: formData.get("target_kcal") || "",
+    target_protein_g: formData.get("target_protein_g") || "",
+    target_carb_g: formData.get("target_carb_g") || "",
+    target_fat_g: formData.get("target_fat_g") || "",
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const updated = await new DietPlansService(supabase).update(dietPlanId, parsed.data);
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
 }
 
 // Soft delete: archives instead of removing, so it can be undone from the
@@ -157,6 +198,7 @@ export async function addMealAction(locale: string, dietPlanId: string, formData
   const parsed = mealSchema.safeParse({
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
+    time_of_day: formData.get("time_of_day") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -180,6 +222,7 @@ export async function updateMealAction(
   const parsed = mealSchema.partial().safeParse({
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
+    time_of_day: formData.get("time_of_day") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 

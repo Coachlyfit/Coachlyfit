@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService, type LogSetInput, type UpdateSetInput, type ExerciseResultInput } from "./workouts.service";
+import { ActivityLogsService, type LogActivityInput } from "./activity-logs.service";
 import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 
 const setFieldsSchema = {
@@ -20,6 +21,16 @@ const logSetSchema = z.object({
 });
 
 const updateSetSchema = z.object(setFieldsSchema);
+
+const activityLogSchema = z.object({
+  performed_on: z.string().optional(),
+  duration_min: z.coerce.number().int().min(1).max(600).optional().nullable(),
+  distance_km: z.coerce.number().min(0.01).max(500).optional().nullable(),
+  avg_hr: z.coerce.number().int().min(1).max(250).optional().nullable(),
+  kcal: z.coerce.number().int().min(1).max(5000).optional().nullable(),
+  rpe: z.coerce.number().int().min(1).max(10).optional().nullable(),
+  notes: z.string().max(500).optional().nullable(),
+});
 
 const exerciseResultSchema = z.object({
   status: z.enum(["done", "skipped"]),
@@ -134,4 +145,22 @@ export async function saveSessionProgressAction(sessionId: string, elapsedSecond
 export async function completeSessionAction(sessionId: string, durationSeconds: number) {
   const supabase = await createClient();
   return new WorkoutsService(supabase).completeSession(sessionId, durationSeconds);
+}
+
+export async function logActivityAction(
+  activityId: string,
+  input: LogActivityInput
+): Promise<{ error: string } | { ok: true }> {
+  const parsed = activityLogSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  try {
+    const result = await new ActivityLogsService(supabase).logActivity(activityId, parsed.data);
+    if (!result) return { error: "not_found_or_forbidden" };
+    return { ok: true };
+  } catch (err) {
+    if (isStaleEditError(err)) return { error: "entry_locked" };
+    throw err;
+  }
 }

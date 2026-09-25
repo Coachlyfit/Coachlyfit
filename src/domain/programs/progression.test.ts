@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { projectSetsForWeek, type BaseSet } from "./progression";
 
 const base: BaseSet[] = [
-  { set_index: 1, reps: 10, weight: 50, rest_seconds: 90 },
-  { set_index: 2, reps: 8, weight: null, rest_seconds: 90 }, // bodyweight set
+  { set_index: 1, reps: 10, weight: 50, rest_seconds: 90, duration_seconds: null },
+  { set_index: 2, reps: 8, weight: null, rest_seconds: 90, duration_seconds: null }, // bodyweight set
 ];
 
 describe("projectSetsForWeek", () => {
@@ -42,5 +42,12 @@ describe("projectSetsForWeek", () => {
 
   it("clamps week below 1 to week 1's base", () => {
     expect(projectSetsForWeek(base, "plus_2_5kg_week", 0)).toEqual(base);
+  });
+
+  it("leaves a duration-based set's hold time unprojected under any rule", () => {
+    const holdSet: BaseSet[] = [{ set_index: 1, reps: null, weight: null, rest_seconds: 30, duration_seconds: 30 }];
+    const result = projectSetsForWeek(holdSet, "plus_1_rep_week", 6);
+    expect(result[0].duration_seconds).toBe(30);
+    expect(result[0].reps).toBeNull();
   });
 });

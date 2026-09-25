@@ -1,11 +1,12 @@
 import { getTranslations } from "next-intl/server";
-import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, HeartPulse, Wind, Salad } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
-import { dayIndicesForWeek, dayIndicesForWeekWithMode, startOfWeekSaturday } from "@/domain/programs/program-cycle";
+import { resolveDayPlan } from "@/domain/programs/day-plan";
+import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -40,36 +41,25 @@ export default async function ClientPlanPage({
   const todayIso = new Date().toISOString().slice(0, 10);
   const weekStart = startOfWeekSaturday(todayIso);
   const cycleLength = tree.program_days.length;
-  const scheduleMode = tree.schedule_mode as "cycle" | "weekly";
-  const indices =
-    scheduleMode === "weekly"
-      ? dayIndicesForWeekWithMode(
-          "weekly",
-          tree.start_date,
-          cycleLength,
-          weekStart,
-          new Map(
-            tree.program_days
-              .filter((d) => d.weekday != null)
-              .map((d) => [d.weekday as number, d.day_index])
-          )
-        )
-      : dayIndicesForWeek(tree.start_date, cycleLength, weekStart);
 
-  const days = indices.map((dayIndex, i) => {
+  // resolveDayPlan per date, not dayIndicesForWeek/WithMode directly — it's
+  // the one place workoutItems/rehabItems/activities/kind are all derived
+  // consistently (see day-plan.ts), so this strip and c/page.tsx's Today
+  // card never disagree about what a given date's day actually is.
+  const days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(new Date(weekStart).getTime() + i * 86_400_000).toISOString().slice(0, 10);
-    const day = dayIndex != null ? tree.program_days.find((d) => d.day_index === dayIndex) : null;
-    const isRest = !day || day.program_items.length === 0;
+    const plan = resolveDayPlan(tree, date);
+    const isRest = plan.kind === "rest";
     const isToday = date === todayIso;
-    return { date, day, isRest, isToday };
+    return { date, plan, isRest, isToday };
   });
 
   const sessionsByDayId = new Map(
     (
       await Promise.all(
         days
-          .filter((d) => d.day && !d.isRest)
-          .map(async (d) => [d.day!.id, await workouts.getSessionForDay(d.day!.id, weekStart)] as const)
+          .filter((d) => d.plan.day && d.plan.workoutItems.length > 0)
+          .map(async (d) => [d.plan.day!.id, await workouts.getSessionForDay(d.plan.day!.id, weekStart)] as const)
       )
     ).filter(([, session]) => session?.completed_at != null)
   );
@@ -86,9 +76,12 @@ export default async function ClientPlanPage({
       </div>
 
       <div className="flex flex-col gap-3">
-        {days.map(({ date, day, isRest, isToday }) => {
-          const session = day ? sessionsByDayId.get(day.id) : undefined;
+        {days.map(({ date, plan, isRest, isToday }) => {
+          const day = plan.day;
+          const hasWorkout = plan.workoutItems.length > 0;
+          const session = hasWorkout && day ? sessionsByDayId.get(day.id) : undefined;
           const done = session != null;
+          const hasRehab = plan.rehabItems.length > 0 || plan.mobilityItems.length > 0;
           const content = (
             <div
               className={cn(
@@ -107,15 +100,28 @@ export default async function ClientPlanPage({
               <div className="h-full w-px self-stretch bg-border" aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <p className={cn("text-[13.5px] font-semibold", isRest && "text-muted-foreground")}>
-                  {isRest ? t("rest") : pickLocale(day!, locale, "label") || t("today")}
+                  {isRest ? t("rest") : day ? pickLocale(day, locale, "label") || t("today") : t("today")}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {isRest
                     ? t("restMeta")
-                    : done
-                      ? t("doneMeta", { minutes: Math.round((session!.duration_seconds ?? 0) / 60) })
-                      : t("exerciseCount", { count: day!.program_items.length })}
+                    : hasWorkout
+                      ? done
+                        ? t("doneMeta", { minutes: Math.round((session!.duration_seconds ?? 0) / 60) })
+                        : t("exerciseCount", { count: plan.workoutItems.length })
+                      : hasRehab
+                        ? t("exerciseCount", { count: plan.rehabItems.length + plan.mobilityItems.length })
+                        : t("restMeta")}
                 </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                {plan.activities.length > 0 &&
+                  (plan.activities.some((a) => a.kind === "cardio") ? (
+                    <HeartPulse className="size-3.5 text-orange-500" aria-hidden="true" />
+                  ) : (
+                    <Wind className="size-3.5 text-sky-500" aria-hidden="true" />
+                  ))}
+                {plan.dietPlanId && <Salad className="size-3.5 text-muted-foreground" aria-hidden="true" />}
               </div>
               {done && <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden="true" />}
               {isToday && !done && !isRest && (
@@ -124,7 +130,7 @@ export default async function ClientPlanPage({
             </div>
           );
 
-          return day && !isRest ? (
+          return day && (hasWorkout || hasRehab) ? (
             <Link key={date} href={`/c/workout/${day.id}`}>
               {content}
             </Link>

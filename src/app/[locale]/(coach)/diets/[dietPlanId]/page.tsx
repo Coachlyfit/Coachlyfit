@@ -45,9 +45,18 @@ export default async function DietPlanDetailPage({
           </div>
           {isTemplate && <Badge variant="secondary">{t("template")}</Badge>}
         </div>
-        <Link href="/diets" className="text-sm text-muted-foreground hover:text-foreground">
-          {t("title")}
-        </Link>
+        {tree.program_id ? (
+          <Link
+            href={`/programs/${tree.program_id}`}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t("backToProgram")}
+          </Link>
+        ) : (
+          <Link href="/diets" className="text-sm text-muted-foreground hover:text-foreground">
+            {t("title")}
+          </Link>
+        )}
       </div>
 
       {isTemplate && clonedInstances.length > 0 && (

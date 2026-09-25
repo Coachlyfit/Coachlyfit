@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
@@ -22,7 +22,12 @@ import { itemSchema, type ItemFormInput } from "../schemas";
 import { addItemAction, updateItemAction } from "../actions";
 import { ExercisePicker } from "./exercise-picker";
 
-type ExistingItemSet = { reps: number; weight: number | null; rest_seconds: number | null };
+type ExistingItemSet = {
+  reps: number | null;
+  duration_seconds: number | null;
+  weight: number | null;
+  rest_seconds: number | null;
+};
 type ExistingItem = {
   id: string;
   exercise_id: string;
@@ -30,10 +35,13 @@ type ExistingItem = {
   notes_ar: string | null;
   notes_en: string | null;
   block: string;
+  rehab_phase_id: string | null;
   coach_note_private: string | null;
   exercises: { id: string; name_ar: string; name_en: string };
   program_item_sets: ExistingItemSet[]; // must already be ordered by set_index
 };
+
+export type RehabPhaseOption = { id: string; name_ar: string; name_en: string };
 
 const PROGRESSION_RULES: { value: ProgressionRule; labelKey: string }[] = [
   { value: "none", labelKey: "progressionNone" },
@@ -42,7 +50,7 @@ const PROGRESSION_RULES: { value: ProgressionRule; labelKey: string }[] = [
   { value: "plus_1_rep_week", labelKey: "progressionPlus1Rep" },
 ];
 
-const BLOCKS = ["warmup", "main", "cooldown"] as const;
+const BLOCKS = ["warmup", "main", "cooldown", "mobility", "rehab"] as const;
 
 export function ItemDialog({
   locale,
@@ -50,6 +58,8 @@ export function ItemDialog({
   dayId,
   item,
   initialExercise,
+  initialBlock,
+  rehabPhases = [],
   open,
   onOpenChange,
 }: {
@@ -61,6 +71,15 @@ export function ItemDialog({
    * sidebar's click-to-add, which already knows which exercise the coach
    * picked before this dialog even opens. Ignored when `item` is set. */
   initialExercise?: { id: string; name_ar: string; name_en: string };
+  /** Pre-selects the block on the "add" path — the day card's "+ Add"
+   * menu's Mobility/Rehab entries open this dialog with the block already
+   * chosen, same idea as initialExercise. Ignored when `item` is set. */
+  initialBlock?: "warmup" | "main" | "cooldown" | "mobility" | "rehab";
+  /** Every rehab phase on this program, across every protocol — shown as a
+   * select only when block = 'rehab'. Empty when the program has no rehab
+   * protocol yet; a rehab item can still be added without a phase (shows
+   * on every week, see day-plan.ts's activePhase). */
+  rehabPhases?: RehabPhaseOption[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -86,7 +105,8 @@ export function ItemDialog({
           sets:
             item.program_item_sets.length > 0
               ? item.program_item_sets.map((s) => ({
-                  reps: s.reps,
+                  reps: s.reps ?? undefined,
+                  duration_seconds: s.duration_seconds ?? undefined,
                   weight: s.weight ?? undefined,
                   rest_seconds: s.rest_seconds ?? undefined,
                 }))
@@ -95,11 +115,19 @@ export function ItemDialog({
           notes_ar: item.notes_ar ?? "",
           notes_en: item.notes_en ?? "",
           block: item.block as ItemFormInput["block"],
+          rehab_phase_id: item.rehab_phase_id ?? "",
           coach_note_private: item.coach_note_private ?? "",
         }
-      : { exercise_id: initialExercise?.id, sets: [{ reps: 10 }], progression_rule: "none", block: "main" },
+      : {
+          exercise_id: initialExercise?.id,
+          sets: initialBlock === "rehab" || initialBlock === "mobility" ? [{ duration_seconds: 30 }] : [{ reps: 10 }],
+          progression_rule: "none",
+          block: initialBlock ?? "main",
+        },
   });
   const { fields, append, remove } = useFieldArray({ control, name: "sets" });
+  const block = useWatch({ control, name: "block" });
+  const isDurationBlock = block === "rehab" || block === "mobility";
 
   const onSubmit = handleSubmit((data) => {
     setFormError(null);
@@ -110,6 +138,7 @@ export function ItemDialog({
     if (data.notes_ar) formData.set("notes_ar", data.notes_ar);
     if (data.notes_en) formData.set("notes_en", data.notes_en);
     formData.set("block", data.block ?? "main");
+    if (data.rehab_phase_id) formData.set("rehab_phase_id", data.rehab_phase_id);
     if (data.coach_note_private) formData.set("coach_note_private", data.coach_note_private);
 
     startTransition(async () => {
@@ -177,23 +206,70 @@ export function ItemDialog({
             />
           </div>
 
+          {block === "rehab" && rehabPhases.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="rehab_phase_id">{t("rehabPhase")}</Label>
+              <Controller
+                name="rehab_phase_id"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value || "none"}
+                    onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
+                    items={[
+                      { value: "none", label: t("rehabPhaseNone") },
+                      ...rehabPhases.map((p) => ({ value: p.id, label: locale === "ar" ? p.name_ar : p.name_en })),
+                    ]}
+                  >
+                    <SelectTrigger id="rehab_phase_id">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t("rehabPhaseNone")}</SelectItem>
+                      {rehabPhases.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {locale === "ar" ? p.name_ar : p.name_en}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
-            <Label>{t("sets")}</Label>
+            <Label>{isDurationBlock ? t("holds") : t("sets")}</Label>
             {fields.map((field, index) => (
               <div key={field.id} className="flex items-end gap-2 rounded-md border border-border p-2">
                 <span className="pb-2 font-mono text-xs text-muted-foreground">{index + 1}</span>
-                <div className="flex flex-1 flex-col gap-1">
-                  <Label htmlFor={`sets.${index}.reps`} className="text-xs text-muted-foreground">
-                    {t("reps")}
-                  </Label>
-                  <Input
-                    id={`sets.${index}.reps`}
-                    type="number"
-                    min={1}
-                    max={100}
-                    {...register(`sets.${index}.reps` as const)}
-                  />
-                </div>
+                {isDurationBlock ? (
+                  <div className="flex flex-1 flex-col gap-1">
+                    <Label htmlFor={`sets.${index}.duration_seconds`} className="text-xs text-muted-foreground">
+                      {t("durationSeconds")}
+                    </Label>
+                    <Input
+                      id={`sets.${index}.duration_seconds`}
+                      type="number"
+                      min={1}
+                      max={3600}
+                      {...register(`sets.${index}.duration_seconds` as const)}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-1 flex-col gap-1">
+                    <Label htmlFor={`sets.${index}.reps`} className="text-xs text-muted-foreground">
+                      {t("reps")}
+                    </Label>
+                    <Input
+                      id={`sets.${index}.reps`}
+                      type="number"
+                      min={1}
+                      max={100}
+                      {...register(`sets.${index}.reps` as const)}
+                    />
+                  </div>
+                )}
                 <div className="flex flex-1 flex-col gap-1">
                   <Label htmlFor={`sets.${index}.weight`} className="text-xs text-muted-foreground">
                     {t("weight")}
@@ -229,7 +305,12 @@ export function ItemDialog({
                 </Button>
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => append({ reps: 10 })}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append(isDurationBlock ? { duration_seconds: 30 } : { reps: 10 })}
+            >
               <Plus className="size-4" />
               {t("addSet")}
             </Button>

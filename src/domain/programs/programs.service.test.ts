@@ -9,8 +9,15 @@ function fakeSupabase(opts: {
   treeRow?: Record<string, unknown> | null;
   affected?: unknown[];
   itemsRow?: unknown[];
+  ownClientRow?: Record<string, unknown> | null;
 } = {}) {
-  const { parentRow = null, treeRow = null, affected = [{ id: "1" }], itemsRow = [] } = opts;
+  const {
+    parentRow = null,
+    treeRow = null,
+    affected = [{ id: "1" }],
+    itemsRow = [],
+    ownClientRow = { id: "client-1" },
+  } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
   const updates: { table: string; payload: unknown; eqs: [string, unknown][]; ins: [string, unknown[]][] }[] = [];
@@ -29,21 +36,28 @@ function fakeSupabase(opts: {
           if (cols === "id, group_key") {
             return { eq: () => ({ in: async () => ({ data: itemsRow, error: null }) }) };
           }
-          // getTree: select("*, program_days(...)").eq(...).order().order().order().maybeSingle()
+          // assertOwnClient: select("id").eq(...).maybeSingle()
+          if (cols === "id" && table === "clients") {
+            return { eq: () => ({ maybeSingle: async () => ({ data: ownClientRow, error: null }) }) };
+          }
+          // getTree: select("*, program_days(...)").eq(...).order() x4.maybeSingle()
           // getActiveTreeForClient additionally chains .is("archived_at", null),
-          // a 4th .order(), and .limit(1) before the same maybeSingle tail.
-          const step3 = () => ({
-            order: () => ({
-              maybeSingle: async () => ({ data: treeRow, error: null }),
-              limit: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
-            }),
+          // a 5th .order(), and .limit(1) before the same maybeSingle tail.
+          const terminal = () => ({
+            maybeSingle: async () => ({ data: treeRow, error: null }),
+            limit: () => ({ maybeSingle: async () => ({ data: treeRow, error: null }) }),
           });
+          const step4 = () => ({ order: () => terminal(), ...terminal() });
+          const step3 = () => ({ order: () => step4() });
           const step2 = () => ({ order: () => step3() });
+          // getTree's path (eq -> 4 orders) starts here. getActiveTreeForClient's
+          // path (eq -> is -> 5 orders: created_at first, then the same 4) needs
+          // one extra order level before landing on the same step2 chain.
           const step1 = () => ({ order: () => step2() });
           return {
             eq: () => ({
               ...step1(),
-              is: () => step1(),
+              is: () => ({ order: () => step1() }),
             }),
             order: () => ({ ascending: undefined }),
           };
@@ -368,6 +382,9 @@ describe("ProgramsService", () => {
           label_ar: null,
           label_en: null,
           weekday: 3,
+          notes_ar: null,
+          notes_en: null,
+          diet_plan_id: null,
           program_items: [
             {
               id: "item-1",
@@ -380,17 +397,21 @@ describe("ProgramsService", () => {
               notes_en: null,
               order_index: 0,
               block: "warmup",
+              rehab_phase_id: null,
               coach_note_private: "watch the knee",
               group_key: "g1",
               group_kind: "superset",
               program_item_sets: [
-                { id: "set-1", set_index: 1, reps: 8, weight: 50, rest_seconds: 60 },
-                { id: "set-2", set_index: 2, reps: 12, weight: 45, rest_seconds: 60 },
+                { id: "set-1", set_index: 1, reps: 8, weight: 50, rest_seconds: 60, duration_seconds: null },
+                { id: "set-2", set_index: 2, reps: 12, weight: 45, rest_seconds: 60, duration_seconds: null },
               ],
             },
           ],
+          program_activities: [],
         },
       ],
+      rehab_protocols: [],
+      diet_variants: [],
     };
 
     it("stamps the new client_id + source_template_id, and clones schedule_mode/weekday/block/group/progression/per-set data", async () => {
@@ -532,6 +553,9 @@ describe("ProgramsService", () => {
             label_ar: null,
             label_en: null,
             weekday: null,
+            notes_ar: null,
+            notes_en: null,
+            diet_plan_id: null,
             program_items: [
               {
                 exercise_id: "ex-1",
@@ -543,12 +567,16 @@ describe("ProgramsService", () => {
                 notes_en: null,
                 order_index: 0,
                 block: "main",
+                rehab_phase_id: null,
                 coach_note_private: null,
                 group_key: null,
                 group_kind: null,
-                program_item_sets: [{ set_index: 1, reps: 10, weight: 40, rest_seconds: 60 }],
+                program_item_sets: [
+                  { set_index: 1, reps: 10, weight: 40, rest_seconds: 60, duration_seconds: null },
+                ],
               },
             ],
+            program_activities: [],
           },
         ],
       };
@@ -739,7 +767,9 @@ describe("ProgramsService", () => {
                     order: () => ({
                       order: () => ({
                         order: () => ({
-                          limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                          order: () => ({
+                            limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                          }),
                         }),
                       }),
                     }),

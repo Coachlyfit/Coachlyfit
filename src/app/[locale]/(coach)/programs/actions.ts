@@ -7,7 +7,19 @@ import { ProgramsService } from "@/domain/programs/programs.service";
 import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
 import { adjustmentSchema } from "../review/schemas";
 import { z } from "zod";
-import { createProgramSchema, daySchema, itemSchema, reorderSchema, saveAsTemplateSchema } from "./schemas";
+import { RehabService } from "@/domain/programs/rehab.service";
+import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
+import {
+  createProgramSchema,
+  daySchema,
+  itemSchema,
+  reorderSchema,
+  saveAsTemplateSchema,
+  activitySchema,
+  rehabProtocolSchema,
+  rehabPhaseSchema,
+  setDayNutritionSchema,
+} from "./schemas";
 
 type ActionResult = { error: string } | void;
 type CreateResult = { error: string } | { id: string };
@@ -166,6 +178,8 @@ export async function addDayAction(locale: string, programId: string, formData: 
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
     weekday: formData.get("weekday") || undefined,
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -193,6 +207,8 @@ export async function updateDayAction(
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
     weekday: formData.get("weekday") || undefined,
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -248,6 +264,7 @@ export async function addItemAction(
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
     block: formData.get("block") || undefined,
+    rehab_phase_id: formData.get("rehab_phase_id") || "",
     coach_note_private: formData.get("coach_note_private") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
@@ -258,9 +275,10 @@ export async function addItemAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
+  const { rehab_phase_id, ...rest } = parsed.data;
   const programs = new ProgramsService(supabase);
   await programs.snapshotIfAssigned(programId, "add_item");
-  const added = await programs.addItem(dayId, parsed.data);
+  const added = await programs.addItem(dayId, { ...rest, rehab_phase_id: rehab_phase_id || null });
   if (!added) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -278,6 +296,7 @@ export async function updateItemAction(
     notes_ar: formData.get("notes_ar") || "",
     notes_en: formData.get("notes_en") || "",
     block: formData.get("block") || undefined,
+    rehab_phase_id: formData.get("rehab_phase_id") || "",
     coach_note_private: formData.get("coach_note_private") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
@@ -288,9 +307,10 @@ export async function updateItemAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
+  const { rehab_phase_id, ...rest } = parsed.data;
   const programs = new ProgramsService(supabase);
   await programs.snapshotIfAssigned(programId, "update_item");
-  const updated = await programs.updateItem(itemId, parsed.data);
+  const updated = await programs.updateItem(itemId, { ...rest, rehab_phase_id: rehab_phase_id || null });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
@@ -528,4 +548,343 @@ export async function applyAdjustmentAction(
 
   await new ReviewService(supabase).markAdjustmentApplied(checkinId);
   revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+// ---------------------------------------------------------------------
+// Cardio/recovery activities
+// ---------------------------------------------------------------------
+
+function activityFieldsFromForm(formData: FormData) {
+  return {
+    kind: formData.get("kind"),
+    modality: formData.get("modality"),
+    duration_min: formData.get("duration_min") || "",
+    distance_km: formData.get("distance_km") || "",
+    intensity: formData.get("intensity") || "",
+    hr_zone: formData.get("hr_zone") || "",
+    kcal_target: formData.get("kcal_target") || "",
+    pace: formData.get("pace") || "",
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
+    log_required: formData.get("log_required") ?? "true",
+  };
+}
+
+export async function addActivityAction(
+  locale: string,
+  programId: string,
+  dayId: string,
+  formData: FormData
+): Promise<CreateResult> {
+  const parsed = activitySchema.safeParse(activityFieldsFromForm(formData));
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { intensity, ...rest } = parsed.data;
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "add_activity");
+  const added = await programs.addActivity(dayId, { ...rest, intensity: intensity || null });
+  if (!added) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+  return { id: added.id };
+}
+
+export async function updateActivityAction(
+  locale: string,
+  programId: string,
+  activityId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = activitySchema.partial().safeParse(activityFieldsFromForm(formData));
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { intensity, ...rest } = parsed.data;
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "update_activity");
+  const updated = await programs.updateActivity(activityId, { ...rest, intensity: intensity || null });
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function deleteActivityAction(
+  locale: string,
+  programId: string,
+  activityId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "delete_activity");
+  const deleted = await programs.removeActivity(activityId);
+  if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+// "Also add to Mon/Wed/Fri" -- copies one activity onto several other days
+// in one gesture, so a coach doesn't rebuild the same cardio prescription
+// by hand on every day it repeats.
+export async function copyActivityToDaysAction(
+  locale: string,
+  programId: string,
+  activityId: string,
+  dayIds: string[]
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "copy_activity");
+  await programs.copyActivityToDays(activityId, dayIds);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+// ---------------------------------------------------------------------
+// Rehab protocols/phases
+// ---------------------------------------------------------------------
+
+function rehabProtocolFieldsFromForm(formData: FormData) {
+  return {
+    body_area: formData.get("body_area"),
+    injury_ar: formData.get("injury_ar") || "",
+    injury_en: formData.get("injury_en") || "",
+    restrictions_ar: formData.get("restrictions_ar") || "",
+    restrictions_en: formData.get("restrictions_en") || "",
+    instructions_ar: formData.get("instructions_ar") || "",
+    instructions_en: formData.get("instructions_en") || "",
+  };
+}
+
+export async function addRehabProtocolAction(
+  locale: string,
+  programId: string,
+  formData: FormData
+): Promise<CreateResult> {
+  const parsed = rehabProtocolSchema.safeParse(rehabProtocolFieldsFromForm(formData));
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const rehab = new RehabService(supabase);
+  await new ProgramsService(supabase).snapshotIfAssigned(programId, "add_rehab_protocol");
+  const added = await rehab.addProtocol(programId, parsed.data);
+  if (!added) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+  return { id: added.id };
+}
+
+export async function updateRehabProtocolAction(
+  locale: string,
+  programId: string,
+  protocolId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = rehabProtocolSchema.partial().safeParse(rehabProtocolFieldsFromForm(formData));
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const rehab = new RehabService(supabase);
+  await new ProgramsService(supabase).snapshotIfAssigned(programId, "update_rehab_protocol");
+  const updated = await rehab.updateProtocol(protocolId, parsed.data);
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function deleteRehabProtocolAction(
+  locale: string,
+  programId: string,
+  protocolId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const rehab = new RehabService(supabase);
+  await new ProgramsService(supabase).snapshotIfAssigned(programId, "delete_rehab_protocol");
+  const deleted = await rehab.removeProtocol(protocolId);
+  if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+function rehabPhaseFieldsFromForm(formData: FormData) {
+  return {
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+    from_week: formData.get("from_week"),
+    to_week: formData.get("to_week"),
+    goals_ar: formData.get("goals_ar") || "",
+    goals_en: formData.get("goals_en") || "",
+    progression_criteria_ar: formData.get("progression_criteria_ar") || "",
+    progression_criteria_en: formData.get("progression_criteria_en") || "",
+  };
+}
+
+export async function addRehabPhaseAction(
+  locale: string,
+  programId: string,
+  protocolId: string,
+  formData: FormData
+): Promise<CreateResult> {
+  const parsed = rehabPhaseSchema.safeParse(rehabPhaseFieldsFromForm(formData));
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const rehab = new RehabService(supabase);
+  await new ProgramsService(supabase).snapshotIfAssigned(programId, "add_rehab_phase");
+  const added = await rehab.addPhase(protocolId, parsed.data);
+  if (!added) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+  return { id: added.id };
+}
+
+export async function updateRehabPhaseAction(
+  locale: string,
+  programId: string,
+  phaseId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = rehabPhaseSchema.partial().safeParse(rehabPhaseFieldsFromForm(formData));
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const rehab = new RehabService(supabase);
+  await new ProgramsService(supabase).snapshotIfAssigned(programId, "update_rehab_phase");
+  const updated = await rehab.updatePhase(phaseId, parsed.data);
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+export async function deleteRehabPhaseAction(
+  locale: string,
+  programId: string,
+  phaseId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const rehab = new RehabService(supabase);
+  await new ProgramsService(supabase).snapshotIfAssigned(programId, "delete_rehab_phase");
+  const deleted = await rehab.removePhase(phaseId);
+  if (!deleted) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+// ---------------------------------------------------------------------
+// Nutrition -- program-owned variants and day assignment
+// ---------------------------------------------------------------------
+
+export async function createNutritionVariantAction(
+  locale: string,
+  programId: string,
+  formData: FormData
+): Promise<CreateResult> {
+  const nameAr = formData.get("name_ar");
+  const nameEn = formData.get("name_en");
+  if (typeof nameAr !== "string" || !nameAr || typeof nameEn !== "string" || !nameEn) {
+    return { error: "invalid_input" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const created = await new DietPlansService(supabase).createForProgram(programId, {
+    name_ar: nameAr,
+    name_en: nameEn,
+  });
+  if (!created) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+  return { id: created.id };
+}
+
+// The assignment grid's click -- points one or more days at a nutrition
+// variant (or unlinks them, when dietPlanId is null).
+export async function setDayNutritionAction(
+  locale: string,
+  programId: string,
+  dayIds: string[],
+  dietPlanId: string | null
+): Promise<ActionResult> {
+  const parsed = setDayNutritionSchema.safeParse({ dayIds, dietPlanId });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "set_day_nutrition");
+  try {
+    await programs.setDayNutrition(programId, parsed.data.dayIds, parsed.data.dietPlanId);
+  } catch {
+    return { error: "invalid_input" };
+  }
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+// "Customize for this day" -- clones the day's currently-linked variant and
+// repoints just that one day, leaving every other day sharing the original
+// untouched. Returns the new plan's id so the UI can jump straight into
+// editing its meals.
+export async function customizeDayNutritionAction(
+  locale: string,
+  programId: string,
+  dayId: string
+): Promise<CreateResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  await new ProgramsService(supabase).snapshotIfAssigned(programId, "customize_day_nutrition");
+  const clone = await new DietPlansService(supabase).customizeForDay(dayId);
+  if (!clone) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+  return { id: clone.id };
 }

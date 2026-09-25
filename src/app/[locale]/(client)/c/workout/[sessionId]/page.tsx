@@ -8,6 +8,7 @@ import {
 } from "@/domain/workouts/workouts-actions";
 import { weekIndexForDate } from "@/domain/programs/program-cycle";
 import { CLIENT_SAFE_ITEM_COLUMNS } from "@/domain/programs/programs.service";
+import { activePhase } from "@/domain/programs/day-plan";
 import type { AppLocale } from "@/domain/locale";
 import { WorkoutSessionClient } from "./workout-session-client";
 
@@ -29,7 +30,7 @@ export default async function WorkoutSessionPage({
       // include coach_note_private (a coach-only prescription annotation)
       // on a route the client's browser directly receives the response
       // for. See CLIENT_SAFE_ITEM_COLUMNS's doc comment.
-      `*, programs(start_date), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*))`
+      `*, programs(start_date, id), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*))`
     )
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })
@@ -50,10 +51,31 @@ export default async function WorkoutSessionPage({
   const today = new Date().toISOString().slice(0, 10);
   const week = day.programs ? weekIndexForDate(day.programs.start_date, today) : 1;
 
+  // A rehab item (block='rehab') tied to a phase only shows while that
+  // phase is active for this week — same rule as day-plan.ts's
+  // resolveDayPlan, applied here directly since the session runner reads
+  // program_items straight off this route rather than through a full
+  // ProgramTree. An item with no phase (rehab_phase_id null) always shows.
+  const { data: protocols } = day.programs
+    ? await supabase
+        .from("rehab_protocols")
+        .select("id, rehab_phases(id, from_week, to_week)")
+        .eq("program_id", day.programs.id)
+    : { data: [] };
+  const activePhaseIds = new Set(
+    (protocols ?? [])
+      .map((p) => activePhase(p as never, week)?.id)
+      .filter((id): id is string => id != null)
+  );
+  const visibleItems = day.program_items.filter(
+    (item) => item.block !== "rehab" || item.rehab_phase_id == null || activePhaseIds.has(item.rehab_phase_id)
+  );
+  const visibleDay = { ...day, program_items: visibleItems };
+
   return (
     <WorkoutSessionClient
       locale={locale}
-      day={day}
+      day={visibleDay}
       week={week}
       sessionId={session.id}
       initialSetLogs={setLogs}

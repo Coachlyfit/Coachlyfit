@@ -765,7 +765,10 @@
         "dateRange": "{start} – {end}",
         "startedOn": "بدأ في {date}",
         "dayCount": "{count} أيام تدريب",
-        "lastWorkout": "آخر تمرين {date} · {completed}/{prescribed} سِت"
+        "lastWorkout": "آخر تمرين {date} · {completed}/{prescribed} سِت",
+        "cardioThisWeek": "كارديو: {done}/{total} مسجّل الأسبوع ده",
+        "recentPain": "تقارير ألم حديثة",
+        "painLine": "{exercise} · ألم {pain}/٥ · {date}"
       },
       "nutrition": {
         "empty": "لا توجد خطة تغذية",
@@ -836,7 +839,21 @@
       "weightSinceStart": "{delta} كجم من البداية",
       "streak": "السلسلة",
       "streakDays": "{count} يوم",
-      "streakBest": "أطول سلسلة: {count} يوم"
+      "streakBest": "أطول سلسلة: {count} يوم",
+      "mobilityRehab": "حركة وتأهيل",
+      "rehabPhase": "تأهيل · {area}",
+      "cardioTitle": "كارديو",
+      "recoveryTitle": "استشفاء",
+      "logActivity": "سجّل",
+      "activityLog": {
+        "title": "سجّل ده",
+        "durationMin": "المدة (دقيقة)",
+        "distanceKm": "المسافة (كم، اختياري)",
+        "notes": "ملاحظات (اختياري)",
+        "save": "حفظ",
+        "saveFailed": "مقدرناش نحفظ — جرّب تاني.",
+        "entryLocked": "الإدخال ده أقدم من ٧ أيام ومينفعش تتغيّر."
+      }
     },
     "plan": {
       "title": "البرنامج",
@@ -877,6 +894,7 @@
         "title": "تسجيل المجموعة",
         "weight": "الوزن (كجم)",
         "reps": "التكرارات",
+        "durationSeconds": "المدة (ثواني)",
         "rpe": "معدل الجهد المُدرك",
         "notesPlaceholder": "ملاحظات (اختياري)",
         "decrease": "إنقاص",
@@ -893,7 +911,9 @@
       "blockKind": {
         "warmup": "إحماء",
         "main": "أساسي",
-        "cooldown": "تهدئة"
+        "cooldown": "تهدئة",
+        "mobility": "حركة",
+        "rehab": "تأهيل"
       },
       "markDone": "إنهاء",
       "skipExercise": "تخطي",
@@ -962,7 +982,8 @@
       "title": "التغذية",
       "noPlan": "لسه مفيش خطة تغذية",
       "noPlanBody": "الكابتن لسه ما حددش خطة تغذية.",
-      "quantityUnit": "{quantity} {unit}"
+      "quantityUnit": "{quantity} {unit}",
+      "targetDelta": "{delta} سعرة عن الهدف"
     },
     "history": {
       "title": "سجل التمارين",
@@ -1228,15 +1249,23 @@
       "title": "متعيّن لـ {count} عميل"
     },
     "builder": {
+      "add": "ضيف",
       "addDay": "ضيف يوم",
       "editDay": "عدّل اليوم",
       "addExercise": "ضيف تمرين",
+      "addMobility": "ضيف تمرين حركة",
+      "addRehab": "ضيف تمرين تأهيل",
+      "addCardio": "ضيف كارديو",
+      "addRecovery": "ضيف استشفاء",
       "noDays": "لسه مفيش أيام تدريب.",
-      "noItems": "لسه مفيش تمارين في اليوم ده.",
+      "noItems": "لسه مفيش حاجة في اليوم ده.",
+      "mobilityRehab": "حركة وتأهيل",
+      "activities": "كارديو واستشفاء",
       "dayN": "يوم {n}",
       "setsReps": "{sets} × {reps}",
       "rest": "راحة {seconds} ثانية",
       "deleteDay": "امسح اليوم",
+      "deleteActivity": "امسح النشاط",
       "confirmDeleteDayTitle": "تمسح اليوم ده؟",
       "confirmDeleteDayBody": "هيمسح كل التمارين اللي فيه. مينفعش ترجع فيها.",
       "week": "الأسبوع {n}",
@@ -1249,6 +1278,12 @@
       "makeCircuit": "دمج كدائرة",
       "ungroup": "فصل",
       "clearSelection": "إلغاء التحديد",
+      "kcalShort": "سعرة",
+      "sidebarTab": {
+        "exercises": "التمارين",
+        "nutrition": "التغذية",
+        "rehab": "التأهيل"
+      },
       "weekdayShort": {
         "0": "أحد",
         "1": "إثنين",
@@ -1268,7 +1303,9 @@
       "labelEn": "التسمية (إنجليزي، اختياري)",
       "submit": "حفظ",
       "weekday": "يوم الأسبوع",
-      "weekdayPlaceholder": "اختر يوم الأسبوع"
+      "weekdayPlaceholder": "اختر يوم الأسبوع",
+      "notesAr": "ملاحظة المدرب (عربي، اختياري)",
+      "notesEn": "ملاحظة المدرب (إنجليزي، اختياري)"
     },
     "itemDialog": {
       "addTitle": "ضيف تمرين",
@@ -1278,8 +1315,10 @@
       "loading": "بدوّر...",
       "noResults": "مفيش تمارين مطابقة.",
       "sets": "المجموعات",
+      "holds": "مرات الثبات",
       "setN": "مجموعة {index}",
       "reps": "التكرارات",
+      "durationSeconds": "المدة (ثواني)",
       "weight": "الوزن (كجم، اختياري)",
       "restSeconds": "الراحة (ثواني، اختياري)",
       "addSet": "ضيف مجموعة",
@@ -1296,10 +1335,97 @@
       "blockKind": {
         "warmup": "إحماء",
         "main": "أساسي",
-        "cooldown": "تهدئة"
+        "cooldown": "تهدئة",
+        "mobility": "حركة",
+        "rehab": "تأهيل"
       },
+      "rehabPhase": "مرحلة التأهيل",
+      "rehabPhaseNone": "بدون مرحلة محددة — يظهر كل أسبوع",
       "coachNotePrivate": "ملاحظة خاصة (تراها أنت فقط)",
       "coachNotePrivateHint": "لا تظهر للعميل أبدًا — تظهر فقط في أداة البناء."
+    },
+    "activityDialog": {
+      "addTitle": "ضيف كارديو/استشفاء",
+      "editTitle": "عدّل النشاط",
+      "kind": "النوع",
+      "kindCardio": "كارديو",
+      "kindRecovery": "استشفاء",
+      "modality": "النوع الفرعي",
+      "modalityPlaceholder": "اختر نوع فرعي",
+      "modalityRequired": "اختار نوع فرعي.",
+      "modalities": {
+        "walking": "مشي",
+        "running": "جري",
+        "cycling": "دراجة",
+        "rowing": "تجديف",
+        "stairmaster": "ستيرماستر",
+        "swimming": "سباحة",
+        "elliptical": "إليبتيكال",
+        "hiit": "هيت",
+        "other": "غير كده",
+        "foam_rolling": "فوم رولر",
+        "stretching": "إطالة",
+        "massage": "مساج",
+        "sauna": "ساونا",
+        "cold_plunge": "غطس بارد",
+        "breathwork": "تمارين تنفس"
+      },
+      "durationMin": "المدة (دقيقة)",
+      "distanceKm": "المسافة (كم، اختياري)",
+      "intensity": "الشدة",
+      "intensityUnset": "مش محدد",
+      "intensities": {
+        "low": "خفيف",
+        "moderate": "متوسط",
+        "high": "عالي",
+        "intervals": "إنترفال"
+      },
+      "hrZone": "منطقة نبض القلب (١-٥، اختياري)",
+      "kcalTarget": "هدف السعرات (اختياري)",
+      "pace": "السرعة (اختياري)",
+      "pacePlaceholder": "مثلاً ٥:٣٠/كم",
+      "minShort": "د",
+      "notesAr": "التعليمات (عربي، اختياري)",
+      "notesEn": "التعليمات (إنجليزي، اختياري)",
+      "logRequired": "لازم العميل يسجّل ده",
+      "alsoAddTo": "ضيفه كمان في أيام تانية",
+      "submit": "حفظ"
+    },
+    "nutrition": {
+      "title": "التغذية",
+      "newVariant": "خطة جديدة",
+      "nameArPlaceholder": "الاسم (عربي) — مثلاً يوم تدريب",
+      "nameEnPlaceholder": "الاسم (إنجليزي) — مثلاً يوم تدريب",
+      "create": "إنشاء",
+      "noVariants": "لسه مفيش خطط تغذية. اعمل واحدة وبعدين خصصها لأي يوم.",
+      "kcal": "{n} سعرة",
+      "assignByDay": "تخصيص حسب اليوم",
+      "none": "بدون",
+      "customize": "تخصيص",
+      "customizeHint": "اعمل نسخة من الخطة دي لليوم ده بس، من غير ما تأثر على الأيام التانية اللي مشتركة فيها"
+    },
+    "rehab": {
+      "title": "التأهيل",
+      "newProtocol": "بروتوكول جديد",
+      "bodyAreaPlaceholder": "منطقة الإصابة — مثلاً ركبة يمين",
+      "create": "إنشاء",
+      "noProtocols": "لسه مفيش بروتوكولات تأهيل.",
+      "bodyArea": "منطقة الإصابة",
+      "injuryAr": "الإصابة (عربي، اختياري)",
+      "injuryEn": "الإصابة (إنجليزي، اختياري)",
+      "restrictionsAr": "القيود (عربي، اختياري)",
+      "restrictionsEn": "القيود (إنجليزي، اختياري)",
+      "saveProtocol": "حفظ",
+      "deleteProtocol": "امسح البروتوكول",
+      "phases": "المراحل",
+      "noPhases": "لسه مفيش مراحل — تمارين البروتوكول ده تظهر كل أسبوع.",
+      "addPhase": "ضيف مرحلة",
+      "phaseNameAr": "اسم المرحلة (عربي)",
+      "phaseNameEn": "اسم المرحلة (إنجليزي)",
+      "fromWeek": "من أسبوع",
+      "toWeek": "لحد أسبوع",
+      "goalsAr": "الأهداف (عربي، اختياري)",
+      "goalsEn": "الأهداف (إنجليزي، اختياري)"
     },
     "volume": {
       "title": "الحجم الأسبوعي",
@@ -2107,6 +2233,7 @@
     "deletePlan": "امسح الخطة",
     "confirmDeletePlanTitle": "تمسح الخطة دي؟",
     "confirmDeletePlanBody": "هينقل الخطة للمحذوفات. تقدر تسترجعها من هناك خلال 30 يوم.",
+    "backToProgram": "ارجع للبرنامج",
     "assignedToClients": {
       "title": "متعيّنة لـ {count} عميل"
     },
@@ -2127,6 +2254,7 @@
       "editTitle": "عدّل الوجبة",
       "labelAr": "التسمية (عربي، اختياري)",
       "labelEn": "التسمية (إنجليزي، اختياري)",
+      "timeOfDay": "الوقت (اختياري)",
       "submit": "حفظ"
     },
     "itemDialog": {
@@ -2142,11 +2270,12 @@
     },
     "macros": {
       "title": "إجمالي الخطة",
-      "empty": "ضيف أطعمة عشان تشوف الإجمالي.",
+      "empty": "ضيف أطعمة عشان تشوف الإجمالي، أو حدد هدف.",
       "kcal": "سعرة",
       "protein": "بروتين",
       "carbs": "كربوهيدرات",
-      "fat": "دهون"
+      "fat": "دهون",
+      "saveTargets": "احفظ الأهداف"
     },
     "foodSidebar": {
       "title": "ضيف طعام",

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 export type LoggedSetValues = {
   weight: number | null;
   reps: number | null;
+  duration_seconds: number | null;
   rpe: number | null;
   notes: string | null;
 };
@@ -18,14 +19,19 @@ export type LoggedSetValues = {
 /** Body of the sheet, remounted (via the parent's `key`) each time the
  * client opens a different set — that's what re-seeds weight/reps/rpe/notes
  * from `initial` without an effect syncing external state into local state
- * on every open. */
+ * on every open. `mode` picks reps vs a duration (seconds) counter for a
+ * rehab hold/stretch — never both, same xor the DB enforces on
+ * program_item_sets. Weight stays available either way: a duration hold
+ * can still be weighted (e.g. a weighted plank). */
 function SetEntryForm({
   initial,
+  mode,
   onSave,
   onDelete,
   saving,
 }: {
   initial: LoggedSetValues;
+  mode: "reps" | "duration";
   onSave: (values: LoggedSetValues) => void;
   onDelete?: () => void;
   saving?: boolean;
@@ -33,6 +39,9 @@ function SetEntryForm({
   const t = useTranslations("client.workout.setEntry");
   const [weight, setWeight] = useState(initial.weight != null ? String(initial.weight) : "");
   const [reps, setReps] = useState(initial.reps != null ? String(initial.reps) : "");
+  const [durationSeconds, setDurationSeconds] = useState(
+    initial.duration_seconds != null ? String(initial.duration_seconds) : ""
+  );
   const [rpe, setRpe] = useState<number | null>(initial.rpe);
   const [notes, setNotes] = useState(initial.notes ?? "");
 
@@ -46,10 +55,16 @@ function SetEntryForm({
     setReps(String(Math.max(0, current + delta)));
   }
 
+  function adjustDuration(delta: number) {
+    const current = Number(durationSeconds) || 0;
+    setDurationSeconds(String(Math.max(0, current + delta)));
+  }
+
   function handleSave() {
     onSave({
       weight: weight.trim() === "" ? null : Number(weight),
-      reps: reps.trim() === "" ? null : Number(reps),
+      reps: mode === "reps" ? (reps.trim() === "" ? null : Number(reps)) : null,
+      duration_seconds: mode === "duration" ? (durationSeconds.trim() === "" ? null : Number(durationSeconds)) : null,
       rpe,
       notes: notes.trim() === "" ? null : notes.trim(),
     });
@@ -78,23 +93,43 @@ function SetEntryForm({
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-xs font-medium text-muted-foreground">{t("reps")}</p>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="icon" onClick={() => adjustReps(-1)} aria-label={t("decrease")}>
-              <Minus className="size-4" />
-            </Button>
-            <Input
-              inputMode="numeric"
-              value={reps}
-              onChange={(e) => setReps(e.target.value)}
-              className="h-12 w-20 text-center text-lg font-semibold"
-            />
-            <Button type="button" variant="outline" size="icon" onClick={() => adjustReps(1)} aria-label={t("increase")}>
-              <Plus className="size-4" />
-            </Button>
+        {mode === "duration" ? (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-xs font-medium text-muted-foreground">{t("durationSeconds")}</p>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="icon" onClick={() => adjustDuration(-5)} aria-label={t("decrease")}>
+                <Minus className="size-4" />
+              </Button>
+              <Input
+                inputMode="numeric"
+                value={durationSeconds}
+                onChange={(e) => setDurationSeconds(e.target.value)}
+                className="h-12 w-20 text-center text-lg font-semibold"
+              />
+              <Button type="button" variant="outline" size="icon" onClick={() => adjustDuration(5)} aria-label={t("increase")}>
+                <Plus className="size-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-xs font-medium text-muted-foreground">{t("reps")}</p>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="icon" onClick={() => adjustReps(-1)} aria-label={t("decrease")}>
+                <Minus className="size-4" />
+              </Button>
+              <Input
+                inputMode="numeric"
+                value={reps}
+                onChange={(e) => setReps(e.target.value)}
+                className="h-12 w-20 text-center text-lg font-semibold"
+              />
+              <Button type="button" variant="outline" size="icon" onClick={() => adjustReps(1)} aria-label={t("increase")}>
+                <Plus className="size-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -150,6 +185,7 @@ export function SetEntrySheet({
   onOpenChange,
   formKey,
   initial,
+  mode = "reps",
   onSave,
   onDelete,
   saving,
@@ -158,6 +194,7 @@ export function SetEntrySheet({
   onOpenChange: (open: boolean) => void;
   formKey: string;
   initial: LoggedSetValues;
+  mode?: "reps" | "duration";
   onSave: (values: LoggedSetValues) => void;
   onDelete?: () => void;
   saving?: boolean;
@@ -165,7 +202,7 @@ export function SetEntrySheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="flex flex-col gap-5 rounded-t-2xl p-5">
-        <SetEntryForm key={formKey} initial={initial} onSave={onSave} onDelete={onDelete} saving={saving} />
+        <SetEntryForm key={formKey} initial={initial} mode={mode} onSave={onSave} onDelete={onDelete} saving={saving} />
       </SheetContent>
     </Sheet>
   );
