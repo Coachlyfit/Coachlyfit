@@ -9,9 +9,15 @@ function fakeSupabase(
     parentRow?: Record<string, unknown> | null;
     treeRow?: Record<string, unknown> | null;
     affected?: unknown[];
+    ownClientRow?: Record<string, unknown> | null;
   } = {}
 ) {
-  const { parentRow = null, treeRow = null, affected = [{ id: "1" }] } = opts;
+  const {
+    parentRow = null,
+    treeRow = null,
+    affected = [{ id: "1" }],
+    ownClientRow = { id: "client-1" },
+  } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
   const updates: { table: string; payload: unknown; eqs: [string, unknown][] }[] = [];
@@ -25,6 +31,10 @@ function fakeSupabase(
           // Parent-derivation lookups: select("coach_id, client_id").eq(...).maybeSingle()
           if (cols === "coach_id, client_id") {
             return { eq: () => ({ maybeSingle: async () => ({ data: parentRow, error: null }) }) };
+          }
+          // assertOwnClient: select("id").eq(...).maybeSingle()
+          if (cols === "id" && table === "clients") {
+            return { eq: () => ({ maybeSingle: async () => ({ data: ownClientRow, error: null }) }) };
           }
           // getTree: select("*, meals(...)").eq(...).order().order().maybeSingle()
           // getActiveTreeForClient additionally chains .is("archived_at", null)
@@ -320,10 +330,12 @@ describe("DietPlansService", () => {
               eqCalls.push([col, val]);
               return {
                 is: () => ({
-                  order: () => ({
+                  is: () => ({
                     order: () => ({
                       order: () => ({
-                        limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                        order: () => ({
+                          limit: () => ({ maybeSingle: async () => ({ data: tree, error: null }) }),
+                        }),
                       }),
                     }),
                   }),

@@ -88,12 +88,12 @@ export default async function ProgramDetailPage({
       )}
 
       <ProgramBuilder
-        // Keyed on a signature of every day+item id so a server mutation
-        // (add/delete/reorder, via revalidatePath) remounts the client tree
-        // with fresh local state instead of syncing props via an effect.
-        key={tree.program_days
-          .map((d) => `${d.id}:${d.program_items.map((i) => i.id).join(",")}`)
-          .join("|")}
+        // Keyed on the whole tree's content (not just day/item ids) so a
+        // server mutation that only changes a field on an existing row —
+        // editing a set's reps, a day's label, notes, a linked nutrition
+        // plan — remounts the client tree with fresh local state instead of
+        // leaving stale props behind. Small tree, one page load: cheap.
+        key={JSON.stringify(tree.program_days)}
         locale={locale}
         tree={tree}
         clients={clients ?? []}

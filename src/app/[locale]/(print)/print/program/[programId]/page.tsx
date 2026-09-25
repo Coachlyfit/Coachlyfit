@@ -25,6 +25,11 @@ export default async function PrintProgramPage({
         ?.display_name
     : null;
 
+  const tActivity = await getTranslations("programs.activityDialog");
+  const tNutrition = await getTranslations("programs.nutrition");
+  const tRehab = await getTranslations("programs.rehab");
+  const variantById = new Map(tree.diet_variants.map((v) => [v.id, v]));
+
   return (
     <>
       <PrintButton label={t("button")} />
@@ -108,7 +113,9 @@ export default async function PrintProgramPage({
                               </td>
                             )}
                             <td className="py-1.5 tabular-nums">{set.set_index}</td>
-                            <td className="py-1.5 tabular-nums">{set.reps}</td>
+                            <td className="py-1.5 tabular-nums">
+                              {set.reps != null ? set.reps : set.duration_seconds != null ? `${set.duration_seconds}s` : "—"}
+                            </td>
                             <td className="py-1.5 tabular-nums">
                               {set.weight != null ? `${set.weight}kg` : tBuilder("bodyweight")}
                             </td>
@@ -121,9 +128,59 @@ export default async function PrintProgramPage({
                 </tbody>
               </table>
             )}
+
+            {day.program_activities.length > 0 && (
+              <ul className="mt-2 flex flex-col gap-0.5 text-sm">
+                {day.program_activities.map((activity) => (
+                  <li key={activity.id}>
+                    {tActivity(activity.kind === "cardio" ? "kindCardio" : "kindRecovery")}
+                    {" — "}
+                    {tActivity(`modalities.${activity.modality}`)}
+                    {activity.duration_min ? ` · ${activity.duration_min}${tActivity("minShort")}` : ""}
+                    {activity.distance_km ? ` · ${activity.distance_km}km` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {day.diet_plan_id && variantById.get(day.diet_plan_id) && (
+              <p className="mt-1 text-sm text-gray-700">
+                {tNutrition("title")}: {pickLocale(variantById.get(day.diet_plan_id), locale)}
+              </p>
+            )}
+
+            {(day.notes_ar || day.notes_en) && (
+              <p className="mt-1 text-sm italic text-gray-700">{pickLocale(day, locale, "notes")}</p>
+            )}
           </section>
         ))}
       </div>
+
+      {tree.rehab_protocols.length > 0 && (
+        <div className="mt-6 flex flex-col gap-4 border-t border-black pt-4">
+          <h2 className="text-lg font-semibold">{tRehab("title")}</h2>
+          {tree.rehab_protocols.map((protocol) => (
+            <section key={protocol.id} className="break-inside-avoid text-sm">
+              <p className="font-medium">{protocol.body_area}</p>
+              {(protocol.injury_ar || protocol.injury_en) && (
+                <p className="text-gray-700">{pickLocale(protocol, locale, "injury")}</p>
+              )}
+              {(protocol.restrictions_ar || protocol.restrictions_en) && (
+                <p className="text-gray-700">{pickLocale(protocol, locale, "restrictions")}</p>
+              )}
+              {protocol.rehab_phases.length > 0 && (
+                <ul className="mt-1 flex flex-col gap-0.5">
+                  {protocol.rehab_phases.map((phase) => (
+                    <li key={phase.id}>
+                      {pickLocale(phase, locale)} — {tRehab("fromWeek")} {phase.from_week} {tRehab("toWeek")} {phase.to_week}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ))}
+        </div>
+      )}
     </>
   );
 }

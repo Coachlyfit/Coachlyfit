@@ -11,6 +11,9 @@ export type LogSetInput = {
   set_index: number;
   weight?: number | null;
   reps?: number | null;
+  /** Actual hold time for a duration-based set (a rehab hold, a stretch) —
+   * the logged counterpart to program_item_sets.duration_seconds. */
+  duration_seconds?: number | null;
   /** Which exercise the client actually performed this set on, if different
    * from what program_items prescribes. null/omitted = prescribed exercise,
    * same as before this field existed. */
@@ -22,6 +25,7 @@ export type LogSetInput = {
 export type UpdateSetInput = {
   weight?: number | null;
   reps?: number | null;
+  duration_seconds?: number | null;
   rpe?: number | null;
   notes?: string | null;
 };

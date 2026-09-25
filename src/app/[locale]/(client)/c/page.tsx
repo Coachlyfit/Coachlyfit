@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, StickyNote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { WeeklyProgressRing } from "@/components/progress/weekly-progress-ring";
@@ -8,7 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
-import { dayIndexForDate, dayIndexForDateWithMode, startOfWeekSaturday } from "@/domain/programs/program-cycle";
+import { ActivityLogsService } from "@/domain/workouts/activity-logs.service";
+import { resolveDayPlan } from "@/domain/programs/day-plan";
+import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { checkinStreak, longestStreak, weightTrend } from "@/domain/progress/stats";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import type { StructuredAdjustment } from "@/domain/progress/review.service";
@@ -16,6 +18,7 @@ import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 import { tintFor } from "@/lib/tint";
 import { TodayExercisePreview } from "./today-exercise-preview";
+import { TodayActivityCard } from "./today-activity-card";
 import { CoachDecisionCard } from "./coach-decision-card";
 
 export default async function ClientHomePage({
@@ -51,40 +54,27 @@ export default async function ClientHomePage({
     clientRow ? new LedgerService(supabase).latestUnseenForClient(clientRow.id) : null,
   ]);
 
+  const plan = tree ? resolveDayPlan(tree, todayIso) : null;
   const cycleLength = tree?.program_days.length ?? 0;
-  const todayIndex = tree
-    ? tree.schedule_mode === "weekly"
-      ? dayIndexForDateWithMode(
-          "weekly",
-          tree.start_date,
-          cycleLength,
-          todayIso,
-          new Map(
-            tree.program_days
-              .filter((d) => d.weekday != null)
-              .map((d) => [d.weekday as number, d.day_index])
-          )
-        )
-      : dayIndexForDate(tree.start_date, cycleLength, todayIso)
-    : null;
-  const todayDay = tree?.program_days.find((d) => d.day_index === todayIndex) ?? null;
-  const isRestDay = tree != null && todayIndex != null && (!todayDay || todayDay.program_items.length === 0);
 
-  const session = todayDay
-    ? await workouts.getSessionForDay(todayDay.id, startOfWeekSaturday(todayIso))
-    : null;
+  const [session, activityLogs] = await Promise.all([
+    plan?.day ? workouts.getSessionForDay(plan.day.id, startOfWeekSaturday(todayIso)) : null,
+    clientRow ? new ActivityLogsService(supabase).listForDate(clientRow.id, todayIso) : [],
+  ]);
   const workoutDone = session?.completed_at != null;
+  const loggedActivityIds = new Set(activityLogs.map((l) => l.program_activity_id));
 
-  const weekPct = cycleLength > 0 ? Math.round(((todayIndex ?? 1) / cycleLength) * 100) : 0;
+  const weekPct = cycleLength > 0 ? Math.round(((plan?.week ?? 1) / cycleLength) * 100) : 0;
   const trend = weightTrend(history);
   const firstWeighed = history.find((c) => c.weight != null);
   const sinceStartDelta = trend && firstWeighed?.weight != null ? trend.latest - firstWeighed.weight : null;
   const streak = checkinStreak(history, today);
   const best = longestStreak(history);
   const checkinDue = !existingCheckin;
-  const totalSets = todayDay?.program_items.reduce((sum, item) => sum + item.sets, 0) ?? 0;
+  const totalSets = plan?.workoutItems.reduce((sum, item) => sum + item.sets, 0) ?? 0;
 
   const ChevronIcon = locale === "ar" ? ChevronLeft : ChevronRight;
+  const activeProtocol = plan?.protocols.find((p) => p.activePhase != null) ?? null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -110,7 +100,7 @@ export default async function ClientHomePage({
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">
               {tree
-                ? tToday("weekProgress", { n: todayIndex ?? 1, total: cycleLength })
+                ? tToday("weekProgress", { n: plan?.week ?? 1, total: cycleLength })
                 : tToday("noProgram")}
             </p>
             <p className="mt-1.5 text-xs leading-relaxed text-sidebar-foreground/70">
@@ -149,13 +139,43 @@ export default async function ClientHomePage({
         </Link>
       )}
 
-      {isRestDay ? (
+      {/* Coach note for today — always first in the agenda when present, so
+          it's read before anything else. */}
+      {plan?.day && (plan.day.notes_ar || plan.day.notes_en) && (
+        <Card>
+          <CardContent className="flex items-start gap-2.5 py-3.5">
+            <StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">{pickLocale(plan.day, locale, "notes")}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Rehab: injury/phase/restrictions come before the workout card —
+          restrictions are what the client most needs to see before they
+          start moving today. */}
+      {activeProtocol && (
+        <Card className="border-warning-tint">
+          <CardContent className="flex flex-col gap-1.5 py-3.5">
+            <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
+              {tToday("rehabPhase", { area: activeProtocol.body_area })}
+            </p>
+            <p className="text-sm font-semibold">{pickLocale(activeProtocol.activePhase, locale)}</p>
+            {(activeProtocol.restrictions_ar || activeProtocol.restrictions_en) && (
+              <p className="text-xs text-warning-tint-foreground">
+                {pickLocale(activeProtocol, locale, "restrictions")}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {plan?.day == null ? (
         <Card>
           <CardContent>
             <EmptyState title={tToday("restDay")} description={tToday("restDayBody")} />
           </CardContent>
         </Card>
-      ) : todayDay ? (
+      ) : plan.workoutItems.length > 0 ? (
         <Card>
           <CardContent className="flex flex-col gap-3.5 p-0">
             <div className="px-4.5 pt-4 pb-3.5">
@@ -163,18 +183,18 @@ export default async function ClientHomePage({
                 {tToday("todayWorkout")}
               </p>
               <p className="mt-1.5 text-[17px] font-semibold">
-                {todayDay.label_ar || todayDay.label_en ? pickLocale(todayDay, locale, "label") : tToday("todayWorkout")}
+                {plan.day.label_ar || plan.day.label_en ? pickLocale(plan.day, locale, "label") : tToday("todayWorkout")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {tToday("exerciseCount", { count: todayDay.program_items.length })}
+                {tToday("exerciseCount", { count: plan.workoutItems.length })}
                 {" · "}
                 {tToday("setCount", { count: totalSets })}
               </p>
             </div>
-            <TodayExercisePreview locale={locale} items={todayDay.program_items.slice(0, 4)} />
+            <TodayExercisePreview locale={locale} items={plan.workoutItems.slice(0, 4)} />
             <div className="px-4.5 pb-4.5">
               <Link
-                href={`/c/workout/${todayDay.id}`}
+                href={`/c/workout/${plan.day.id}`}
                 className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
               >
                 {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
@@ -182,7 +202,48 @@ export default async function ClientHomePage({
             </div>
           </CardContent>
         </Card>
-      ) : null}
+      ) : (plan.rehabItems.length > 0 || plan.mobilityItems.length > 0) ? (
+        <Card>
+          <CardContent className="flex flex-col gap-3.5 p-0">
+            <div className="px-4.5 pt-4 pb-3.5">
+              <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
+                {tToday("mobilityRehab")}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {tToday("exerciseCount", { count: plan.rehabItems.length + plan.mobilityItems.length })}
+              </p>
+            </div>
+            <TodayExercisePreview locale={locale} items={[...plan.mobilityItems, ...plan.rehabItems].slice(0, 4)} />
+            <div className="px-4.5 pb-4.5">
+              <Link
+                href={`/c/workout/${plan.day.id}`}
+                className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
+              >
+                {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent>
+            <EmptyState title={tToday("restDay")} description={tToday("restDayBody")} />
+          </CardContent>
+        </Card>
+      )}
+
+      {plan && plan.activities.length > 0 && (
+        <div className="flex flex-col gap-2.5">
+          {plan.activities.map((activity) => (
+            <TodayActivityCard
+              key={activity.id}
+              locale={locale}
+              activity={activity}
+              logged={loggedActivityIds.has(activity.id)}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Card>

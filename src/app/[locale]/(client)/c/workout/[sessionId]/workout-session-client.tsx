@@ -58,10 +58,16 @@ type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
 
 /** min-max reps across a projected set list, formatted like the old
  * program_items.reps range string ("8-12" or "10") — display-only, purely
- * cosmetic continuity with the previous header line. */
-function repsRangeLabel(sets: { reps: number }[]): string {
-  if (sets.length === 0) return "";
-  const reps = sets.map((s) => s.reps);
+ * cosmetic continuity with the previous header line. Duration-only sets
+ * (reps null — a rehab hold, a stretch) are excluded from the range; if
+ * every set in the list is duration-only, falls back to a "Ns hold" label
+ * off the first set instead of an empty range. */
+function repsRangeLabel(sets: { reps: number | null; duration_seconds: number | null }[]): string {
+  const reps = sets.map((s) => s.reps).filter((r): r is number => r != null);
+  if (reps.length === 0) {
+    const duration = sets[0]?.duration_seconds;
+    return duration != null ? `${duration}s` : "";
+  }
   const min = Math.min(...reps);
   const max = Math.max(...reps);
   return min === max ? String(min) : `${min}-${max}`;
@@ -134,7 +140,11 @@ export function WorkoutSessionClient({
   const [videoExercise, setVideoExercise] = useState<SwapExercise | null>(null);
   const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(new Map());
   const [swapItem, setSwapItem] = useState<ProgramItem | null>(null);
-  const [activeSet, setActiveSet] = useState<{ item: ProgramItem; setIndex: number; prescribed: { reps: number; weight: number | null } } | null>(null);
+  const [activeSet, setActiveSet] = useState<{
+    item: ProgramItem;
+    setIndex: number;
+    prescribed: { reps: number | null; weight: number | null; duration_seconds: number | null };
+  } | null>(null);
   const [savingSet, setSavingSet] = useState(false);
   const [exerciseResults, setExerciseResults] = useState<Map<string, "done" | "skipped">>(() => {
     const map = new Map<string, "done" | "skipped">();
@@ -219,7 +229,7 @@ export function WorkoutSessionClient({
     return () => clearInterval(id);
   }, [done, sessionId, activeSet]);
 
-  function openSetEntry(item: ProgramItem, setIndex: number, prescribed: { reps: number; weight: number | null }) {
+  function openSetEntry(item: ProgramItem, setIndex: number, prescribed: { reps: number | null; weight: number | null; duration_seconds: number | null }) {
     setActiveSet({ item, setIndex, prescribed });
   }
 
@@ -227,10 +237,13 @@ export function WorkoutSessionClient({
    * for this exercise if there is any, otherwise the coach's static
    * prescription. Looked up by the *active* (possibly swapped) exercise's
    * id, so a suggestion never bleeds across a mid-session substitution. */
-  function suggestedWeight(item: ProgramItem, prescribed: { reps: number; weight: number | null }): number | null {
+  function suggestedWeight(item: ProgramItem, prescribed: { reps: number | null; weight: number | null; duration_seconds: number | null }): number | null {
     const exerciseId = activeExercise(item).id;
     const history = lastPerformance[exerciseId];
-    if (!history) return prescribed.weight;
+    // A duration-based set (reps null — a rehab hold, a stretch) has no rep
+    // target to progress against, so there's nothing for suggestNextWeight
+    // to compare — same "nothing to suggest" as no history at all.
+    if (!history || prescribed.reps == null) return prescribed.weight;
     return suggestNextWeight({
       lastWeight: history.weight,
       lastReps: history.reps,
@@ -274,10 +287,12 @@ export function WorkoutSessionClient({
         completed_at: new Date().toISOString(),
         prescribed_reps: prescribed.reps,
         prescribed_weight: prescribed.weight,
+        duration_seconds: null,
         substituted_exercise_id: swaps.get(item.id)?.id ?? null,
       }),
       weight: values.weight,
       reps: values.reps ?? prescribed.reps,
+      duration_seconds: values.duration_seconds ?? prescribed.duration_seconds,
       rpe: values.rpe,
       notes: values.notes ?? null,
     };
@@ -291,6 +306,7 @@ export function WorkoutSessionClient({
         set_index: setIndex,
         weight: values.weight,
         reps: values.reps ?? prescribed.reps,
+        duration_seconds: values.duration_seconds ?? prescribed.duration_seconds,
         rpe: values.rpe,
         notes: values.notes,
         substituted_exercise_id: swaps.get(item.id)?.id ?? null,
@@ -577,7 +593,7 @@ export function WorkoutSessionClient({
             </div>
             <div className="flex gap-2.5">
               {displaySets.map((set, i) => {
-                const log = logs.get(setKey(item.id, i));
+                const log = logs.get(setKey(item.id, i + 1));
                 const on = log != null;
                 // Real logged history for this exercise beats the static
                 // week-minus-1 projection — it's what the client actually
@@ -590,7 +606,13 @@ export function WorkoutSessionClient({
                   <button
                     key={i}
                     type="button"
-                    onClick={() => openSetEntry(item, i, { reps: set.reps, weight: set.weight ?? null })}
+                    onClick={() =>
+                      openSetEntry(item, i + 1, {
+                        reps: set.reps,
+                        weight: set.weight ?? null,
+                        duration_seconds: set.duration_seconds,
+                      })
+                    }
                     className={cn(
                       "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
                       showPrev ? "h-16" : "h-13",
@@ -691,10 +713,17 @@ export function WorkoutSessionClient({
         const key = setKey(activeSet.item.id, activeSet.setIndex);
         const existing = logs.get(key);
         const initial: LoggedSetValues = existing
-          ? { weight: existing.weight, reps: existing.reps, rpe: existing.rpe, notes: existing.notes }
+          ? {
+              weight: existing.weight,
+              reps: existing.reps,
+              duration_seconds: existing.duration_seconds,
+              rpe: existing.rpe,
+              notes: existing.notes,
+            }
           : {
               weight: suggestedWeight(activeSet.item, activeSet.prescribed),
               reps: activeSet.prescribed.reps,
+              duration_seconds: activeSet.prescribed.duration_seconds,
               rpe: null,
               notes: null,
             };
@@ -704,6 +733,7 @@ export function WorkoutSessionClient({
             onOpenChange={(open) => !open && setActiveSet(null)}
             formKey={key}
             initial={initial}
+            mode={activeSet.prescribed.duration_seconds != null ? "duration" : "reps"}
             onSave={saveActiveSet}
             onDelete={existing ? deleteActiveSet : undefined}
             saving={savingSet}

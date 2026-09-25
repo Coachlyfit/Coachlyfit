@@ -2,9 +2,16 @@ export type ProgressionRule = "none" | "plus_2_5kg_week" | "plus_5kg_week" | "pl
 
 export type BaseSet = {
   set_index: number;
-  reps: number;
+  /** Null for a duration-based set (a rehab hold, a stretch) — see
+   * duration_seconds. Exactly one of the two is set, enforced by the DB's
+   * program_item_sets_reps_or_duration check. */
+  reps: number | null;
   weight: number | null;
   rest_seconds: number | null;
+  /** Prescribed hold time for a duration-based set; null for a normal
+   * reps-based set. Never projected by week — a 30s hold doesn't grow with
+   * progression the way reps/weight do, so it passes through unchanged. */
+  duration_seconds: number | null;
 };
 
 export const MAX_PROGRAM_WEEKS = 12;
@@ -32,7 +39,7 @@ function projectSet(set: BaseSet, rule: ProgressionRule, steps: number): BaseSet
     case "plus_5kg_week":
       return { ...set, weight: set.weight == null ? null : set.weight + 5 * steps };
     case "plus_1_rep_week":
-      return { ...set, reps: set.reps + steps };
+      return { ...set, reps: set.reps == null ? null : set.reps + steps };
     default:
       return { ...set };
   }

@@ -14,9 +14,15 @@ export type CreateDietPlanInput = {
   name_en: string;
   start_date?: string;
   end_date?: string | null;
+  target_kcal?: number | null;
+  target_protein_g?: number | null;
+  target_carb_g?: number | null;
+  target_fat_g?: number | null;
+  notes_ar?: string | null;
+  notes_en?: string | null;
 };
 
-export type CreateMealInput = { label_ar?: string; label_en?: string };
+export type CreateMealInput = { label_ar?: string; label_en?: string; time_of_day?: string | null };
 export type UpdateMealInput = Partial<CreateMealInput>;
 
 export type CreateMealItemInput = { food_id: string; quantity?: number; unit?: string };
@@ -56,11 +62,24 @@ function applyScope<Q extends { is: (c: "client_id", v: null) => Q; not: (c: "cl
 export class DietPlansService {
   constructor(private db: SupabaseClient<Database>) {}
 
+  /** Same RLS-scoped guard as ProgramsService.assertOwnClient — see there
+   * for why the FK alone isn't enough. */
+  private async assertOwnClient(clientId: string): Promise<void> {
+    const { data, error } = await this.db.from("clients").select("id").eq("id", clientId).maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("client_not_found_or_forbidden");
+  }
+
+  /** Standalone plans only (program_id null) — a program-owned nutrition
+   * variant lives in the program builder's Nutrition panel, not the
+   * top-level /diets list, even though it's edited through the same
+   * getTree/meal builder. */
   async list(scope: DietPlanScope = "all") {
     let q = this.db
       .from("diet_plans")
       .select("*, clients(display_name)")
       .is("archived_at", null)
+      .is("program_id", null)
       .order("created_at", { ascending: false });
     q = applyScope(q, scope);
     const { data, error } = await q;
@@ -73,6 +92,7 @@ export class DietPlansService {
       .from("diet_plans")
       .select("*, clients(display_name)")
       .not("archived_at", "is", null)
+      .is("program_id", null)
       .order("archived_at", { ascending: false });
     if (error) throw error;
     return data;
@@ -94,16 +114,19 @@ export class DietPlansService {
     return data.length > 0;
   }
 
-  /** The client's current assigned (non-template) diet plan, if any — same
-   * "most recent wins, no explicit active flag" reasoning as
-   * ProgramsService.getActiveTreeForClient. Used by the client app's
-   * Nutrition tab. */
+  /** The client's current assigned (non-template) STANDALONE diet plan, if
+   * any — same "most recent wins, no explicit active flag" reasoning as
+   * ProgramsService.getActiveTreeForClient. Program-owned variants are
+   * excluded: they're resolved per-day via day-plan.ts off the client's
+   * active program instead, and only used as a fallback when that day has
+   * no linked variant. Used by the client app's Nutrition tab fallback. */
   async getActiveTreeForClient(clientId: string): Promise<DietPlanTree | null> {
     const { data, error } = await this.db
       .from("diet_plans")
       .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, kcal, protein_g, carb_g, fat_g)))")
       .eq("client_id", clientId)
       .is("archived_at", null)
+      .is("program_id", null)
       .order("created_at", { ascending: false })
       .order("order_index", { referencedTable: "meals" })
       .order("order_index", { referencedTable: "meals.meal_items" })
@@ -126,6 +149,7 @@ export class DietPlansService {
   }
 
   async create(coachId: string, input: CreateDietPlanInput): Promise<DietPlan> {
+    if (input.client_id) await this.assertOwnClient(input.client_id);
     const { data, error } = await this.db
       .from("diet_plans")
       .insert({ coach_id: coachId, client_id: input.client_id ?? null, ...input })
@@ -133,6 +157,59 @@ export class DietPlansService {
       .single();
     if (error) throw error;
     return data;
+  }
+
+  /** Creates a nutrition variant owned by a program — same insert as
+   * create(), plus program_id, and client_id derived from the parent
+   * program (RLS-scoped read) rather than trusted from an argument, same
+   * derivation rule as ProgramsService's child inserts. A variant has no
+   * client_id of its own to pass: it belongs to the program, which may
+   * itself be a template (client_id null). */
+  async createForProgram(
+    programId: string,
+    input: Omit<CreateDietPlanInput, "client_id">
+  ): Promise<DietPlan | null> {
+    const { data: parent, error: parentError } = await this.db
+      .from("programs")
+      .select("coach_id, client_id")
+      .eq("id", programId)
+      .maybeSingle();
+    if (parentError) throw parentError;
+    if (!parent) return null;
+
+    const { data, error } = await this.db
+      .from("diet_plans")
+      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, program_id: programId, ...input })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  /** "Customize for this day": clones the day's currently-linked variant
+   * and repoints just that one day at the clone, leaving every other day
+   * that shared the original variant untouched. Returns the new plan's id,
+   * or null if the day has no linked variant to customize (nothing to
+   * clone) or isn't visible. */
+  async customizeForDay(dayId: string): Promise<DietPlan | null> {
+    const { data: day, error: dayError } = await this.db
+      .from("program_days")
+      .select("program_id, diet_plan_id, client_id")
+      .eq("id", dayId)
+      .maybeSingle();
+    if (dayError) throw dayError;
+    if (!day || !day.diet_plan_id) return null;
+
+    const clone = await this.cloneTreeForProgram(day.diet_plan_id, day.client_id, day.program_id);
+    if (!clone) return null;
+
+    const { error: repointError } = await this.db
+      .from("program_days")
+      .update({ diet_plan_id: clone.id })
+      .eq("id", dayId);
+    if (repointError) throw repointError;
+
+    return clone;
   }
 
   async update(id: string, input: Partial<Omit<CreateDietPlanInput, "client_id">>): Promise<boolean> {
@@ -156,7 +233,7 @@ export class DietPlansService {
   private async cloneTree(
     dietPlanId: string,
     clientId: string | null,
-    overrides: Partial<Pick<DietPlan, "name_ar" | "name_en" | "start_date" | "end_date">> = {}
+    overrides: Partial<Pick<DietPlan, "name_ar" | "name_en" | "start_date" | "end_date" | "program_id">> = {}
   ): Promise<DietPlan | null> {
     const tree = await this.getTree(dietPlanId);
     if (!tree) return null;
@@ -170,6 +247,13 @@ export class DietPlansService {
         name_en: tree.name_en,
         start_date: tree.start_date,
         end_date: tree.end_date,
+        program_id: tree.program_id,
+        target_kcal: tree.target_kcal,
+        target_protein_g: tree.target_protein_g,
+        target_carb_g: tree.target_carb_g,
+        target_fat_g: tree.target_fat_g,
+        notes_ar: tree.notes_ar,
+        notes_en: tree.notes_en,
         source_template_id: clientId ? tree.id : null,
         ...overrides,
       })
@@ -187,6 +271,7 @@ export class DietPlansService {
           order_index: meal.order_index,
           label_ar: meal.label_ar,
           label_en: meal.label_en,
+          time_of_day: meal.time_of_day,
         })
         .select()
         .single();
@@ -215,6 +300,7 @@ export class DietPlansService {
    * ProgramsService.cloneToClient for why. `replaceActive` soft-archives
    * the client's other active plans after cloning, same as there. */
   async cloneToClient(dietPlanId: string, clientId: string, replaceActive = false): Promise<DietPlan | null> {
+    await this.assertOwnClient(clientId);
     const today = new Date().toISOString().slice(0, 10);
     const cloned = await this.cloneTree(dietPlanId, clientId, { start_date: today });
     if (!cloned) return null;
@@ -240,6 +326,17 @@ export class DietPlansService {
       ...(name_ar ? { name_ar } : {}),
       ...(name_en ? { name_en } : {}),
     });
+  }
+
+  /** Clones a program-owned nutrition variant onto a NEW program (used by
+   * ProgramsService.cloneTree when cloning a whole program/template) —
+   * stamps the clone's program_id directly rather than going through
+   * assertOwnClient/cloneToClient, since the caller (ProgramsService) has
+   * already validated clientId belongs to this coach before cloning
+   * anything. Keeps the plan's own start_date/end_date as-is: a variant
+   * has no independent lifecycle, it just tags along with its program. */
+  async cloneTreeForProgram(dietPlanId: string, clientId: string | null, programId: string): Promise<DietPlan | null> {
+    return this.cloneTree(dietPlanId, clientId, { program_id: programId } as never);
   }
 
   /** Derives coach_id/client_id from the parent `diet_plans` row (RLS-scoped

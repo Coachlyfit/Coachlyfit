@@ -16,7 +16,20 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, Trash2, Pencil, Printer, Link2, Link2Off, Copy } from "lucide-react";
+import {
+  GripVertical,
+  Plus,
+  Trash2,
+  Pencil,
+  Printer,
+  Link2,
+  Link2Off,
+  Copy,
+  HeartPulse,
+  Wind,
+  StickyNote,
+  Salad,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -41,9 +54,13 @@ import {
   reorderItemsAction,
   groupItemsAction,
   ungroupItemsAction,
+  deleteActivityAction,
 } from "../actions";
 import { AddDayDialog } from "./add-day-dialog";
 import { ItemDialog } from "./item-dialog";
+import { ActivityDialog } from "./activity-dialog";
+import { NutritionPanel } from "./nutrition-panel";
+import { RehabPanel } from "./rehab-panel";
 import { AssignTemplateDialog } from "./assign-template-dialog";
 import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 import { RevisionHistoryDrawer } from "./revision-history-drawer";
@@ -53,6 +70,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 
 type Day = ProgramTree["program_days"][number];
 type Item = Day["program_items"][number];
+type Activity = Day["program_activities"][number];
 
 /** Week 1 is the editable base; week 2-12 is a read-only projection
  * (progression.ts) — no drag handle, no edit/delete, and week>1 never mounts
@@ -154,11 +172,56 @@ function SortableItem({
   );
 }
 
+const CARDIO_ICON_BY_KIND = { cardio: HeartPulse, recovery: Wind } as const;
+
+/** One cardio/recovery activity row — compact, distinct from a workout
+ * item's row (no drag handle, no sets grid; just kind icon + modality +
+ * the fields that were actually filled in). */
+function ActivityRow({
+  activity,
+  readOnly,
+  onEdit,
+  onDelete,
+}: {
+  activity: Activity;
+  readOnly: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const t = useTranslations("programs.activityDialog");
+  const Icon = CARDIO_ICON_BY_KIND[activity.kind as "cardio" | "recovery"];
+  const parts = [
+    t(`modalities.${activity.modality}`),
+    activity.duration_min ? `${activity.duration_min} ${t("minShort")}` : null,
+    activity.distance_km ? `${activity.distance_km}km` : null,
+    activity.intensity ? t(`intensities.${activity.intensity}`) : null,
+  ].filter(Boolean);
+
+  return (
+    <div className="flex items-center gap-2.5 rounded-md border border-transparent px-3 py-2 hover:border-border hover:bg-muted/50">
+      <Icon className={cn("size-4 shrink-0", activity.kind === "cardio" ? "text-orange-500" : "text-sky-500")} />
+      <div className="min-w-0 flex-1 text-sm">{parts.join(" · ")}</div>
+      {!readOnly && (
+        <>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
+            <Pencil className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
+            <Trash2 className="size-4" />
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function DayCard({
   locale,
   programId,
   day,
   week,
+  rehabPhases,
+  dietVariant,
   onEditDay,
   onDeleteDay,
 }: {
@@ -166,6 +229,11 @@ function DayCard({
   programId: string;
   day: Day;
   week: number;
+  rehabPhases: { id: string; name_ar: string; name_en: string }[];
+  /** The variant day.diet_plan_id points at, if any — looked up by the
+   * caller (ProgramBuilder has tree.diet_variants, DayCard only has the
+   * id) so this component stays a pure prop-in view of its day. */
+  dietVariant?: { id: string; name_ar: string; name_en: string; target_kcal: number | null };
   onEditDay: () => void;
   onDeleteDay: () => void;
 }) {
@@ -174,9 +242,15 @@ function DayCard({
   const router = useRouter();
   const readOnly = week !== 1;
   const [items, setItems] = useState(day.program_items);
+  const [activityDialog, setActivityDialog] = useState<{
+    activity?: Activity;
+    kind?: "cardio" | "recovery";
+  } | null>(null);
+  const [pendingDeleteActivity, setPendingDeleteActivity] = useState<string | null>(null);
   const [itemDialog, setItemDialog] = useState<{
     item?: Item;
     initialExercise?: { id: string; name_ar: string; name_en: string };
+    initialBlock?: "mobility" | "rehab";
   } | null>(null);
   const [pendingDeleteItem, setPendingDeleteItem] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -184,15 +258,20 @@ function DayCard({
   const [, startTransition] = useTransition();
   const [groupPending, startGroupTransition] = useTransition();
 
+  const workoutItems = items.filter((i) => i.block === "warmup" || i.block === "main" || i.block === "cooldown");
+  const otherItems = items.filter((i) => i.block === "mobility" || i.block === "rehab");
+
   // Position-within-group label (A1, A2, B1, B2, ...) — a fresh letter per
   // distinct group_key encountered, in item order. Recomputed from `items`
   // on every render rather than stored, since it's pure display derived
   // from group_key + order, same as displaySets' projection above.
+  // Grouping only applies to workout items (mobility/rehab render in their
+  // own non-sortable section below and were never part of the group UI).
   const groupLabels = new Map<string, string>();
   {
     let letterIndex = 0;
     const letterByGroup = new Map<string, string>();
-    for (const item of items) {
+    for (const item of workoutItems) {
       if (!item.group_key) continue;
       let letter = letterByGroup.get(item.group_key);
       if (!letter) {
@@ -200,7 +279,7 @@ function DayCard({
         letterIndex++;
         letterByGroup.set(item.group_key, letter);
       }
-      const position = items.filter((i) => i.group_key === item.group_key).indexOf(item) + 1;
+      const position = workoutItems.filter((i) => i.group_key === item.group_key).indexOf(item) + 1;
       groupLabels.set(item.id, `${letter}${position}`);
     }
   }
@@ -256,25 +335,32 @@ function DayCard({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
+  // Drag/reorder is scoped to workout items only (mobility/rehab render in
+  // their own static section, see workoutItems/otherItems above) — the
+  // reordered array sent to the server is just the workout subset's new
+  // order, which reorderItems applies as order_index 0..N regardless of
+  // what other blocks share the day; mobility/rehab items keep whatever
+  // order_index they already had.
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const fromIndex = items.findIndex((i) => i.id === active.id);
-    const toIndex = items.findIndex((i) => i.id === over.id);
+    const fromIndex = workoutItems.findIndex((i) => i.id === active.id);
+    const toIndex = workoutItems.findIndex((i) => i.id === over.id);
     if (fromIndex === -1 || toIndex === -1) return;
 
+    const reorderedWorkout = [...workoutItems];
+    const [moved] = reorderedWorkout.splice(fromIndex, 1);
+    reorderedWorkout.splice(toIndex, 0, moved);
+
     const previous = items;
-    const reordered = [...items];
-    const [moved] = reordered.splice(fromIndex, 1);
-    reordered.splice(toIndex, 0, moved);
-    setItems(reordered);
+    setItems([...reorderedWorkout, ...otherItems]);
 
     startTransition(async () => {
       const result = await reorderItemsAction(
         locale,
         programId,
         day.id,
-        reordered.map((i) => i.id)
+        reorderedWorkout.map((i) => i.id)
       );
       if (result?.error) {
         toast.error(tErrors(result.error));
@@ -306,6 +392,15 @@ function DayCard({
     else router.refresh();
   }
 
+  async function confirmDeleteActivity() {
+    if (!pendingDeleteActivity) return;
+    const result = await deleteActivityAction(locale, programId, pendingDeleteActivity);
+    if (result?.error) toast.error(tErrors(result.error));
+    setPendingDeleteActivity(null);
+  }
+
+  const hasNote = !!(day.notes_ar || day.notes_en);
+
   return (
     <Card
       onDragOver={readOnly ? undefined : (e) => e.preventDefault()}
@@ -326,13 +421,37 @@ function DayCard({
             </span>
           )}
           <span className="font-mono text-xs text-muted-foreground">({items.length})</span>
+          {dietVariant && (
+            <span className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+              <Salad className="size-3" />
+              {pickLocale(dietVariant, locale)}
+              {dietVariant.target_kcal != null && ` · ${dietVariant.target_kcal}${t("kcalShort")}`}
+            </span>
+          )}
         </CardTitle>
         <div className="flex items-center gap-1">
           {!readOnly && (
-            <Button type="button" variant="outline" size="sm" onClick={() => setItemDialog({})}>
-              <Plus className="size-4" />
-              {t("addExercise")}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button type="button" variant="outline" size="sm" />}>
+                <Plus className="size-4" />
+                {t("add")}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setItemDialog({})}>{t("addExercise")}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setItemDialog({ initialBlock: "mobility" })}>
+                  {t("addMobility")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setItemDialog({ initialBlock: "rehab" })}>
+                  {t("addRehab")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActivityDialog({ kind: "cardio" })}>
+                  {t("addCardio")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActivityDialog({ kind: "recovery" })}>
+                  {t("addRecovery")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button type="button" variant="ghost" size="icon-sm" />}>
@@ -372,47 +491,94 @@ function DayCard({
           </Button>
         </div>
       )}
-      <CardContent>
-        {items.length === 0 ? (
+      <CardContent className="flex flex-col gap-4">
+        {items.length === 0 && day.program_activities.length === 0 && !hasNote ? (
           <p className="py-6 text-center text-sm text-muted-foreground">{t("noItems")}</p>
-        ) : readOnly ? (
-          <div className="flex flex-col gap-1">
-            {items.map((item) => (
-              <SortableItem
-                key={item.id}
-                item={item}
-                locale={locale}
-                week={week}
-                groupLabel={groupLabels.get(item.id) ?? null}
-                selected={false}
-                onToggleSelect={() => {}}
-                onEdit={() => {}}
-                onDelete={() => {}}
-                onDuplicate={() => {}}
-              />
-            ))}
-          </div>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-              <div className="flex flex-col gap-1">
-                {items.map((item) => (
+          <>
+            {workoutItems.length > 0 &&
+              (readOnly ? (
+                <div className="flex flex-col gap-1">
+                  {workoutItems.map((item) => (
+                    <SortableItem
+                      key={item.id}
+                      item={item}
+                      locale={locale}
+                      week={week}
+                      groupLabel={groupLabels.get(item.id) ?? null}
+                      selected={false}
+                      onToggleSelect={() => {}}
+                      onEdit={() => {}}
+                      onDelete={() => {}}
+                      onDuplicate={() => {}}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={workoutItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                    <div className="flex flex-col gap-1">
+                      {workoutItems.map((item) => (
+                        <SortableItem
+                          key={item.id}
+                          item={item}
+                          locale={locale}
+                          week={week}
+                          groupLabel={groupLabels.get(item.id) ?? null}
+                          selected={selected.has(item.id)}
+                          onToggleSelect={() => toggleSelect(item.id)}
+                          onEdit={() => setItemDialog({ item })}
+                          onDelete={() => setPendingDeleteItem(item.id)}
+                          onDuplicate={() => duplicateItem(item.id)}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              ))}
+
+            {otherItems.length > 0 && (
+              <div className="flex flex-col gap-1 border-t border-border pt-3">
+                <p className="text-xs font-medium text-muted-foreground">{t("mobilityRehab")}</p>
+                {otherItems.map((item) => (
                   <SortableItem
                     key={item.id}
                     item={item}
                     locale={locale}
                     week={week}
-                    groupLabel={groupLabels.get(item.id) ?? null}
-                    selected={selected.has(item.id)}
-                    onToggleSelect={() => toggleSelect(item.id)}
+                    groupLabel={null}
+                    selected={false}
+                    onToggleSelect={() => {}}
                     onEdit={() => setItemDialog({ item })}
                     onDelete={() => setPendingDeleteItem(item.id)}
                     onDuplicate={() => duplicateItem(item.id)}
                   />
                 ))}
               </div>
-            </SortableContext>
-          </DndContext>
+            )}
+
+            {day.program_activities.length > 0 && (
+              <div className="flex flex-col gap-1 border-t border-border pt-3">
+                <p className="text-xs font-medium text-muted-foreground">{t("activities")}</p>
+                {day.program_activities.map((activity) => (
+                  <ActivityRow
+                    key={activity.id}
+                    activity={activity}
+                    readOnly={readOnly}
+                    onEdit={() => setActivityDialog({ activity })}
+                    onDelete={() => setPendingDeleteActivity(activity.id)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {hasNote && (
+              <div className="flex items-start gap-2 border-t border-border pt-3 text-sm">
+                <StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <p className="text-muted-foreground">{pickLocale(day, locale, "notes")}</p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
 
@@ -423,8 +589,21 @@ function DayCard({
           dayId={day.id}
           item={itemDialog.item}
           initialExercise={itemDialog.initialExercise}
+          initialBlock={itemDialog.initialBlock}
+          rehabPhases={rehabPhases}
           open={!!itemDialog}
           onOpenChange={(open) => !open && setItemDialog(null)}
+        />
+      )}
+      {activityDialog && (
+        <ActivityDialog
+          locale={locale}
+          programId={programId}
+          dayId={day.id}
+          activity={activityDialog.activity}
+          defaultKind={activityDialog.kind}
+          open={!!activityDialog}
+          onOpenChange={(open) => !open && setActivityDialog(null)}
         />
       )}
       <ConfirmDialog
@@ -433,6 +612,13 @@ function DayCard({
         title={t("deleteDay")}
         confirmLabel={t("deleteDay")}
         onConfirm={confirmDeleteItem}
+      />
+      <ConfirmDialog
+        open={!!pendingDeleteActivity}
+        onOpenChange={(open) => !open && setPendingDeleteActivity(null)}
+        title={t("deleteActivity")}
+        confirmLabel={t("deleteActivity")}
+        onConfirm={confirmDeleteActivity}
       />
     </Card>
   );
@@ -511,6 +697,8 @@ export function ProgramBuilder({
   }
 
   const nextDayIndex = days.length === 0 ? 1 : Math.max(...days.map((d) => d.day_index)) + 1;
+  const rehabPhases = tree.rehab_protocols.flatMap((p) => p.rehab_phases);
+  const [sidebarTab, setSidebarTab] = useState<"exercises" | "nutrition" | "rehab">("exercises");
 
   return (
     <div className="flex flex-col gap-4">
@@ -578,6 +766,8 @@ export function ProgramBuilder({
                   programId={tree.id}
                   day={day}
                   week={week}
+                  rehabPhases={rehabPhases}
+                  dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
                   onEditDay={() => setDayDialog({ day })}
                   onDeleteDay={() => setPendingDeleteDay(day.id)}
                 />
@@ -594,6 +784,8 @@ export function ProgramBuilder({
                       programId={tree.id}
                       day={day}
                       week={week}
+                      rehabPhases={rehabPhases}
+                      dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
                       onEditDay={() => setDayDialog({ day })}
                       onDeleteDay={() => setPendingDeleteDay(day.id)}
                     />
@@ -604,7 +796,35 @@ export function ProgramBuilder({
           )}
         </div>
         <aside className="flex flex-col gap-4">
-          {!readOnly && <ExerciseSidebar locale={locale} programId={tree.id} days={days} />}
+          {!readOnly && (
+            <div className="flex gap-1 rounded-lg border border-border p-1">
+              {(["exercises", "nutrition", "rehab"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setSidebarTab(tab)}
+                  className={cn(
+                    "flex-1 rounded-md px-2 py-1.5 text-xs font-medium",
+                    sidebarTab === tab ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                  )}
+                >
+                  {t(`sidebarTab.${tab}`)}
+                </button>
+              ))}
+            </div>
+          )}
+          {!readOnly && sidebarTab === "exercises" && <ExerciseSidebar locale={locale} programId={tree.id} days={days} />}
+          {!readOnly && sidebarTab === "nutrition" && (
+            <NutritionPanel locale={locale} programId={tree.id} days={days} variants={tree.diet_variants} />
+          )}
+          {!readOnly && sidebarTab === "rehab" && (
+            <RehabPanel
+              locale={locale}
+              programId={tree.id}
+              programStartDate={tree.start_date}
+              protocols={tree.rehab_protocols}
+            />
+          )}
           <VolumeSidebar days={days} />
         </aside>
       </div>

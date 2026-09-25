@@ -64,3 +64,25 @@ export function macroPercentages(totals: MacroTotals): MacroPercentages {
     fatPercent: Math.round((fatKcal / macroKcal) * 100),
   };
 }
+
+export type MacroTargets = {
+  target_kcal: number | null;
+  target_protein_g: number | null;
+  target_carb_g: number | null;
+  target_fat_g: number | null;
+};
+
+/** planned - target for each macro, null wherever the coach hasn't set a
+ * target for that one — lets the target editor show "no target" instead of
+ * a misleading delta against zero. Positive = over target. */
+export function targetDelta(
+  totals: MacroTotals,
+  targets: MacroTargets
+): { kcal: number | null; protein_g: number | null; carb_g: number | null; fat_g: number | null } {
+  return {
+    kcal: targets.target_kcal == null ? null : round1(totals.kcal - targets.target_kcal),
+    protein_g: targets.target_protein_g == null ? null : round1(totals.protein_g - targets.target_protein_g),
+    carb_g: targets.target_carb_g == null ? null : round1(totals.carb_g - targets.target_carb_g),
+    fat_g: targets.target_fat_g == null ? null : round1(totals.fat_g - targets.target_fat_g),
+  };
+}

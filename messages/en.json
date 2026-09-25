@@ -771,7 +771,10 @@
         "dateRange": "{start} – {end}",
         "startedOn": "Started {date}",
         "dayCount": "{count} training days",
-        "lastWorkout": "Last workout {date} · {completed}/{prescribed} sets"
+        "lastWorkout": "Last workout {date} · {completed}/{prescribed} sets",
+        "cardioThisWeek": "Cardio: {done}/{total} logged this week",
+        "recentPain": "Recent pain reports",
+        "painLine": "{exercise} · pain {pain}/5 · {date}"
       },
       "nutrition": {
         "empty": "No diet plan assigned",
@@ -848,7 +851,21 @@
       "weightSinceStart": "{delta} kg since start",
       "streak": "Streak",
       "streakDays": "{count} days",
-      "streakBest": "Best: {count} days"
+      "streakBest": "Best: {count} days",
+      "mobilityRehab": "MOBILITY & REHAB",
+      "rehabPhase": "REHAB · {area}",
+      "cardioTitle": "Cardio",
+      "recoveryTitle": "Recovery",
+      "logActivity": "Log",
+      "activityLog": {
+        "title": "Log this",
+        "durationMin": "Duration (min)",
+        "distanceKm": "Distance (km, optional)",
+        "notes": "Notes (optional)",
+        "save": "Save",
+        "saveFailed": "Couldn't save — try again.",
+        "entryLocked": "This entry is more than 7 days old and can no longer be changed."
+      }
     },
     "plan": {
       "title": "Plan",
@@ -890,6 +907,7 @@
         "title": "Log set",
         "weight": "Weight (kg)",
         "reps": "Reps",
+        "durationSeconds": "Duration (sec)",
         "rpe": "RPE",
         "notesPlaceholder": "Notes (optional)",
         "decrease": "Decrease",
@@ -906,7 +924,9 @@
       "blockKind": {
         "warmup": "Warm-up",
         "main": "Main",
-        "cooldown": "Cool-down"
+        "cooldown": "Cool-down",
+        "mobility": "Mobility",
+        "rehab": "Rehab"
       },
       "markDone": "Mark done",
       "skipExercise": "Skip",
@@ -976,7 +996,8 @@
       "title": "Nutrition",
       "noPlan": "No nutrition plan yet",
       "noPlanBody": "Your coach has not assigned a nutrition plan yet.",
-      "quantityUnit": "{quantity} {unit}"
+      "quantityUnit": "{quantity} {unit}",
+      "targetDelta": "{delta} kcal vs target"
     },
     "history": {
       "title": "Workout history",
@@ -1250,15 +1271,23 @@
       "title": "Assigned to {count} client(s)"
     },
     "builder": {
+      "add": "Add",
       "addDay": "Add day",
       "editDay": "Edit day",
       "addExercise": "Add exercise",
+      "addMobility": "Add mobility work",
+      "addRehab": "Add rehab exercise",
+      "addCardio": "Add cardio",
+      "addRecovery": "Add recovery",
       "noDays": "No training days yet.",
-      "noItems": "No exercises in this day yet.",
+      "noItems": "Nothing in this day yet.",
+      "mobilityRehab": "Mobility & rehab",
+      "activities": "Cardio & recovery",
       "dayN": "Day {n}",
       "setsReps": "{sets} × {reps}",
       "rest": "{seconds}s rest",
       "deleteDay": "Delete day",
+      "deleteActivity": "Delete activity",
       "confirmDeleteDayTitle": "Delete this day?",
       "confirmDeleteDayBody": "This deletes every exercise in it. This can't be undone.",
       "week": "Week {n}",
@@ -1271,6 +1300,12 @@
       "makeCircuit": "Make circuit",
       "ungroup": "Ungroup",
       "clearSelection": "Clear",
+      "kcalShort": "kcal",
+      "sidebarTab": {
+        "exercises": "Exercises",
+        "nutrition": "Nutrition",
+        "rehab": "Rehab"
+      },
       "weekdayShort": {
         "0": "Sun",
         "1": "Mon",
@@ -1290,7 +1325,9 @@
       "labelEn": "Label (English, optional)",
       "submit": "Save",
       "weekday": "Weekday",
-      "weekdayPlaceholder": "Select a weekday"
+      "weekdayPlaceholder": "Select a weekday",
+      "notesAr": "Coach note (Arabic, optional)",
+      "notesEn": "Coach note (English, optional)"
     },
     "itemDialog": {
       "addTitle": "Add exercise",
@@ -1300,8 +1337,10 @@
       "loading": "Searching...",
       "noResults": "No exercises match.",
       "sets": "Sets",
+      "holds": "Holds",
       "setN": "Set {index}",
       "reps": "Reps",
+      "durationSeconds": "Duration (sec)",
       "weight": "Weight (kg, optional)",
       "restSeconds": "Rest (sec, optional)",
       "addSet": "Add set",
@@ -1318,10 +1357,97 @@
       "blockKind": {
         "warmup": "Warm-up",
         "main": "Main",
-        "cooldown": "Cool-down"
+        "cooldown": "Cool-down",
+        "mobility": "Mobility",
+        "rehab": "Rehab"
       },
+      "rehabPhase": "Rehab phase",
+      "rehabPhaseNone": "No specific phase — shows every week",
       "coachNotePrivate": "Private note (only you see this)",
       "coachNotePrivateHint": "Never shown to the client — visible only in the builder."
+    },
+    "activityDialog": {
+      "addTitle": "Add cardio/recovery",
+      "editTitle": "Edit activity",
+      "kind": "Type",
+      "kindCardio": "Cardio",
+      "kindRecovery": "Recovery",
+      "modality": "Modality",
+      "modalityPlaceholder": "Select a modality",
+      "modalityRequired": "Choose a modality.",
+      "modalities": {
+        "walking": "Walking",
+        "running": "Running",
+        "cycling": "Cycling",
+        "rowing": "Rowing",
+        "stairmaster": "Stairmaster",
+        "swimming": "Swimming",
+        "elliptical": "Elliptical",
+        "hiit": "HIIT",
+        "other": "Other",
+        "foam_rolling": "Foam rolling",
+        "stretching": "Stretching",
+        "massage": "Massage",
+        "sauna": "Sauna",
+        "cold_plunge": "Cold plunge",
+        "breathwork": "Breathwork"
+      },
+      "durationMin": "Duration (min)",
+      "distanceKm": "Distance (km, optional)",
+      "intensity": "Intensity",
+      "intensityUnset": "Not set",
+      "intensities": {
+        "low": "Low",
+        "moderate": "Moderate",
+        "high": "High",
+        "intervals": "Intervals"
+      },
+      "hrZone": "Heart-rate zone (1-5, optional)",
+      "kcalTarget": "Calorie target (optional)",
+      "pace": "Pace (optional)",
+      "pacePlaceholder": "e.g. 5:30/km",
+      "minShort": "min",
+      "notesAr": "Instructions (Arabic, optional)",
+      "notesEn": "Instructions (English, optional)",
+      "logRequired": "Client must log this",
+      "alsoAddTo": "Also add to other days",
+      "submit": "Save"
+    },
+    "nutrition": {
+      "title": "Nutrition",
+      "newVariant": "New plan",
+      "nameArPlaceholder": "Name (Arabic) — e.g. Training day",
+      "nameEnPlaceholder": "Name (English) — e.g. Training day",
+      "create": "Create",
+      "noVariants": "No nutrition plans yet. Create one, then assign it to any day.",
+      "kcal": "{n} kcal",
+      "assignByDay": "Assign by day",
+      "none": "None",
+      "customize": "Customize",
+      "customizeHint": "Clone this plan just for this day, without affecting other days sharing it"
+    },
+    "rehab": {
+      "title": "Rehab",
+      "newProtocol": "New protocol",
+      "bodyAreaPlaceholder": "Body area — e.g. Right knee",
+      "create": "Create",
+      "noProtocols": "No rehab protocols yet.",
+      "bodyArea": "Body area",
+      "injuryAr": "Injury (Arabic, optional)",
+      "injuryEn": "Injury (English, optional)",
+      "restrictionsAr": "Restrictions (Arabic, optional)",
+      "restrictionsEn": "Restrictions (English, optional)",
+      "saveProtocol": "Save",
+      "deleteProtocol": "Delete protocol",
+      "phases": "Phases",
+      "noPhases": "No phases yet — items in this protocol show every week.",
+      "addPhase": "Add phase",
+      "phaseNameAr": "Phase name (Arabic)",
+      "phaseNameEn": "Phase name (English)",
+      "fromWeek": "From week",
+      "toWeek": "To week",
+      "goalsAr": "Goals (Arabic, optional)",
+      "goalsEn": "Goals (English, optional)"
     },
     "volume": {
       "title": "Weekly volume",
@@ -2153,6 +2279,7 @@
     "deletePlan": "Delete plan",
     "confirmDeletePlanTitle": "Delete this plan?",
     "confirmDeletePlanBody": "This moves the plan to Trash. You can restore it from there for 30 days.",
+    "backToProgram": "Back to program",
     "assignedToClients": {
       "title": "Assigned to {count} client(s)"
     },
@@ -2173,6 +2300,7 @@
       "editTitle": "Edit meal",
       "labelAr": "Label (Arabic, optional)",
       "labelEn": "Label (English, optional)",
+      "timeOfDay": "Time (optional)",
       "submit": "Save"
     },
     "itemDialog": {
@@ -2188,11 +2316,12 @@
     },
     "macros": {
       "title": "Plan totals",
-      "empty": "Add foods to see totals.",
+      "empty": "Add foods to see totals, or set a target.",
       "kcal": "kcal",
       "protein": "Protein",
       "carbs": "Carbs",
-      "fat": "Fat"
+      "fat": "Fat",
+      "saveTargets": "Save targets"
     },
     "foodSidebar": {
       "title": "Add food",

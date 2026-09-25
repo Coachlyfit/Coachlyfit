@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { itemMacros, mealMacros, planMacros, macroPercentages, type MacroFood, type MacroTotals } from "./macros";
+import { itemMacros, mealMacros, planMacros, macroPercentages, targetDelta, type MacroFood, type MacroTotals } from "./macros";
 
 const chickenBreast: MacroFood = { kcal: 165, protein_g: 31, carb_g: 0, fat_g: 3.6 };
 const rice: MacroFood = { kcal: 130, protein_g: 2.7, carb_g: 28, fat_g: 0.3 };
@@ -56,5 +56,19 @@ describe("macroPercentages", () => {
       carbPercent: 0,
       fatPercent: 0,
     });
+  });
+});
+
+describe("targetDelta", () => {
+  it("returns planned minus target for each macro with a target set", () => {
+    const totals = { kcal: 2500, protein_g: 150, carb_g: 300, fat_g: 70 };
+    const targets = { target_kcal: 2800, target_protein_g: 180, target_carb_g: null, target_fat_g: 75 };
+    expect(targetDelta(totals, targets)).toEqual({ kcal: -300, protein_g: -30, carb_g: null, fat_g: -5 });
+  });
+
+  it("returns null for every macro when no targets are set", () => {
+    const totals = { kcal: 2500, protein_g: 150, carb_g: 300, fat_g: 70 };
+    const targets = { target_kcal: null, target_protein_g: null, target_carb_g: null, target_fat_g: null };
+    expect(targetDelta(totals, targets)).toEqual({ kcal: null, protein_g: null, carb_g: null, fat_g: null });
   });
 });

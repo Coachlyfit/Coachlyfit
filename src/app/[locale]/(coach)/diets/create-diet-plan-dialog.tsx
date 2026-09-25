@@ -23,7 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useRouter } from "@/i18n/navigation";
-import { createDietPlanSchema, type CreateDietPlanInput } from "./schemas";
+import { createDietPlanSchema, type CreateDietPlanFormInput } from "./schemas";
 import { createDietPlanAction } from "./actions";
 
 const NO_CLIENT = "__template__";
@@ -58,7 +58,7 @@ export function CreateDietPlanDialog({
     control,
     reset,
     formState: { errors },
-  } = useForm<CreateDietPlanInput>({
+  } = useForm<CreateDietPlanFormInput>({
     resolver: zodResolver(createDietPlanSchema),
     defaultValues: {
       client_id: defaultClientId ?? "",
