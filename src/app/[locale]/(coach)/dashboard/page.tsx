@@ -92,7 +92,7 @@ export default async function DashboardPage({
       <PageTitle title={t("welcome", { name: profile?.full_name ?? "" })} />
       <AutoRefresh />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Card>
           <CardContent className="pt-6">
             <div className={kpiLabelClass()}>{t("kpi.online")}</div>
@@ -126,7 +126,7 @@ export default async function DashboardPage({
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">{t("plan")}</CardTitle>
           </CardHeader>
-          <CardContent className="flex items-center gap-2 pt-0">
+          <CardContent className="flex flex-wrap items-center gap-2 pt-0">
             <p className="text-2xl font-semibold">{tier ? pickLocale(tier, locale) : "—"}</p>
             {subscription && (
               <Badge variant={subscription.status === "active" ? "default" : "secondary"}>

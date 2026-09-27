@@ -47,7 +47,10 @@ export function LoginForm({ locale }: { locale: string }) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">{t("password")}</Label>
-          <Link href="/forgot-password" className="text-xs text-muted-foreground underline underline-offset-4">
+          <Link
+            href="/forgot-password"
+            className="-my-2 min-h-8 py-2 text-xs text-muted-foreground underline underline-offset-4"
+          >
             {t("forgotPassword")}
           </Link>
         </div>

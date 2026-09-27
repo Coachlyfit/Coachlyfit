@@ -132,7 +132,7 @@ export function OnboardingClient({ locale, steps }: { locale: "ar" | "en"; steps
           <Textarea
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
-            dir="rtl"
+            dir="auto"
             rows={10}
             className="font-mono text-xs"
             placeholder={t("import.placeholder")}
@@ -180,7 +180,7 @@ export function OnboardingClient({ locale, steps }: { locale: "ar" | "en"; steps
                 {rows.slice(0, 5).map((row, r) => (
                   <tr key={r} className="border-t border-border">
                     {row.map((cell, c) => (
-                      <td key={c} className="truncate p-2">
+                      <td key={c} className="max-w-32 truncate p-2">
                         {cell}
                       </td>
                     ))}
@@ -217,18 +217,21 @@ export function OnboardingClient({ locale, steps }: { locale: "ar" | "en"; steps
         <StepCard title={t("send.title")} description={t("send.subtitle")}>
           <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
             {created.map((c) => (
-              <label key={c.clientId} className="flex items-center gap-3 p-3 text-sm">
+              <label key={c.clientId} className="flex flex-wrap items-center gap-3 p-3 text-sm">
                 <Checkbox
                   checked={!!selected[c.clientId]}
                   onCheckedChange={(checked) =>
                     setSelected((s) => ({ ...s, [c.clientId]: checked === true }))
                   }
                 />
-                <span className="flex-1">{c.displayName}</span>
-                <span className="font-mono text-xs text-muted-foreground">{c.phone ?? "—"}</span>
+                <span className="min-w-0 flex-1 truncate">{c.displayName}</span>
+                <span dir="ltr" className="shrink-0 font-mono text-xs text-muted-foreground">
+                  {c.phone ?? "—"}
+                </span>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="ms-auto"
                   nativeButton={false}
                   render={
                     <a

@@ -87,7 +87,7 @@ export function ClientHeader({ locale, client }: { locale: AppLocale; client: Cl
               </div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                 {client.email && (
-                  <a href={`mailto:${client.email}`} dir="ltr" className="hover:underline">
+                  <a href={`mailto:${client.email}`} dir="ltr" className="break-all hover:underline">
                     {client.email}
                   </a>
                 )}

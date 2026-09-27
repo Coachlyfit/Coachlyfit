@@ -30,7 +30,7 @@ export function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={cn("inline-flex rounded-md border border-border p-0.5", className)}
+      className={cn("inline-flex max-w-full overflow-x-auto no-scrollbar rounded-md border border-border p-0.5", className)}
     >
       {options.map((option) => {
         const Icon = option.icon;
@@ -43,7 +43,7 @@ export function Segmented<T extends string>({
             variant="ghost"
             aria-pressed={active}
             onClick={() => onChange(option.value)}
-            className={cn("gap-1.5", active && "bg-muted text-foreground")}
+            className={cn("shrink-0 gap-1.5", active && "bg-muted text-foreground")}
           >
             {Icon && <Icon className="size-4" aria-hidden="true" />}
             {option.label}

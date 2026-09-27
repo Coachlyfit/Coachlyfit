@@ -63,7 +63,7 @@ export function FoodSidebar({
       <select
         value={mealId}
         onChange={(e) => setMealId(e.target.value)}
-        className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+        className="h-9 rounded-md border border-input bg-transparent px-2 text-base md:text-sm"
       >
         {meals.map((meal) => (
           <option key={meal.id} value={meal.id}>

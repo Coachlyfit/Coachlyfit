@@ -21,7 +21,7 @@ export default async function InboxThreadPage({
   if (!client) notFound();
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] flex-col gap-4 md:h-[calc(100dvh-6rem)]">
+    <div className="flex h-[calc(100dvh-6rem-var(--bottom-nav-h))] flex-col gap-4 lg:h-[calc(100dvh-6.5rem)]">
       <PageTitle title={client.display_name} />
       <MessageThread clientId={client.id} viewerRole="coach" locale={locale} />
     </div>

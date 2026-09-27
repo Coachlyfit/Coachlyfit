@@ -31,12 +31,12 @@ export function BuilderPageClient({
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold tracking-tight">{templateName}</h1>
-          <Badge variant="secondary">{tKinds(kind)}</Badge>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <h1 className="min-w-0 truncate text-xl font-semibold tracking-tight">{templateName}</h1>
+          <Badge variant="secondary" className="shrink-0">{tKinds(kind)}</Badge>
           {currentVersionNumber && (
-            <span className="text-xs text-muted-foreground">
+            <span className="shrink-0 text-xs text-muted-foreground">
               {t("publishedAt", { version: currentVersionNumber })}
             </span>
           )}

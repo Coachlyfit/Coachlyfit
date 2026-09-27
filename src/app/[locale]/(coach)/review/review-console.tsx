@@ -364,7 +364,7 @@ function ReviewEntryPanel({
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <StatCard
             icon={Scale}
             label={t("stats.weight")}
@@ -487,10 +487,10 @@ function ReviewEntryPanel({
               <p className="mt-3 text-center text-xs text-sidebar-foreground/60">{t("photos.dragHint")}</p>
             </div>
           ) : (
-            <div className="flex justify-center gap-4 p-5">
+            <div className="grid grid-cols-2 gap-3 p-4 sm:gap-4 sm:p-5">
               {[photoPair.oldest, photoPair.newest].map((photo, i) => (
                 <figure key={i} className="flex flex-col items-center gap-2">
-                  <img src={photo.url} alt="" className="aspect-[3/4] w-40 rounded-lg object-cover" />
+                  <img src={photo.url} alt="" className="aspect-[3/4] w-full max-w-40 rounded-lg object-cover" />
                   <figcaption className="font-mono text-[10px] text-sidebar-foreground/60">
                     {formatDate(photo.date, locale, { month: "short", day: "numeric" })}
                     {photo.weight != null && ` · ${formatNumber(photo.weight, locale)} kg`}
@@ -614,7 +614,7 @@ function ReviewEntryPanel({
                           <select
                             value={reduceLoadPercent}
                             onChange={(e) => setReduceLoadPercent(Number(e.target.value))}
-                            className="rounded-md border border-warning-tint-foreground/30 bg-background px-2 py-1 text-xs"
+                            className="rounded-md border border-warning-tint-foreground/30 bg-background px-2 py-1 text-base md:text-xs"
                           >
                             {PERCENT_OPTIONS.map((p) => (
                               <option key={p} value={p}>

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 /** Past sessions with their computed summary (total volume, sets done vs
  * prescribed) — reuses the same listRecentSessions the coach's client-detail
@@ -42,19 +43,19 @@ export default async function ClientHistoryPage({
             return (
               <Card key={session.id}>
                 <CardContent className="flex flex-col gap-1.5 py-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{label || t("workout")}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{label || t("workout")}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDate(session.started_at, locale, { dateStyle: "medium" })}
                       </p>
                     </div>
-                    <span className={done ? "text-sm text-success" : "text-sm text-muted-foreground"}>
+                    <span className={cn("shrink-0 text-sm", done ? "text-success" : "text-muted-foreground")}>
                       {done ? t("completed") : t("inProgress")}
                     </span>
                   </div>
                   {done && (
-                    <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       {session.sets_completed != null && (
                         <span>
                           {t("setsDone", {

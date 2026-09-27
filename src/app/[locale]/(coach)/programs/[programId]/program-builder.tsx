@@ -131,7 +131,7 @@ function SortableItem({
             {...attributes}
             {...listeners}
             aria-label="drag"
-            className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+            className="-m-1.5 cursor-grab touch-none p-1.5 text-muted-foreground active:cursor-grabbing"
           >
             <GripVertical className="size-4" />
           </button>
@@ -409,8 +409,8 @@ function DayCard({
       onDrop={readOnly ? undefined : handleDrop}
       className={dragOver ? "ring-2 ring-primary" : undefined}
     >
-      <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
-        <CardTitle className="flex items-center gap-2 text-base">
+      <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+        <CardTitle className="flex min-w-0 flex-wrap items-center gap-2 text-base">
           {t("dayN", { n: day.day_index })}
           {(day.label_ar || day.label_en) && (
             <span className="font-normal text-muted-foreground">— {pickLocale(day, locale, "label")}</span>
@@ -429,7 +429,7 @@ function DayCard({
             </span>
           )}
         </CardTitle>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {!readOnly && (
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button type="button" variant="outline" size="sm" />}>
@@ -468,7 +468,7 @@ function DayCard({
         </div>
       </CardHeader>
       {!readOnly && selected.size > 0 && (
-        <div className="flex items-center gap-2 border-b border-border px-6 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5 sm:px-6">
           <span className="text-xs text-muted-foreground">{t("selectedCount", { count: selected.size })}</span>
           {selected.size >= 2 && (
             <>
@@ -702,8 +702,8 @@ export function ProgramBuilder({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isTemplate && <AssignTemplateDialog locale={locale} programId={tree.id} clients={clients} />}
           {!isTemplate && <RevisionHistoryDrawer locale={locale} programId={tree.id} />}
           {!isTemplate && (
@@ -713,7 +713,7 @@ export function ProgramBuilder({
             <select
               value={week}
               onChange={(e) => setWeek(Number(e.target.value))}
-              className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+              className="h-9 rounded-md border border-input bg-transparent px-2 text-base md:text-sm"
             >
               {Array.from({ length: MAX_PROGRAM_WEEKS }, (_, i) => i + 1).map((w) => (
                 <option key={w} value={w}>
@@ -724,7 +724,7 @@ export function ProgramBuilder({
           </label>
           {readOnly && <span className="text-xs text-muted-foreground">{t("weekReadOnlyHint")}</span>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/print/program/${tree.id}`}
             target="_blank"

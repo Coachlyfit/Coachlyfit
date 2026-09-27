@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Eye, EyeOff, Save } from "lucide-react";
+import { Eye, EyeOff, ListPlus, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formTemplateSchema, type FormField } from "@/domain/forms/schema";
 import { FormRenderer } from "@/components/forms-runtime/form-renderer";
 import { useBuilderStore } from "./builder-store";
@@ -30,7 +31,10 @@ export function Builder({
   const tErrors = useTranslations("forms.errors");
   const fields = useBuilderStore((s) => s.fields);
   const load = useBuilderStore((s) => s.load);
+  const selectedId = useBuilderStore((s) => s.selectedId);
+  const select = useBuilderStore((s) => s.select);
   const [preview, setPreview] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const loadedRef = useRef(false);
 
@@ -78,10 +82,22 @@ export function Builder({
   }
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] flex-col">
-      <div className="flex items-center justify-between border-b border-border px-4 py-2">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2">
         <span className="text-xs text-muted-foreground">{t("autosaved")}</span>
         <div className="flex gap-2">
+          {!preview && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setPaletteOpen(true)}
+            >
+              <ListPlus className="size-4" />
+              {t("palette")}
+            </Button>
+          )}
           <Button type="button" variant="outline" size="sm" onClick={() => setPreview((p) => !p)}>
             {preview ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             {t("preview")}
@@ -100,12 +116,32 @@ export function Builder({
           </div>
         </div>
       ) : (
-        <div className="flex flex-1 overflow-hidden">
-          <FieldPalette />
+        <div className="flex min-h-0 flex-1 overflow-hidden">
+          <FieldPalette className="hidden lg:flex" />
           <Canvas />
-          <Inspector />
+          <Inspector className="hidden lg:flex" />
         </div>
       )}
+
+      {/* Below `lg` the palette and inspector aren't roomy enough to sit
+       * beside the canvas (see the audit) — they become bottom sheets
+       * instead: "Add field" above opens this one, and selecting a field
+       * on the canvas opens the inspector one automatically (selectedId
+       * driving both `!!field` here and this sheet's `open` keeps every
+       * screen size on one selection model instead of a mobile-only one). */}
+      <Sheet open={paletteOpen} onOpenChange={setPaletteOpen}>
+        <SheetContent side="bottom" className="lg:hidden">
+          <SheetHeader>
+            <SheetTitle>{t("palette")}</SheetTitle>
+          </SheetHeader>
+          <FieldPalette className="w-full border-e-0 p-0" onAdd={() => setPaletteOpen(false)} />
+        </SheetContent>
+      </Sheet>
+      <Sheet open={!preview && selectedId != null} onOpenChange={(open) => !open && select(null)}>
+        <SheetContent side="bottom" className="lg:hidden">
+          <Inspector className="w-full border-s-0 p-0" />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

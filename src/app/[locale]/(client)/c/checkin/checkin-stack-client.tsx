@@ -33,16 +33,22 @@ export function CheckinStackClient({
   const router = useRouter();
 
   return (
-    <CheckinWizard
-      locale={locale}
-      today={today}
-      existing={existing}
-      businessName={businessName}
-      coachId={coachId}
-      clientId={clientId}
-      recentCheckins={recentCheckins}
-      ghostPhotos={ghostPhotos}
-      onDone={() => router.push("/c")}
-    />
+    // Fixed full-bleed overlay, same reasoning as the workout session runner
+    // and forms/[assignmentId]/page.tsx: a guided step wizard is a bare
+    // full-viewport screen, not a page meant to sit inside the (client)/c
+    // layout's header/nav/max-w-lg chrome.
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
+      <CheckinWizard
+        locale={locale}
+        today={today}
+        existing={existing}
+        businessName={businessName}
+        coachId={coachId}
+        clientId={clientId}
+        recentCheckins={recentCheckins}
+        ghostPhotos={ghostPhotos}
+        onDone={() => router.push("/c")}
+      />
+    </div>
   );
 }

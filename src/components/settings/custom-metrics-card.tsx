@@ -112,10 +112,10 @@ export function CustomMetricsCard({ metrics }: { metrics: MetricDefinition[] }) 
           <ul className="flex flex-col gap-1">
             {metrics.map((metric) => (
               <li key={metric.id} className="flex items-center justify-between gap-2 text-sm">
-                <span>
+                <span className="min-w-0 truncate">
                   {pickLocale(metric, locale, "label")} <span className="text-muted-foreground">({metric.unit})</span>
                 </span>
-                <Button type="button" variant="ghost" size="icon-sm" onClick={() => setPendingDelete(metric.id)}>
+                <Button type="button" variant="ghost" size="icon-sm" className="shrink-0" onClick={() => setPendingDelete(metric.id)}>
                   <Trash2 className="size-4" />
                 </Button>
               </li>

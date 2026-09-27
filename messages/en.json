@@ -1154,6 +1154,7 @@
       "submit": "Submit",
       "submitted": "Submitted — thank you!",
       "chooseFile": "Choose file",
+      "removeFile": "Remove file",
       "intro": {
         "eyebrow": "{coach} sent you {form}",
         "body": "Your answers go straight to {coach} and shape next week's plan.",

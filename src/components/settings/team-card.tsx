@@ -136,13 +136,13 @@ export function TeamCard({ members }: { members: TeamMember[] }) {
           <ul className="flex flex-col gap-1">
             {members.map((member) => (
               <li key={member.id} className="flex items-center justify-between gap-2 text-sm">
-                <span className="flex items-center gap-2">
-                  {member.email}
-                  <span className="text-xs text-muted-foreground">
+                <span className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="min-w-0 truncate">{member.email}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
                     {member.accepted_at ? t("statusAccepted") : t("statusPending")}
                   </span>
                 </span>
-                <Button type="button" variant="ghost" size="icon-sm" onClick={() => setPendingRemove(member.id)}>
+                <Button type="button" variant="ghost" size="icon-sm" className="shrink-0" onClick={() => setPendingRemove(member.id)}>
                   <Trash2 className="size-4" />
                 </Button>
               </li>
