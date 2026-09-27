@@ -1024,6 +1024,14 @@
     "emptyThread": "No messages yet. Say hello.",
     "placeholder": "Type a message…",
     "send": "Send",
+    "retry": "Retry",
+    "typing": "Typing…",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSeen": "Last seen {time}",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newMessages": "{count, plural, one {# new message} other {# new messages}}",
     "clientList": {
       "empty": "No clients yet."
     },
@@ -1036,7 +1044,8 @@
     },
     "errors": {
       "invalid_input": "Please check the message and try again.",
-      "no_recipients": "You don't have any active clients yet."
+      "no_recipients": "You don't have any active clients yet.",
+      "send_failed": "Message failed to send."
     },
     "search": "Search conversations…",
     "filter": {

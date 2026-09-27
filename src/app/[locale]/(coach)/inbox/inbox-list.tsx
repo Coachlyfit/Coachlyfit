@@ -1,19 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { List, LayoutGrid, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { AppLocale } from "@/domain/locale";
 import type { InboxThread } from "@/domain/messages/messages.service";
+import { listInboxAction } from "@/domain/messages/messages-actions";
+import { createClient } from "@/lib/supabase/client";
 import { ThreadCard } from "./thread-card";
 
 type Filter = "all" | "unread";
 type View = "list" | "grid";
 
 const VIEW_STORAGE_KEY = "inbox:view";
+const INBOX_QUERY_KEY = ["inbox-threads"];
+const INVALIDATE_DEBOUNCE_MS = 500;
 
 function readStoredView(): View {
   try {
@@ -24,11 +29,38 @@ function readStoredView(): View {
   }
 }
 
-export function InboxList({ threads, locale }: { threads: InboxThread[]; locale: AppLocale }) {
+export function InboxList({ threads: initialThreads, locale }: { threads: InboxThread[]; locale: AppLocale }) {
   const t = useTranslations("inbox");
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [view, setView] = useState<View>("list");
+
+  const { data: threads = initialThreads } = useQuery({
+    queryKey: INBOX_QUERY_KEY,
+    queryFn: () => listInboxAction(),
+    initialData: initialThreads,
+  });
+
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("inbox:messages")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => {
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: INBOX_QUERY_KEY });
+        }, INVALIDATE_DEBOUNCE_MS);
+      })
+      .subscribe();
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Read the persisted view after mount so server and first client render
   // match (avoids a hydration mismatch from reading localStorage eagerly).
