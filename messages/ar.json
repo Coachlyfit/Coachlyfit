@@ -1024,6 +1024,14 @@
     "emptyThread": "مفيش رسائل لسه. ابعت أول رسالة.",
     "placeholder": "اكتب رسالة…",
     "send": "ابعت",
+    "retry": "إعادة المحاولة",
+    "typing": "بيكتب دلوقتي…",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "lastSeen": "آخر ظهور {time}",
+    "today": "النهاردة",
+    "yesterday": "إمبارح",
+    "newMessages": "{count, plural, one {رسالة جديدة} other {# رسائل جديدة}}",
     "clientList": {
       "empty": "مفيش عملاء لسه."
     },
@@ -1036,7 +1044,8 @@
     },
     "errors": {
       "invalid_input": "راجع الرسالة وجرّب تاني.",
-      "no_recipients": "لسه معندكش عملاء نشطين."
+      "no_recipients": "لسه معندكش عملاء نشطين.",
+      "send_failed": "الرسالة معملتش تتبعت."
     },
     "search": "دور على محادثة…",
     "filter": {
