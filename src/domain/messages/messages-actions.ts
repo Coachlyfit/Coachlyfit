@@ -46,7 +46,24 @@ export async function sendMessageAction(clientId: string, body: string): Promise
   const ctx = await callerContext(supabase, clientId);
   if (!ctx) return { error: "not_authenticated" };
 
-  await new MessagesService(supabase).send(ctx.coachId, ctx.clientId, { sender_role: ctx.role, body: trimmed });
+  try {
+    await new MessagesService(supabase).send(ctx.coachId, ctx.clientId, { sender_role: ctx.role, body: trimmed });
+  } catch {
+    return { error: "send_failed" };
+  }
+}
+
+export async function listInboxAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role !== "coach") return [];
+
+  return new MessagesService(supabase).listInbox();
 }
 
 export async function markThreadReadAction(clientId: string) {
