@@ -31,7 +31,7 @@ export function ClientNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto flex w-full max-w-lg border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
       {ITEMS.map((item) => {
-        const active = pathname === item.href;
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
         return (
           <Link
@@ -39,12 +39,12 @@ export function ClientNav() {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
+              "flex min-h-12 min-w-0 flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
               active ? "text-primary" : "text-muted-foreground"
             )}
           >
-            <Icon className="size-5" aria-hidden="true" />
-            {labelFor(item.key)}
+            <Icon className="size-5 shrink-0" aria-hidden="true" />
+            <span className="max-w-full truncate px-0.5">{labelFor(item.key)}</span>
           </Link>
         );
       })}

@@ -71,10 +71,10 @@ export function FieldInput({
             <RadioGroup
               value={f.value ? String(f.value) : undefined}
               onValueChange={(v) => f.onChange(Number(v))}
-              className="flex gap-3"
+              className="flex flex-wrap gap-3"
             >
               {values.map((v) => (
-                <div key={v} className="flex flex-col items-center gap-1">
+                <div key={v} className="flex min-w-9 flex-col items-center gap-1 py-1">
                   <RadioGroupItem value={String(v)} id={`${field.id}-${v}`} />
                   <label htmlFor={`${field.id}-${v}`} className="text-xs text-muted-foreground">
                     {v}
@@ -121,7 +121,7 @@ export function FieldInput({
           render={({ field: f }) => (
             <RadioGroup value={f.value} onValueChange={f.onChange} className="flex flex-col gap-2">
               {(field.options ?? []).map((o) => (
-                <div key={o.value} className="flex items-center gap-2">
+                <div key={o.value} className="flex min-h-11 items-center gap-2">
                   <RadioGroupItem value={o.value} id={`${field.id}-${o.value}`} />
                   <label htmlFor={`${field.id}-${o.value}`} className="text-sm">
                     {pickBilingual(o.label, locale)}
@@ -143,7 +143,7 @@ export function FieldInput({
             return (
               <div className="flex flex-col gap-2">
                 {(field.options ?? []).map((o) => (
-                  <div key={o.value} className="flex items-center gap-2">
+                  <div key={o.value} className="flex min-h-11 items-center gap-2">
                     <Checkbox
                       id={`${field.id}-${o.value}`}
                       checked={current.includes(o.value)}

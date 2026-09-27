@@ -54,8 +54,8 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
   return (
     <Card>
       <CardHeader className="flex-row items-start justify-between gap-2">
-        <div className="flex flex-col gap-1">
-          <CardTitle className="text-base">{pickLocale(diet, locale)}</CardTitle>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <CardTitle className="truncate text-base">{pickLocale(diet, locale)}</CardTitle>
           <p className="text-sm text-muted-foreground">
             {diet.end_date
               ? t("dateRange", { start: formatDate(diet.start_date, locale), end: formatDate(diet.end_date, locale) })

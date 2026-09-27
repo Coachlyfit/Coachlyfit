@@ -54,13 +54,14 @@ export function ProgressLineChart({
           tickFormatter={(d: string) => formatDate(d, locale, { month: "short", day: "numeric" })}
           className="text-xs"
           tickLine={false}
+          minTickGap={16}
         />
         <YAxis
           orientation={isRtl ? "right" : "left"}
           className="text-xs"
           tickLine={false}
           axisLine={false}
-          width={40}
+          width={unit ? 52 : 36}
           unit={unit ? ` ${unit}` : undefined}
         />
         <ChartTooltip

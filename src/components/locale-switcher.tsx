@@ -3,9 +3,10 @@
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { routing } from "@/i18n/routing";
 
-export function LocaleSwitcher() {
+export function LocaleSwitcher({ className }: { className?: string }) {
   const t = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
@@ -19,7 +20,7 @@ export function LocaleSwitcher() {
       variant="outline"
       size="icon-sm"
       aria-label={t("language")}
-      className="font-mono text-[11px] font-semibold uppercase"
+      className={cn("font-mono text-[11px] font-semibold uppercase", className)}
       onClick={() => router.replace(pathname, { locale: other })}
     >
       {locale}

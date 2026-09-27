@@ -188,12 +188,12 @@ function MealCard({
       onDrop={handleDrop}
       className={dragOver ? "ring-2 ring-primary" : undefined}
     >
-      <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
-        <CardTitle className="flex items-center gap-2 text-base">
-          {meal.label_ar || meal.label_en ? pickLocale(meal, locale, "label") : t("untitledMeal")}
-          <span className="font-mono text-xs text-muted-foreground">({items.length})</span>
+      <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+        <CardTitle className="flex min-w-0 flex-wrap items-center gap-2 text-base">
+          <span className="truncate">{meal.label_ar || meal.label_en ? pickLocale(meal, locale, "label") : t("untitledMeal")}</span>
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">({items.length})</span>
         </CardTitle>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <Button type="button" variant="outline" size="sm" onClick={() => setItemDialog({})}>
             <Plus className="size-4" />
             {t("addFood")}
@@ -327,14 +327,14 @@ export function DietPlanBuilder({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isTemplate && <AssignDietTemplateDialog locale={locale} dietPlanId={tree.id} clients={clients} />}
           {!isTemplate && (
             <SaveAsTemplateDialog locale={locale} dietPlanId={tree.id} nameAr={tree.name_ar} nameEn={tree.name_en} />
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/print/diet/${tree.id}`}
             target="_blank"

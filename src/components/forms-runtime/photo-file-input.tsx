@@ -53,9 +53,16 @@ export function PhotoFileInput({
   if (value) {
     return (
       <div className="flex items-center gap-2 text-sm">
-        <Paperclip className="size-4 text-muted-foreground" />
-        <span className="truncate">{value.split("/").pop()}</span>
-        <Button type="button" variant="ghost" size="icon-sm" onClick={() => onChange(undefined)}>
+        <Paperclip className="size-4 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 truncate">{value.split("/").pop()}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="shrink-0"
+          aria-label={t("removeFile")}
+          onClick={() => onChange(undefined)}
+        >
           <X className="size-4" />
         </Button>
       </div>

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -20,7 +21,7 @@ const CHOICE_TYPES = ["select", "multiselect", "radio"];
 const RANGE_TYPES = ["number", "scale"];
 const VISIBLE_IF_OPS: VisibleIf["op"][] = ["eq", "neq", "gt", "lt", "in"];
 
-export function Inspector() {
+export function Inspector({ className }: { className?: string } = {}) {
   const t = useTranslations("forms.builder.inspector");
   const fields = useBuilderStore((s) => s.fields);
   const selectedId = useBuilderStore((s) => s.selectedId);
@@ -30,7 +31,7 @@ export function Inspector() {
 
   if (!field) {
     return (
-      <div className="flex w-72 shrink-0 items-center justify-center border-s border-border p-4 text-center text-sm text-muted-foreground">
+      <div className={cn("flex w-72 shrink-0 items-center justify-center border-s border-border p-4 text-center text-sm text-muted-foreground", className)}>
         {t("empty")}
       </div>
     );
@@ -47,7 +48,7 @@ export function Inspector() {
   }
 
   return (
-    <div className="flex w-72 shrink-0 flex-col gap-4 overflow-y-auto border-s border-border p-4">
+    <div className={cn("flex w-72 shrink-0 flex-col gap-4 overflow-y-auto border-s border-border p-4", className)}>
       <div className="flex flex-col gap-2">
         <Label>{t("labelAr")}</Label>
         <Input

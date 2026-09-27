@@ -51,7 +51,7 @@ export function ClientsTable({ locale, clients }: { locale: AppLocale; clients: 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative max-w-sm flex-1">
+        <div className="relative w-full sm:max-w-sm sm:flex-1">
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
@@ -80,11 +80,11 @@ export function ClientsTable({ locale, clients }: { locale: AppLocale; clients: 
           <TableHeader>
             <TableRow>
               <TableHead>{t("table.name")}</TableHead>
-              <TableHead>{t("table.contact")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("table.contact")}</TableHead>
               <TableHead>{t("table.adherence")}</TableHead>
-              <TableHead>{t("table.lastActivity")}</TableHead>
+              <TableHead className="hidden lg:table-cell">{t("table.lastActivity")}</TableHead>
               <TableHead>{t("table.status")}</TableHead>
-              <TableHead>{t("table.joined")}</TableHead>
+              <TableHead className="hidden lg:table-cell">{t("table.joined")}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -92,18 +92,18 @@ export function ClientsTable({ locale, clients }: { locale: AppLocale; clients: 
             {shown.map((client) => (
               <TableRow key={client.id}>
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex min-w-0 items-center gap-2.5">
                     <div
                       className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ${tintFor(client.id)}`}
                     >
                       {client.display_name[0]}
                     </div>
-                    <Link href={`/clients/${client.id}`} className="hover:underline">
+                    <Link href={`/clients/${client.id}`} className="min-w-0 truncate hover:underline">
                       {client.display_name}
                     </Link>
                   </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{client.email || client.phone || "—"}</TableCell>
+                <TableCell className="hidden text-muted-foreground md:table-cell">{client.email || client.phone || "—"}</TableCell>
                 <TableCell>
                   {client.adherence == null ? (
                     <span className="text-muted-foreground">—</span>
@@ -121,7 +121,7 @@ export function ClientsTable({ locale, clients }: { locale: AppLocale; clients: 
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
                   {client.lastActive ? formatDate(client.lastActive, locale) : "—"}
                 </TableCell>
                 <TableCell>
@@ -129,7 +129,7 @@ export function ClientsTable({ locale, clients }: { locale: AppLocale; clients: 
                     {client.isLate ? t("filters.late") : t(`status.${client.status}`)}
                   </Badge>
                 </TableCell>
-                <TableCell className="tabular-nums">{formatDate(client.created_at, locale)}</TableCell>
+                <TableCell className="hidden tabular-nums lg:table-cell">{formatDate(client.created_at, locale)}</TableCell>
                 <TableCell>
                   {client.status === "invited" && <RegenerateInviteButton locale={locale} clientId={client.id} />}
                 </TableCell>

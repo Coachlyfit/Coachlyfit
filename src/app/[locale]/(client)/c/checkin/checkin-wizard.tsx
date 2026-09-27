@@ -253,7 +253,7 @@ export function CheckinWizard({
 
   if (phase === "intro") {
     return (
-      <div className="flex min-h-[calc(100dvh-4rem)] flex-col items-center px-2 pb-10 pt-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center px-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(2.5rem,env(safe-area-inset-bottom))] text-center">
         <div className="flex size-19 items-center justify-center rounded-full bg-[#7C3AED] text-2xl font-semibold text-white">
           {businessName.slice(0, 1)}
         </div>
@@ -279,7 +279,7 @@ export function CheckinWizard({
 
   if (phase === "done") {
     return (
-      <div className="flex min-h-[calc(100dvh-4rem)] flex-col items-center justify-center gap-7 px-4 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-7 px-4 text-center">
         <ApertureSweep size={96} />
         <div>
           <h1 className="text-xl font-semibold text-foreground">{t("done.title")}</h1>
@@ -293,10 +293,10 @@ export function CheckinWizard({
   }
 
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] flex-col">
+    <div className="flex min-h-dvh flex-col px-5">
       {phase === "step" && (
         <>
-          <div className="flex items-center gap-3.5 pb-2 pt-1">
+          <div className="flex items-center gap-3.5 pt-[max(1rem,env(safe-area-inset-top))] pb-2">
             <button
               type="button"
               onClick={goBack}
@@ -328,7 +328,7 @@ export function CheckinWizard({
             )}
           </div>
 
-          <div className="pb-6 pt-5">
+          <div className="pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5">
             <Button
               className="h-13 w-full text-base"
               onClick={goNext}
@@ -360,7 +360,7 @@ export function CheckinWizard({
             ))}
           </div>
           {submitError && <p className="mt-3 text-center text-sm text-destructive">{tErrors(submitError)}</p>}
-          <div className="pb-6 pt-5">
+          <div className="pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5">
             <Button className="h-13 w-full text-base" onClick={() => onFinalSubmit()} disabled={submitting}>
               {t("review.submit", { business: businessName })}
             </Button>

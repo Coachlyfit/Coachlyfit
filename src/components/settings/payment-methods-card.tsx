@@ -102,8 +102,8 @@ export function PaymentMethodsCard({ methods }: { methods: PaymentMethod[] }) {
           <ul className="flex flex-col gap-1">
             {methods.map((method) => (
               <li key={method.id} className="flex items-center justify-between gap-2 text-sm">
-                <span>{pickLocale(method, locale)}</span>
-                <Button type="button" variant="ghost" size="icon-sm" onClick={() => setPendingDelete(method.id)}>
+                <span className="min-w-0 truncate">{pickLocale(method, locale)}</span>
+                <Button type="button" variant="ghost" size="icon-sm" className="shrink-0" onClick={() => setPendingDelete(method.id)}>
                   <Trash2 className="size-4" />
                 </Button>
               </li>

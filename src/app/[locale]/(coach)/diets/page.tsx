@@ -91,9 +91,9 @@ export default async function DietsPage({
             <TableHeader>
               <TableRow>
                 <TableHead>{t("table.name")}</TableHead>
-                <TableHead>{t("table.client")}</TableHead>
-                <TableHead>{t("table.dates")}</TableHead>
-                <TableHead>{t("table.created")}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t("table.client")}</TableHead>
+                <TableHead className="hidden md:table-cell">{t("table.dates")}</TableHead>
+                <TableHead className="hidden lg:table-cell">{t("table.created")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,10 +104,10 @@ export default async function DietsPage({
                       {pickLocale(plan, locale)}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="hidden text-muted-foreground sm:table-cell">
                     {plan.clients?.display_name ?? <Badge variant="secondary">{t("template")}</Badge>}
                   </TableCell>
-                  <TableCell className="tabular-nums text-muted-foreground">
+                  <TableCell className="hidden tabular-nums text-muted-foreground md:table-cell">
                     {plan.end_date
                       ? t("dateRange", {
                           start: formatDate(plan.start_date, locale),
@@ -115,7 +115,7 @@ export default async function DietsPage({
                         })
                       : `${formatDate(plan.start_date, locale)} · ${t("ongoing")}`}
                   </TableCell>
-                  <TableCell className="tabular-nums text-muted-foreground">
+                  <TableCell className="hidden tabular-nums text-muted-foreground lg:table-cell">
                     {formatDate(plan.created_at, locale)}
                   </TableCell>
                 </TableRow>

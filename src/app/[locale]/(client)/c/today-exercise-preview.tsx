@@ -26,7 +26,7 @@ export function TodayExercisePreview({ locale, items }: { locale: AppLocale; ite
               type="button"
               onClick={() => hasVideo && setSelected(item.exercises)}
               disabled={!hasVideo}
-              className="flex items-center gap-2.5 text-start disabled:cursor-default"
+              className="flex min-h-10 items-center gap-2.5 text-start disabled:cursor-default"
             >
               <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
               <span className="flex-1 truncate text-[13px]">{pickLocale(item.exercises, locale)}</span>

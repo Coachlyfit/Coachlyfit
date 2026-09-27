@@ -3,7 +3,9 @@ import { getAuthUser, getViewerProfile } from "@/lib/auth/session";
 import { roleHome } from "@/lib/auth/role-home";
 import { AdminSidebar } from "@/components/dashboard/admin-sidebar";
 import { AdminTopbar } from "@/components/dashboard/admin-topbar";
+import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
+import { ADMIN_NAV_ITEMS } from "@/components/dashboard/nav-items";
 
 /** Mirrors the (coach) layout — same getUser()-not-getSession() reasoning,
  * same roleHome bounce. Note this guard does NOT cover the admin server
@@ -31,12 +33,13 @@ export default async function AdminLayout({
     <div className="flex min-h-dvh bg-background text-foreground">
       <PresenceHeartbeat />
       <AdminSidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar locale={locale} fullName={profile.full_name} />
-        <main className="flex-1 overflow-y-auto p-4 font-mono text-sm md:p-6">
+        <main className="min-w-0 flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] font-mono text-sm lg:p-6 lg:pb-6">
           {children}
         </main>
       </div>
+      <BottomNav locale={locale} items={ADMIN_NAV_ITEMS} />
     </div>
   );
 }

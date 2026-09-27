@@ -6,7 +6,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { ScaleButtons } from "@/components/ui/scale-buttons";
 
 export type LoggedSetValues = {
   weight: number | null;
@@ -74,7 +74,7 @@ function SetEntryForm({
     <>
       <SheetTitle>{t("title")}</SheetTitle>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col items-center gap-2">
           <p className="text-xs font-medium text-muted-foreground">{t("weight")}</p>
           <div className="flex items-center gap-2">
@@ -134,21 +134,7 @@ function SetEntryForm({
 
       <div className="flex flex-col gap-2">
         <p className="text-xs font-medium text-muted-foreground">{t("rpe")}</p>
-        <div className="flex flex-wrap gap-1.5">
-          {[6, 7, 8, 9, 10].map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setRpe(rpe === v ? null : v)}
-              className={cn(
-                "flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition",
-                rpe === v ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"
-              )}
-            >
-              {v}
-            </button>
-          ))}
-        </div>
+        <ScaleButtons value={rpe ?? undefined} onChange={(v) => setRpe(rpe === v ? null : v)} min={6} max={10} />
       </div>
 
       <Input

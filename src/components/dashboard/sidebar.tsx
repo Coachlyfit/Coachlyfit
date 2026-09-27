@@ -12,15 +12,15 @@ export function Sidebar({ items = NAV_ITEMS }: { items?: NavItem[] }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:flex lg:h-dvh">
       <div className="px-5 py-5">
         {/* Sidebar ground is always dark (#0F172A light mode / #020617 dark
             mode) regardless of app theme, so the lockup asset is forced. */}
         <CoachlyLockup height={26} onDarkGround />
       </div>
-      <nav className="flex flex-1 flex-col gap-0.5 px-3">
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
         {items.map((item) => {
-          const active = pathname === item.href;
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
             <Link
@@ -28,7 +28,7 @@ export function Sidebar({ items = NAV_ITEMS }: { items?: NavItem[] }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "relative flex min-w-0 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 active
                   ? "bg-sidebar-accent text-sidebar-foreground"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
@@ -45,7 +45,7 @@ export function Sidebar({ items = NAV_ITEMS }: { items?: NavItem[] }) {
                 )}
               />
               <Icon className="size-4 shrink-0" aria-hidden="true" />
-              {t(item.labelKey)}
+              <span className="truncate">{t(item.labelKey)}</span>
             </Link>
           );
         })}

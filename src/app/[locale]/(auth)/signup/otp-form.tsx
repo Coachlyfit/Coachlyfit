@@ -86,8 +86,8 @@ export function OtpForm({ locale }: { locale: "ar" | "en" }) {
     <form onSubmit={onSendOtp} className="flex flex-col gap-4" noValidate>
       <div className="flex flex-col gap-2">
         <Label htmlFor="phone">{t("phone")}</Label>
-        <div className="flex gap-2">
-          <span className="flex h-9 items-center rounded-md border px-3 font-mono text-sm text-muted-foreground">
+        <div dir="ltr" className="flex gap-2">
+          <span className="flex h-10 items-center rounded-md border px-3 font-mono text-sm text-muted-foreground md:h-8">
             +20
           </span>
           <Input
@@ -95,6 +95,7 @@ export function OtpForm({ locale }: { locale: "ar" | "en" }) {
             type="tel"
             inputMode="numeric"
             autoComplete="tel-national"
+            dir="ltr"
             className="flex-1"
             {...phoneForm.register("phone")}
           />

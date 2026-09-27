@@ -66,7 +66,7 @@ export default async function SettingsPage({
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={t("title")} />
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t("account")}</CardTitle>

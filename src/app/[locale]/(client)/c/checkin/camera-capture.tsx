@@ -235,7 +235,11 @@ export function CameraCapture({
               <span className="text-xs text-muted-foreground">
                 {status[pose] === "added" ? t("added") : t("skipped")}
               </span>
-              <button type="button" className="text-xs font-semibold text-primary" onClick={() => retake(pose)}>
+              <button
+                type="button"
+                className="-my-2 min-h-8 px-1 py-2 text-xs font-semibold text-primary"
+                onClick={() => retake(pose)}
+              >
                 {t("retake")}
               </button>
             </div>
@@ -286,7 +290,7 @@ export function CameraCapture({
           height={CANVAS_HEIGHT}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <span className="absolute bottom-3 start-1/2 -translate-x-1/2 rounded-md bg-slate-950/80 px-2.5 py-1 font-mono text-[10px] tracking-wider text-slate-300">
+        <span className="absolute inset-x-0 bottom-3 mx-auto w-fit rounded-md bg-slate-950/80 px-2.5 py-1 font-mono text-[10px] tracking-wider text-slate-300">
           {tFields(stage === "front" ? "photoFront" : "photoSide")}
         </span>
       </div>
@@ -371,7 +375,11 @@ function FallbackTile({
         )}
       </label>
       {!done && !skipped && (
-        <button type="button" onClick={onSkip} className="text-center text-xs text-muted-foreground underline-offset-2 hover:underline">
+        <button
+          type="button"
+          onClick={onSkip}
+          className="min-h-10 px-2 py-2 text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+        >
           {skipLabel}
         </button>
       )}

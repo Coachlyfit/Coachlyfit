@@ -43,7 +43,7 @@ export function ReadonlyAnswer({
   }
 
   if (field.type === "photo" && typeof value === "string") {
-    return <span className="text-sm text-muted-foreground">{value.split("/").pop()}</span>;
+    return <span className="block text-sm break-all text-muted-foreground">{value.split("/").pop()}</span>;
   }
 
   if ((field.type === "exercise_ref" || field.type === "food_ref") && typeof value === "string") {

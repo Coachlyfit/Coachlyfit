@@ -32,8 +32,8 @@ export function Pagination({
   const to = Math.min(page * pageSize, total);
 
   return (
-    <div className="flex items-center justify-between gap-4 pt-2">
-      <p className="text-sm text-muted-foreground" aria-live="polite">
+    <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+      <p className="min-w-0 text-sm text-muted-foreground" aria-live="polite">
         {t("range", {
           from: formatNumber(from, locale),
           to: formatNumber(to, locale),

@@ -48,7 +48,7 @@ export function FeedbackWidget() {
             variant="secondary"
             size="icon"
             aria-label={t("trigger")}
-            className="fixed bottom-20 end-4 z-40 rounded-full shadow-lg md:bottom-4"
+            className="fixed bottom-[calc(var(--bottom-nav-h)+0.5rem)] end-4 z-40 rounded-full shadow-lg lg:bottom-4"
           />
         }
       >

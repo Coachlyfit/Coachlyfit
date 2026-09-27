@@ -406,47 +406,49 @@ export function LibraryClient({
                               {!ex.coach_id ? t("official") : isCustomized ? t("customized") : t("mine")}
                             </Badge>
                           </TableCell>
-                          <TableCell className="flex justify-end gap-1">
-                            {!ex.coach_id ? (
-                              ex.my_clone_id ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("editMyVersion")}
-                                  onClick={() => startEditMyExerciseClone(ex.my_clone_id!)}
-                                >
-                                  <Pencil className="size-4" />
-                                </Button>
+                          <TableCell>
+                            <div className="flex justify-end gap-1">
+                              {!ex.coach_id ? (
+                                ex.my_clone_id ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("editMyVersion")}
+                                    onClick={() => startEditMyExerciseClone(ex.my_clone_id!)}
+                                  >
+                                    <Pencil className="size-4" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("clone")}
+                                    onClick={() => setEditing({ kind: "exercise", mode: "clone", item: ex })}
+                                  >
+                                    <Copy className="size-4" />
+                                  </Button>
+                                )
                               ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("clone")}
-                                  onClick={() => setEditing({ kind: "exercise", mode: "clone", item: ex })}
-                                >
-                                  <Copy className="size-4" />
-                                </Button>
-                              )
-                            ) : (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("edit")}
-                                  onClick={() => setEditing({ kind: "exercise", mode: "edit", item: ex })}
-                                >
-                                  <Pencil className="size-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("delete")}
-                                  onClick={() => setPendingDelete({ kind: "exercise", id: ex.id })}
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              </>
-                            )}
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("edit")}
+                                    onClick={() => setEditing({ kind: "exercise", mode: "edit", item: ex })}
+                                  >
+                                    <Pencil className="size-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("delete")}
+                                    onClick={() => setPendingDelete({ kind: "exercise", id: ex.id })}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -555,47 +557,49 @@ export function LibraryClient({
                               {!food.coach_id ? t("official") : isCustomized ? t("customized") : t("mine")}
                             </Badge>
                           </TableCell>
-                          <TableCell className="flex justify-end gap-1">
-                            {!food.coach_id ? (
-                              food.my_clone_id ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("editMyVersion")}
-                                  onClick={() => startEditMyFoodClone(food.my_clone_id!)}
-                                >
-                                  <Pencil className="size-4" />
-                                </Button>
+                          <TableCell>
+                            <div className="flex justify-end gap-1">
+                              {!food.coach_id ? (
+                                food.my_clone_id ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("editMyVersion")}
+                                    onClick={() => startEditMyFoodClone(food.my_clone_id!)}
+                                  >
+                                    <Pencil className="size-4" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("clone")}
+                                    onClick={() => setEditing({ kind: "food", mode: "clone", item: food })}
+                                  >
+                                    <Copy className="size-4" />
+                                  </Button>
+                                )
                               ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("clone")}
-                                  onClick={() => setEditing({ kind: "food", mode: "clone", item: food })}
-                                >
-                                  <Copy className="size-4" />
-                                </Button>
-                              )
-                            ) : (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("edit")}
-                                  onClick={() => setEditing({ kind: "food", mode: "edit", item: food })}
-                                >
-                                  <Pencil className="size-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  aria-label={t("delete")}
-                                  onClick={() => setPendingDelete({ kind: "food", id: food.id })}
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              </>
-                            )}
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("edit")}
+                                    onClick={() => setEditing({ kind: "food", mode: "edit", item: food })}
+                                  >
+                                    <Pencil className="size-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={t("delete")}
+                                    onClick={() => setPendingDelete({ kind: "food", id: food.id })}
+                                  >
+                                    <Trash2 className="size-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

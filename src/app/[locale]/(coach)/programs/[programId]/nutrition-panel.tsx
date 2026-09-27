@@ -125,7 +125,7 @@ export function NutritionPanel({
                 value={day.diet_plan_id ?? ""}
                 disabled={busyDayId === day.id}
                 onChange={(e) => assignDay(day.id, e.target.value)}
-                className="h-8 flex-1 rounded-md border border-input bg-transparent px-2 text-xs"
+                className="h-8 flex-1 rounded-md border border-input bg-transparent px-2 text-base md:text-xs"
               >
                 <option value="">{t("none")}</option>
                 {variants.map((v) => (

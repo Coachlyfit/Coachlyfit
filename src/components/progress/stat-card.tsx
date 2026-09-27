@@ -33,7 +33,7 @@ export function StatCard({
         <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
       </CardHeader>
       <CardContent className="flex items-baseline gap-2">
-        <p className="text-3xl font-semibold tabular-nums">{value}</p>
+        <p className="truncate text-2xl font-semibold tabular-nums sm:text-3xl">{value}</p>
         {TrendIcon && (
           <TrendIcon
             className={cn(

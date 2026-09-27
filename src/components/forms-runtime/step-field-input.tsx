@@ -106,7 +106,7 @@ function PhotoCaptureStep({
               <div className="absolute inset-y-0 start-2/3 w-px bg-white/10" />
             </div>
             {f.value && (
-              <span className="absolute bottom-3 start-1/2 -translate-x-1/2 rounded-md bg-slate-950/80 px-2.5 py-1 font-mono text-[10px] tracking-wider text-slate-300">
+              <span className="absolute inset-x-0 bottom-3 mx-auto w-fit rounded-md bg-slate-950/80 px-2.5 py-1 font-mono text-[10px] tracking-wider text-slate-300">
                 {t("retake")}
               </span>
             )}

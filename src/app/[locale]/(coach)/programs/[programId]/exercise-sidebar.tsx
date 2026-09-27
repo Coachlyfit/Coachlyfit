@@ -55,7 +55,7 @@ export function ExerciseSidebar({ locale, programId, days }: { locale: AppLocale
       <select
         value={dayId}
         onChange={(e) => setDayId(e.target.value)}
-        className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+        className="h-9 rounded-md border border-input bg-transparent px-2 text-base md:text-sm"
       >
         {days.map((day) => (
           <option key={day.id} value={day.id}>

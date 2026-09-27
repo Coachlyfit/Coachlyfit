@@ -126,7 +126,11 @@ function KanbanCardDraggable({
       {...(disabled ? {} : { ...listeners, ...attributes })}
       className={cn(
         isDragging && "z-10 opacity-50",
-        disabled ? "cursor-default" : "cursor-grab touch-pan-y active:cursor-grabbing"
+        // No touch-pan-y here: the 200ms press-delay PointerSensor above
+        // already distinguishes a drag-hold from a scroll gesture, so
+        // locking touch-action would only block the horizontal swipe
+        // between columns on mobile before that delay elapses.
+        disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing"
       )}
     >
       {children}
