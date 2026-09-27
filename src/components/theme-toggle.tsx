@@ -5,7 +5,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const t = useTranslations("common");
   const { resolvedTheme, setTheme } = useTheme();
 
@@ -14,6 +14,7 @@ export function ThemeToggle() {
       variant="outline"
       size="icon-sm"
       aria-label={t("theme")}
+      className={className}
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       {/* next-themes sets the `dark` class before hydration, so CSS alone

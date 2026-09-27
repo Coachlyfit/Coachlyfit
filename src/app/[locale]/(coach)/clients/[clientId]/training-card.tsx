@@ -105,9 +105,9 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
 
   return (
     <Card>
-      <CardHeader className="flex-row items-start justify-between gap-2">
-        <div className="flex flex-col gap-1">
-          <CardTitle className="text-base">{pickLocale(program, locale)}</CardTitle>
+      <CardHeader className="flex-row flex-wrap items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <CardTitle className="truncate text-base">{pickLocale(program, locale)}</CardTitle>
           <p className="text-sm text-muted-foreground">
             {t("weekAndDay", {
               week,
@@ -115,7 +115,7 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
             })}
           </p>
         </div>
-        <Badge variant="secondary">{program.schedule_mode === "weekly" ? t("weekly") : t("cycle")}</Badge>
+        <Badge variant="secondary" className="shrink-0">{program.schedule_mode === "weekly" ? t("weekly") : t("cycle")}</Badge>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

@@ -14,21 +14,27 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/sign-out-action";
-import { BOTTOM_NAV_PRIMARY, BOTTOM_NAV_OVERFLOW } from "./nav-items";
+import { NAV_ITEMS, type NavItem } from "./nav-items";
 
-// Bottom tab bar for <768px. Capped at 5 items total (bottom-nav-limit):
-// 4 primary destinations + one "more" sheet for the rest, never a 6th icon
-// crammed in.
-export function BottomNav({ locale }: { locale: string }) {
+// Bottom tab bar for <1024px (below the sidebar's lg breakpoint). Capped at 5
+// items total (bottom-nav-limit): 4 primary destinations + one "more" sheet
+// for the rest, never a 6th icon crammed in.
+export function BottomNav({ locale, items = NAV_ITEMS }: { locale: string; items?: NavItem[] }) {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const primary = items.slice(0, 4);
+  const overflow = items.slice(4);
+
+  function isActive(href: string) {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
-      {BOTTOM_NAV_PRIMARY.map((item) => {
-        const active = pathname === item.href;
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
+      {primary.map((item) => {
+        const active = isActive(item.href);
         const Icon = item.icon;
         return (
           <Link
@@ -36,12 +42,12 @@ export function BottomNav({ locale }: { locale: string }) {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
+              "flex min-h-12 min-w-0 flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
               active ? "text-primary" : "text-muted-foreground"
             )}
           >
-            <Icon className="size-5" aria-hidden="true" />
-            {t(item.labelKey)}
+            <Icon className="size-5 shrink-0" aria-hidden="true" />
+            <span className="max-w-full truncate px-1">{t(item.labelKey)}</span>
           </Link>
         );
       })}
@@ -50,7 +56,7 @@ export function BottomNav({ locale }: { locale: string }) {
           render={
             <button
               type="button"
-              className="flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium text-muted-foreground"
+              className="flex min-h-12 min-w-0 flex-1 flex-col items-center gap-1 py-2 text-xs font-medium text-muted-foreground"
             />
           }
         >
@@ -61,8 +67,8 @@ export function BottomNav({ locale }: { locale: string }) {
           <SheetHeader>
             <SheetTitle>{tCommon("more")}</SheetTitle>
           </SheetHeader>
-          <div className="flex flex-col gap-1 px-4 pb-4">
-            {BOTTOM_NAV_OVERFLOW.map((item) => {
+          <div className="flex flex-col gap-1 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            {overflow.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -90,3 +96,4 @@ export function BottomNav({ locale }: { locale: string }) {
     </nav>
   );
 }
+

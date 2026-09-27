@@ -108,7 +108,7 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
           )}
         </span>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
+      <PopoverContent align="end" className="w-80 max-w-[calc(100vw-1rem)]">
         {notifications.length === 0 ? (
           <p className="py-4 text-center text-sm text-muted-foreground">{t("empty")}</p>
         ) : (

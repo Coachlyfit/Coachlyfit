@@ -56,7 +56,7 @@ export function InboxList({ threads, locale }: { threads: InboxThread[]; locale:
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative max-w-sm flex-1">
+        <div className="relative w-full sm:max-w-sm sm:flex-1">
           <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("search")} className="ps-9" />
         </div>

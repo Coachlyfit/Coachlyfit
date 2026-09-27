@@ -41,8 +41,8 @@ export async function CheckinHero({
           </p>
         </div>
 
-        <div className="flex items-end justify-between gap-4">
-          <div>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-xs text-muted-foreground">{t("currentWeight")}</p>
             {trend ? (
               <div className="flex items-baseline gap-2">

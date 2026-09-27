@@ -46,10 +46,10 @@ export default async function ClientFormsPage({
               {pending.map((a) => (
                 <Link key={a.id} href={`/c/forms/${a.id}`}>
                   <Card className="transition-colors hover:bg-muted/50">
-                    <CardContent className="flex items-center justify-between py-4">
-                      <span className="font-medium">{nameFor(a)}</span>
+                    <CardContent className="flex items-center justify-between gap-3 py-4">
+                      <span className="min-w-0 flex-1 truncate font-medium">{nameFor(a)}</span>
                       {a.due_at && (
-                        <span className="text-sm text-muted-foreground">
+                        <span className="shrink-0 text-sm text-muted-foreground">
                           {t("dueAt", { date: formatDate(a.due_at, locale) })}
                         </span>
                       )}
@@ -64,9 +64,9 @@ export default async function ClientFormsPage({
               <h2 className="text-sm font-medium text-muted-foreground">{t("completed")}</h2>
               {completed.map((a) => (
                 <Card key={a.id}>
-                  <CardContent className="flex items-center justify-between py-4">
-                    <span className="font-medium">{nameFor(a)}</span>
-                    <Badge variant="secondary">{t("completed")}</Badge>
+                  <CardContent className="flex items-center justify-between gap-3 py-4">
+                    <span className="min-w-0 flex-1 truncate font-medium">{nameFor(a)}</span>
+                    <Badge variant="secondary" className="shrink-0">{t("completed")}</Badge>
                   </CardContent>
                 </Card>
               ))}

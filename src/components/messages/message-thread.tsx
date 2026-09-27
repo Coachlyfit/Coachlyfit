@@ -96,7 +96,7 @@ export function MessageThread({
                       : "rounded-ss-sm border border-border bg-card"
                   )}
                 >
-                  <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">{message.body}</p>
+                  <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.body}</p>
                   <p
                     className={cn(
                       "mt-1 font-mono text-[9.5px]",
@@ -115,9 +115,9 @@ export function MessageThread({
       {/* me-14 clears FeedbackWidget's fixed bottom-end corner button
           ((coach)/layout.tsx) -- without it the widget's circle sits
           directly on top of Send since this panel's composer runs flush to
-          the same corner, on mobile (bottom-20) as well as desktop
-          (bottom-4). */}
-      <div className="flex items-center gap-2 me-14">
+          the same corner. Only the coach layout mounts that widget, so the
+          client side (viewerRole === "client") doesn't need the clearance. */}
+      <div className={cn("flex items-center gap-2", viewerRole === "coach" && "me-14")}>
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -128,7 +128,7 @@ export function MessageThread({
             }
           }}
           placeholder={t("placeholder")}
-          className="h-11 flex-1 rounded-full border border-border bg-card px-4 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="h-11 flex-1 rounded-full border border-border bg-card px-4 text-base outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm"
         />
         <Button
           size="icon"

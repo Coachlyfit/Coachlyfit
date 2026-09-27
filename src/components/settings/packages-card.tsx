@@ -162,18 +162,20 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
                   <TableCell className="tabular-nums text-muted-foreground">
                     {formatNumber(pkg.price_egp, locale)} {t("egp")}
                   </TableCell>
-                  <TableCell className="flex items-center gap-1">
-                    <Button type="button" variant="ghost" size="icon-sm" onClick={() => openEdit(pkg)}>
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setPendingDelete(pkg.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button type="button" variant="ghost" size="icon-sm" onClick={() => openEdit(pkg)}>
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setPendingDelete(pkg.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

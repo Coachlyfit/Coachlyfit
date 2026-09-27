@@ -20,7 +20,7 @@ export function AnnouncementBanner({
   return (
     <div className="flex items-center gap-2.5 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground">
       <Megaphone className="size-4 shrink-0" aria-hidden="true" />
-      <span className="flex-1">{text}</span>
+      <span className="min-w-0 flex-1 break-words">{text}</span>
     </div>
   );
 }

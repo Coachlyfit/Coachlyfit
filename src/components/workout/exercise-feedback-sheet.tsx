@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ScaleButtons } from "@/components/ui/scale-buttons";
 
 export type ExerciseFeedbackValues = {
   pain: number | null;
@@ -14,31 +14,19 @@ function ScaleRow({
   label,
   value,
   onChange,
-  options,
+  min,
+  max,
 }: {
   label: string;
   value: number | null;
   onChange: (v: number | null) => void;
-  options: number[];
+  min: number;
+  max: number;
 }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {options.map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(value === v ? null : v)}
-            className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold transition",
-              value === v ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"
-            )}
-          >
-            {v}
-          </button>
-        ))}
-      </div>
+      <ScaleButtons value={value ?? undefined} onChange={(v) => onChange(value === v ? null : v)} min={min} max={max} />
     </div>
   );
 }
@@ -69,7 +57,7 @@ export function ExerciseFeedbackSheet({
       <SheetContent side="bottom" className="flex flex-col gap-5 rounded-t-2xl p-5">
         <SheetTitle>{t("title")}</SheetTitle>
 
-        <ScaleRow label={t("pain")} value={pain} onChange={setPain} options={[0, 1, 2, 3, 4, 5]} />
+        <ScaleRow label={t("pain")} value={pain} onChange={setPain} min={0} max={5} />
 
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={onSkip} className="flex-1">

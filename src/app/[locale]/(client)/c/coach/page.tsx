@@ -22,7 +22,7 @@ export default async function ClientCoachPage({
     .single();
 
   return (
-    <div className="flex h-[calc(100dvh-8.5rem)] flex-col gap-4">
+    <div className="flex h-[calc(100dvh-9rem-var(--bottom-nav-h))] flex-col gap-4">
       <h1 className="text-2xl font-semibold tracking-tight">
         {clientRow?.coaches?.business_name ?? t("coach")}
       </h1>

@@ -94,8 +94,8 @@ export default async function ClientDietPage({
                 <ul className="flex flex-col gap-2">
                   {meal.meal_items.map((item) => (
                     <li key={item.id} className="flex items-center justify-between gap-2 text-sm">
-                      <span>{pickLocale(item.foods, locale)}</span>
-                      <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                      <span className="min-w-0 flex-1 truncate">{pickLocale(item.foods, locale)}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
                         {t("quantityUnit", { quantity: item.quantity, unit: item.unit })} ·{" "}
                         {Math.round((item.foods?.kcal ?? 0) * item.quantity)}kcal
                       </span>

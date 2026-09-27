@@ -439,7 +439,7 @@ export function WorkoutSessionClient({
 
   if (done) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-card px-8 py-10 text-center text-card-foreground">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-card px-8 py-10 text-center text-card-foreground">
         <ApertureSweep size={104} className="text-card-foreground" />
         <div>
           <p className="text-xl font-semibold text-foreground">{t("finishDone")}</p>
@@ -458,8 +458,11 @@ export function WorkoutSessionClient({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-foreground">
-      <div className="flex items-center gap-3 border-b border-border px-5 pt-14.5 pb-3.5">
+    // Fixed full-bleed overlay, same reasoning as the forms/[assignmentId]
+    // fill screen: this is a bare full-viewport session runner, not a page
+    // meant to sit inside the (client)/c layout's header/nav/max-w-lg chrome.
+    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-background text-foreground">
+      <div className="flex items-center gap-3 border-b border-border px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-3.5">
         <button
           type="button"
           onClick={() => router.push("/c")}
@@ -478,9 +481,9 @@ export function WorkoutSessionClient({
       </div>
 
       {restTimer.isResting && (
-        <div className="flex items-center gap-3.5 bg-primary px-5 py-3.5">
+        <div className="flex flex-wrap items-center gap-2.5 bg-primary px-5 py-3.5">
           <p className="font-mono text-xl font-semibold text-primary-foreground">{mmss(restTimer.remaining)}</p>
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-primary-foreground/25">
+          <div className="h-1 min-w-16 flex-1 overflow-hidden rounded-full bg-primary-foreground/25">
             <div
               className="h-full bg-primary-foreground"
               style={{ width: `${(restTimer.remaining / restTimer.duration) * 100}%` }}
@@ -490,7 +493,7 @@ export function WorkoutSessionClient({
             type="button"
             onClick={() => restTimer.adjust(-15)}
             aria-label={t("restMinus15")}
-            className="flex h-9 shrink-0 items-center px-2 text-xs font-semibold text-primary-foreground"
+            className="flex h-11 min-w-11 shrink-0 items-center justify-center px-2 text-xs font-semibold text-primary-foreground"
           >
             −15
           </button>
@@ -498,21 +501,21 @@ export function WorkoutSessionClient({
             type="button"
             onClick={() => restTimer.adjust(15)}
             aria-label={t("restPlus15")}
-            className="flex h-9 shrink-0 items-center px-2 text-xs font-semibold text-primary-foreground"
+            className="flex h-11 min-w-11 shrink-0 items-center justify-center px-2 text-xs font-semibold text-primary-foreground"
           >
             +15
           </button>
           <button
             type="button"
             onClick={restTimer.skip}
-            className="flex h-9 shrink-0 items-center px-2 text-xs font-semibold text-primary-foreground"
+            className="flex h-11 shrink-0 items-center justify-center px-2 text-xs font-semibold text-primary-foreground"
           >
             {t("skipRest")}
           </button>
         </div>
       )}
 
-      <div className="flex flex-col gap-3.5 px-5 py-4">
+      <div className="flex flex-col gap-3.5 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {itemGroups.map((group, groupIdx) => {
           const showBlockHeader = shouldShowBlockHeader(group);
           return (
@@ -568,15 +571,15 @@ export function WorkoutSessionClient({
                     {t("adjustedChip", { reason: tReason(adjustedItemReasons[item.id]) })}
                   </p>
                 )}
-                <div className="mt-1 flex items-center gap-2.5">
-                  <span className="font-mono text-[11px] text-muted-foreground">
+                <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
                     {displaySets.length} × {repsRangeLabel(displaySets)}
                   </span>
                   {activeExercise(item).video_url && (
                     <button
                       type="button"
                       onClick={() => setVideoExercise(activeExercise(item))}
-                      className="text-[11.5px] font-medium text-primary"
+                      className="-my-1.5 min-h-8 shrink-0 px-0 py-1.5 text-[11.5px] font-medium text-primary"
                     >
                       {t("watchForm")}
                     </button>
@@ -584,14 +587,14 @@ export function WorkoutSessionClient({
                   <button
                     type="button"
                     onClick={() => setSwapItem(item)}
-                    className="text-[11.5px] font-medium text-muted-foreground"
+                    className="-my-1.5 min-h-8 shrink-0 px-0 py-1.5 text-[11.5px] font-medium text-muted-foreground"
                   >
                     {t("swap")}
                   </button>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2.5">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(3.25rem,1fr))] gap-2">
               {displaySets.map((set, i) => {
                 const log = logs.get(setKey(item.id, i + 1));
                 const on = log != null;
@@ -614,17 +617,17 @@ export function WorkoutSessionClient({
                       })
                     }
                     className={cn(
-                      "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px]",
+                      "flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-[10px] border-[1.5px] px-1",
                       showPrev ? "h-16" : "h-13",
                       on ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"
                     )}
                   >
-                    <span className="font-mono text-sm font-semibold">
+                    <span className="max-w-full truncate font-mono text-sm font-semibold">
                       {log?.weight ?? set.weight ?? t("bodyweight")}
                     </span>
                     <span className="font-mono text-[9px] tracking-wider">{log?.reps ?? set.reps}</span>
                     {prevSet && (
-                      <span className="font-mono text-[8px] tracking-wide opacity-60">
+                      <span className="max-w-full truncate font-mono text-[8px] tracking-wide opacity-60">
                         {t("prevShort")} {prevSet.weight != null ? `${prevSet.weight}×${prevSet.reps}` : prevSet.reps}
                       </span>
                     )}
@@ -644,14 +647,14 @@ export function WorkoutSessionClient({
                   <button
                     type="button"
                     onClick={() => markDone(item)}
-                    className="text-[11.5px] font-medium text-primary"
+                    className="-my-1.5 min-h-8 px-0 py-1.5 text-[11.5px] font-medium text-primary"
                   >
                     {t("markDone")}
                   </button>
                   <button
                     type="button"
                     onClick={() => skipExercise(item)}
-                    className="text-[11.5px] font-medium text-muted-foreground"
+                    className="-my-1.5 min-h-8 px-0 py-1.5 text-[11.5px] font-medium text-muted-foreground"
                   >
                     {t("skipExercise")}
                   </button>

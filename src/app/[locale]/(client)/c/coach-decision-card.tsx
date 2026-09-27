@@ -50,7 +50,7 @@ export function CoachDecisionCard({ decision }: { decision: ClientDecisionCardDa
             type="button"
             onClick={() => setDismissed(true)}
             aria-label={t("dismiss")}
-            className="shrink-0 text-accent-tint-foreground/60 hover:text-accent-tint-foreground"
+            className="-m-2 flex size-10 shrink-0 items-center justify-center text-accent-tint-foreground/60 hover:text-accent-tint-foreground"
           >
             <X className="size-4" aria-hidden="true" />
           </button>
@@ -60,7 +60,9 @@ export function CoachDecisionCard({ decision }: { decision: ClientDecisionCardDa
           {t("reasonPrefix")} {tReason(decision.reasonKey)}
         </p>
 
-        {decision.clientNote && <p className="text-sm text-accent-tint-foreground">«{decision.clientNote}»</p>}
+        {decision.clientNote && (
+          <p className="text-sm break-words text-accent-tint-foreground">«{decision.clientNote}»</p>
+        )}
 
         {decision.adjustments.length > 0 && (
           <div className="text-accent-tint-foreground">

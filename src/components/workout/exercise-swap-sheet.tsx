@@ -105,7 +105,7 @@ export function ExerciseSwapSheet({
             className="border-[#1E293B] bg-[#0F172A] text-[#E2E8F0] placeholder:text-[#64748B]"
           />
 
-          <div className="flex max-h-80 flex-col gap-1 overflow-y-auto">
+          <div className="flex max-h-[40dvh] flex-col gap-1 overflow-y-auto">
             {isPending && <p className="p-3 text-center text-sm text-[#64748B]">{t("searching")}</p>}
             {!isPending && exercises?.length === 0 && (
               <p className="p-3 text-center text-sm text-[#64748B]">{t("noExercisesMatch")}</p>

@@ -78,7 +78,7 @@ export default async function ClientLayout({
           </Button>
         </form>
       </header>
-      <main className="mx-auto w-full max-w-lg flex-1 p-4 pb-20">{children}</main>
+      <main className="mx-auto w-full min-w-0 max-w-lg flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)]">{children}</main>
       <ClientNav />
     </div>
   );

@@ -75,7 +75,7 @@ export default async function CoachLayout({
        * them -- that's the admin's activity, not the coach's. */}
       {!impersonating && <PresenceHeartbeat />}
       <Sidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
         {settings.announcement.enabled && (
           <AnnouncementBanner
@@ -85,7 +85,7 @@ export default async function CoachLayout({
           />
         )}
         <Topbar locale={locale} fullName={profile.full_name} />
-        <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 md:pb-6">
+        <main className="min-w-0 flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] lg:p-6 lg:pb-6">
           {children}
         </main>
       </div>
