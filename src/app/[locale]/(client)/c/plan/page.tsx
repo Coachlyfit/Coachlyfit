@@ -130,7 +130,11 @@ export default async function ClientPlanPage({
             </div>
           );
 
-          return day && (hasWorkout || hasRehab) ? (
+          // Only today (still startable) or an already-done day (reviewable)
+          // link straight into the workout route, which starts/resumes a
+          // session on load — a past day that was never done, or a future
+          // one, must not spawn a session just from being tapped to view.
+          return day && (hasWorkout || hasRehab) && (isToday || done) ? (
             <Link key={date} href={`/c/workout/${day.id}`}>
               {content}
             </Link>
