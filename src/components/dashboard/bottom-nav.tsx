@@ -14,12 +14,19 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/sign-out-action";
-import { NAV_ITEMS, type NavItem } from "./nav-items";
+import { NAV_ITEMS, ADMIN_NAV_ITEMS } from "./nav-items";
 
 // Bottom tab bar for <1024px (below the sidebar's lg breakpoint). Capped at 5
 // items total (bottom-nav-limit): 4 primary destinations + one "more" sheet
 // for the rest, never a 6th icon crammed in.
-export function BottomNav({ locale, items = NAV_ITEMS }: { locale: string; items?: NavItem[] }) {
+//
+// Takes `admin` (a bool), not the items array itself -- same reasoning as
+// admin-sidebar.tsx/admin-topbar.tsx: NAV_ITEMS/ADMIN_NAV_ITEMS carry lucide
+// icon components, which aren't serializable across the Server->Client
+// boundary, so the (admin) Server Component layout can't pass ADMIN_NAV_ITEMS
+// down as a prop.
+export function BottomNav({ locale, admin = false }: { locale: string; admin?: boolean }) {
+  const items = admin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const pathname = usePathname();

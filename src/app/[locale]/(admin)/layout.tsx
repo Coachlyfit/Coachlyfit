@@ -5,7 +5,6 @@ import { AdminSidebar } from "@/components/dashboard/admin-sidebar";
 import { AdminTopbar } from "@/components/dashboard/admin-topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
-import { ADMIN_NAV_ITEMS } from "@/components/dashboard/nav-items";
 
 /** Mirrors the (coach) layout — same getUser()-not-getSession() reasoning,
  * same roleHome bounce. Note this guard does NOT cover the admin server
@@ -39,7 +38,7 @@ export default async function AdminLayout({
           {children}
         </main>
       </div>
-      <BottomNav locale={locale} items={ADMIN_NAV_ITEMS} />
+      <BottomNav locale={locale} admin />
     </div>
   );
 }
