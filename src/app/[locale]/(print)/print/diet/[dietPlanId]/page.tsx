@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
-import { planMacros, mealMacros } from "@/domain/nutrition/macros";
+import { planMacros, mealMacros, formatServing } from "@/domain/nutrition/macros";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { PrintButton } from "@/components/print/print-button";
@@ -89,7 +89,7 @@ export default async function PrintDietPlanPage({
                       <tr key={item.id} className="border-b border-gray-200">
                         <td className="py-1.5">{pickLocale(item.foods, locale)}</td>
                         <td className="py-1.5 tabular-nums">
-                          {item.quantity} {item.unit}
+                          {formatServing(item.quantity, item.foods?.serving_label)}
                         </td>
                         <td className="py-1.5 tabular-nums">{Math.round((item.foods?.kcal ?? 0) * item.quantity)}</td>
                       </tr>

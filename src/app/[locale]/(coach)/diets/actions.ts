@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
@@ -53,6 +55,8 @@ export async function updateDietPlanAction(locale: string, id: string, formData:
     name_en: formData.get("name_en"),
     start_date: formData.get("start_date") || "",
     end_date: formData.get("end_date") || "",
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -344,4 +348,105 @@ export async function reorderMealItemsAction(
 
   await new DietPlansService(supabase).reorderItems(mealId, parsed.data.ids);
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+// Quantity-only edit from the builder's inline input — the common edit by
+// far, so it skips re-sending food_id/unit.
+export async function setItemQuantityAction(
+  locale: string,
+  dietPlanId: string,
+  itemId: string,
+  quantity: number
+): Promise<ActionResult> {
+  const parsed = mealItemSchema.shape.quantity.safeParse(quantity);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const updated = await new DietPlansService(supabase).updateItem(itemId, { quantity: parsed.data });
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+// Duplicate within the same plan (targetPlanId === dietPlanId) or copy to a
+// sibling variant. RLS decides whether the target is writable.
+export async function copyMealAction(
+  locale: string,
+  dietPlanId: string,
+  mealId: string,
+  targetPlanId: string
+): Promise<ActionResult> {
+  const ids = z.string().uuid().array().length(2).safeParse([mealId, targetPlanId]);
+  if (!ids.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const copied = await new DietPlansService(supabase).copyMeal(mealId, targetPlanId);
+  if (!copied) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+  if (targetPlanId !== dietPlanId) revalidatePath(`/${locale}/diets/${targetPlanId}`);
+}
+
+// The empty-plan shortcut. Labels are data stored in both languages, so
+// they're read from both message files rather than the request locale.
+const STARTER_MEALS = [
+  { key: "breakfast", time: "08:00" },
+  { key: "lunch", time: "13:00" },
+  { key: "snack", time: "16:30" },
+  { key: "dinner", time: "20:00" },
+] as const;
+
+export async function addStarterMealsAction(locale: string, dietPlanId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const [tAr, tEn] = await Promise.all([
+    getTranslations({ locale: "ar", namespace: "diets.starterMeals" }),
+    getTranslations({ locale: "en", namespace: "diets.starterMeals" }),
+  ]);
+  const added = await new DietPlansService(supabase).addMeals(
+    dietPlanId,
+    STARTER_MEALS.map(({ key, time }) => ({ label_ar: tAr(key), label_en: tEn(key), time_of_day: time }))
+  );
+  if (!added) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+// "Duplicate as new variant": same client/program, "(copy)" names. Returns
+// the new id so the builder can jump straight into it.
+export async function duplicateDietPlanAction(locale: string, dietPlanId: string): Promise<CreateResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const service = new DietPlansService(supabase);
+  const source = await service.getTree(dietPlanId);
+  if (!source) return { error: "not_found_or_forbidden" };
+
+  const [tAr, tEn] = await Promise.all([
+    getTranslations({ locale: "ar", namespace: "diets" }),
+    getTranslations({ locale: "en", namespace: "diets" }),
+  ]);
+  const copy = await service.duplicate(
+    dietPlanId,
+    tAr("copyName", { name: source.name_ar }).slice(0, 100),
+    tEn("copyName", { name: source.name_en }).slice(0, 100)
+  );
+  if (!copy) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets`);
+  if (source.program_id) revalidatePath(`/${locale}/programs/${source.program_id}`);
+  return { id: copy.id };
 }

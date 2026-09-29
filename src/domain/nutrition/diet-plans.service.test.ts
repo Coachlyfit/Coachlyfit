@@ -10,6 +10,8 @@ function fakeSupabase(
     treeRow?: Record<string, unknown> | null;
     affected?: unknown[];
     ownClientRow?: Record<string, unknown> | null;
+    sourceMeal?: Record<string, unknown> | null;
+    childCount?: number;
   } = {}
 ) {
   const {
@@ -17,6 +19,8 @@ function fakeSupabase(
     treeRow = null,
     affected = [{ id: "1" }],
     ownClientRow = { id: "client-1" },
+    sourceMeal = null,
+    childCount = 0,
   } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
@@ -27,7 +31,15 @@ function fakeSupabase(
   const db = {
     from(table: string) {
       return {
-        select: (cols?: string) => {
+        select: (cols?: string, selectOpts?: { head?: boolean }) => {
+          // nextIndex: select("id", { count, head }).eq(...) resolves a count.
+          if (selectOpts?.head) {
+            return { eq: async () => ({ count: childCount, error: null }) };
+          }
+          // copyMeal's source-meal read.
+          if (cols?.startsWith("label_ar")) {
+            return { eq: () => ({ maybeSingle: async () => ({ data: sourceMeal, error: null }) }) };
+          }
           // Parent-derivation lookups: select("coach_id, client_id").eq(...).maybeSingle()
           if (cols === "coach_id, client_id") {
             return { eq: () => ({ maybeSingle: async () => ({ data: parentRow, error: null }) }) };
@@ -60,6 +72,7 @@ function fakeSupabase(
             select: () => ({
               single: async () => ({ data: { id: `new-${table}`, ...(payload as object) }, error: null }),
             }),
+            then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
           };
         },
         update: (payload: unknown) => {
@@ -350,6 +363,57 @@ describe("DietPlansService", () => {
 
       expect(result).toEqual(tree);
       expect(eqCalls).toEqual([["client_id", "client-9"]]);
+    });
+  });
+
+  describe("ordering", () => {
+    it("appends a new meal/item after its existing siblings instead of at order_index 0", async () => {
+      const { db, inserts } = fakeSupabase({ parentRow: { coach_id: "c", client_id: "k" }, childCount: 3 });
+      const svc = new DietPlansService(db);
+      await svc.addMeal("plan-1", {});
+      await svc.addItem("meal-1", { food_id: "food-1" });
+      expect(inserts[0].payload).toMatchObject({ order_index: 3 });
+      expect(inserts[1].payload).toMatchObject({ order_index: 3 });
+    });
+
+    it("addMeals numbers a batch consecutively from the end", async () => {
+      const { db, inserts } = fakeSupabase({ parentRow: { coach_id: "c", client_id: "k" }, childCount: 1 });
+      await new DietPlansService(db).addMeals("plan-1", [{ label_en: "A" }, { label_en: "B" }]);
+      expect(inserts[0].payload).toEqual([
+        expect.objectContaining({ order_index: 1, label_en: "A", diet_plan_id: "plan-1" }),
+        expect.objectContaining({ order_index: 2, label_en: "B", diet_plan_id: "plan-1" }),
+      ]);
+    });
+  });
+
+  describe("copyMeal", () => {
+    it("copies label/time/items onto the target plan with the TARGET's tenant columns", async () => {
+      const { db, inserts } = fakeSupabase({
+        parentRow: { coach_id: "coach-1", client_id: "client-rest" },
+        sourceMeal: {
+          label_ar: "فطار",
+          label_en: "Breakfast",
+          time_of_day: "08:00",
+          meal_items: [{ food_id: "food-1", quantity: 2, unit: "100g", order_index: 0 }],
+        },
+      });
+      const meal = await new DietPlansService(db).copyMeal("meal-1", "plan-rest");
+
+      expect(meal).not.toBeNull();
+      expect(inserts[0]).toMatchObject({
+        table: "meals",
+        payload: { diet_plan_id: "plan-rest", client_id: "client-rest", label_en: "Breakfast", time_of_day: "08:00" },
+      });
+      expect(inserts[1].table).toBe("meal_items");
+      expect(inserts[1].payload).toEqual([
+        expect.objectContaining({ meal_id: "new-meals", client_id: "client-rest", food_id: "food-1", quantity: 2 }),
+      ]);
+    });
+
+    it("returns null and inserts nothing when the source meal isn't visible", async () => {
+      const { db, inserts } = fakeSupabase({ parentRow: { coach_id: "c", client_id: "k" }, sourceMeal: null });
+      expect(await new DietPlansService(db).copyMeal("meal-1", "plan-1")).toBeNull();
+      expect(inserts).toHaveLength(0);
     });
   });
 });

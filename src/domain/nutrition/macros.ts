@@ -86,3 +86,52 @@ export function targetDelta(
     fat_g: targets.target_fat_g == null ? null : round1(totals.fat_g - targets.target_fat_g),
   };
 }
+
+/** Renders a meal_item's amount the way a person reads it. quantity is a
+ * multiple of the food's own serving_label (see itemMacros), so a "100g"
+ * food at 1.5 reads "150g"; anything not a plain gram/ml amount ("1 cup",
+ * "1 slice") reads "1.5 × 1 cup". */
+export function formatServing(quantity: number, servingLabel: string | null | undefined): string {
+  const label = (servingLabel ?? "").trim();
+  const m = /^(\d+(?:\.\d+)?)\s*(g|ml)$/i.exec(label);
+  if (m) return `${round1(quantity * Number(m[1]))}${m[2].toLowerCase()}`;
+  if (!label) return `× ${quantity}`;
+  return quantity === 1 ? label : `${quantity} × ${label}`;
+}
+
+export type PlanWarning =
+  | { code: "macro_kcal_mismatch"; macroKcal: number; targetKcal: number }
+  | { code: "over_target"; delta: number }
+  | { code: "under_target"; delta: number }
+  | { code: "empty_meal"; mealIndex: number };
+
+const TOLERANCE = 0.1;
+
+/** Coach-facing sanity checks for the builder's day summary. Deliberately
+ * only the four that point at a real mistake: targets that contradict
+ * themselves (P*4 + C*4 + F*9 far from kcal), a built plan far off its own
+ * kcal target, and meals left empty. under_target is skipped while the
+ * plan has no food yet — that's "not started", not a mistake. */
+export function planWarnings(meals: MealItemLike[][], targets: MacroTargets): PlanWarning[] {
+  const warnings: PlanWarning[] = [];
+  const { target_kcal, target_protein_g, target_carb_g, target_fat_g } = targets;
+
+  if (target_kcal != null && target_protein_g != null && target_carb_g != null && target_fat_g != null) {
+    const macroKcal = Math.round(target_protein_g * 4 + target_carb_g * 4 + target_fat_g * 9);
+    if (Math.abs(macroKcal - target_kcal) > target_kcal * TOLERANCE) {
+      warnings.push({ code: "macro_kcal_mismatch", macroKcal, targetKcal: target_kcal });
+    }
+  }
+
+  const hasFood = meals.some((m) => m.length > 0);
+  if (target_kcal != null && hasFood) {
+    const delta = Math.round(planMacros(meals).kcal - target_kcal);
+    if (delta > target_kcal * TOLERANCE) warnings.push({ code: "over_target", delta });
+    else if (-delta > target_kcal * TOLERANCE) warnings.push({ code: "under_target", delta });
+  }
+
+  meals.forEach((m, mealIndex) => {
+    if (m.length === 0) warnings.push({ code: "empty_meal", mealIndex });
+  });
+  return warnings;
+}
