@@ -418,6 +418,12 @@ export function WorkoutSessionClient({
   }
 
   const [finishing, setFinishing] = useState(false);
+  // Splash only fires for a finish that happens *in this render* -- reopening
+  // a day that was already completed (alreadyCompleted from the server) is
+  // "راجع التمرين" / reviewWorkout, which should show the logged session
+  // (checkmarks, logged reps, doneCount/totalSets header below), not the
+  // one-time finish celebration.
+  const [justFinished, setJustFinished] = useState(false);
 
   async function onFinish() {
     if (finishing) return;
@@ -426,6 +432,7 @@ export function WorkoutSessionClient({
     // client to keep interacting with this session while the write lands,
     // and the summary screen doesn't depend on the server response.
     setDone(true);
+    setJustFinished(true);
     try {
       await completeSessionAction(sessionId, elapsedS);
     } catch {
@@ -437,7 +444,7 @@ export function WorkoutSessionClient({
     }
   }
 
-  if (done) {
+  if (justFinished) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-card px-8 py-10 text-center text-card-foreground">
         <ApertureSweep size={104} className="text-card-foreground" />

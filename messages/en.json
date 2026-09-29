@@ -940,6 +940,7 @@
         "saveFailed": "Couldn't save that. Try again."
       },
       "tempo": "Tempo",
+      "musclesWorked": "Muscles worked",
       "executionSteps": "How to do it",
       "commonMistakes": "Common mistakes",
       "safetyNote": "Safety note",
@@ -1519,6 +1520,7 @@
       "label": "View"
     },
     "watchVideo": "Watch video",
+    "musclesWorked": "Muscles worked",
     "notDraggable": "Global entries can't be moved",
     "pagination": {
       "range": "{from}–{to} of {total}",
