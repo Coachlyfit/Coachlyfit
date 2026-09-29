@@ -49,7 +49,7 @@ export default async function WorkoutSessionPage({
     new LedgerService(supabase).listActiveAdjustedItemIds(session.client_id),
   ]);
   const exerciseIds = day.program_items.map((item) => item.exercises.id);
-  const lastPerformance = await getLastPerformanceAction(exerciseIds);
+  const lastPerformance = await getLastPerformanceAction(exerciseIds, session.id);
   const today = new Date().toISOString().slice(0, 10);
   const week = day.programs ? weekIndexForDate(day.programs.start_date, today) : 1;
 
@@ -85,6 +85,7 @@ export default async function WorkoutSessionPage({
       lastPerformance={lastPerformance}
       alreadyCompleted={session.completed_at != null}
       initialElapsedSeconds={session.elapsed_seconds}
+      initialItemId={session.current_item_id}
       adjustedItemReasons={Object.fromEntries(adjustedItemReasons)}
     />
   );

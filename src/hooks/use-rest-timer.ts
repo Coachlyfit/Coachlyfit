@@ -6,9 +6,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * setInterval decrement counter — a backgrounded mobile tab throttles
  * timers, so a counter-based rest bar drifts by however long the tab was
  * backgrounded. Deriving remaining time from `Date.now()` on every tick
- * self-corrects regardless of how long the tick was actually delayed. */
+ * self-corrects regardless of how long the tick was actually delayed.
+ * Pausing freezes the seconds left (`pausedLeft`) and drops the end time;
+ * resuming re-derives a fresh end time from it. */
 export function useRestTimer() {
   const [endsAt, setEndsAt] = useState<number | null>(null);
+  const [pausedLeft, setPausedLeft] = useState<number | null>(null);
   const [duration, setDuration] = useState(0);
   const [remaining, setRemaining] = useState(0);
   const vibratedRef = useRef(false);
@@ -32,25 +35,61 @@ export function useRestTimer() {
   }, [endsAt]);
 
   const start = useCallback((seconds: number) => {
+    setPausedLeft(null);
     setDuration(seconds);
+    setRemaining(seconds);
     setEndsAt(Date.now() + seconds * 1000);
   }, []);
 
   const skip = useCallback(() => {
+    setPausedLeft(null);
     setEndsAt(null);
     setRemaining(0);
   }, []);
 
-  /** Adjusts the time remaining, not the original duration — so the
-   * progress bar (remaining / duration) still shrinks toward the ±15s
-   * button rather than jumping back to full width. */
-  const adjust = useCallback((deltaSeconds: number) => {
-    setEndsAt((prev) => {
-      if (prev == null) return prev;
-      const next = Math.max(Date.now(), prev + deltaSeconds * 1000);
-      return next;
-    });
-  }, []);
+  const pause = useCallback(() => {
+    if (endsAt == null) return;
+    const left = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    setEndsAt(null);
+    setPausedLeft(left);
+    setRemaining(left);
+  }, [endsAt]);
 
-  return { remaining, duration, isResting: endsAt != null && remaining > 0, start, skip, adjust };
+  const resume = useCallback(() => {
+    if (pausedLeft == null) return;
+    setEndsAt(Date.now() + pausedLeft * 1000);
+    setPausedLeft(null);
+  }, [pausedLeft]);
+
+  /** Adjusts the time remaining; `duration` only grows if remaining would
+   * exceed it, so the progress bar never overflows. */
+  const adjust = useCallback(
+    (deltaSeconds: number) => {
+      if (pausedLeft != null) {
+        const next = Math.max(0, pausedLeft + deltaSeconds);
+        setPausedLeft(next);
+        setRemaining(next);
+        setDuration((d) => Math.max(d, next));
+        return;
+      }
+      if (endsAt == null) return;
+      const next = Math.max(Date.now(), endsAt + deltaSeconds * 1000);
+      setEndsAt(next);
+      setDuration((d) => Math.max(d, Math.ceil((next - Date.now()) / 1000)));
+    },
+    [endsAt, pausedLeft]
+  );
+
+  const paused = pausedLeft != null;
+  return {
+    remaining,
+    duration,
+    paused,
+    isResting: paused || (endsAt != null && remaining > 0),
+    start,
+    skip,
+    pause,
+    resume,
+    adjust,
+  };
 }

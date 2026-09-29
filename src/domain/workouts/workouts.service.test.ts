@@ -398,3 +398,39 @@ describe("groupSwapsBySession", () => {
     expect(groupSwapsBySession([]).size).toBe(0);
   });
 });
+
+describe("WorkoutsService.getLastPerformance", () => {
+  function fakeLogsDb(rows: unknown[]) {
+    const calls: string[] = [];
+    const chain = {
+      in: (col: string) => (calls.push(`in:${col}`), chain),
+      neq: (col: string, val: string) => (calls.push(`neq:${col}=${val}`), chain),
+      order: () => chain,
+      limit: async () => ({ data: rows, error: null }),
+    };
+    return { db: { from: () => ({ select: () => chain }) } as never, calls };
+  }
+
+  const rows = [
+    { weight: 70, reps: 8, rpe: 8, program_items: { exercise_id: "ex-1" } },
+    { weight: 65, reps: 10, rpe: null, program_items: { exercise_id: "ex-1" } },
+  ];
+
+  it("keeps only the latest set per exercise", async () => {
+    const { db } = fakeLogsDb(rows);
+    const map = await new WorkoutsService(db).getLastPerformance(["ex-1"]);
+    expect(map.get("ex-1")).toEqual({ weight: 70, reps: 8, rpe: 8 });
+  });
+
+  it("excludes the current session's own sets when asked", async () => {
+    const { db, calls } = fakeLogsDb(rows);
+    await new WorkoutsService(db).getLastPerformance(["ex-1"], "session-1");
+    expect(calls).toContain("neq:session_id=session-1");
+  });
+
+  it("doesn't filter by session without an exclude id", async () => {
+    const { db, calls } = fakeLogsDb(rows);
+    await new WorkoutsService(db).getLastPerformance(["ex-1"]);
+    expect(calls.some((c) => c.startsWith("neq:"))).toBe(false);
+  });
+});

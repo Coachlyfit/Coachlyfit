@@ -222,16 +222,17 @@ export class WorkoutsService {
    * the exercise, not the row. Used to prefill SetEntrySheet and to drive
    * suggestNextWeight (suggest.ts). One query for the whole day: RLS's
    * client_own already scopes this to the caller's own logs, so no
-   * clientId filter is needed beyond that. */
-  async getLastPerformance(exerciseIds: string[]): Promise<Map<string, LastPerformance>> {
+   * clientId filter is needed beyond that. `excludeSessionId` keeps a
+   * resumed session's own sets from showing up as "last time". */
+  async getLastPerformance(exerciseIds: string[], excludeSessionId?: string): Promise<Map<string, LastPerformance>> {
     if (exerciseIds.length === 0) return new Map();
 
-    const { data, error } = await this.db
+    let q = this.db
       .from("workout_set_logs")
       .select("weight, reps, rpe, completed_at, program_items!inner(exercise_id)")
-      .in("program_items.exercise_id", exerciseIds)
-      .order("completed_at", { ascending: false })
-      .limit(200);
+      .in("program_items.exercise_id", exerciseIds);
+    if (excludeSessionId) q = q.neq("session_id", excludeSessionId);
+    const { data, error } = await q.order("completed_at", { ascending: false }).limit(200);
     if (error) throw error;
 
     const byExercise = new Map<string, LastPerformance>();
