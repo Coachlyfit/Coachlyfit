@@ -10,6 +10,7 @@ import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { TodayExercisePreview } from "../today-exercise-preview";
 
 export default async function ClientPlanPage({
   params,
@@ -134,13 +135,28 @@ export default async function ClientPlanPage({
           // link straight into the workout route, which starts/resumes a
           // session on load — a past day that was never done, or a future
           // one, must not spawn a session just from being tapped to view.
-          return day && (hasWorkout || hasRehab) && (isToday || done) ? (
-            <Link key={date} href={`/c/workout/${day.id}`}>
-              {content}
-            </Link>
-          ) : (
-            <div key={date}>{content}</div>
-          );
+          // Those expand in place to a read-only exercise list instead.
+          if (day && (hasWorkout || hasRehab) && (isToday || done)) {
+            return (
+              <Link key={date} href={`/c/workout/${day.id}`}>
+                {content}
+              </Link>
+            );
+          }
+          if (hasWorkout || hasRehab) {
+            return (
+              <details key={date}>
+                <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{content}</summary>
+                <div className="pt-3">
+                  <TodayExercisePreview
+                    locale={locale}
+                    items={hasWorkout ? plan.workoutItems : [...plan.mobilityItems, ...plan.rehabItems]}
+                  />
+                </div>
+              </details>
+            );
+          }
+          return <div key={date}>{content}</div>;
         })}
       </div>
     </div>
