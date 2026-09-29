@@ -11,11 +11,13 @@ const COLUMNS = {
   contact: ["whatsapp", "email", "instagram"],
 } as const;
 
-// Product links are same-page anchors; the rest are not built yet, so they
-// point at the homepage rather than 404ing.
+// Product links are same-page anchors; contact links are external. The rest
+// are not built yet, so they render as plain text rather than 404ing.
 const HREFS: Record<string, string> = {
   features: "#features",
   pricing: "#pricing",
+  whatsapp: "https://wa.me/201113284111",
+  instagram: "https://www.instagram.com/coachlyfit",
 };
 
 export function Footer({ supportEmail }: { supportEmail: string }) {
@@ -38,15 +40,17 @@ export function Footer({ supportEmail }: { supportEmail: string }) {
               </div>
               <div className="mt-3.5 flex flex-col gap-2.5">
                 {COLUMNS[col].map((link) => {
-                  const href = HREFS[link];
+                  const href = link === "email" ? `mailto:${supportEmail}` : HREFS[link];
+                  const external = href?.startsWith("http");
                   const label = link === "email" ? supportEmail : t(`columns.${col}.${link}`);
-                  // Only the same-page anchors are real destinations today.
+                  // Only anchors and contact links are real destinations today.
                   // The rest render as plain text rather than dead links to
                   // pages that don't exist yet.
                   return href ? (
                     <a
                       key={link}
                       href={href}
+                      {...(external && { target: "_blank", rel: "noopener noreferrer" })}
                       className="text-[13px] text-muted-foreground hover:text-foreground"
                     >
                       {label}
