@@ -1,8 +1,13 @@
 import { MUSCLE_GROUPS, isKnownMuscleGroup, type MuscleGroup } from "@/domain/library/taxonomy";
+import { accumulateMuscleVolume, normalizeVolumeToIntensity, type MuscleRegionState } from "@/domain/library/muscle-regions";
 
 type VolumeItem = {
   program_item_sets: unknown[];
-  exercises: { muscle_group: string | null };
+  exercises: {
+    muscle_group: string | null;
+    primary_muscles?: string[] | null;
+    secondary_muscles?: string[] | null;
+  };
 };
 type VolumeDay = { program_items: VolumeItem[] };
 
@@ -27,4 +32,21 @@ export function muscleGroupWeeklyVolume(days: VolumeDay[]): MuscleGroupVolume[] 
   }
 
   return MUSCLE_GROUPS.map((group) => ({ muscleGroup: group, sets: counts.get(group) ?? 0 }));
+}
+
+/** Sets/week by body-muscles region, normalized so the busiest region is 10
+ * — feeds the volume sidebar's BodyMap heatmap. Same week-invariant reading
+ * as muscleGroupWeeklyVolume, just weighted per-muscle (primary_muscles
+ * count a full set, secondary_muscles half — see accumulateMuscleVolume)
+ * instead of bucketed by the coarse muscle_group column. */
+export function muscleWeeklyVolume(days: VolumeDay[]): MuscleRegionState {
+  const entries = days.flatMap((day) =>
+    day.program_items.map((item) => ({
+      primaryMuscles: item.exercises.primary_muscles,
+      secondaryMuscles: item.exercises.secondary_muscles,
+      muscleGroup: item.exercises.muscle_group,
+      sets: item.program_item_sets.length,
+    }))
+  );
+  return normalizeVolumeToIntensity(accumulateMuscleVolume(entries));
 }

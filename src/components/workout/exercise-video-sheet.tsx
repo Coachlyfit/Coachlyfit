@@ -6,6 +6,8 @@ import { Play, ExternalLink } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { resolveExerciseMedia } from "@/lib/video-embed";
+import { BodyMap } from "@/components/body-map/body-map";
+import { exerciseToBodyState } from "@/domain/library/muscle-regions";
 
 export type VideoSheetExercise = {
   name_ar: string;
@@ -20,6 +22,9 @@ export type VideoSheetExercise = {
   safety_ar?: string | null;
   safety_en?: string | null;
   tempo?: string | null;
+  muscle_group?: string | null;
+  primary_muscles?: string[] | null;
+  secondary_muscles?: string[] | null;
 };
 
 function pickLocaleList(primary: string[] | null | undefined, fallback: string[] | null | undefined): string[] {
@@ -76,6 +81,9 @@ export function ExerciseVideoSheet({
   const steps = exercise ? pickSteps(exercise, locale) : [];
   const mistakes = exercise ? pickMistakes(exercise, locale) : [];
   const safety = exercise ? pickSafety(exercise, locale) : null;
+  const bodyState = exercise
+    ? exerciseToBodyState(exercise.primary_muscles, exercise.secondary_muscles, exercise.muscle_group)
+    : {};
 
   return (
     <Sheet
@@ -129,6 +137,14 @@ export function ExerciseVideoSheet({
                 <p className="mt-1 font-mono text-[11px] text-[#64748B]">{t("tempo")} {exercise.tempo}</p>
               )}
             </div>
+
+            {Object.keys(bodyState).length > 0 && (
+              <BodyMap
+                state={bodyState}
+                ariaLabel={t("musclesWorked")}
+                className="mx-auto max-w-[220px] [&_.body-chart-container]:p-0"
+              />
+            )}
 
             {steps.length > 0 && (
               <div>

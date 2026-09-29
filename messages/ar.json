@@ -940,6 +940,7 @@
         "saveFailed": "تعذر الحفظ. حاول مرة أخرى."
       },
       "tempo": "الإيقاع",
+      "musclesWorked": "العضلات المستهدفة",
       "executionSteps": "طريقة الأداء",
       "commonMistakes": "الأخطاء الشائعة",
       "safetyNote": "ملاحظة سلامة",
@@ -1519,6 +1520,7 @@
       "label": "العرض"
     },
     "watchVideo": "شوف الفيديو",
+    "musclesWorked": "العضلات المستهدفة",
     "notDraggable": "العناصر العامة منقلش",
     "pagination": {
       "range": "{from}–{to} من {total}",

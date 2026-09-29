@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { resolveExerciseMedia } from "@/lib/video-embed";
 import { isKnownMuscleGroup } from "@/domain/library/taxonomy";
+import { exerciseToBodyState } from "@/domain/library/muscle-regions";
+import { BodyMap } from "@/components/body-map/body-map";
 import type { searchExercisesAction } from "./actions";
 
 type Exercise = Awaited<ReturnType<typeof searchExercisesAction>>["rows"][number];
@@ -63,6 +65,7 @@ export function ExerciseCard({
   }
 
   const media = resolveExerciseMedia(exercise.thumbnail_url || exercise.image_url || exercise.video_url);
+  const bodyState = exerciseToBodyState(exercise.primary_muscles, exercise.secondary_muscles, exercise.muscle_group);
 
   return (
     <Card className="pt-0">
@@ -83,6 +86,9 @@ export function ExerciseCard({
           </p>
         )}
         {meta && <p className="text-sm text-muted-foreground">{meta}</p>}
+        {Object.keys(bodyState).length > 0 && (
+          <BodyMap state={bodyState} ariaLabel={t("musclesWorked")} className="mx-auto max-w-[180px]" />
+        )}
         {media?.kind === "link" && (
           <a
             href={media.src}
