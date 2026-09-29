@@ -74,9 +74,9 @@ export async function listExerciseResultsAction(sessionId: string) {
   return new WorkoutsService(supabase).listExerciseResults(sessionId);
 }
 
-export async function getLastPerformanceAction(exerciseIds: string[]) {
+export async function getLastPerformanceAction(exerciseIds: string[], excludeSessionId?: string) {
   const supabase = await createClient();
-  const map = await new WorkoutsService(supabase).getLastPerformance(exerciseIds);
+  const map = await new WorkoutsService(supabase).getLastPerformance(exerciseIds, excludeSessionId);
   // Server actions can't return a Map across the RSC boundary — plain
   // object keyed by exercise_id, same information.
   return Object.fromEntries(map);
