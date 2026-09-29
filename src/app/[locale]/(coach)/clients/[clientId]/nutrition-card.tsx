@@ -6,8 +6,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { Link } from "@/i18n/navigation";
 import { pickLocale, type AppLocale } from "@/domain/locale";
-import { formatDate, formatNumber } from "@/lib/format";
-import { planMacros, macroPercentages } from "@/domain/nutrition/macros";
+import { formatDate } from "@/lib/format";
+import { planMacros } from "@/domain/nutrition/macros";
+import { MacroSummary } from "@/components/nutrition/macro-summary";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 import { getActiveDiet } from "./data";
 import { AssignPlanDialog } from "./assign-plan-dialog";
@@ -49,7 +50,6 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
 
   const templates = await new DietPlansService(supabase).list("templates");
   const totals = planMacros(diet.meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: i.foods }))));
-  const percentages = macroPercentages(totals);
 
   return (
     <Card>
@@ -64,32 +64,7 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-semibold tabular-nums">{formatNumber(Math.round(totals.kcal), locale)}</span>
-          <span className="text-sm text-muted-foreground">{t("kcal")}</span>
-        </div>
-
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div className="flex h-full w-full">
-            <div className="h-full bg-chart-1" style={{ width: `${percentages.proteinPercent}%` }} />
-            <div className="h-full bg-chart-2" style={{ width: `${percentages.carbPercent}%` }} />
-            <div className="h-full bg-chart-3" style={{ width: `${percentages.fatPercent}%` }} />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-chart-1" />
-            {t("protein", { grams: Math.round(totals.protein_g) })}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-chart-2" />
-            {t("carbs", { grams: Math.round(totals.carb_g) })}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-chart-3" />
-            {t("fat", { grams: Math.round(totals.fat_g) })}
-          </span>
-        </div>
+        <MacroSummary totals={totals} targets={diet} />
 
         <p className="text-xs text-muted-foreground">{t("mealCount", { count: diet.meals.length })}</p>
 

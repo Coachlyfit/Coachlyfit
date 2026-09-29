@@ -25,13 +25,19 @@ export type CreateDietPlanInput = {
 export type CreateMealInput = { label_ar?: string; label_en?: string; time_of_day?: string | null };
 export type UpdateMealInput = Partial<CreateMealInput>;
 
+/** A program's nutrition variants with the program days linked to each —
+ * the builder's variant tabs ("Training day · Days 1, 3, 5"). */
+export type SiblingVariant = Pick<DietPlan, "id" | "name_ar" | "name_en" | "target_kcal"> & {
+  days: { id: string; day_index: number; label_ar: string | null; label_en: string | null }[];
+};
+
 export type CreateMealItemInput = { food_id: string; quantity?: number; unit?: string };
 export type UpdateMealItemInput = Partial<CreateMealItemInput>;
 
 export type DietPlanTree = DietPlan & {
   meals: (Meal & {
     meal_items: (MealItem & {
-      foods: Pick<Food, "id" | "name_ar" | "name_en" | "category" | "kcal" | "protein_g" | "carb_g" | "fat_g">;
+      foods: Pick<Food, "id" | "name_ar" | "name_en" | "category" | "serving_label" | "kcal" | "protein_g" | "carb_g" | "fat_g">;
     })[];
   })[];
 };
@@ -123,7 +129,7 @@ export class DietPlansService {
   async getActiveTreeForClient(clientId: string): Promise<DietPlanTree | null> {
     const { data, error } = await this.db
       .from("diet_plans")
-      .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, kcal, protein_g, carb_g, fat_g)))")
+      .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, serving_label, kcal, protein_g, carb_g, fat_g)))")
       .eq("client_id", clientId)
       .is("archived_at", null)
       .is("program_id", null)
@@ -139,7 +145,7 @@ export class DietPlansService {
   async getTree(dietPlanId: string): Promise<DietPlanTree | null> {
     const { data, error } = await this.db
       .from("diet_plans")
-      .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, kcal, protein_g, carb_g, fat_g)))")
+      .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, serving_label, kcal, protein_g, carb_g, fat_g)))")
       .eq("id", dietPlanId)
       .order("order_index", { referencedTable: "meals" })
       .order("order_index", { referencedTable: "meals.meal_items" })
@@ -233,7 +239,9 @@ export class DietPlansService {
   private async cloneTree(
     dietPlanId: string,
     clientId: string | null,
-    overrides: Partial<Pick<DietPlan, "name_ar" | "name_en" | "start_date" | "end_date" | "program_id">> = {}
+    overrides: Partial<
+      Pick<DietPlan, "name_ar" | "name_en" | "start_date" | "end_date" | "program_id" | "source_template_id">
+    > = {}
   ): Promise<DietPlan | null> {
     const tree = await this.getTree(dietPlanId);
     if (!tree) return null;
@@ -353,11 +361,133 @@ export class DietPlansService {
 
     const { data, error } = await this.db
       .from("meals")
-      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, diet_plan_id: dietPlanId, ...input })
+      .insert({
+        coach_id: parent.coach_id,
+        client_id: parent.client_id,
+        diet_plan_id: dietPlanId,
+        order_index: await this.nextIndex("meals", "diet_plan_id", dietPlanId),
+        ...input,
+      })
       .select()
       .single();
     if (error) throw error;
     return data;
+  }
+
+  /** Appends several meals in one insert — the builder's "start with the
+   * usual meals" button. Same parent derivation as addMeal. */
+  async addMeals(dietPlanId: string, inputs: CreateMealInput[]): Promise<number | null> {
+    const { data: parent, error: parentError } = await this.db
+      .from("diet_plans")
+      .select("coach_id, client_id")
+      .eq("id", dietPlanId)
+      .maybeSingle();
+    if (parentError) throw parentError;
+    if (!parent) return null;
+
+    const start = await this.nextIndex("meals", "diet_plan_id", dietPlanId);
+    const { error } = await this.db.from("meals").insert(
+      inputs.map((input, i) => ({
+        coach_id: parent.coach_id,
+        client_id: parent.client_id,
+        diet_plan_id: dietPlanId,
+        order_index: start + i,
+        ...input,
+      }))
+    );
+    if (error) throw error;
+    return inputs.length;
+  }
+
+  /** Copies one meal (and its items) onto the end of `targetPlanId` —
+   * "Duplicate" when the target is the meal's own plan, "Copy to Rest day"
+   * when it's a sibling variant. The copy's tenant columns come from the
+   * target plan via addMeal/parent lookup, never from the source meal, so
+   * copying can't move data across clients. Returns null when either side
+   * isn't visible. */
+  async copyMeal(mealId: string, targetPlanId: string): Promise<Meal | null> {
+    const { data: source, error: sourceError } = await this.db
+      .from("meals")
+      .select("label_ar, label_en, time_of_day, meal_items(food_id, quantity, unit, order_index)")
+      .eq("id", mealId)
+      .maybeSingle();
+    if (sourceError) throw sourceError;
+    if (!source) return null;
+
+    const meal = await this.addMeal(targetPlanId, {
+      label_ar: source.label_ar ?? undefined,
+      label_en: source.label_en ?? undefined,
+      time_of_day: source.time_of_day,
+    });
+    if (!meal) return null;
+
+    if (source.meal_items.length > 0) {
+      const { error } = await this.db.from("meal_items").insert(
+        source.meal_items.map((item) => ({
+          coach_id: meal.coach_id,
+          client_id: meal.client_id,
+          meal_id: meal.id,
+          food_id: item.food_id,
+          quantity: item.quantity,
+          unit: item.unit,
+          order_index: item.order_index,
+        }))
+      );
+      if (error) throw error;
+    }
+    return meal;
+  }
+
+  /** Whole-plan copy that stays where it is — same client, same program
+   * (if any) — under new names. Used for "Duplicate as new variant", e.g.
+   * building Rest day from a finished Training day. Not a template/instance
+   * relationship, so source_template_id stays null. */
+  async duplicate(dietPlanId: string, name_ar: string, name_en: string): Promise<DietPlan | null> {
+    const { data: source, error } = await this.db
+      .from("diet_plans")
+      .select("client_id")
+      .eq("id", dietPlanId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!source) return null;
+    return this.cloneTree(dietPlanId, source.client_id, { name_ar, name_en, source_template_id: null });
+  }
+
+  async listSiblingVariants(programId: string): Promise<SiblingVariant[]> {
+    const [variants, days] = await Promise.all([
+      this.db
+        .from("diet_plans")
+        .select("id, name_ar, name_en, target_kcal")
+        .eq("program_id", programId)
+        .is("archived_at", null)
+        .order("created_at"),
+      this.db
+        .from("program_days")
+        .select("id, day_index, label_ar, label_en, diet_plan_id")
+        .eq("program_id", programId)
+        .order("day_index"),
+    ]);
+    if (variants.error) throw variants.error;
+    if (days.error) throw days.error;
+    return variants.data.map((v) => ({
+      ...v,
+      days: days.data
+        .filter((d) => d.diet_plan_id === v.id)
+        .map(({ id, day_index, label_ar, label_en }) => ({ id, day_index, label_ar, label_en })),
+    }));
+  }
+
+  /** Next order_index at the end of a parent's children. Without it every
+   * new meal/item landed at order_index 0 and sorted unpredictably among
+   * ties. ponytail: count-based, so a reorder that leaves gaps can collide;
+   * reorderMeals/reorderItems always rewrite 0..n-1, so there are none. */
+  private async nextIndex(table: "meals" | "meal_items", parentCol: "diet_plan_id" | "meal_id", parentId: string) {
+    const { count, error } = await this.db
+      .from(table)
+      .select("id", { count: "exact", head: true })
+      .eq(parentCol as never, parentId);
+    if (error) throw error;
+    return count ?? 0;
   }
 
   async updateMeal(mealId: string, input: UpdateMealInput): Promise<boolean> {
@@ -388,6 +518,7 @@ export class DietPlansService {
         coach_id: parent.coach_id,
         client_id: parent.client_id,
         meal_id: mealId,
+        order_index: await this.nextIndex("meal_items", "meal_id", mealId),
         food_id: input.food_id,
         quantity: input.quantity ?? 1,
         unit: input.unit ?? "serving",

@@ -997,8 +997,17 @@
       "title": "Nutrition",
       "noPlan": "No nutrition plan yet",
       "noPlanBody": "Your coach has not assigned a nutrition plan yet.",
-      "quantityUnit": "{quantity} {unit}",
-      "targetDelta": "{delta} kcal vs target"
+      "today": "Today",
+      "kind": {
+        "training": "Training day",
+        "rest": "Rest day",
+        "cardio": "Cardio day",
+        "rehab": "Recovery day"
+      },
+      "noMealsForDay": "No meals planned for this day.",
+      "mealN": "Meal {n}",
+      "next": "Next",
+      "kcal": "{n} kcal"
     },
     "history": {
       "title": "Workout history",
@@ -1435,7 +1444,9 @@
       "assignByDay": "Assign by day",
       "none": "None",
       "customize": "Customize",
-      "customizeHint": "Clone this plan just for this day, without affecting other days sharing it"
+      "customizeHint": "Clone this plan just for this day, without affecting other days sharing it",
+      "dayCount": "{count, plural, =0 {No days} one {# day} other {# days}}",
+      "duplicate": "Duplicate plan"
     },
     "rehab": {
       "title": "Rehab",
@@ -2304,8 +2315,17 @@
       "deleteMeal": "Delete meal",
       "confirmDeleteMealTitle": "Delete this meal?",
       "confirmDeleteMealBody": "This deletes every food in it. This can not be undone.",
-      "quantityUnit": "{quantity} {unit}",
-      "untitledMeal": "Meal"
+      "untitledMeal": "Meal",
+      "noMealsHint": "Start with the usual four meals and adjust, or add your own one by one.",
+      "starterMeals": "Start with 4 meals",
+      "dragFood": "Drag to reorder food",
+      "dragMeal": "Drag to reorder meal",
+      "removeFood": "Remove food",
+      "servingsOf": "Servings of {serving}",
+      "mealActions": "Meal actions",
+      "duplicateMeal": "Duplicate meal",
+      "copyTo": "Copy to",
+      "copiedTo": "Copied to {name}"
     },
     "mealDialog": {
       "addTitle": "Add meal",
@@ -2316,31 +2336,27 @@
       "submit": "Save"
     },
     "itemDialog": {
-      "addTitle": "Add food",
-      "editTitle": "Edit food",
-      "food": "Food",
       "searchPlaceholder": "Search foods...",
       "loading": "Searching...",
       "noResults": "No foods match.",
-      "quantity": "Quantity",
-      "unit": "Unit",
-      "submit": "Save"
+      "allCategories": "All",
+      "food": "Food"
     },
     "macros": {
-      "title": "Plan totals",
-      "empty": "Add foods to see totals, or set a target.",
+      "title": "Day totals",
       "kcal": "kcal",
       "protein": "Protein",
       "carbs": "Carbs",
       "fat": "Fat",
-      "saveTargets": "Save targets"
-    },
-    "foodSidebar": {
-      "title": "Add food",
-      "searchPlaceholder": "Search foods...",
-      "loading": "Searching...",
-      "noResults": "No foods match.",
-      "allCategories": "All"
+      "saveTargets": "Save targets",
+      "editTargets": "Edit targets",
+      "setTargets": "Set targets",
+      "gramsOf": "{macro} (g)",
+      "macrosAddUpTo": "These macros add up to {kcal} kcal.",
+      "noTargetsHint": "Set kcal and macro targets to track this plan against them.",
+      "p": "P",
+      "c": "C",
+      "f": "F"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -2348,6 +2364,39 @@
       "not_found_or_forbidden": "You can not change this plan.",
       "end_date_before_start_date": "End date can not be before the start date.",
       "unknown": "Something went wrong. Please try again."
+    },
+    "copyName": "{name} (copy)",
+    "variantOfProgram": "Program nutrition",
+    "moreActions": "More actions",
+    "starterMeals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "snack": "Snack",
+      "dinner": "Dinner"
+    },
+    "warnings": {
+      "macroKcalMismatch": "Macro targets add up to {macroKcal} kcal, but the kcal target is {targetKcal}.",
+      "overTarget": "{delta} kcal over target.",
+      "underTarget": "{delta} kcal under target.",
+      "emptyMeals": "{count, plural, one {# meal has} other {# meals have}} no foods yet."
+    },
+    "detailsDialog": {
+      "button": "Plan details",
+      "title": "Plan details",
+      "notesAr": "Notes for the client (Arabic)",
+      "notesEn": "Notes for the client (English)",
+      "notesHint": "Shown above the meals: supplements, water intake, timing, anything the client should follow.",
+      "notesTooLong": "Notes can be at most 500 characters."
+    },
+    "variants": {
+      "label": "Nutrition plans in this program",
+      "assignDays": "Assign to days",
+      "separator": ", ",
+      "kcal": "{n} kcal",
+      "noTarget": "No target",
+      "usedOn": "Used on {days}",
+      "unused": "Not used on any day",
+      "duplicate": "Duplicate this plan"
     }
   },
   "print": {

@@ -3,13 +3,14 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { DietVariant, ProgramTree } from "@/domain/programs/programs.service";
 import { Link } from "@/i18n/navigation";
 import { createNutritionVariantAction, setDayNutritionAction, customizeDayNutritionAction } from "../actions";
+import { duplicateDietPlanAction } from "../../diets/actions";
 
 type Day = ProgramTree["program_days"][number];
 
@@ -67,6 +68,15 @@ export function NutritionPanel({
     });
   }
 
+  // Building Rest day from a finished Training day is the common case, so
+  // duplicating a whole variant is one click instead of re-entering meals.
+  function duplicateVariant(variantId: string) {
+    startTransition(async () => {
+      const result = await duplicateDietPlanAction(locale, variantId);
+      if ("error" in result) toast.error(tErrors(result.error));
+    });
+  }
+
   function customizeDay(dayId: string) {
     setBusyDayId(dayId);
     startTransition(async () => {
@@ -108,6 +118,20 @@ export function NutritionPanel({
               {v.target_kcal != null && (
                 <span className="shrink-0 font-mono text-xs text-muted-foreground">{t("kcal", { n: v.target_kcal })}</span>
               )}
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {t("dayCount", { count: days.filter((d) => d.diet_plan_id === v.id).length })}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                disabled={pending}
+                onClick={() => duplicateVariant(v.id)}
+                aria-label={t("duplicate")}
+                title={t("duplicate")}
+              >
+                <Copy className="size-3.5" />
+              </Button>
             </li>
           ))}
         </ul>
