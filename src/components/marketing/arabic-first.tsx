@@ -31,7 +31,7 @@ export function ArabicFirst() {
 
       <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-4 lg:grid-cols-2 lg:gap-16">
         <div>
-          <div className="font-mono text-[11px] font-medium uppercase tracking-[0.13em] text-primary">
+          <div className="font-mono text-[14px] font-medium uppercase tracking-[0.13em] text-primary">
             {t("eyebrow")}
           </div>
           <h2 className="mt-4 text-balance text-2xl font-semibold leading-tight tracking-[-0.025em] md:text-[38px]">
