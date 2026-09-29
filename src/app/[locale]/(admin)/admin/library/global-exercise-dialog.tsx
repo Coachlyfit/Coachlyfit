@@ -18,19 +18,13 @@ import {
   type CreateExerciseInput,
 } from "@/app/[locale]/(coach)/library/schemas";
 import { ExerciseFields } from "@/app/[locale]/(coach)/library/exercise-fields";
-import { createGlobalExerciseAction, updateGlobalExerciseAction } from "./actions";
+import {
+  type adminSearchExercisesAction,
+  createGlobalExerciseAction,
+  updateGlobalExerciseAction,
+} from "./actions";
 
-type ExistingExercise = {
-  id: string;
-  name_ar: string;
-  name_en: string;
-  muscle_group: string | null;
-  equipment: string | null;
-  video_url: string | null;
-  image_url: string | null;
-  instructions_ar: string | null;
-  instructions_en: string | null;
-};
+type ExistingExercise = Awaited<ReturnType<typeof adminSearchExercisesAction>>["rows"][number];
 
 /** Create and edit share one form — the only difference is which action runs
  * and whether the fields start populated. `exercise` present = edit mode.
@@ -82,20 +76,29 @@ export function GlobalExerciseDialog({
       image_url: exercise?.image_url ?? "",
       instructions_ar: exercise?.instructions_ar ?? "",
       instructions_en: exercise?.instructions_en ?? "",
+      cues_ar: exercise?.cues_ar?.join("\n") ?? "",
+      cues_en: exercise?.cues_en?.join("\n") ?? "",
+      steps_ar: exercise?.steps_ar?.join("\n") ?? "",
+      steps_en: exercise?.steps_en?.join("\n") ?? "",
+      mistakes_ar: exercise?.mistakes_ar?.join("\n") ?? "",
+      mistakes_en: exercise?.mistakes_en?.join("\n") ?? "",
+      safety_ar: exercise?.safety_ar ?? "",
+      safety_en: exercise?.safety_en ?? "",
+      tempo: exercise?.tempo ?? "",
+      primary_muscles: exercise?.primary_muscles?.join("\n") ?? "",
+      secondary_muscles: exercise?.secondary_muscles?.join("\n") ?? "",
+      difficulty: (exercise?.difficulty as CreateExerciseInput["difficulty"]) ?? undefined,
+      thumbnail_url: exercise?.thumbnail_url ?? "",
+      video_url_alt: exercise?.video_url_alt ?? "",
     },
   });
 
   const onSubmit = handleSubmit((data) => {
     setFormError(null);
     const formData = new FormData();
-    formData.set("name_ar", data.name_ar);
-    formData.set("name_en", data.name_en);
-    if (data.muscle_group) formData.set("muscle_group", data.muscle_group);
-    if (data.equipment) formData.set("equipment", data.equipment);
-    if (data.video_url) formData.set("video_url", data.video_url);
-    if (data.image_url) formData.set("image_url", data.image_url);
-    if (data.instructions_ar) formData.set("instructions_ar", data.instructions_ar);
-    if (data.instructions_en) formData.set("instructions_en", data.instructions_en);
+    for (const [key, value] of Object.entries(data)) {
+      if (value) formData.set(key, String(value));
+    }
     startTransition(async () => {
       const result = isEdit
         ? await updateGlobalExerciseAction(locale, exercise.id, formData)

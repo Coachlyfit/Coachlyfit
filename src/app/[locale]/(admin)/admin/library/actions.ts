@@ -27,52 +27,42 @@ export async function adminSearchFoodsAction(params: LibraryQuery = {}) {
   return new LibraryService(supabase).searchFoods(params);
 }
 
-export async function createGlobalExerciseAction(
-  locale: string,
-  formData: FormData
-): Promise<ActionResult> {
-  const parsed = createExerciseSchema.safeParse({
-    name_ar: formData.get("name_ar"),
-    name_en: formData.get("name_en"),
-    muscle_group: formData.get("muscle_group") || undefined,
-    equipment: formData.get("equipment") || undefined,
-    video_url: formData.get("video_url") || undefined,
-    image_url: formData.get("image_url") || undefined,
-    instructions_ar: formData.get("instructions_ar") || undefined,
-    instructions_en: formData.get("instructions_en") || undefined,
-    cues_ar: formData.get("cues_ar") || undefined,
-    cues_en: formData.get("cues_en") || undefined,
-  });
-  if (!parsed.success) return { error: "invalid_input" };
+const EXERCISE_FIELDS = [
+  "name_ar", "name_en", "muscle_group", "equipment", "video_url", "image_url",
+  "instructions_ar", "instructions_en", "cues_ar", "cues_en", "steps_ar", "steps_en",
+  "mistakes_ar", "mistakes_en", "safety_ar", "safety_en", "tempo", "primary_muscles",
+  "secondary_muscles", "difficulty", "thumbnail_url", "video_url_alt",
+] as const;
 
-  const { supabase, error } = await requireAdmin();
-  if (error || !supabase) return { error: error ?? "forbidden" };
-
-  // steps_ar/en, mistakes_ar/en, primary_muscles/secondary_muscles are
-  // text[] on the service/DB side but the shared coach-side zod schema
-  // types them as a raw textarea string (line-per-item, converted via
-  // linesToArray at the coach action boundary) -- this admin form never
-  // collects them, so they're dropped here rather than converted.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to drop them from the service payload
-  const { video_url, image_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, primary_muscles, secondary_muscles, ...input } = parsed.data;
-  try {
-    await new LibraryService(supabase).createGlobalExercise({
-      ...input,
-      video_url: video_url || undefined,
-      image_url: image_url || undefined,
-      cues_ar: linesToArray(cues_ar),
-      cues_en: linesToArray(cues_en),
-    });
-  } catch (err) {
-    return { error: libraryErrorKey(err) };
-  }
-  revalidatePath(`/${locale}/admin/library`);
+// Same fields as the coach form, minus coach_notes (a global has no owning
+// coach) and source_exercise_id (provenance is a clone-flow concern).
+function parseExercise(formData: FormData) {
+  const parsed = createExerciseSchema.safeParse(
+    Object.fromEntries(EXERCISE_FIELDS.map((f) => [f, formData.get(f) || undefined]))
+  );
+  if (!parsed.success) return null;
+  const {
+    video_url, image_url, thumbnail_url, video_url_alt, cues_ar, cues_en, steps_ar, steps_en,
+    mistakes_ar, mistakes_en, primary_muscles, secondary_muscles, ...input
+  } = parsed.data;
+  return {
+    ...input,
+    video_url: video_url || undefined,
+    image_url: image_url || undefined,
+    thumbnail_url: thumbnail_url || undefined,
+    video_url_alt: video_url_alt || undefined,
+    cues_ar: linesToArray(cues_ar),
+    cues_en: linesToArray(cues_en),
+    steps_ar: linesToArray(steps_ar),
+    steps_en: linesToArray(steps_en),
+    mistakes_ar: linesToArray(mistakes_ar),
+    mistakes_en: linesToArray(mistakes_en),
+    primary_muscles: linesToArray(primary_muscles),
+    secondary_muscles: linesToArray(secondary_muscles),
+  };
 }
 
-export async function createGlobalFoodAction(
-  locale: string,
-  formData: FormData
-): Promise<ActionResult> {
+function parseFood(formData: FormData) {
   const parsed = createFoodSchema.safeParse({
     name_ar: formData.get("name_ar"),
     name_en: formData.get("name_en"),
@@ -82,18 +72,53 @@ export async function createGlobalFoodAction(
     protein_g: formData.get("protein_g") || 0,
     carb_g: formData.get("carb_g") || 0,
     fat_g: formData.get("fat_g") || 0,
+    notes_ar: formData.get("notes_ar") || undefined,
+    notes_en: formData.get("notes_en") || undefined,
   });
-  if (!parsed.success) return { error: "invalid_input" };
+  return parsed.success ? parsed.data : null;
+}
+
+// Globals are what every coach sees, so any admin write also stales the
+// coach page.
+function revalidateLibrary(locale: string) {
+  revalidatePath(`/${locale}/admin/library`);
+  revalidatePath(`/${locale}/library`);
+}
+
+export async function createGlobalExerciseAction(
+  locale: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const input = parseExercise(formData);
+  if (!input) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
   try {
-    await new LibraryService(supabase).createGlobalFood(parsed.data);
+    await new LibraryService(supabase).createGlobalExercise(input);
   } catch (err) {
     return { error: libraryErrorKey(err) };
   }
-  revalidatePath(`/${locale}/admin/library`);
+  revalidateLibrary(locale);
+}
+
+export async function createGlobalFoodAction(
+  locale: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const input = parseFood(formData);
+  if (!input) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  try {
+    await new LibraryService(supabase).createGlobalFood(input);
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidateLibrary(locale);
 }
 
 export async function updateGlobalExerciseAction(
@@ -101,54 +126,70 @@ export async function updateGlobalExerciseAction(
   id: string,
   formData: FormData
 ): Promise<ActionResult> {
-  const parsed = createExerciseSchema.safeParse({
-    name_ar: formData.get("name_ar"),
-    name_en: formData.get("name_en"),
-    muscle_group: formData.get("muscle_group") || undefined,
-    equipment: formData.get("equipment") || undefined,
-    video_url: formData.get("video_url") || undefined,
-    image_url: formData.get("image_url") || undefined,
-    instructions_ar: formData.get("instructions_ar") || undefined,
-    instructions_en: formData.get("instructions_en") || undefined,
-    cues_ar: formData.get("cues_ar") || undefined,
-    cues_en: formData.get("cues_en") || undefined,
-  });
-  if (!parsed.success) return { error: "invalid_input" };
+  const input = parseExercise(formData);
+  if (!input) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  // Same drop-not-convert reasoning as createGlobalExerciseAction above.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to drop them from the service payload
-  const { video_url, image_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, primary_muscles, secondary_muscles, ...input } = parsed.data;
   try {
     // admin_update_global is qualified `coach_id is null`, so an attempt to
     // edit a coach's private row matches 0 rows and lands here as false.
-    const updated = await new LibraryService(supabase).updateExercise(id, {
-      ...input,
-      video_url: video_url || undefined,
-      image_url: image_url || undefined,
-      cues_ar: linesToArray(cues_ar),
-      cues_en: linesToArray(cues_en),
-    });
+    const updated = await new LibraryService(supabase).updateExercise(id, input);
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (err) {
     return { error: libraryErrorKey(err) };
   }
-  revalidatePath(`/${locale}/admin/library`);
+  revalidateLibrary(locale);
 }
 
+export async function updateGlobalFoodAction(
+  locale: string,
+  id: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const input = parseFood(formData);
+  if (!input) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  try {
+    const updated = await new LibraryService(supabase).updateFood(id, input);
+    if (!updated) return { error: "not_found_or_forbidden" };
+  } catch (err) {
+    return { error: libraryErrorKey(err) };
+  }
+  revalidateLibrary(locale);
+}
+
+// Soft delete, same as the coach side: restorable from the trash dialog.
 export async function deleteGlobalExerciseAction(locale: string, id: string): Promise<ActionResult> {
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
   try {
-    const deleted = await new LibraryService(supabase).deleteExercise(id);
-    if (!deleted) return { error: "not_found_or_forbidden" };
+    const archived = await new LibraryService(supabase).archiveExercise(id);
+    if (!archived) return { error: "not_found_or_forbidden" };
   } catch (err) {
     return { error: libraryErrorKey(err) };
   }
-  revalidatePath(`/${locale}/admin/library`);
+  revalidateLibrary(locale);
+}
+
+export async function restoreGlobalExerciseAction(locale: string, id: string): Promise<ActionResult> {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const restored = await new LibraryService(supabase).restoreExercise(id);
+  if (!restored) return { error: "not_found_or_forbidden" };
+  revalidateLibrary(locale);
+}
+
+export async function listArchivedGlobalExercisesAction() {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return [];
+  return new LibraryService(supabase).listArchivedExercises();
 }
 
 export async function deleteGlobalFoodAction(locale: string, id: string): Promise<ActionResult> {
@@ -161,7 +202,7 @@ export async function deleteGlobalFoodAction(locale: string, id: string): Promis
   } catch (err) {
     return { error: libraryErrorKey(err) };
   }
-  revalidatePath(`/${locale}/admin/library`);
+  revalidateLibrary(locale);
 }
 
 export async function promoteExerciseAction(locale: string, id: string): Promise<ActionResult> {
@@ -173,9 +214,7 @@ export async function promoteExerciseAction(locale: string, id: string): Promise
   } catch (err) {
     return { error: libraryErrorKey(err) };
   }
-  // The promoted row is now global, so it changes what every coach sees.
-  revalidatePath(`/${locale}/admin/library`);
-  revalidatePath(`/${locale}/library`);
+  revalidateLibrary(locale);
 }
 
 export async function promoteFoodAction(locale: string, id: string): Promise<ActionResult> {
@@ -187,6 +226,5 @@ export async function promoteFoodAction(locale: string, id: string): Promise<Act
   } catch (err) {
     return { error: libraryErrorKey(err) };
   }
-  revalidatePath(`/${locale}/admin/library`);
-  revalidatePath(`/${locale}/library`);
+  revalidateLibrary(locale);
 }

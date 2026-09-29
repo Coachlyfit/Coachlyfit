@@ -703,7 +703,7 @@ export function LibraryClient({
   );
 }
 
-function LibrarySkeleton({ view }: { view: LibraryView }) {
+export function LibrarySkeleton({ view }: { view: LibraryView }) {
   if (view === "list") {
     return (
       <div className="flex flex-col gap-2">

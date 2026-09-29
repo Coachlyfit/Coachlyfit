@@ -139,7 +139,7 @@ export function ExerciseCard({
  * none — so a missing/broken GIF can't collapse the card or shift the grid
  * as results stream in. The iframe only mounts after a click: 24 eager
  * embeds on one page is real bandwidth, not just a media nicety. */
-function ExerciseMedia({ media, name }: { media: ReturnType<typeof resolveExerciseMedia>; name: string }) {
+export function ExerciseMedia({ media, name }: { media: ReturnType<typeof resolveExerciseMedia>; name: string }) {
   const t = useTranslations("library.media");
   const [playing, setPlaying] = useState(false);
 
