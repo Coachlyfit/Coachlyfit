@@ -47,7 +47,8 @@
     "inbox": "Inbox",
     "diets": "Nutrition",
     "feedback": "Feedback",
-    "online": "Online"
+    "online": "Online",
+    "invoices": "Invoices"
   },
   "palette": {
     "navigation": "Navigation",
@@ -563,7 +564,9 @@
       "payment_method_in_use": "This payment method has a transaction recorded against it, so it can't be deleted.",
       "invalid_input": "Please check the form and try again.",
       "not_authenticated": "Please log in again.",
-      "metric_already_exists": "You already have a metric with a similar name."
+      "metric_already_exists": "You already have a metric with a similar name.",
+      "upload_failed": "Upload failed. Try again.",
+      "invalid_file": "Use a PNG, JPG or WebP image under 2 MB."
     },
     "customMetrics": {
       "title": "Custom Metrics",
@@ -606,7 +609,24 @@
       "copied": "Copied",
       "qrAlt": "QR code for your portal link"
     },
-    "emailNotifications": "Email notifications"
+    "emailNotifications": "Email notifications",
+    "businessProfile": {
+      "title": "Business profile",
+      "hint": "Shown in the header of every invoice you issue.",
+      "businessName": "Business name",
+      "logo": "Logo",
+      "uploadLogo": "Upload logo",
+      "removeLogo": "Remove",
+      "uploading": "Uploading…",
+      "address": "Address",
+      "taxNumber": "Tax registration number",
+      "contactPhone": "Phone",
+      "contactEmail": "Email",
+      "defaultCurrency": "Default currency",
+      "defaultTaxRate": "Default tax rate (%)",
+      "save": "Save profile",
+      "saved": "Business profile saved."
+    }
   },
   "clients": {
     "title": "Clients",
@@ -712,7 +732,9 @@
         "method": "Method",
         "amount": "Amount",
         "egp": "EGP",
-        "viewProof": "View proof"
+        "viewProof": "View proof",
+        "createInvoice": "Create invoice",
+        "viewInvoice": "View invoice"
       },
       "errors": {
         "invalid_input": "Please check the form and try again.",
@@ -1059,6 +1081,10 @@
       "evidencePrefix": "Because:",
       "seeStory": "See your plan story",
       "dismiss": "Dismiss"
+    },
+    "invoices": {
+      "link": "My invoices",
+      "linkHint": "Invoices from your coach"
     }
   },
   "inbox": {
@@ -2472,5 +2498,120 @@
     "checkedOn": "Checked {date}",
     "noChanges": "No program changes this time.",
     "byName": "by {name}"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "new": "New invoice",
+    "empty": "No invoices yet. Create one, or use “Create invoice” on a recorded payment.",
+    "emptyFiltered": "No invoices match these filters.",
+    "back": "All invoices",
+    "draftTitle": "Draft",
+    "filters": {
+      "allStatuses": "All statuses",
+      "allClients": "All clients"
+    },
+    "status": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "paid": "Paid",
+      "void": "Void"
+    },
+    "table": {
+      "number": "Number",
+      "client": "Client",
+      "issueDate": "Issued",
+      "total": "Total",
+      "status": "Status"
+    },
+    "form": {
+      "client": "Client",
+      "currency": "Currency",
+      "taxRate": "Tax rate (%)",
+      "issueDate": "Issue date",
+      "issueDateHint": "Leave empty to use the day you issue it.",
+      "dueDate": "Due date",
+      "notes": "Notes",
+      "items": "Line items",
+      "description": "Description",
+      "quantity": "Qty",
+      "unitPrice": "Unit price",
+      "addItem": "Add line",
+      "removeItem": "Remove line",
+      "create": "Create draft",
+      "save": "Save draft",
+      "saved": "Draft saved.",
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "total": "Total"
+    },
+    "actions": {
+      "issue": "Issue invoice",
+      "markPaid": "Mark paid",
+      "void": "Void",
+      "delete": "Delete draft",
+      "print": "Print / PDF",
+      "send": "Email to client",
+      "sent": "Invoice emailed to {email}.",
+      "copyLink": "Copy client link",
+      "linkCopied": "Link copied.",
+      "issued": "Invoice {number} issued."
+    },
+    "confirm": {
+      "issueTitle": "Issue this invoice?",
+      "issueBody": "It gets the next invoice number and can no longer be edited — only marked paid or voided.",
+      "voidTitle": "Void this invoice?",
+      "voidBody": "A void invoice stays on record with its number but no longer counts as owed. This can't be undone.",
+      "deleteTitle": "Delete this draft?",
+      "deleteBody": "The draft is removed permanently. No invoice number is used."
+    },
+    "document": {
+      "heading": "Invoice",
+      "draftHeading": "Draft invoice",
+      "number": "Invoice no.",
+      "issueDate": "Issue date",
+      "dueDate": "Due date",
+      "billTo": "Bill to",
+      "taxNumber": "Tax no. {number}",
+      "description": "Description",
+      "quantity": "Qty",
+      "unitPrice": "Unit price",
+      "amount": "Amount",
+      "subtotal": "Subtotal",
+      "tax": "Tax ({rate}%)",
+      "total": "Total",
+      "notes": "Notes",
+      "paidStamp": "Paid",
+      "voidStamp": "Void"
+    },
+    "currency": {
+      "EGP": "EGP",
+      "SAR": "SAR",
+      "AED": "AED"
+    },
+    "currencyName": {
+      "EGP": "Egyptian pound (EGP)",
+      "SAR": "Saudi riyal (SAR)",
+      "AED": "UAE dirham (AED)"
+    },
+    "email": {
+      "subject": "Invoice {number} from {business}",
+      "body": "{business} sent you invoice {number} for {total}.",
+      "cta": "View invoice"
+    },
+    "client": {
+      "title": "My invoices",
+      "empty": "No invoices from your coach yet."
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "not_found": "Couldn't find that invoice.",
+      "not_editable": "This invoice has been issued and can no longer be edited.",
+      "invalid_transition": "That action isn't available for this invoice anymore.",
+      "save_failed": "Couldn't save. Try again.",
+      "email_not_configured": "Email isn't set up yet — copy the link and send it yourself.",
+      "no_client_email": "This client has no email address. Copy the link and send it yourself.",
+      "send_failed": "Couldn't send the email. Try again."
+    }
   }
 }

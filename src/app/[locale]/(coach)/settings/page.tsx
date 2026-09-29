@@ -12,11 +12,14 @@ import { PaymentMethodsCard } from "@/components/settings/payment-methods-card";
 import { CustomMetricsCard } from "@/components/settings/custom-metrics-card";
 import { TeamCard } from "@/components/settings/team-card";
 import { PortalCard } from "@/components/settings/portal-card";
+import { BusinessProfileCard } from "@/components/settings/business-profile-card";
 import { EmailNotificationsToggle } from "@/components/settings/email-notifications-toggle";
 import { ChangeEmailForm } from "@/components/settings/change-email-form";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
 import { TeamService } from "@/domain/team/team.service";
+import { InvoicesService } from "@/domain/billing/invoices.service";
+import type { InvoiceCurrency } from "@/domain/billing/invoices";
 
 export default async function SettingsPage({
   params,
@@ -35,7 +38,9 @@ export default async function SettingsPage({
 
   const { data: coach } = await supabase
     .from("coaches")
-    .select("business_name, default_checkin_template_id, slug")
+    .select(
+      "business_name, default_checkin_template_id, slug, logo_path, address, tax_number, contact_phone, contact_email, default_currency, default_tax_rate"
+    )
     .eq("id", coachId)
     .single();
 
@@ -72,10 +77,6 @@ export default async function SettingsPage({
             <CardTitle className="text-base">{t("account")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">{t("businessName")}</span>
-              <span className="text-sm font-medium">{coach?.business_name}</span>
-            </div>
             <ChangeEmailForm currentEmail={user?.email ?? ""} />
             <EmailNotificationsToggle locale={locale} enabled={profile?.email_notifications ?? true} />
             <form action={signOutAction.bind(null, locale)}>
@@ -97,6 +98,24 @@ export default async function SettingsPage({
             />
           </CardContent>
         </Card>
+        {coach && (
+          <div className="lg:col-span-2">
+            <BusinessProfileCard
+              coachId={coachId}
+              logoUrl={new InvoicesService(supabase).logoUrl(coach.logo_path)}
+              defaultValues={{
+                business_name: coach.business_name,
+                address: coach.address ?? "",
+                tax_number: coach.tax_number ?? "",
+                contact_phone: coach.contact_phone ?? "",
+                contact_email: coach.contact_email ?? "",
+                default_currency: coach.default_currency as InvoiceCurrency,
+                default_tax_rate: coach.default_tax_rate,
+                logo_path: coach.logo_path,
+              }}
+            />
+          </div>
+        )}
         <PackagesCard packages={packages} />
         <PaymentMethodsCard methods={paymentMethods} />
         <CustomMetricsCard metrics={customMetrics} />

@@ -6,6 +6,7 @@ import {
   Dumbbell,
   Salad,
   CreditCard,
+  Receipt,
   Settings,
   MessageCircle,
   MessageSquareText,
@@ -15,7 +16,7 @@ import {
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "billing" | "settings" | "admin" | "inbox" | "feedback" | "online";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "billing" | "invoices" | "settings" | "admin" | "inbox" | "feedback" | "online";
   icon: LucideIcon;
 };
 
@@ -34,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/forms", labelKey: "forms", icon: FileText },
   { href: "/library", labelKey: "library", icon: Dumbbell },
   { href: "/diets", labelKey: "diets", icon: Salad },
+  { href: "/invoices", labelKey: "invoices", icon: Receipt },
   { href: "/billing", labelKey: "billing", icon: CreditCard },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/inbox", labelKey: "inbox", icon: MessageCircle },

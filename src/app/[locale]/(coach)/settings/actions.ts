@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireCoach } from "@/lib/auth/require-coach";
+import { businessProfileSchema } from "./business-profile-schema";
 
 type ActionResult = { error: string } | void;
 
@@ -84,4 +85,35 @@ export async function changeEmailAction(locale: string, email: string): Promise<
     { emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/settings` }
   );
   if (error) return { error: "update_failed" };
+}
+
+/** Invoice header fields. Only the tenant owner can write their coaches row
+ * (coaches_update_own is `id = auth.uid()`), so a team member's save is an
+ * RLS no-op -- same as updateSlugAction. logo_path must sit in the coach's
+ * own coach-logos folder; the storage policy already enforces that for the
+ * upload, this stops pointing the column at someone else's file. */
+export async function updateBusinessProfileAction(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = businessProfileSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const auth = await requireCoach();
+  if ("error" in auth) return auth;
+
+  const { logo_path, ...fields } = parsed.data;
+  if (logo_path && !logo_path.startsWith(`${auth.coachId}/`)) return { error: "invalid_input" };
+
+  const { error } = await auth.supabase
+    .from("coaches")
+    .update({
+      ...fields,
+      address: fields.address || null,
+      tax_number: fields.tax_number || null,
+      contact_phone: fields.contact_phone || null,
+      contact_email: fields.contact_email || null,
+      logo_path,
+    })
+    .eq("id", auth.coachId);
+  if (error) return { error: "update_failed" };
+
+  revalidatePath(`/${locale}/settings`);
 }

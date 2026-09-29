@@ -5,11 +5,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
+import { InvoicesService } from "@/domain/billing/invoices.service";
+import { Link } from "@/i18n/navigation";
 import type { ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
 import { SubscriptionCard } from "./subscription-card";
 import { RecordTransactionDialog } from "./record-transaction-dialog";
+import { CreateInvoiceButton } from "./create-invoice-button";
 
 export async function BillingSection({ clientId, locale }: { clientId: string; locale: AppLocale }) {
   const t = await getTranslations("clients.billing");
@@ -26,7 +29,10 @@ export async function BillingSection({ clientId, locale }: { clientId: string; l
   ]);
 
   const proofPaths = transactions.map((tx) => tx.proof_path).filter((p): p is string => !!p);
-  const signedProofUrls = await billing.signProofUrls(proofPaths);
+  const [signedProofUrls, invoiceByTransaction] = await Promise.all([
+    billing.signProofUrls(proofPaths),
+    new InvoicesService(supabase).invoiceIdsByTransaction(transactions.map((tx) => tx.id)),
+  ]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -69,6 +75,7 @@ export async function BillingSection({ clientId, locale }: { clientId: string; l
                 <TableHead>{t("transactions.method")}</TableHead>
                 <TableHead>{t("transactions.amount")}</TableHead>
                 <TableHead />
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -92,6 +99,18 @@ export async function BillingSection({ clientId, locale }: { clientId: string; l
                         {t("transactions.viewProof")}
                       </a>
                     ) : null}
+                  </TableCell>
+                  <TableCell className="text-end">
+                    {invoiceByTransaction.has(tx.id) ? (
+                      <Link
+                        href={`/invoices/${invoiceByTransaction.get(tx.id)}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {t("transactions.viewInvoice")}
+                      </Link>
+                    ) : (
+                      <CreateInvoiceButton transactionId={tx.id} />
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
