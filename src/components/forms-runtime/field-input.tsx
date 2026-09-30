@@ -3,6 +3,7 @@
 import { Controller, useFormContext } from "react-hook-form";
 import { useLocale } from "next-intl";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -46,7 +47,7 @@ export function FieldInput({
       );
 
     case "date":
-      return <Input id={field.id} type="date" {...register(field.id)} />;
+      return <FormDatePicker id={field.id} control={control} name={field.id} />;
 
     case "checkbox":
       return (

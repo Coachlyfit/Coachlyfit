@@ -6,10 +6,10 @@ import { nextDeliveryOutcome, MAX_ATTEMPTS } from "@/domain/notifications/delive
 import {
   renderNotificationEmail,
   renderPushNotification,
-  notificationNeedsPickedName,
+  notificationName,
+  notificationUrl,
   type NotificationKind,
 } from "@/domain/notifications/email-templates";
-import { pickLocale } from "@/domain/locale";
 
 // Runs every 5 minutes via Vercel Cron (see vercel.json). Same admin-client
 // justification as billing-lifecycle: a trusted job authenticated by
@@ -98,7 +98,7 @@ async function processEmailBatch(supabase: ReturnType<typeof createAdminClient>,
       locale,
       notification.kind as NotificationKind,
       profile.full_name,
-      notificationNeedsPickedName(notification.kind) ? pickLocale(payload, locale) : null
+      notificationName(notification.kind, payload, locale)
     );
 
     const { error: sendError } = await resend.emails.send({ from: FROM_ADDRESS, to: recipientEmail, subject, html });
@@ -150,9 +150,9 @@ async function processPushBatch(supabase: ReturnType<typeof createAdminClient>, 
     const { title, body } = renderPushNotification(
       locale,
       notification.kind as NotificationKind,
-      notificationNeedsPickedName(notification.kind) ? pickLocale(payload, locale) : null
+      notificationName(notification.kind, payload, locale)
     );
-    const message = JSON.stringify({ title, body, url: "/" });
+    const message = JSON.stringify({ title, body, url: notificationUrl(notification.kind, payload, locale) });
 
     // One delivery row can fan out to several devices — a dead endpoint
     // (410/404, browser unsubscribed without telling us) is pruned rather

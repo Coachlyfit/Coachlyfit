@@ -107,7 +107,12 @@ export async function updateDietTargetsAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const updated = await new DietPlansService(supabase).update(dietPlanId, parsed.data);
+  // Typed by hand in the builder, so no longer the suggestion's numbers.
+  const updated = await new DietPlansService(supabase).update(dietPlanId, {
+    ...parsed.data,
+    targets_source: "manual",
+    targets_suggestion: null,
+  });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
 }

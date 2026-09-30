@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -128,13 +129,13 @@ export function InvoiceForm({
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="issue_date">{t("issueDate")}</Label>
-            <Input id="issue_date" type="date" {...register("issue_date")} />
+            <FormDatePicker id="issue_date" control={control} name="issue_date" />
             <p className="text-xs text-muted-foreground">{t("issueDateHint")}</p>
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="due_date">{t("dueDate")}</Label>
-            <Input id="due_date" type="date" {...register("due_date")} />
+            <FormDatePicker id="due_date" control={control} name="due_date" />
           </div>
         </CardContent>
       </Card>

@@ -19,8 +19,16 @@ import { usePushSubscription } from "./use-push-subscription";
 // for the coach's own copy of that notification.
 // client_left goes to the old coach when a client accepts another coach's
 // invite (respond_to_coach_invite); coach_invite is client-only, like
-// coach_decision.
-const KINDS = ["exercise_promoted", "food_promoted", "new_message", "decision_outcome", "client_left"] as const;
+// coach_decision. off_plan_reported goes to the client's active coach
+// (notify_on_off_plan); nutrition_log_reminder is client-only, push-only.
+const KINDS = [
+  "exercise_promoted",
+  "food_promoted",
+  "new_message",
+  "decision_outcome",
+  "client_left",
+  "off_plan_reported",
+] as const;
 
 function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
   return (KINDS as readonly string[]).includes(kind);
@@ -61,6 +69,12 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     if (notification.kind === "client_left") {
       return t("client_left", { name: (payload.display_name as string | null) ?? t("unknown") });
     }
+    if (notification.kind === "off_plan_reported") {
+      return t("off_plan_reported", {
+        name: (payload.client_name as string | null) ?? t("unknown"),
+        date: (payload.log_date as string | null) ?? "",
+      });
+    }
     // payload is jsonb, so it arrives as an untyped object — pickLocale
     // reads the same name_ar/name_en pair the promote function wrote.
     return t(notification.kind, { name: pickLocale(payload, locale) });
@@ -75,6 +89,10 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     if (notification.kind === "decision_outcome") {
       const clientId = payload.client_id as string | null;
       return clientId ? `/clients/${clientId}?tab=decisions` : null;
+    }
+    if (notification.kind === "off_plan_reported") {
+      const clientId = payload.client_id as string | null;
+      return clientId ? `/clients/${clientId}?tab=nutrition` : null;
     }
     return null;
   }

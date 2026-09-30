@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -148,7 +149,7 @@ export function AddMetricDialog({ locale, customMetrics = [] }: { locale: string
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="taken_on">{t("takenOn")}</Label>
-            <Input id="taken_on" type="date" {...register("taken_on")} />
+            <FormDatePicker id="taken_on" control={control} name="taken_on" />
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
           <Button type="submit" disabled={pending} className="min-w-24">

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -142,11 +143,11 @@ export function CreateProgramDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="start_date">{t("startDate")}</Label>
-              <Input id="start_date" type="date" {...register("start_date")} />
+              <FormDatePicker id="start_date" control={control} name="start_date" />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="end_date">{t("endDate")}</Label>
-              <Input id="end_date" type="date" {...register("end_date")} />
+              <FormDatePicker id="end_date" control={control} name="end_date" />
               {errors.end_date?.message && (
                 <p className="text-sm text-destructive">{tErrors(errors.end_date.message)}</p>
               )}

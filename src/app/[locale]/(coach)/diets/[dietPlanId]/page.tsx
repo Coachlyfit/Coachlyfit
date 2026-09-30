@@ -10,6 +10,8 @@ import { Link } from "@/i18n/navigation";
 import { DietPlanBuilder } from "./diet-plan-builder";
 import { PlanToolbar } from "./plan-toolbar";
 import { VariantTabs } from "./variant-tabs";
+import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
+import { SuggestTargetsDialog } from "../../clients/[clientId]/suggest-targets-dialog";
 
 export default async function DietPlanDetailPage({
   params,
@@ -28,9 +30,11 @@ export default async function DietPlanDetailPage({
   if (!tree) notFound();
 
   const isTemplate = !tree.client_id;
-  const [clonedInstances, siblings] = await Promise.all([
+  const [clonedInstances, siblings, suggestion] = await Promise.all([
     isTemplate && !tree.program_id ? service.listClonedInstances(tree.id) : [],
     tree.program_id ? service.listSiblingVariants(tree.program_id) : [],
+    // Only a client's own plan has someone to suggest targets for.
+    tree.client_id ? new NutritionLogsService(supabase).suggestionFor(tree.client_id, new Date()) : null,
   ]);
   const clientName = clients?.find((c) => c.id === tree.client_id)?.display_name;
   const BackIcon = locale === "ar" ? ChevronRight : ChevronLeft;
@@ -62,7 +66,19 @@ export default async function DietPlanDetailPage({
           </div>
           <p className="text-sm text-muted-foreground">{subtitle.join(" · ")}</p>
         </div>
-        <PlanToolbar locale={locale} plan={tree} clients={clients ?? []} />
+        <div className="flex flex-wrap items-center gap-2">
+          {tree.client_id && suggestion && (
+            <SuggestTargetsDialog
+              locale={locale}
+              clientId={tree.client_id}
+              dietPlanId={tree.id}
+              profile={suggestion.profile}
+              weight={suggestion.weight}
+              result={suggestion.result}
+            />
+          )}
+          <PlanToolbar locale={locale} plan={tree} clients={clients ?? []} />
+        </div>
       </div>
 
       {tree.program_id && siblings.length > 0 && (

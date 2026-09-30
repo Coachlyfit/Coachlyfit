@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/supabase/database.types";
 
 type DietPlan = Database["public"]["Tables"]["diet_plans"]["Row"];
 type Meal = Database["public"]["Tables"]["meals"]["Row"];
@@ -22,7 +22,16 @@ export type CreateDietPlanInput = {
   notes_en?: string | null;
 };
 
-export type CreateMealInput = { label_ar?: string; label_en?: string; time_of_day?: string | null };
+export type AssignTargetsInput = {
+  target_kcal: number | null;
+  target_protein_g: number | null;
+  target_carb_g: number | null;
+  target_fat_g: number | null;
+  targets_source: "manual" | "suggested" | "suggested_edited";
+  targets_suggestion?: Json | null;
+};
+
+export type CreateMealInput ={ label_ar?: string; label_en?: string; time_of_day?: string | null };
 export type UpdateMealInput = Partial<CreateMealInput>;
 
 /** A program's nutrition variants with the program days linked to each —
@@ -218,8 +227,25 @@ export class DietPlansService {
     return clone;
   }
 
-  async update(id: string, input: Partial<Omit<CreateDietPlanInput, "client_id">>): Promise<boolean> {
+  async update(
+    id: string,
+    input: Partial<Omit<CreateDietPlanInput, "client_id">> &
+      Partial<Pick<AssignTargetsInput, "targets_source" | "targets_suggestion">>
+  ): Promise<boolean> {
     const { data, error } = await this.db.from("diet_plans").update(input).eq("id", id).select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
+  /** Writes a plan's targets together with where they came from — the
+   * macro suggestion (as-is or edited) or a hand-typed "manual" set — and,
+   * for suggestions, a snapshot of what was suggested. */
+  async assignTargets(id: string, input: AssignTargetsInput): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("diet_plans")
+      .update({ ...input, targets_suggestion: input.targets_suggestion ?? null })
+      .eq("id", id)
+      .select("id");
     if (error) throw error;
     return data.length > 0;
   }

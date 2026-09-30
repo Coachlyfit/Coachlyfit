@@ -7,6 +7,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -115,7 +116,7 @@ export function StartSubscriptionDialog({
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="end_date">{t("endDate")}</Label>
-            <Input id="end_date" type="date" {...register("end_date")} />
+            <FormDatePicker id="end_date" control={control} name="end_date" />
             {errors.end_date && <p className="text-sm text-destructive">{errors.end_date.message}</p>}
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}

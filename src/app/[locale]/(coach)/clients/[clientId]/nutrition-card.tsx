@@ -10,13 +10,30 @@ import { formatDate } from "@/lib/format";
 import { planMacros } from "@/domain/nutrition/macros";
 import { MacroSummary } from "@/components/nutrition/macro-summary";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
+import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
+import { Badge } from "@/components/ui/badge";
 import { getActiveDiet } from "./data";
 import { AssignPlanDialog } from "./assign-plan-dialog";
+import { SuggestTargetsDialog } from "./suggest-targets-dialog";
 
 export async function NutritionCard({ clientId, locale }: { clientId: string; locale: AppLocale }) {
   const t = await getTranslations("clients.profile.nutrition");
+  const tNutrition = await getTranslations("nutrition");
   const supabase = await createClient();
-  const diet = await getActiveDiet(clientId);
+  const [diet, suggestion] = await Promise.all([
+    getActiveDiet(clientId),
+    new NutritionLogsService(supabase).suggestionFor(clientId, new Date()),
+  ]);
+  const suggestDialog = (
+    <SuggestTargetsDialog
+      locale={locale}
+      clientId={clientId}
+      dietPlanId={diet?.id ?? null}
+      profile={suggestion.profile}
+      weight={suggestion.weight}
+      result={suggestion.result}
+    />
+  );
 
   if (!diet) {
     const templates = await new DietPlansService(supabase).list("templates");
@@ -40,6 +57,7 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
                 <Button variant="outline" size="sm" render={<Link href={`/diets?client=${clientId}`} />}>
                   {t("create")}
                 </Button>
+                {suggestDialog}
               </div>
             }
           />
@@ -65,6 +83,11 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <MacroSummary totals={totals} targets={diet} />
+        {diet.targets_source && (
+          <Badge variant="outline" className="self-start">
+            {tNutrition(`suggest.source.${diet.targets_source as "manual" | "suggested" | "suggested_edited"}`)}
+          </Badge>
+        )}
 
         <p className="text-xs text-muted-foreground">{t("mealCount", { count: diet.meals.length })}</p>
 
@@ -82,6 +105,7 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
             trigger={t("replace")}
             variant="outline"
           />
+          {suggestDialog}
         </div>
       </CardContent>
     </Card>

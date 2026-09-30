@@ -301,6 +301,51 @@ export type Database = {
           },
         ]
       }
+      client_body_profiles: {
+        Row: {
+          activity_level: string | null
+          birth_date: string | null
+          client_id: string
+          created_at: string
+          goal: string | null
+          height_cm: number | null
+          sex: string | null
+        }
+        Insert: {
+          activity_level?: string | null
+          birth_date?: string | null
+          client_id: string
+          created_at?: string
+          goal?: string | null
+          height_cm?: number | null
+          sex?: string | null
+        }
+        Update: {
+          activity_level?: string | null
+          birth_date?: string | null
+          client_id?: string
+          created_at?: string
+          goal?: string | null
+          height_cm?: number | null
+          sex?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_body_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_body_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       client_metric_definitions: {
         Row: {
           coach_id: string
@@ -915,6 +960,8 @@ export type Database = {
           target_fat_g: number | null
           target_kcal: number | null
           target_protein_g: number | null
+          targets_source: string | null
+          targets_suggestion: Json | null
         }
         Insert: {
           archived_at?: string | null
@@ -934,6 +981,8 @@ export type Database = {
           target_fat_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
+          targets_source?: string | null
+          targets_suggestion?: Json | null
         }
         Update: {
           archived_at?: string | null
@@ -953,6 +1002,8 @@ export type Database = {
           target_fat_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
+          targets_source?: string | null
+          targets_suggestion?: Json | null
         }
         Relationships: [
           {
@@ -2059,6 +2110,131 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      nutrition_logs: {
+        Row: {
+          carb_g: number | null
+          client_id: string
+          coach_id: string
+          created_at: string
+          fat_g: number | null
+          id: string
+          kcal: number | null
+          log_date: string
+          off_plan: boolean
+          off_plan_kcal: number | null
+          off_plan_meal: string | null
+          off_plan_note: string | null
+          off_plan_photo_path: string | null
+          protein_g: number | null
+          relationship_id: string | null
+        }
+        Insert: {
+          carb_g?: number | null
+          client_id: string
+          coach_id: string
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          kcal?: number | null
+          log_date: string
+          off_plan?: boolean
+          off_plan_kcal?: number | null
+          off_plan_meal?: string | null
+          off_plan_note?: string | null
+          off_plan_photo_path?: string | null
+          protein_g?: number | null
+          relationship_id?: string | null
+        }
+        Update: {
+          carb_g?: number | null
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          kcal?: number | null
+          log_date?: string
+          off_plan?: boolean
+          off_plan_kcal?: number | null
+          off_plan_meal?: string | null
+          off_plan_note?: string | null
+          off_plan_photo_path?: string | null
+          protein_g?: number | null
+          relationship_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "nutrition_logs_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_logs_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nutrition_reminder_settings: {
+        Row: {
+          client_id: string
+          created_at: string
+          enabled: boolean
+          last_reminded_on: string | null
+          remind_at: string
+          timezone: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          enabled?: boolean
+          last_reminded_on?: string | null
+          remind_at?: string
+          timezone: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          enabled?: boolean
+          last_reminded_on?: string | null
+          remind_at?: string
+          timezone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_reminder_settings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_reminder_settings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
           },
         ]
       }

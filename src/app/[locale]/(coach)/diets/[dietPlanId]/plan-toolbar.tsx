@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { MoreHorizontal, Printer, Settings2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -58,6 +59,7 @@ function PlanDetailsDialog({
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<CreateDietPlanFormInput>({
@@ -111,11 +113,11 @@ function PlanDetailsDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="details_start_date">{tCreate("startDate")}</Label>
-                <Input id="details_start_date" type="date" {...register("start_date")} />
+                <FormDatePicker id="details_start_date" control={control} name="start_date" />
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="details_end_date">{tCreate("endDate")}</Label>
-                <Input id="details_end_date" type="date" {...register("end_date")} />
+                <FormDatePicker id="details_end_date" control={control} name="end_date" />
                 {errors.end_date?.message && (
                   <p className="text-sm text-destructive">{tErrors(errors.end_date.message)}</p>
                 )}

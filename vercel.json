@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/ledger-outcomes",
       "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/nutrition-reminders",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
