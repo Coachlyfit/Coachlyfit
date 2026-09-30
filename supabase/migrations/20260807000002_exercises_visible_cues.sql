@@ -3,9 +3,39 @@
 -- new column will be invisible to the library reads" — `e.*` is expanded at
 -- view-creation time, not re-evaluated when the base table gains columns.
 -- 20260807000001_exercise_cues.sql added cues_ar/cues_en without this step.
+--
+-- Switched from `select e.*` to an explicit column list here (matching the
+-- pattern every later view-touching migration already uses, see
+-- 20260831000001_exercise_content.sql's comment on 42P16) instead of
+-- `create or replace view ... e.*, ...`: with e.*, the two new trailing
+-- columns land BETWEEN e.*'s old last column and source_name_ar/my_clone_id
+-- below, which Postgres's CREATE OR REPLACE VIEW rejects (42P16 — it only
+-- allows appending at the very end, never inserting mid-list). This was
+-- never caught before because nothing had replayed every migration from a
+-- fresh database until CI's from-scratch `supabase start` did.
+-- Column order here must match every later create-or-replace of this view
+-- (20260831000001_exercise_content.sql, 20260910000001_soft_delete.sql)
+-- exactly through this point, or THEIR replace hits the same 42P16 --
+-- CREATE OR REPLACE VIEW checks the name at each ordinal position, not
+-- which base-table column feeds it.
 create or replace view public.exercises_visible with (security_invoker = true) as
 select
-  e.*,
+  e.id,
+  e.coach_id,
+  e.name_ar,
+  e.name_en,
+  e.muscle_group,
+  e.equipment,
+  e.instructions_ar,
+  e.instructions_en,
+  e.video_url,
+  e.created_at,
+  e.cues_ar,
+  e.cues_en,
+  e.source_exercise_id,
+  e.image_url,
+  e.coach_notes_ar,
+  e.coach_notes_en,
   s.name_ar as source_name_ar,
   s.name_en as source_name_en,
   (
