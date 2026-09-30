@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { ChevronLeft, ChevronRight, StickyNote } from "lucide-react";
+import { ChevronLeft, ChevronRight, Receipt, StickyNote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { WeeklyProgressRing } from "@/components/progress/weekly-progress-ring";
@@ -47,11 +47,14 @@ export default async function ClientHomePage({
   const programs = new ProgramsService(supabase);
   const workouts = new WorkoutsService(supabase);
 
-  const [existingCheckin, history, tree, latestDecision] = await Promise.all([
+  // Invoice count: RLS scopes it to this client's own non-draft invoices,
+  // so the link below only shows once a coach has actually issued one.
+  const [existingCheckin, history, tree, latestDecision, { count: invoiceCount }] = await Promise.all([
     clientRow ? progress.getCheckin(clientRow.id, todayIso) : null,
     clientRow ? progress.listCheckins(clientRow.id) : [],
     clientRow ? programs.getActiveTreeForClient(clientRow.id) : null,
     clientRow ? new LedgerService(supabase).latestUnseenForClient(clientRow.id) : null,
+    supabase.from("invoices").select("id", { count: "exact", head: true }),
   ]);
 
   const plan = tree ? resolveDayPlan(tree, todayIso) : null;
@@ -284,6 +287,20 @@ export default async function ClientHomePage({
           </CardContent>
         </Card>
       </div>
+
+      {!!invoiceCount && (
+        <Link
+          href="/c/invoices"
+          className="flex min-h-11 items-center gap-3 rounded-xl border border-border px-4 py-3 text-start"
+        >
+          <Receipt className="size-4.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">{t("invoices.link")}</p>
+            <p className="text-xs text-muted-foreground">{t("invoices.linkHint")}</p>
+          </div>
+          <ChevronIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        </Link>
+      )}
 
       {clientRow?.coaches && (
         <p className="text-sm text-muted-foreground">

@@ -595,30 +595,51 @@ export type Database = {
       }
       coaches: {
         Row: {
+          address: string | null
           business_name: string
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string
           default_checkin_template_id: string | null
+          default_currency: string
+          default_tax_rate: number
           id: string
+          logo_path: string | null
           onboarding_completed_at: string | null
           slug: string
+          tax_number: string | null
           training_mode: string | null
         }
         Insert: {
+          address?: string | null
           business_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           default_checkin_template_id?: string | null
+          default_currency?: string
+          default_tax_rate?: number
           id: string
+          logo_path?: string | null
           onboarding_completed_at?: string | null
           slug: string
+          tax_number?: string | null
           training_mode?: string | null
         }
         Update: {
+          address?: string | null
           business_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           default_checkin_template_id?: string | null
+          default_currency?: string
+          default_tax_rate?: number
           id?: string
+          logo_path?: string | null
           onboarding_completed_at?: string | null
           slug?: string
+          tax_number?: string | null
           training_mode?: string | null
         }
         Relationships: [
@@ -1408,6 +1429,156 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_counters: {
+        Row: {
+          coach_id: string
+          last_number: number
+        }
+        Insert: {
+          coach_id: string
+          last_number?: number
+        }
+        Update: {
+          coach_id?: string
+          last_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_counters_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          line_total: number
+          position: number
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          line_total: number
+          position?: number
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_total?: number
+          position?: number
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          issue_date: string | null
+          notes: string | null
+          snapshot: Json | null
+          status: string
+          subtotal: number
+          tax: number
+          tax_rate: number
+          total: number
+          transaction_id: string | null
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          issue_date?: string | null
+          notes?: string | null
+          snapshot?: Json | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          tax_rate?: number
+          total?: number
+          transaction_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          issue_date?: string | null
+          notes?: string | null
+          snapshot?: Json | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          tax_rate?: number
+          total?: number
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "invoices_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "client_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -3094,6 +3265,33 @@ export type Database = {
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
       get_portal_branding: { Args: { p_slug: string }; Returns: Json }
+      issue_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          issue_date: string | null
+          notes: string | null
+          snapshot: Json | null
+          status: string
+          subtotal: number
+          tax: number
+          tax_rate: number
+          total: number
+          transaction_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invoices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       list_online_users: {
         Args: { p_limit?: number; p_offset?: number; p_search?: string }
         Returns: {
