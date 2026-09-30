@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { LogOut, User, Languages, SunMoon } from "lucide-react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
@@ -51,6 +52,7 @@ export function Topbar({
 
   return (
     <header className="flex items-center gap-2 border-b border-border px-4 py-3 sm:gap-4 md:px-6">
+      <CoachlyMark size={24} className="shrink-0 text-foreground lg:hidden" />
       {title && (
         <div className="flex min-w-0 items-baseline gap-3">
           <span className="truncate text-base font-semibold">{title}</span>

@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Dummy, non-secret values so `next build` succeeds without touching any
+  # real Supabase project. `next build` only statically renders pages that
+  # don't call createClient() at build time (see src/lib/supabase/server.ts
+  # — it's a per-request function, not a module-level side effect), so a
+  # DNS-unresolvable placeholder is fine here. If build ever needs a real
+  # secret at build time, it will fail here naming the missing var — that's
+  # the signal to move that read to runtime instead of adding a real secret
+  # to CI.
+  NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_placeholder
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Unit tests only. Full `npm test` also runs tests/rls/**, which
+      # creates real auth users against whatever Supabase project the env
+      # points at -- CI has no .env.local/.env.test.local, so it stays out.
+      - run: npx vitest run src/
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build

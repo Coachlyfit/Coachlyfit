@@ -20,6 +20,8 @@ import { tintFor } from "@/lib/tint";
 import { TodayExercisePreview } from "./today-exercise-preview";
 import { TodayActivityCard } from "./today-activity-card";
 import { CoachDecisionCard } from "./coach-decision-card";
+import { CoachInviteCard } from "./coach-invite-card";
+import { RelationshipsService } from "@/domain/relationships/relationships.service";
 
 export default async function ClientHomePage({
   params,
@@ -49,12 +51,13 @@ export default async function ClientHomePage({
 
   // Invoice count: RLS scopes it to this client's own non-draft invoices,
   // so the link below only shows once a coach has actually issued one.
-  const [existingCheckin, history, tree, latestDecision, { count: invoiceCount }] = await Promise.all([
+  const [existingCheckin, history, tree, latestDecision, { count: invoiceCount }, coachInvites] = await Promise.all([
     clientRow ? progress.getCheckin(clientRow.id, todayIso) : null,
     clientRow ? progress.listCheckins(clientRow.id) : [],
     clientRow ? programs.getActiveTreeForClient(clientRow.id) : null,
     clientRow ? new LedgerService(supabase).latestUnseenForClient(clientRow.id) : null,
     supabase.from("invoices").select("id", { count: "exact", head: true }),
+    new RelationshipsService(supabase).listPending(),
   ]);
 
   const plan = tree ? resolveDayPlan(tree, todayIso) : null;
@@ -112,6 +115,14 @@ export default async function ClientHomePage({
           </div>
         </CardContent>
       </Card>
+
+      {coachInvites.map((invite) => (
+        <CoachInviteCard
+          key={invite.id}
+          locale={locale}
+          invite={{ id: invite.id, businessName: invite.coaches?.business_name ?? null }}
+        />
+      ))}
 
       <CoachDecisionCard
         decision={

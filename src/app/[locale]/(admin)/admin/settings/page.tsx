@@ -7,6 +7,8 @@ import { GeneralTab } from "./general-tab";
 import { PlatformTab } from "./platform-tab";
 import { PlansTab } from "./plans-tab";
 import { UsersTab } from "./users-tab";
+import { AuditTab } from "./audit-tab";
+import type { AppLocale } from "@/domain/locale";
 
 export default async function AdminSettingsPage({
   params,
@@ -21,10 +23,11 @@ export default async function AdminSettingsPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [settings, tiersResult, usersResult] = await Promise.all([
+  const [settings, tiersResult, usersResult, auditResult] = await Promise.all([
     new PlatformSettingsService(supabase).getAll(),
     supabase.from("subscription_tiers").select("*").order("price_egp_monthly"),
     supabase.rpc("admin_list_users"),
+    supabase.from("admin_audit_log").select("*").order("created_at", { ascending: false }).limit(200),
   ]);
 
   return (
@@ -36,6 +39,7 @@ export default async function AdminSettingsPage({
           <TabsTrigger value="platform">{t("tabs.platform")}</TabsTrigger>
           <TabsTrigger value="plans">{t("tabs.plans")}</TabsTrigger>
           <TabsTrigger value="users">{t("tabs.users")}</TabsTrigger>
+          <TabsTrigger value="audit">{t("tabs.audit")}</TabsTrigger>
         </TabsList>
         <TabsContent value="general">
           <GeneralTab locale={locale} branding={settings.branding} announcement={settings.announcement} />
@@ -48,6 +52,9 @@ export default async function AdminSettingsPage({
         </TabsContent>
         <TabsContent value="users">
           <UsersTab locale={locale} users={usersResult.data ?? []} currentUserId={user?.id ?? ""} />
+        </TabsContent>
+        <TabsContent value="audit">
+          <AuditTab locale={locale as AppLocale} entries={auditResult.data ?? []} />
         </TabsContent>
       </Tabs>
     </div>

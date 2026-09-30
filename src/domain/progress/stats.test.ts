@@ -32,6 +32,7 @@ function checkin(overrides: Partial<CheckinRow> & { checkin_date: string }): Che
     adjustment_applied_at: null,
     coach_reply: null,
     coach_seen_at: null,
+    relationship_id: null,
     ...overrides,
   };
 }

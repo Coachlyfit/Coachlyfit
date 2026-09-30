@@ -28,6 +28,7 @@ export function InviteClientDialog({ locale }: { locale: string }) {
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [joinUrl, setJoinUrl] = useState<string | null>(null);
+  const [linked, setLinked] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const {
@@ -46,6 +47,7 @@ export function InviteClientDialog({ locale }: { locale: string }) {
     startTransition(async () => {
       const result = await createClientInviteAction(locale, formData);
       if ("error" in result) setFormError(result.error);
+      else if ("linked" in result) setLinked(true);
       else setJoinUrl(result.joinUrl);
     });
   });
@@ -55,6 +57,7 @@ export function InviteClientDialog({ locale }: { locale: string }) {
     if (!next) {
       reset();
       setJoinUrl(null);
+      setLinked(false);
       setFormError(null);
       setCopied(false);
     }
@@ -68,11 +71,15 @@ export function InviteClientDialog({ locale }: { locale: string }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{joinUrl ? t("linkTitle") : t("title")}</DialogTitle>
-          <DialogDescription>{joinUrl ? t("linkBody") : t("subtitle")}</DialogDescription>
+          <DialogTitle>{linked ? t("linkedTitle") : joinUrl ? t("linkTitle") : t("title")}</DialogTitle>
+          <DialogDescription>{linked ? t("linkedBody") : joinUrl ? t("linkBody") : t("subtitle")}</DialogDescription>
         </DialogHeader>
 
-        {joinUrl ? (
+        {linked ? (
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t("done")}
+          </Button>
+        ) : joinUrl ? (
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Input readOnly value={joinUrl} className="font-mono text-xs" />

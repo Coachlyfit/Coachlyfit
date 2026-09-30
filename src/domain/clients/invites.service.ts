@@ -1,6 +1,7 @@
 import { randomBytes, createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { RelationshipsService } from "@/domain/relationships/relationships.service";
 
 function generateToken() {
   return randomBytes(24).toString("base64url");
@@ -16,6 +17,8 @@ export type CreateInviteInput = {
   phone?: string;
 };
 
+export type CreateInviteResult = { linked: true } | { linked?: false; token: string; clientId: string };
+
 /** Coach-side half of the invite flow: create the client roster row plus a
  * hashed, single-use invite token. The plaintext token is returned once —
  * only its sha256 hash (matching Postgres's `digest(token, 'sha256')` in
@@ -24,7 +27,13 @@ export type CreateInviteInput = {
 export class InvitesService {
   constructor(private db: SupabaseClient<Database>) {}
 
-  async createInvite(coachId: string, input: CreateInviteInput) {
+  async createInvite(coachId: string, input: CreateInviteInput): Promise<CreateInviteResult> {
+    // An email that already has a client account (training with another
+    // coach) gets a pending relationship instead of a duplicate roster row.
+    if (input.email && (await new RelationshipsService(this.db).linkExisting(input.email))) {
+      return { linked: true };
+    }
+
     const { data: client, error: clientError } = await this.db
       .from("clients")
       .insert({
@@ -68,17 +77,19 @@ export class InvitesService {
    * abort the rows already accepted, so failures are counted, not thrown. */
   async createInvites(coachId: string, inputs: CreateInviteInput[]) {
     const created: { clientId: string; token: string; displayName: string }[] = [];
+    let linked = 0;
     let failed = 0;
 
     for (const input of inputs) {
       try {
-        const { token, clientId } = await this.createInvite(coachId, input);
-        created.push({ clientId, token, displayName: input.displayName });
+        const result = await this.createInvite(coachId, input);
+        if (result.linked) linked++;
+        else created.push({ clientId: result.clientId, token: result.token, displayName: input.displayName });
       } catch {
         failed++;
       }
     }
 
-    return { created, failed };
+    return { created, linked, failed };
   }
 }

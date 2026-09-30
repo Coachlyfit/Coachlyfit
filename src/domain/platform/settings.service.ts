@@ -16,8 +16,11 @@ export class PlatformSettingsService {
   constructor(private db: SupabaseClient<Database>) {}
 
   async getAll(): Promise<PlatformSettings> {
+    // Read on every layout render (see this class's docblock) -- a query
+    // failure (network error, Supabase outage) must degrade to defaults
+    // the same way a malformed row does below, not take down every page.
     const { data, error } = await this.db.from("platform_settings").select("key, value");
-    if (error) throw error;
+    if (error) return { ...SETTINGS_DEFAULTS };
 
     const result = { ...SETTINGS_DEFAULTS };
     for (const row of data ?? []) {

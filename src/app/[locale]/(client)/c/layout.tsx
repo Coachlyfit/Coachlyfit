@@ -10,6 +10,7 @@ import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { subscriptionDisplayStatus, type ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { Button } from "@/components/ui/button";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
@@ -69,14 +70,17 @@ export default async function ClientLayout({
           text_en={settings.announcement.text_en}
         />
       )}
-      <header className="mx-auto flex w-full max-w-lg items-center justify-end gap-2 border-b border-border px-4 py-3">
-        <LocaleSwitcher />
-        <ThemeToggle />
-        <form action={signOutAction.bind(null, locale)}>
-          <Button type="submit" variant="outline" size="icon-sm" aria-label={t("signOut")}>
-            <LogOut className="size-4" />
-          </Button>
-        </form>
+      <header className="mx-auto flex w-full max-w-lg items-center gap-2 border-b border-border px-4 py-3">
+        <CoachlyMark size={24} className="text-foreground" />
+        <div className="ms-auto flex items-center gap-2">
+          <LocaleSwitcher />
+          <ThemeToggle />
+          <form action={signOutAction.bind(null, locale)}>
+            <Button type="submit" variant="outline" size="icon-sm" aria-label={t("signOut")}>
+              <LogOut className="size-4" />
+            </Button>
+          </form>
+        </div>
       </header>
       <main className="mx-auto w-full min-w-0 max-w-lg flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)]">{children}</main>
       <ClientNav />

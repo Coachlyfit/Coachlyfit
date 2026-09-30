@@ -30,7 +30,7 @@ export async function saveTrainingModeAction(locale: string, formData: FormData)
   revalidatePath(`/${locale}/onboarding`);
 }
 
-type ImportResult = { error: string } | { created: { clientId: string; token: string; displayName: string }[]; failed: number };
+type ImportResult = { error: string } | { created: { clientId: string; token: string; displayName: string }[]; linked: number; failed: number };
 
 // Plain-object payload rather than FormData, matching publishTemplateAction
 // — the mapped rows are dynamic data, not a fixed set of named fields.

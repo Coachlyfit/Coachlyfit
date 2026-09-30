@@ -297,6 +297,7 @@ export function WorkoutSessionClient({
       set_index: setIndex,
       client_id: "",
       coach_id: "",
+      relationship_id: null,
       completed_at: new Date().toISOString(),
       prescribed_reps: prescribed.reps,
       prescribed_weight: prescribed.weight,

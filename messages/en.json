@@ -19,6 +19,11 @@
       "description": "An unexpected error occurred. Try again, or go back.",
       "retry": "Try again"
     },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or was moved.",
+      "backHome": "Back to home"
+    },
     "trash": {
       "trigger": "Trash",
       "title": "Trash",
@@ -666,7 +671,9 @@
       "copy": "Copy link",
       "copied": "Copied",
       "whatsapp": "Share on WhatsApp",
-      "done": "Done"
+      "done": "Done",
+      "linkedTitle": "Invite sent to their app",
+      "linkedBody": "This email already has a Coachly Fit account. They'll see your invite in their app and can accept it there."
     },
     "regenerate": "Get new link",
     "workouts": {
@@ -687,7 +694,8 @@
       "signup_failed": "Something went wrong. Please try again.",
       "email_taken": "An account with this email already exists.",
       "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
-      "not_found_or_forbidden": "Couldn't find that, or you don't have access."
+      "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
+      "already_your_client": "This person is already your client."
     },
     "billing": {
       "subscription": {
@@ -1909,7 +1917,8 @@
         "general": "General",
         "platform": "Platform",
         "plans": "Plans",
-        "users": "Users"
+        "users": "Users",
+        "audit": "Audit log"
       },
       "general": {
         "brandingTitle": "Branding",
@@ -1946,6 +1955,29 @@
           "white_label": "White label"
         }
       },
+      "audit": {
+        "empty": "No admin actions recorded yet.",
+        "when": "When",
+        "admin": "Admin",
+        "action": "Action",
+        "target": "User",
+        "details": "Details",
+        "actions": {
+          "profile_update": "Profile edited",
+          "email_change": "Email changed",
+          "password_reset": "Password reset sent",
+          "role_change": "Role changed",
+          "suspend": "Suspended",
+          "unsuspend": "Unsuspended",
+          "delete": "Deleted"
+        },
+        "fields": {
+          "full_name": "Name",
+          "phone": "Phone",
+          "email": "Email",
+          "role": "Role"
+        }
+      },
       "users": {
         "searchPlaceholder": "Search by name, email or phone",
         "name": "Name",
@@ -1956,13 +1988,35 @@
         "roleAdmin": "Admin",
         "roleCoach": "Coach",
         "roleClient": "Client",
-        "you": "You"
+        "you": "You",
+        "actions": "Actions",
+        "edit": "Edit user",
+        "editTitle": "Edit user",
+        "save": "Save",
+        "saved": "User updated.",
+        "cancel": "Cancel",
+        "resetPassword": "Send password reset email",
+        "resetSent": "Password reset email sent.",
+        "delete": "Delete user",
+        "deleteAdminBlocked": "Change this admin's role before deleting.",
+        "deleteTitle": "Delete {name}?",
+        "deleteWarning": "This permanently deletes the account and can't be undone.",
+        "deleteWarningCoach": "This permanently deletes the coach and ALL their clients, programs, messages, invoices and payments. It can't be undone.",
+        "deleteConfirmLabel": "Type {email} to confirm",
+        "deleteConfirm": "Delete permanently",
+        "deleted": "User deleted."
       },
       "errors": {
         "invalid_input": "Please check the form and try again.",
         "forbidden": "You don't have access to do that.",
         "update_failed": "Couldn't save. Try again.",
-        "not_authenticated": "You don't have access to do that."
+        "not_authenticated": "You don't have access to do that.",
+        "not_found": "That user no longer exists.",
+        "email_taken": "Another account already uses this email.",
+        "no_email": "This account has no email on file.",
+        "reset_failed": "Couldn't send the reset email. Try again.",
+        "confirm_mismatch": "The email you typed doesn't match.",
+        "delete_failed": "Couldn't delete this user. Try again."
       }
     }
   },
@@ -1974,7 +2028,8 @@
     "food_promoted": "\"{name}\" was added to the global Food Library.",
     "new_message": "New message from {name}.",
     "unknown": "You have a new notification.",
-    "decision_outcome": "Outcome update: {status}"
+    "decision_outcome": "Outcome update: {status}",
+    "client_left": "{name} moved to another coach. Their subscription was canceled."
   },
   "progress": {
     "title": "Progress",
@@ -2612,6 +2667,24 @@
       "email_not_configured": "Email isn't set up yet — copy the link and send it yourself.",
       "no_client_email": "This client has no email address. Copy the link and send it yourself.",
       "send_failed": "Couldn't send the email. Try again."
+    }
+  },
+  "relationships": {
+    "inviteTitle": "New coach invite",
+    "inviteBody": "{coach} wants to be your coach.",
+    "unknownCoach": "A coach",
+    "switchNote": "Accepting ends your coaching and billing with your current coach.",
+    "shareHistory": "Share my history with my new coach",
+    "shareHistoryHint": "Past check-ins, measurements, photos, workouts and form answers. Messages with your previous coach are never shared.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepted": "You're now training with {coach}.",
+    "declined": "Invite declined.",
+    "errors": {
+      "invalid_input": "Something went wrong. Please try again.",
+      "not_authenticated": "Please log in again.",
+      "respond_failed": "Something went wrong. Please try again.",
+      "coach_full": "This coach has no free spots right now."
     }
   }
 }

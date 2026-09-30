@@ -26,14 +26,6 @@ export default function robots(): MetadataRoute.Robots {
           "/print/",
         ],
       },
-      {
-        userAgent: "GPTBot",
-        disallow: "/",
-      },
-      {
-        userAgent: "CCBot",
-        disallow: "/",
-      },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
   };
