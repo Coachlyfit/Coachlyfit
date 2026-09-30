@@ -105,7 +105,13 @@ export default async function ProgramsPage({
                     </Link>
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground sm:table-cell">
-                    {program.clients?.display_name ?? <Badge variant="secondary">{t("template")}</Badge>}
+                    {/* A former client's row is unreadable after a coach switch, so a null
+                        join only means "template" when client_id is null too. */}
+                    {program.client_id ? (
+                      (program.clients?.display_name ?? "—")
+                    ) : (
+                      <Badge variant="secondary">{t("template")}</Badge>
+                    )}
                   </TableCell>
                   <TableCell className="hidden tabular-nums text-muted-foreground md:table-cell">
                     {program.end_date

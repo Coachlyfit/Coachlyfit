@@ -17,7 +17,10 @@ import { usePushSubscription } from "./use-push-subscription";
 // trigger — it only ever inserts to a client's profile_id), so it never
 // reaches this coach/admin-side bell; only decision_outcome shows up here,
 // for the coach's own copy of that notification.
-const KINDS = ["exercise_promoted", "food_promoted", "new_message", "decision_outcome"] as const;
+// client_left goes to the old coach when a client accepts another coach's
+// invite (respond_to_coach_invite); coach_invite is client-only, like
+// coach_decision.
+const KINDS = ["exercise_promoted", "food_promoted", "new_message", "decision_outcome", "client_left"] as const;
 
 function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
   return (KINDS as readonly string[]).includes(kind);
@@ -54,6 +57,9 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     }
     if (notification.kind === "decision_outcome") {
       return t("decision_outcome", { status: tOutcome(payload.outcome_status as string) });
+    }
+    if (notification.kind === "client_left") {
+      return t("client_left", { name: (payload.display_name as string | null) ?? t("unknown") });
     }
     // payload is jsonb, so it arrives as an untyped object — pickLocale
     // reads the same name_ar/name_en pair the promote function wrote.

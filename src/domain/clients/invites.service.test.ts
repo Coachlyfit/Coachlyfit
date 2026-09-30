@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { AlreadyYourClientError } from "@/domain/relationships/relationships.service";
 import { InvitesService, hashInviteToken } from "./invites.service";
 
 // A minimal fake standing in for SupabaseClient — this is the payoff of
 // "services take a DB client in the constructor": no real Postgres, no
 // Next.js, just plain object assertions.
-function fakeSupabase(clientRow: { id: string }) {
+function fakeSupabase(
+  clientRow: { id: string },
+  linkResult: { data: string | null; error: { message: string } | null } = { data: null, error: null }
+) {
   const calls: { table: string; payload: unknown }[] = [];
 
   function insertResult(table: string, payload: unknown) {
@@ -20,6 +24,10 @@ function fakeSupabase(clientRow: { id: string }) {
   const db = {
     from(table: string) {
       return { insert: (payload: unknown) => insertResult(table, payload) };
+    },
+    async rpc(fn: string, args: unknown) {
+      calls.push({ table: `rpc:${fn}`, payload: args });
+      return linkResult;
     },
   };
 
@@ -48,18 +56,47 @@ describe("InvitesService", () => {
       email: "alice@example.com",
     });
 
+    if (result.linked) throw new Error("expected a new invite");
     expect(result.clientId).toBe("client-1");
     expect(result.token).toMatch(/^[\w-]{20,}$/); // base64url, no padding chars
 
-    expect(calls[0].table).toBe("clients");
-    expect(calls[0].payload).toMatchObject({ coach_id: "coach-1", display_name: "Alice" });
+    // No existing account for this email -> falls through to a new roster row.
+    expect(calls[0]).toEqual({ table: "rpc:link_existing_client", payload: { p_email: "alice@example.com" } });
 
-    expect(calls[1].table).toBe("invites");
-    const invitePayload = calls[1].payload as { token_hash: string; client_id: string };
+    expect(calls[1].table).toBe("clients");
+    expect(calls[1].payload).toMatchObject({ coach_id: "coach-1", display_name: "Alice" });
+
+    expect(calls[2].table).toBe("invites");
+    const invitePayload = calls[2].payload as { token_hash: string; client_id: string };
     expect(invitePayload.client_id).toBe("client-1");
     // The stored hash must never be the plaintext token itself.
     expect(invitePayload.token_hash).not.toBe(result.token);
     expect(invitePayload.token_hash).toMatch(/^[0-9a-f]{64}$/); // sha256 hex
+  });
+
+  it("links an existing client account instead of creating a duplicate roster row", async () => {
+    const { db, calls } = fakeSupabase({ id: "unused" }, { data: "rel-1", error: null });
+
+    const result = await new InvitesService(db).createInvite("coach-1", {
+      displayName: "Alice",
+      email: "alice@example.com",
+    });
+
+    expect(result).toEqual({ linked: true });
+    expect(calls.map((c) => c.table)).toEqual(["rpc:link_existing_client"]);
+  });
+
+  it("skips the account lookup when no email is given", async () => {
+    const { db, calls } = fakeSupabase({ id: "client-1" });
+    await new InvitesService(db).createInvite("coach-1", { displayName: "Alice" });
+    expect(calls.map((c) => c.table)).toEqual(["clients", "invites"]);
+  });
+
+  it("surfaces already_your_client as AlreadyYourClientError", async () => {
+    const { db } = fakeSupabase({ id: "unused" }, { data: null, error: { message: "already_your_client" } });
+    await expect(
+      new InvitesService(db).createInvite("coach-1", { displayName: "Alice", email: "alice@example.com" })
+    ).rejects.toBeInstanceOf(AlreadyYourClientError);
   });
 
   it("regenerateInvite issues a fresh token for the same client without touching clients", async () => {

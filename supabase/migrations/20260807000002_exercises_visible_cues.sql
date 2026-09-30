@@ -13,11 +13,17 @@
 -- allows appending at the very end, never inserting mid-list). This was
 -- never caught before because nothing had replayed every migration from a
 -- fresh database until CI's from-scratch `supabase start` did.
--- Column order here must match every later create-or-replace of this view
--- (20260831000001_exercise_content.sql, 20260910000001_soft_delete.sql)
--- exactly through this point, or THEIR replace hits the same 42P16 --
--- CREATE OR REPLACE VIEW checks the name at each ordinal position, not
--- which base-table column feeds it.
+-- Column order here must match the PRIOR view's ordinal positions exactly
+-- through the columns it already had: 20260805000001_library_clone.sql's
+-- `create view` used `e.*`, frozen at creation time to the base table's
+-- then-order (…, created_at, source_exercise_id, image_url, coach_notes_ar,
+-- coach_notes_en), so cues_ar/cues_en — added to the table AFTER those —
+-- must be appended after coach_notes_en here too, not after created_at,
+-- or CREATE OR REPLACE VIEW rejects the rename at that ordinal (42P16).
+-- Every later create-or-replace of this view (20260831000001_exercise_content.sql,
+-- 20260910000001_soft_delete.sql) must in turn match this column order
+-- exactly through this point — CREATE OR REPLACE VIEW checks the name at
+-- each ordinal position, not which base-table column feeds it.
 create or replace view public.exercises_visible with (security_invoker = true) as
 select
   e.id,
@@ -30,12 +36,12 @@ select
   e.instructions_en,
   e.video_url,
   e.created_at,
-  e.cues_ar,
-  e.cues_en,
   e.source_exercise_id,
   e.image_url,
   e.coach_notes_ar,
   e.coach_notes_en,
+  e.cues_ar,
+  e.cues_en,
   s.name_ar as source_name_ar,
   s.name_en as source_name_en,
   (

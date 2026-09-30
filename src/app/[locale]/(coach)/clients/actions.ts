@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { getRootDomain } from "@/lib/tenant/portal-slug";
 import { InvitesService } from "@/domain/clients/invites.service";
+import { AlreadyYourClientError } from "@/domain/relationships/relationships.service";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { ObservationsService } from "@/domain/clients/observations.service";
@@ -18,6 +19,7 @@ import {
 } from "./schemas";
 
 type ActionResult = { error: string } | { joinUrl: string };
+type CreateInviteActionResult = ActionResult | { linked: true };
 type VoidActionResult = { error: string } | void;
 
 // Branded on the coach's own portal subdomain (same domain shown for the
@@ -30,7 +32,7 @@ function joinUrl(locale: string, token: string, slug: string) {
 export async function createClientInviteAction(
   locale: string,
   formData: FormData
-): Promise<ActionResult> {
+): Promise<CreateInviteActionResult> {
   const parsed = createInviteSchema.safeParse({
     displayName: formData.get("displayName") || undefined,
     email: formData.get("email") || undefined,
@@ -49,10 +51,13 @@ export async function createClientInviteAction(
   if (!coach) return { error: "not_authenticated" };
 
   try {
-    const { token } = await new InvitesService(supabase).createInvite(coachId, parsed.data);
+    const result = await new InvitesService(supabase).createInvite(coachId, parsed.data);
+    // Existing client account: they accept from their own app, no link.
+    if (result.linked) return { linked: true };
     revalidatePath(`/${locale}/clients`);
-    return { joinUrl: joinUrl(locale, token, coach.slug) };
-  } catch {
+    return { joinUrl: joinUrl(locale, result.token, coach.slug) };
+  } catch (error) {
+    if (error instanceof AlreadyYourClientError) return { error: "already_your_client" };
     // Most likely the client-cap trigger (private.enforce_client_cap) —
     // the tier limit is enforced in the DB, not just the UI.
     return { error: "client_limit_reached" };

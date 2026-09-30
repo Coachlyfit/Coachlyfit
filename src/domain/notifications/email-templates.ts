@@ -6,7 +6,14 @@
  * client-only and never reaches the coach-side bell (see the migration's
  * notify_on_decision trigger), so it has email/push copy only. */
 
-export type NotificationKind = "exercise_promoted" | "food_promoted" | "new_message" | "coach_decision" | "decision_outcome";
+export type NotificationKind =
+  | "exercise_promoted"
+  | "food_promoted"
+  | "new_message"
+  | "coach_decision"
+  | "decision_outcome"
+  | "coach_invite"
+  | "client_left";
 
 export type EmailLocale = "ar" | "en";
 
@@ -27,6 +34,8 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       new_message: "You have a new message",
       coach_decision: "Your coach updated your plan",
       decision_outcome: "An update on a recent plan change",
+      coach_invite: "A new coach invited you",
+      client_left: "A client moved to another coach",
     },
     greeting: "Hi",
     footer: "You're receiving this because you have email notifications turned on. You can turn them off in Settings.",
@@ -38,6 +47,8 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       new_message: "لديك رسالة جديدة",
       coach_decision: "الكوتش عدّل خطتك",
       decision_outcome: "تحديث بخصوص تعديل تم على خطتك مؤخرًا",
+      coach_invite: "لديك دعوة من كوتش جديد",
+      client_left: "انتقل أحد عملائك إلى كوتش آخر",
     },
     greeting: "مرحبًا",
     footer: "تصلك هذه الرسالة لأن إشعارات البريد الإلكتروني مفعّلة لديك. يمكنك إيقافها من الإعدادات.",
@@ -57,6 +68,10 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return "راجع كوتشك آخر تشيك إن وعدّل خطتك. افتح التطبيق لمعرفة التفاصيل.";
       case "decision_outcome":
         return "فيه تحديث على نتيجة تعديل تم على خطتك. افتح التطبيق لمعرفة التفاصيل.";
+      case "coach_invite":
+        return "دعاك كوتش جديد للتدرّب معه. افتح التطبيق لقبول الدعوة أو رفضها.";
+      case "client_left":
+        return "قبل أحد عملائك دعوة من كوتش آخر، وتم إلغاء اشتراكه معك.";
     }
   }
   switch (kind) {
@@ -70,6 +85,10 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return "Your coach reviewed your check-in and updated your plan. Open the app for details.";
     case "decision_outcome":
       return "There's an update on the result of a recent plan change. Open the app for details.";
+    case "coach_invite":
+      return "A new coach invited you to train with them. Open the app to accept or decline.";
+    case "client_left":
+      return "One of your clients accepted another coach's invite. Their subscription with you was canceled.";
   }
 }
 

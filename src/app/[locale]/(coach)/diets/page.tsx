@@ -105,7 +105,13 @@ export default async function DietsPage({
                     </Link>
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground sm:table-cell">
-                    {plan.clients?.display_name ?? <Badge variant="secondary">{t("template")}</Badge>}
+                    {/* A former client's row is unreadable after a coach switch, so a null
+                        join only means "template" when client_id is null too. */}
+                    {plan.client_id ? (
+                      (plan.clients?.display_name ?? "—")
+                    ) : (
+                      <Badge variant="secondary">{t("template")}</Badge>
+                    )}
                   </TableCell>
                   <TableCell className="hidden tabular-nums text-muted-foreground md:table-cell">
                     {plan.end_date

@@ -671,7 +671,9 @@
       "copy": "Copy link",
       "copied": "Copied",
       "whatsapp": "Share on WhatsApp",
-      "done": "Done"
+      "done": "Done",
+      "linkedTitle": "Invite sent to their app",
+      "linkedBody": "This email already has a Coachly Fit account. They'll see your invite in their app and can accept it there."
     },
     "regenerate": "Get new link",
     "workouts": {
@@ -692,7 +694,8 @@
       "signup_failed": "Something went wrong. Please try again.",
       "email_taken": "An account with this email already exists.",
       "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
-      "not_found_or_forbidden": "Couldn't find that, or you don't have access."
+      "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
+      "already_your_client": "This person is already your client."
     },
     "billing": {
       "subscription": {
@@ -2025,7 +2028,8 @@
     "food_promoted": "\"{name}\" was added to the global Food Library.",
     "new_message": "New message from {name}.",
     "unknown": "You have a new notification.",
-    "decision_outcome": "Outcome update: {status}"
+    "decision_outcome": "Outcome update: {status}",
+    "client_left": "{name} moved to another coach. Their subscription was canceled."
   },
   "progress": {
     "title": "Progress",
@@ -2663,6 +2667,24 @@
       "email_not_configured": "Email isn't set up yet — copy the link and send it yourself.",
       "no_client_email": "This client has no email address. Copy the link and send it yourself.",
       "send_failed": "Couldn't send the email. Try again."
+    }
+  },
+  "relationships": {
+    "inviteTitle": "New coach invite",
+    "inviteBody": "{coach} wants to be your coach.",
+    "unknownCoach": "A coach",
+    "switchNote": "Accepting ends your coaching and billing with your current coach.",
+    "shareHistory": "Share my history with my new coach",
+    "shareHistoryHint": "Past check-ins, measurements, photos, workouts and form answers. Messages with your previous coach are never shared.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepted": "You're now training with {coach}.",
+    "declined": "Invite declined.",
+    "errors": {
+      "invalid_input": "Something went wrong. Please try again.",
+      "not_authenticated": "Please log in again.",
+      "respond_failed": "Something went wrong. Please try again.",
+      "coach_full": "This coach has no free spots right now."
     }
   }
 }

@@ -27,6 +27,7 @@ export type Database = {
           notes: string | null
           performed_on: string
           program_activity_id: string
+          relationship_id: string | null
           rpe: number | null
         }
         Insert: {
@@ -41,6 +42,7 @@ export type Database = {
           notes?: string | null
           performed_on?: string
           program_activity_id: string
+          relationship_id?: string | null
           rpe?: number | null
         }
         Update: {
@@ -55,6 +57,7 @@ export type Database = {
           notes?: string | null
           performed_on?: string
           program_activity_id?: string
+          relationship_id?: string | null
           rpe?: number | null
         }
         Relationships: [
@@ -84,6 +87,13 @@ export type Database = {
             columns: ["program_activity_id"]
             isOneToOne: false
             referencedRelation: "program_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_logs_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
             referencedColumns: ["id"]
           },
         ]
@@ -131,6 +141,7 @@ export type Database = {
           created_at: string
           id: string
           metric: string
+          relationship_id: string | null
           taken_on: string
           unit: string
           value: number
@@ -141,6 +152,7 @@ export type Database = {
           created_at?: string
           id?: string
           metric: string
+          relationship_id?: string | null
           taken_on?: string
           unit: string
           value: number
@@ -151,6 +163,7 @@ export type Database = {
           created_at?: string
           id?: string
           metric?: string
+          relationship_id?: string | null
           taken_on?: string
           unit?: string
           value?: number
@@ -177,6 +190,13 @@ export type Database = {
             referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "body_metrics_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
         ]
       }
       checkins: {
@@ -195,6 +215,7 @@ export type Database = {
           id: string
           mood: number | null
           notes: string | null
+          relationship_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           sleep_hours: number | null
@@ -215,6 +236,7 @@ export type Database = {
           id?: string
           mood?: number | null
           notes?: string | null
+          relationship_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           sleep_hours?: number | null
@@ -235,6 +257,7 @@ export type Database = {
           id?: string
           mood?: number | null
           notes?: string | null
+          relationship_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           sleep_hours?: number | null
@@ -260,6 +283,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkins_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
             referencedColumns: ["id"]
           },
           {
@@ -811,6 +841,61 @@ export type Database = {
           },
         ]
       }
+      coaching_relationships: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          share_history: boolean
+          started_at: string | null
+          status: Database["public"]["Enums"]["coaching_relationship_status"]
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          share_history?: boolean
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["coaching_relationship_status"]
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          share_history?: boolean
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["coaching_relationship_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_relationships_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_relationships_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "coaching_relationships_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diet_plans: {
         Row: {
           archived_at: string | null
@@ -1214,6 +1299,7 @@ export type Database = {
           client_id: string
           coach_id: string
           id: string
+          relationship_id: string | null
           submitted_at: string
           template_version_id: string
         }
@@ -1223,6 +1309,7 @@ export type Database = {
           client_id: string
           coach_id: string
           id?: string
+          relationship_id?: string | null
           submitted_at?: string
           template_version_id: string
         }
@@ -1232,6 +1319,7 @@ export type Database = {
           client_id?: string
           coach_id?: string
           id?: string
+          relationship_id?: string | null
           submitted_at?: string
           template_version_id?: string
         }
@@ -1262,6 +1350,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
             referencedColumns: ["id"]
           },
           {
@@ -1766,6 +1861,7 @@ export type Database = {
           id: string
           kind: string
           pose: string | null
+          relationship_id: string | null
           storage_path: string
         }
         Insert: {
@@ -1776,6 +1872,7 @@ export type Database = {
           id?: string
           kind: string
           pose?: string | null
+          relationship_id?: string | null
           storage_path: string
         }
         Update: {
@@ -1786,6 +1883,7 @@ export type Database = {
           id?: string
           kind?: string
           pose?: string | null
+          relationship_id?: string | null
           storage_path?: string
         }
         Relationships: [
@@ -1817,6 +1915,13 @@ export type Database = {
             referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "media_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
         ]
       }
       messages: {
@@ -1827,6 +1932,7 @@ export type Database = {
           created_at: string
           id: string
           read_at: string | null
+          relationship_id: string | null
           sender_role: string
         }
         Insert: {
@@ -1836,6 +1942,7 @@ export type Database = {
           created_at?: string
           id?: string
           read_at?: string | null
+          relationship_id?: string | null
           sender_role: string
         }
         Update: {
@@ -1845,6 +1952,7 @@ export type Database = {
           created_at?: string
           id?: string
           read_at?: string | null
+          relationship_id?: string | null
           sender_role?: string
         }
         Relationships: [
@@ -1867,6 +1975,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
             referencedColumns: ["id"]
           },
         ]
@@ -2866,6 +2981,7 @@ export type Database = {
           notes: string | null
           pain: number | null
           program_item_id: string
+          relationship_id: string | null
           session_id: string
           status: string
         }
@@ -2879,6 +2995,7 @@ export type Database = {
           notes?: string | null
           pain?: number | null
           program_item_id: string
+          relationship_id?: string | null
           session_id: string
           status: string
         }
@@ -2892,6 +3009,7 @@ export type Database = {
           notes?: string | null
           pain?: number | null
           program_item_id?: string
+          relationship_id?: string | null
           session_id?: string
           status?: string
         }
@@ -2925,6 +3043,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workout_exercise_results_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workout_exercise_results_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -2944,6 +3069,7 @@ export type Database = {
           elapsed_seconds: number
           id: string
           program_day_id: string
+          relationship_id: string | null
           sets_completed: number | null
           sets_prescribed: number | null
           started_at: string
@@ -2959,6 +3085,7 @@ export type Database = {
           elapsed_seconds?: number
           id?: string
           program_day_id: string
+          relationship_id?: string | null
           sets_completed?: number | null
           sets_prescribed?: number | null
           started_at?: string
@@ -2974,6 +3101,7 @@ export type Database = {
           elapsed_seconds?: number
           id?: string
           program_day_id?: string
+          relationship_id?: string | null
           sets_completed?: number | null
           sets_prescribed?: number | null
           started_at?: string
@@ -3015,6 +3143,13 @@ export type Database = {
             referencedRelation: "program_days"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "workout_sessions_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
         ]
       }
       workout_set_logs: {
@@ -3028,6 +3163,7 @@ export type Database = {
           prescribed_reps: number | null
           prescribed_weight: number | null
           program_item_id: string
+          relationship_id: string | null
           reps: number | null
           rpe: number | null
           session_id: string
@@ -3045,6 +3181,7 @@ export type Database = {
           prescribed_reps?: number | null
           prescribed_weight?: number | null
           program_item_id: string
+          relationship_id?: string | null
           reps?: number | null
           rpe?: number | null
           session_id: string
@@ -3062,6 +3199,7 @@ export type Database = {
           prescribed_reps?: number | null
           prescribed_weight?: number | null
           program_item_id?: string
+          relationship_id?: string | null
           reps?: number | null
           rpe?: number | null
           session_id?: string
@@ -3096,6 +3234,13 @@ export type Database = {
             columns: ["program_item_id"]
             isOneToOne: false
             referencedRelation: "program_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
             referencedColumns: ["id"]
           },
           {
@@ -3346,6 +3491,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      link_existing_client: { Args: { p_email: string }; Returns: string }
       list_online_users: {
         Args: { p_limit?: number; p_offset?: number; p_search?: string }
         Returns: {
@@ -3378,6 +3524,7 @@ export type Database = {
           id: string
           mood: number | null
           notes: string | null
+          relationship_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           sleep_hours: number | null
@@ -3407,6 +3554,7 @@ export type Database = {
           id: string
           mood: number | null
           notes: string | null
+          relationship_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           sleep_hours: number | null
@@ -3461,6 +3609,14 @@ export type Database = {
         }
         Returns: string
       }
+      respond_to_coach_invite: {
+        Args: {
+          p_accept: boolean
+          p_relationship_id: string
+          p_share_history?: boolean
+        }
+        Returns: undefined
+      }
       review_checkin: {
         Args: {
           p_adjustments?: Json
@@ -3483,6 +3639,7 @@ export type Database = {
           id: string
           mood: number | null
           notes: string | null
+          relationship_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           sleep_hours: number | null
@@ -3499,6 +3656,7 @@ export type Database = {
     }
     Enums: {
       client_status: "invited" | "active" | "archived"
+      coaching_relationship_status: "pending" | "active" | "ended"
       user_role: "admin" | "coach" | "client"
     }
     CompositeTypes: {
@@ -3628,6 +3786,7 @@ export const Constants = {
   public: {
     Enums: {
       client_status: ["invited", "active", "archived"],
+      coaching_relationship_status: ["pending", "active", "ended"],
       user_role: ["admin", "coach", "client"],
     },
   },

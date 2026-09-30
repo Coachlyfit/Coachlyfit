@@ -20,4 +20,10 @@ describe("renderNotificationEmail", () => {
     const { html } = renderNotificationEmail("en", "new_message", "Sara", null);
     expect(html).toContain("You have a new message waiting.");
   });
+
+  it("client_left tells the old coach the subscription was canceled", () => {
+    const { subject, html } = renderNotificationEmail("en", "client_left", null, null);
+    expect(subject).toBe("A client moved to another coach");
+    expect(html).toContain("Their subscription with you was canceled.");
+  });
 });
