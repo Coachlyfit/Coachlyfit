@@ -77,6 +77,9 @@ export function DatePicker({
           mode="single"
           selected={selected}
           defaultMonth={selected}
+          captionLayout="dropdown"
+          startMonth={new Date(1920, 0)}
+          endMonth={new Date(new Date().getFullYear() + 10, 11)}
           onSelect={(d) => {
             onChange(d ? toYmd(d) : "");
             setOpen(false);
