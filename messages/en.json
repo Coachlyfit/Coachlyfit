@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Coachly",
+    "pickDate": "Pick a date",
     "loading": "Loading...",
     "save": "Save",
     "pending": "Saving…",

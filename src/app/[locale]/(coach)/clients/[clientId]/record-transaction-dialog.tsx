@@ -7,6 +7,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Plus, Upload, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -149,7 +150,7 @@ export function RecordTransactionDialog({
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="transaction_date">{t("date")}</Label>
-            <Input id="transaction_date" type="date" {...register("transaction_date")} />
+            <FormDatePicker id="transaction_date" control={control} name="transaction_date" />
           </div>
           <div className="flex flex-col gap-2">
             <Label>{t("proof")}</Label>

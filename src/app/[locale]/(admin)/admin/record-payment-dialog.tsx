@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -128,11 +129,11 @@ export function RecordPaymentDialog({ locale, coachId }: { locale: string; coach
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="periodStart">{t("periodStart")}</Label>
-              <Input id="periodStart" type="date" {...register("periodStart")} />
+              <FormDatePicker id="periodStart" control={control} name="periodStart" />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="periodEnd">{t("periodEnd")}</Label>
-              <Input id="periodEnd" type="date" {...register("periodEnd")} />
+              <FormDatePicker id="periodEnd" control={control} name="periodEnd" />
             </div>
           </div>
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}

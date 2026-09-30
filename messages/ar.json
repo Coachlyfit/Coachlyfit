@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "كوتشلي",
+    "pickDate": "اختر تاريخاً",
     "loading": "بيحمّل...",
     "save": "حفظ",
     "pending": "بيتحفظ…",
