@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "@/i18n/navigation";
 import { setUserRoleAction, setUserSuspendedAction } from "./actions";
+import { DeleteUserDialog, EditUserDialog } from "./user-dialogs";
 
 type AdminUser = {
   id: string;
@@ -85,6 +86,12 @@ function UserRow({ locale, user, currentUserId }: { locale: string; user: AdminU
           <Switch checked={suspended} disabled={pending} onCheckedChange={onSuspendChange} aria-label={t("suspended")} />
         )}
       </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-1">
+          <EditUserDialog locale={locale} user={user} />
+          {!isSelf && <DeleteUserDialog locale={locale} user={user} />}
+        </div>
+      </TableCell>
     </TableRow>
   );
 }
@@ -117,6 +124,7 @@ export function UsersTab({ locale, users, currentUserId }: { locale: string; use
             <TableHead>{t("phone")}</TableHead>
             <TableHead>{t("role")}</TableHead>
             <TableHead>{t("suspended")}</TableHead>
+            <TableHead>{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -1956,13 +1956,35 @@
         "roleAdmin": "Admin",
         "roleCoach": "Coach",
         "roleClient": "Client",
-        "you": "You"
+        "you": "You",
+        "actions": "Actions",
+        "edit": "Edit user",
+        "editTitle": "Edit user",
+        "save": "Save",
+        "saved": "User updated.",
+        "cancel": "Cancel",
+        "resetPassword": "Send password reset email",
+        "resetSent": "Password reset email sent.",
+        "delete": "Delete user",
+        "deleteAdminBlocked": "Change this admin's role before deleting.",
+        "deleteTitle": "Delete {name}?",
+        "deleteWarning": "This permanently deletes the account and can't be undone.",
+        "deleteWarningCoach": "This permanently deletes the coach and ALL their clients, programs, messages, invoices and payments. It can't be undone.",
+        "deleteConfirmLabel": "Type {email} to confirm",
+        "deleteConfirm": "Delete permanently",
+        "deleted": "User deleted."
       },
       "errors": {
         "invalid_input": "Please check the form and try again.",
         "forbidden": "You don't have access to do that.",
         "update_failed": "Couldn't save. Try again.",
-        "not_authenticated": "You don't have access to do that."
+        "not_authenticated": "You don't have access to do that.",
+        "not_found": "That user no longer exists.",
+        "email_taken": "Another account already uses this email.",
+        "no_email": "This account has no email on file.",
+        "reset_failed": "Couldn't send the reset email. Try again.",
+        "confirm_mismatch": "The email you typed doesn't match.",
+        "delete_failed": "Couldn't delete this user. Try again."
       }
     }
   },

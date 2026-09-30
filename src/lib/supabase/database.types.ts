@@ -3221,6 +3221,10 @@ export type Database = {
         Args: { p_ip?: unknown; p_token: string }
         Returns: Json
       }
+      admin_authorize_user_action: {
+        Args: { p_action: string; p_user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       admin_list_coaches: {
         Args: never
         Returns: {
@@ -3260,6 +3264,10 @@ export type Database = {
       }
       admin_set_suspended: {
         Args: { p_suspended: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      admin_update_user_profile: {
+        Args: { p_full_name: string; p_phone: string; p_user_id: string }
         Returns: undefined
       }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }

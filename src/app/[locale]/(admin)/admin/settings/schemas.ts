@@ -14,3 +14,10 @@ export const tierSchema = z.object({
 export type TierInput = z.input<typeof tierSchema>;
 
 export const userRoleSchema = z.enum(["admin", "coach", "client"]);
+
+export const userProfileSchema = z.object({
+  fullName: z.string().trim().max(100),
+  phone: z.string().trim().max(30),
+});
+
+export const userEmailSchema = z.string().trim().toLowerCase().email().max(255);

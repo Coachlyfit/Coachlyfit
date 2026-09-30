@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { PlatformSettingsService } from "@/domain/platform/settings.service";
 import { platformSettingsSchemas, isSettingKey } from "@/domain/platform/settings.schema";
-import { tierSchema, userRoleSchema } from "./schemas";
+import { tierSchema, userProfileSchema, userRoleSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
 
@@ -78,6 +78,33 @@ export async function setUserSuspendedAction(locale: string, userId: string, sus
     p_suspended: suspended,
   });
   if (rpcError) return { error: rpcError.code === "42501" ? "forbidden" : "update_failed" };
+
+  revalidatePath(`/${locale}/admin/settings`);
+}
+
+function rpcErrorCode(code: string | undefined): string {
+  if (code === "42501") return "forbidden";
+  if (code === "P0002") return "not_found";
+  return "update_failed";
+}
+
+export async function updateUserProfileAction(
+  locale: string,
+  userId: string,
+  input: { fullName: string; phone: string }
+): Promise<ActionResult> {
+  const parsed = userProfileSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const { error: rpcError } = await supabase.rpc("admin_update_user_profile", {
+    p_user_id: userId,
+    p_full_name: parsed.data.fullName,
+    p_phone: parsed.data.phone,
+  });
+  if (rpcError) return { error: rpcErrorCode(rpcError.code) };
 
   revalidatePath(`/${locale}/admin/settings`);
 }
