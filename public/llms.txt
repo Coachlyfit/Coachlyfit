@@ -1,0 +1,18 @@
+# Coachlyfit
+
+> SaaS platform for fitness coaches to manage clients, forms/check-ins, exercise programs, progress tracking, and invoicing — built RTL-first for coaches in Egypt and the MENA region.
+
+Coachlyfit lets a personal trainer or fitness coach run their entire client business from one dashboard: onboarding forms, workout/program builders, check-ins, progress charts, and coach-to-client invoicing with Arabic/English support.
+
+## Product
+
+- [Homepage](https://coachlyfit.app): overview, features, pricing
+- [Sign up](https://coachlyfit.app/en/signup)
+- [Log in](https://coachlyfit.app/en/login)
+
+## Key facts
+
+- Built for fitness coaches and personal trainers, primarily in Egypt and the Arabic-speaking region
+- Full Arabic (RTL) and English (LTR) support
+- Core features: client management, custom forms/check-ins, exercise/program library, progress tracking, invoicing/billing
+- Clients don't need to install an app — everything works in the browser
