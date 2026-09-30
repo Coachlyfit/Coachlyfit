@@ -41,8 +41,27 @@ See [.env.example](.env.example):
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | Vitest (run once) |
+| `npm run test:e2e` | Playwright smoke tests (builds and starts the app first) |
 
 Run `npm run typecheck` and `npm run lint` before considering any change done; `npm test` for anything touching `src/domain/` or `src/lib/`.
+
+## CI / branch protection
+
+Every PR and every push to `main` runs [.github/workflows/ci.yml](.github/workflows/ci.yml): `lint` → `typecheck` → `test` (unit tests only, via `npx vitest run src/` — `tests/rls/**` needs a real Supabase project so it's excluded from CI) → `build` (with dummy `NEXT_PUBLIC_*` env vars, no secrets) → `e2e` (Playwright smoke tests against a real `next build && next start`). A separate `db-types` job spins up a full local Supabase stack (`supabase start`, no real project involved) and fails if `src/lib/supabase/database.types.ts` is out of sync with `supabase/migrations/`.
+
+Vercel's Git integration still does the actual deploys (preview on every push, production from `main`) — GitHub Actions is only the gate before code merges.
+
+To make CI actually block merges, set up branch protection on `main` (one-time, GitHub UI):
+
+1. On GitHub, go to the repo → **Settings** → **Branches**.
+2. Under **Branch protection rules**, click **Add rule** (or edit the existing rule for `main`).
+3. Branch name pattern: `main`.
+4. Enable **Require a pull request before merging**.
+5. Enable **Require status checks to pass before merging**, then search for and select: `lint`, `typecheck`, `test`, `build`, `e2e` (and `db-types` if you want schema drift to block merges too).
+6. Optionally enable **Require branches to be up to date before merging**.
+7. Save the rule.
+
+To restrict production deploys to `main` only: in the Vercel dashboard, go to the project → **Settings** → **Git**, and confirm the **Production Branch** is set to `main` (this is Vercel's default when the repo's default branch is `main`).
 
 ## Project structure
 

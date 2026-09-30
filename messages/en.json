@@ -19,6 +19,11 @@
       "description": "An unexpected error occurred. Try again, or go back.",
       "retry": "Try again"
     },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or was moved.",
+      "backHome": "Back to home"
+    },
     "trash": {
       "trigger": "Trash",
       "title": "Trash",

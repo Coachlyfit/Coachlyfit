@@ -45,6 +45,18 @@ describe("PlatformSettingsService.getAll", () => {
     const result = await new PlatformSettingsService(db).getAll();
     expect(result).toEqual(SETTINGS_DEFAULTS);
   });
+
+  it("falls back to defaults when the query itself fails, instead of throwing", async () => {
+    const db = {
+      from() {
+        return {
+          select: () => Promise.resolve({ data: null, error: new Error("network error") }),
+        };
+      },
+    };
+    const result = await new PlatformSettingsService(db as never).getAll();
+    expect(result).toEqual(SETTINGS_DEFAULTS);
+  });
 });
 
 describe("PlatformSettingsService.set", () => {
