@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import type { Database, Json } from "@/lib/supabase/database.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { recordPaymentSchema } from "./schemas";
@@ -74,6 +76,27 @@ export async function impersonateCoachAction(
   return { url };
 }
 
+/** Best-effort: the auth-side change already happened and can't be rolled
+ * back, so a failed log write is reported to the server log rather than
+ * turned into a user-facing failure. */
+async function logUserAction(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  action: "email_change" | "password_reset" | "delete",
+  details: Record<string, unknown>,
+  targetEmail?: string | null,
+  targetName?: string | null
+) {
+  const { error } = await supabase.rpc("admin_log_user_action", {
+    p_target: userId,
+    p_action: action,
+    p_details: details as Json,
+    p_target_email: targetEmail ?? undefined,
+    p_target_name: targetName ?? undefined,
+  });
+  if (error) console.error("admin audit log write failed", { action, userId, code: error.code });
+}
+
 function gateErrorCode(code: string | undefined): string {
   if (code === "42501") return "forbidden";
   if (code === "P0002") return "not_found";
@@ -97,11 +120,17 @@ export async function updateUserEmailAction(locale: string, userId: string, emai
   });
   if (gateError) return { error: gateErrorCode(gateError.code) };
 
-  const { error: authError } = await createAdminClient().auth.admin.updateUserById(userId, {
+  const admin = createAdminClient();
+  const { data: before } = await admin.auth.admin.getUserById(userId);
+  const { error: authError } = await admin.auth.admin.updateUserById(userId, {
     email: parsed.data,
     email_confirm: true,
   });
   if (authError) return { error: authError.code === "email_exists" ? "email_taken" : "update_failed" };
+
+  await logUserAction(supabase, userId, "email_change", {
+    email: { from: before.user?.email ?? null, to: parsed.data },
+  });
 
   revalidatePath(`/${locale}/admin/settings`);
 }
@@ -126,6 +155,8 @@ export async function sendPasswordResetAction(locale: string, userId: string): P
     redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm?next=/${locale}/reset-password`,
   });
   if (resetError) return { error: "reset_failed" };
+
+  await logUserAction(supabase, userId, "password_reset", {}, email);
 }
 
 /** Permanent. Cascades through profiles (and, for a coach, all their clients,
@@ -143,12 +174,16 @@ export async function deleteUserAction(locale: string, userId: string, confirmEm
 
   const admin = createAdminClient();
   const { data } = await admin.auth.admin.getUserById(userId);
+  const { data: profile } = await supabase.from("profiles").select("full_name, role").eq("id", userId).single();
   if (!data.user || data.user.email?.toLowerCase() !== confirmEmail.trim().toLowerCase()) {
     return { error: "confirm_mismatch" };
   }
 
   const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
   if (deleteError) return { error: "delete_failed" };
+
+  // Snapshot passed explicitly: the row is gone, so the DB can't look it up.
+  await logUserAction(supabase, userId, "delete", { role: profile?.role ?? null }, data.user.email ?? null, profile?.full_name ?? null);
 
   revalidatePath(`/${locale}/admin/settings`);
 }

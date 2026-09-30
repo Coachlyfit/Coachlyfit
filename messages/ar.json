@@ -1909,7 +1909,8 @@
         "general": "عام",
         "platform": "المنصة",
         "plans": "الباقات",
-        "users": "المستخدمون"
+        "users": "المستخدمون",
+        "audit": "سجل الإجراءات"
       },
       "general": {
         "brandingTitle": "الهوية",
@@ -1944,6 +1945,29 @@
           "custom_library": "مكتبة مخصصة",
           "priority_support": "دعم أولوية",
           "white_label": "علامة بيضاء"
+        }
+      },
+      "audit": {
+        "empty": "لا توجد إجراءات مسجلة بعد.",
+        "when": "التوقيت",
+        "admin": "المدير",
+        "action": "الإجراء",
+        "target": "المستخدم",
+        "details": "التفاصيل",
+        "actions": {
+          "profile_update": "تعديل البيانات",
+          "email_change": "تغيير البريد",
+          "password_reset": "إرسال إعادة تعيين كلمة المرور",
+          "role_change": "تغيير الدور",
+          "suspend": "إيقاف",
+          "unsuspend": "إلغاء الإيقاف",
+          "delete": "حذف"
+        },
+        "fields": {
+          "full_name": "الاسم",
+          "phone": "الهاتف",
+          "email": "البريد الإلكتروني",
+          "role": "الدور"
         }
       },
       "users": {

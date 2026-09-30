@@ -1909,7 +1909,8 @@
         "general": "General",
         "platform": "Platform",
         "plans": "Plans",
-        "users": "Users"
+        "users": "Users",
+        "audit": "Audit log"
       },
       "general": {
         "brandingTitle": "Branding",
@@ -1944,6 +1945,29 @@
           "custom_library": "Custom library",
           "priority_support": "Priority support",
           "white_label": "White label"
+        }
+      },
+      "audit": {
+        "empty": "No admin actions recorded yet.",
+        "when": "When",
+        "admin": "Admin",
+        "action": "Action",
+        "target": "User",
+        "details": "Details",
+        "actions": {
+          "profile_update": "Profile edited",
+          "email_change": "Email changed",
+          "password_reset": "Password reset sent",
+          "role_change": "Role changed",
+          "suspend": "Suspended",
+          "unsuspend": "Unsuspended",
+          "delete": "Deleted"
+        },
+        "fields": {
+          "full_name": "Name",
+          "phone": "Phone",
+          "email": "Email",
+          "role": "Role"
         }
       },
       "users": {

@@ -88,6 +88,42 @@ export type Database = {
           },
         ]
       }
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          admin_name: string | null
+          created_at: string
+          details: Json
+          id: string
+          target_email: string | null
+          target_name: string | null
+          target_user_id: string
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          admin_name?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          target_email?: string | null
+          target_name?: string | null
+          target_user_id: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          admin_name?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          target_email?: string | null
+          target_name?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       body_metrics: {
         Row: {
           client_id: string
@@ -3251,6 +3287,16 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
           suspended_at: string
         }[]
+      }
+      admin_log_user_action: {
+        Args: {
+          p_action: string
+          p_details?: Json
+          p_target: string
+          p_target_email?: string
+          p_target_name?: string
+        }
+        Returns: undefined
       }
       admin_metrics: { Args: never; Returns: Json }
       admin_promote_exercise: { Args: { p_id: string }; Returns: undefined }
