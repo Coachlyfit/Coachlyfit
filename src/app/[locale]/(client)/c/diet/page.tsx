@@ -9,6 +9,9 @@ import { formatServing, itemMacros, mealMacros, planMacros } from "@/domain/nutr
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { DietDays, type DayView, type PlanView } from "./diet-days";
+import { NutritionLogPanel } from "./nutrition-log-panel";
+import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
+import { addDays } from "@/domain/nutrition/adherence";
 
 const DAYS_AHEAD = 7;
 
@@ -63,15 +66,21 @@ export default async function ClientDietPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: clientRow } = await supabase.from("clients").select("id").eq("profile_id", user!.id).single();
+  const { data: clientRow } = await supabase.from("clients").select("id, coach_id").eq("profile_id", user!.id).single();
   if (!clientRow) {
     throw new Error("Client profile not found for authenticated user.");
   }
 
   const dietPlans = new DietPlansService(supabase);
-  const [programTree, standalone] = await Promise.all([
+  const nutrition = new NutritionLogsService(supabase);
+  const serverToday = new Date().toISOString().slice(0, 10);
+  const [programTree, standalone, logs, reminder, bodyProfile] = await Promise.all([
     new ProgramsService(supabase).getActiveTreeForClient(clientRow.id),
     dietPlans.getActiveTreeForClient(clientRow.id),
+    // A day either side of the 7-day window: the device's date can differ from UTC's.
+    nutrition.listLogs(clientRow.id, addDays(serverToday, -8), addDays(serverToday, 1)),
+    nutrition.getReminderSettings(clientRow.id),
+    nutrition.getBodyProfile(clientRow.id),
   ]);
 
   const todayMs = new Date(new Date().toISOString().slice(0, 10)).getTime();
@@ -88,10 +97,38 @@ export default async function ClientDietPage({
     if (tree) plans.set(tree.id, tree);
   }
 
+  const logPanel = (
+    <NutritionLogPanel
+      locale={locale}
+      coachId={clientRow.coach_id}
+      clientId={clientRow.id}
+      serverToday={serverToday}
+      logs={logs.map((l) => ({
+        log_date: l.log_date,
+        kcal: l.kcal,
+        protein_g: l.protein_g,
+        carb_g: l.carb_g,
+        fat_g: l.fat_g,
+        off_plan: l.off_plan,
+        off_plan_meal: l.off_plan_meal,
+      }))}
+      reminder={reminder && { enabled: reminder.enabled, remind_at: reminder.remind_at, timezone: reminder.timezone }}
+      bodyProfile={bodyProfile}
+      mealLabels={[
+        ...new Set(
+          [...plans.values()].flatMap((tree) =>
+            tree.meals.filter((m) => m.label_ar || m.label_en).map((m) => pickLocale(m, locale, "label"))
+          )
+        ),
+      ]}
+    />
+  );
+
   if (plans.size === 0) {
     return (
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        {logPanel}
         <Card>
           <EmptyState brandMark title={t("noPlan")} description={t("noPlanBody")} />
         </Card>
@@ -112,6 +149,7 @@ export default async function ClientDietPage({
   return (
     <div className="flex flex-col gap-5">
       <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      {logPanel}
       <DietDays days={days} plans={planViews} />
     </div>
   );

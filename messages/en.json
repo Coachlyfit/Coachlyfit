@@ -833,7 +833,8 @@
         "sessions": "Sessions",
         "billing": "Billing",
         "notes": "Notes",
-        "decisions": "Decisions"
+        "decisions": "Decisions",
+        "nutrition": "Nutrition"
       }
     },
     "decisions": {
@@ -2030,7 +2031,8 @@
     "new_message": "New message from {name}.",
     "unknown": "You have a new notification.",
     "decision_outcome": "Outcome update: {status}",
-    "client_left": "{name} moved to another coach. Their subscription was canceled."
+    "client_left": "{name} moved to another coach. Their subscription was canceled.",
+    "off_plan_reported": "{name} reported an off-plan day ({date})."
   },
   "progress": {
     "title": "Progress",
@@ -2511,6 +2513,142 @@
       "usedOn": "Used on {days}",
       "unused": "Not used on any day",
       "duplicate": "Duplicate this plan"
+    }
+  },
+  "nutrition": {
+    "fields": {
+      "weight": "Weight",
+      "height": "Height (cm)",
+      "birthDate": "Date of birth",
+      "sex": "Sex",
+      "activityLevel": "Activity level",
+      "goal": "Goal"
+    },
+    "sex": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "activity": {
+      "sedentary": "Sedentary (little or no exercise)",
+      "light": "Light (1–3 days/week)",
+      "moderate": "Moderate (3–5 days/week)",
+      "active": "Active (6–7 days/week)",
+      "very_active": "Very active (hard daily training or physical job)"
+    },
+    "goal": {
+      "cut": "Cut (lose fat)",
+      "maintain": "Maintain",
+      "bulk": "Bulk (gain muscle)"
+    },
+    "bodyProfile": {
+      "title": "Body data",
+      "description": "Used by your coach to suggest your daily calories and macros.",
+      "save": "Save body data",
+      "saved": "Body data saved",
+      "notSet": "Not set"
+    },
+    "suggest": {
+      "button": "Suggest targets",
+      "title": "Suggested daily targets",
+      "description": "Calculated from the client's data. Edit any value before assigning it to their active diet plan.",
+      "clientData": "Client data",
+      "weightFrom": "Weight: {weight} kg (check-in on {date})",
+      "noWeight": "No weight logged yet. Ask the client to log their weight in a check-in.",
+      "cannotSuggest": "Can't suggest targets yet",
+      "missing": "Missing: {fields}.",
+      "invalid": "Please check: {fields}.",
+      "suggestion": "Suggestion",
+      "source": {
+        "manual": "Set manually",
+        "suggested": "Suggested",
+        "suggested_edited": "Suggested, edited"
+      },
+      "formula": "BMR {bmr} kcal · TDEE {tdee} kcal · age {age}",
+      "warnings": {
+        "kcal_floor_applied": "Raised to the minimum safe calorie intake.",
+        "low_carb": "Protein and fat already cover the calories, so carbs are 0. Consider adjusting."
+      },
+      "kcal": "Calories (kcal)",
+      "protein": "Protein (g)",
+      "carbs": "Carbs (g)",
+      "fat": "Fat (g)",
+      "macroKcalMismatch": "These macros add up to {kcal} kcal.",
+      "noPlan": "Assign a diet plan first: targets are saved on the client's active plan.",
+      "assign": "Assign targets",
+      "assigned": "Targets assigned"
+    },
+    "log": {
+      "title": "Daily log",
+      "pickDay": "Pick a day",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "kcal": "Calories eaten (kcal)",
+      "protein_g": "Protein (g)",
+      "carb_g": "Carbs (g)",
+      "fat_g": "Fat (g)",
+      "loggedAs": "Logged: {kcal} kcal",
+      "save": "Save",
+      "saved": "Log saved"
+    },
+    "offPlan": {
+      "label": "Off-plan",
+      "report": "Report off-plan day",
+      "title": "Off-plan day",
+      "description": "Let your coach know {date} didn't go to plan. All fields are optional.",
+      "meal": "Which meal",
+      "mealPlaceholder": "e.g. Dinner",
+      "kcal": "Estimated calories (kcal)",
+      "note": "Note",
+      "notePlaceholder": "What happened?",
+      "addPhoto": "Add a photo",
+      "removePhoto": "Remove photo",
+      "submit": "Send to coach",
+      "submitted": "Your coach has been told",
+      "reportsTitle": "Off-plan reports",
+      "empty": "No off-plan days this month.",
+      "photoAlt": "Off-plan meal photo",
+      "estimatedKcal": "About {kcal} kcal"
+    },
+    "reminders": {
+      "title": "Daily reminder",
+      "description": "Get a notification if you haven't logged by this time.",
+      "enabled": "Remind me",
+      "time": "Time",
+      "timezone": "Time zone: {timezone}",
+      "save": "Save",
+      "saved": "Reminder saved",
+      "pushFailed": "Couldn't turn on notifications on this device.",
+      "pushUnsupported": "This browser can't receive notifications, so reminders won't arrive here."
+    },
+    "adherence": {
+      "window": "Last {days} days",
+      "logged": "Days logged",
+      "loggedValue": "{logged}/{total}",
+      "currentStreak": "Current streak",
+      "longestStreak": "Best streak",
+      "offPlanDays": "Off-plan days",
+      "days": "{count, plural, one {# day} other {# days}}"
+    },
+    "calendar": {
+      "title": "Logging calendar",
+      "prev": "Previous month",
+      "next": "Next month",
+      "legend": {
+        "logged": "Logged",
+        "off_plan": "Off-plan",
+        "missed": "Not logged"
+      }
+    },
+    "errors": {
+      "invalid_input": "Please check the values and try again.",
+      "not_authenticated": "Please sign in again.",
+      "not_found_or_forbidden": "This plan isn't available.",
+      "not_linked": "Your account isn't linked to a coach yet.",
+      "date_out_of_range": "You can only log the last 7 days.",
+      "save_failed": "Couldn't save. Entries older than 7 days can't be changed.",
+      "invalid_photo": "Please choose an image.",
+      "photo_too_large": "The photo is too large (max 10 MB).",
+      "upload_failed": "The photo couldn't be uploaded. Try again."
     }
   },
   "print": {

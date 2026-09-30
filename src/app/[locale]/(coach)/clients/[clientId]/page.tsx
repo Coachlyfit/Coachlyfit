@@ -23,18 +23,20 @@ import { BillingSection } from "./billing-section";
 import { BillingSkeleton } from "./billing-skeleton";
 import { ObservationsSection } from "./observations-section";
 import { ObservationsSkeleton } from "./observations-skeleton";
+import { NutritionSection } from "./nutrition-section";
+import { parseMonth } from "@/domain/nutrition/adherence";
 
-const TABS: ClientTab[] = ["progress", "sessions", "decisions", "billing", "notes"];
+const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "decisions", "billing", "notes"];
 
 export default async function ClientDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: AppLocale; clientId: string }>;
-  searchParams: Promise<{ range?: string; tab?: string }>;
+  searchParams: Promise<{ range?: string; tab?: string; month?: string }>;
 }) {
   const { locale, clientId } = await params;
-  const { range: rawRange, tab: rawTab } = await searchParams;
+  const { range: rawRange, tab: rawTab, month: rawMonth } = await searchParams;
   const range = parseRange(rawRange);
   const tab: ClientTab = TABS.includes(rawTab as ClientTab) ? (rawTab as ClientTab) : "progress";
   const tClients = await getTranslations("clients");
@@ -76,6 +78,15 @@ export default async function ClientDetailPage({
               <ProgressSection clientId={clientId} range={range} locale={locale} />
             </Suspense>
           </div>
+        )}
+        {tab === "nutrition" && (
+          <Suspense key={rawMonth} fallback={<ProgressSkeleton />}>
+            <NutritionSection
+              clientId={clientId}
+              month={parseMonth(rawMonth, new Date().toISOString().slice(0, 10))}
+              locale={locale}
+            />
+          </Suspense>
         )}
         {tab === "sessions" && (
           <Suspense fallback={<WorkoutSkeleton />}>

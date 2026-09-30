@@ -1,3 +1,5 @@
+import { pickLocale } from "@/domain/locale";
+
 /** Plain-HTML email bodies for each notification kind — no react-email
  * dependency, just template strings, since these are short bilingual
  * emails, not a component library. Mirrors the same kinds and the same
@@ -13,7 +15,9 @@ export type NotificationKind =
   | "coach_decision"
   | "decision_outcome"
   | "coach_invite"
-  | "client_left";
+  | "client_left"
+  | "nutrition_log_reminder"
+  | "off_plan_reported";
 
 export type EmailLocale = "ar" | "en";
 
@@ -26,6 +30,25 @@ export function notificationNeedsPickedName(kind: string): boolean {
   return NAMED_KINDS.has(kind as NotificationKind);
 }
 
+/** The name interpolated into the copy: the bilingual name_ar/name_en pair
+ * for promoted content, the client's display name for an off-plan report,
+ * nothing otherwise. */
+export function notificationName(kind: string, payload: Record<string, unknown>, locale: EmailLocale): string | null {
+  if (notificationNeedsPickedName(kind)) return pickLocale(payload, locale);
+  if (kind === "off_plan_reported") return (payload.client_name as string | null) ?? null;
+  return null;
+}
+
+/** Where tapping a push notification lands. Only kinds with an obvious
+ * destination get one; everything else opens the app root as before. */
+export function notificationUrl(kind: string, payload: Record<string, unknown>, locale: EmailLocale): string {
+  if (kind === "nutrition_log_reminder") return `/${locale}/c/diet`;
+  if (kind === "off_plan_reported" && typeof payload.client_id === "string") {
+    return `/${locale}/clients/${payload.client_id}?tab=nutrition`;
+  }
+  return "/";
+}
+
 const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string>; greeting: string; footer: string }> = {
   en: {
     subjectByKind: {
@@ -36,6 +59,8 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       decision_outcome: "An update on a recent plan change",
       coach_invite: "A new coach invited you",
       client_left: "A client moved to another coach",
+      nutrition_log_reminder: "Don't forget to log today's calories",
+      off_plan_reported: "A client reported an off-plan day",
     },
     greeting: "Hi",
     footer: "You're receiving this because you have email notifications turned on. You can turn them off in Settings.",
@@ -49,6 +74,8 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       decision_outcome: "تحديث بخصوص تعديل تم على خطتك مؤخرًا",
       coach_invite: "لديك دعوة من كوتش جديد",
       client_left: "انتقل أحد عملائك إلى كوتش آخر",
+      nutrition_log_reminder: "لا تنسَ تسجيل سعرات اليوم",
+      off_plan_reported: "أبلغ أحد عملائك عن يوم خارج الخطة",
     },
     greeting: "مرحبًا",
     footer: "تصلك هذه الرسالة لأن إشعارات البريد الإلكتروني مفعّلة لديك. يمكنك إيقافها من الإعدادات.",
@@ -72,6 +99,10 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return "دعاك كوتش جديد للتدرّب معه. افتح التطبيق لقبول الدعوة أو رفضها.";
       case "client_left":
         return "قبل أحد عملائك دعوة من كوتش آخر، وتم إلغاء اشتراكه معك.";
+      case "nutrition_log_reminder":
+        return "لم تسجّل سعراتك اليوم بعد. يستغرق الأمر أقل من دقيقة.";
+      case "off_plan_reported":
+        return `سجّل ${name ?? "أحد عملائك"} يومًا خارج الخطة. افتح ملفه لمعرفة التفاصيل.`;
     }
   }
   switch (kind) {
@@ -89,6 +120,10 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return "A new coach invited you to train with them. Open the app to accept or decline.";
     case "client_left":
       return "One of your clients accepted another coach's invite. Their subscription with you was canceled.";
+    case "nutrition_log_reminder":
+      return "You haven't logged your calories today yet. It takes less than a minute.";
+    case "off_plan_reported":
+      return `${name ?? "A client"} marked a day as off-plan. Open their profile for details.`;
   }
 }
 
