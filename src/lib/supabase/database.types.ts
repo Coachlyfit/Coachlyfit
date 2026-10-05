@@ -1351,6 +1351,8 @@ export type Database = {
           coach_id: string
           id: string
           relationship_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           submitted_at: string
           template_version_id: string
         }
@@ -1361,6 +1363,8 @@ export type Database = {
           coach_id: string
           id?: string
           relationship_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           submitted_at?: string
           template_version_id: string
         }
@@ -1371,6 +1375,8 @@ export type Database = {
           coach_id?: string
           id?: string
           relationship_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           submitted_at?: string
           template_version_id?: string
         }
@@ -1408,6 +1414,13 @@ export type Database = {
             columns: ["relationship_id"]
             isOneToOne: false
             referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
           {
@@ -3769,6 +3782,27 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "coaching_decisions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mark_form_submission_reviewed: {
+        Args: { p_submission_id: string }
+        Returns: {
+          answers: Json
+          assignment_id: string
+          client_id: string
+          coach_id: string
+          id: string
+          relationship_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          submitted_at: string
+          template_version_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "form_submissions"
           isOneToOne: true
           isSetofReturn: false
         }

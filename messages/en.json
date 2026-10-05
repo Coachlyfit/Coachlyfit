@@ -479,44 +479,83 @@
     }
   },
   "dashboard": {
-    "welcome": "Welcome back, {name}",
-    "activeClients": "Active clients",
-    "plan": "Plan",
-    "trialEndsAt": "Trial ends",
-    "renewsAt": "Renews",
-    "clientLimit": "of {max} on your plan",
-    "status": {
-      "trialing": "Trial",
-      "active": "Active",
-      "past_due": "Past due",
-      "canceled": "Canceled"
-    },
-    "kpi": {
-      "clients": "Active clients",
-      "online": "Online now",
-      "submissions": "Recent submissions",
-      "submissionsWindow": "Last 7 days",
-      "mrr": "MRR · EGP"
-    },
-    "online": {
-      "title": "Online now",
-      "empty": "No clients online right now.",
-      "never": "Never"
-    },
     "pendingReview": "{count} check-ins waiting for review",
-    "queue": {
-      "title": "Recent submissions",
-      "empty": "No submissions yet.",
-      "viewAll": "View all"
+    "header": {
+      "greeting": "Hello, {name}",
+      "greetingNoName": "Hello",
+      "tasks": "{count, plural, one {You have <num></num> task that needs you today.} other {You have <num></num> tasks that need you today.}}",
+      "allClear": "Nothing needs you right now."
     },
-    "activity": {
-      "title": "Recent activity",
-      "empty": "Nothing yet."
+    "attention": {
+      "title": "Needs attention today",
+      "clear": "All clear",
+      "review": {
+        "badge": "New",
+        "label": "Check-ins awaiting review",
+        "cta": "Start reviewing"
+      },
+      "invoices": {
+        "badge": "Overdue",
+        "label": "Unpaid invoices",
+        "cta": "View invoices"
+      },
+      "programs": {
+        "badge": "This week",
+        "label": "Programs ending soon",
+        "cta": "Open programs"
+      }
     },
-    "followUps": {
-      "title": "Follow-ups",
-      "empty": "No outcomes to review yet.",
-      "viewAll": "View"
+    "inbox": {
+      "title": "Check-in inbox",
+      "filterLabel": "Filter check-ins",
+      "filter": {
+        "all": "All",
+        "new": "New",
+        "reviewed": "Reviewed"
+      },
+      "status": {
+        "new": "New",
+        "reviewed": "Reviewed"
+      },
+      "review": "Review",
+      "reviewLabel": "Review {name}'s check-in",
+      "viewAll": "View all check-ins",
+      "showAll": "Show all",
+      "empty": {
+        "all": "No check-ins yet. Send one to get started.",
+        "new": "No new check-ins. You're caught up.",
+        "reviewed": "You haven't reviewed any check-ins yet."
+      }
+    },
+    "quiet": {
+      "title": "Clients with no check-in",
+      "subtitle": "Last check-in more than <num>{days}</num> days ago",
+      "days": "{count, plural, one {<num>{value}</num> day} other {<num>{value}</num> days}}",
+      "never": "No check-in yet",
+      "remind": "Message {name}",
+      "empty": "Every active client has checked in this week."
+    },
+    "payments": {
+      "title": "Payments this week",
+      "empty": "No invoices due this week.",
+      "viewInvoices": "View invoices",
+      "status": {
+        "overdue": "Overdue",
+        "due": "Due",
+        "paid": "Paid"
+      }
+    },
+    "sendCheckin": {
+      "title": "Send check-in",
+      "description": "Sends your default check-in form to one client.",
+      "submit": "Send",
+      "sent": "Check-in sent.",
+      "failed": "Couldn't send the check-in. Try again.",
+      "pickClient": "Choose a client.",
+      "noTemplate": "Pick a default check-in form in Settings and publish it first.",
+      "noClients": "You don't have any active clients yet.",
+      "goToSettings": "Open settings",
+      "goToClients": "Go to clients"
     }
   },
   "settings": {
@@ -1235,7 +1274,9 @@
         "form": "Form",
         "submittedAt": "Submitted"
       },
-      "view": "View"
+      "view": "View",
+      "markReviewed": "Mark reviewed",
+      "reviewed": "Reviewed"
     },
     "fill": {
       "submit": "Submit",
@@ -1288,7 +1329,8 @@
       "not_linked": "Your account isn't connected to a coach yet. Contact your coach or support.",
       "publish_failed": "Couldn't publish this form. Please try again.",
       "submit_failed": "Couldn't submit this form. Please try again.",
-      "not_found": "This form could not be found."
+      "not_found": "This form could not be found.",
+      "review_failed": "Couldn't mark this as reviewed. Try again."
     }
   },
   "programs": {
