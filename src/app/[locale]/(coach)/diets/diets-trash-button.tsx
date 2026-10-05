@@ -9,6 +9,7 @@ export function DietsTrashButton({ locale }: { locale: AppLocale }) {
   const router = useRouter();
   return (
     <TrashDialog
+      iconOnly
       listArchived={listArchivedDietPlansAction}
       restore={(id) => restoreDietPlanAction(locale, id)}
       renderRow={(item) => pickLocale(item, locale)}

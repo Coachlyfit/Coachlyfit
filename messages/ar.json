@@ -2511,17 +2511,41 @@
     "new": "خطة جديدة",
     "allTab": "الكل",
     "templatesTab": "القوالب",
-    "assignedTab": "المعينة",
-    "empty": {
-      "title": "لسه مفيش خطط تغذية",
-      "description": "ابني خطة مرة واحدة وطبّقها على أي عدد من العملاء."
+    "assignedTab": "المعيّنة",
+    "tabsLabel": "نوع الخطط",
+    "searchPlaceholder": "بحث بالخطة أو العميل",
+    "summaryActive": "{count, plural, =0 {لا توجد خطط نشطة} =1 {<num>{value}</num> خطة نشطة} =2 {<num>{value}</num> خطتان نشطتان} few {<num>{value}</num> خطط نشطة} other {<num>{value}</num> خطة نشطة}}",
+    "summaryEnding": "{count, plural, =0 {لا شيء ينتهي هذا الأسبوع} other {<num>{value}</num> تنتهي هذا الأسبوع}}",
+    "clientPlans": {
+      "title": "خطط العملاء",
+      "emptyTitle": "لسه مفيش خطط للعملاء",
+      "emptyDescription": "اعمل خطة جديدة لعميل، أو عيّن له قالب جاهز."
     },
-    "table": {
-      "name": "الاسم",
-      "client": "العميل",
-      "dates": "التواريخ",
-      "created": "تاريخ الإنشاء"
+    "templates": {
+      "title": "القوالب",
+      "subtitle": "خطط جاهزة تعيّنها لأي عميل بنقرة",
+      "emptyTitle": "لسه مفيش قوالب",
+      "emptyDescription": "القالب خطة تغذية من غير عميل: ابنيها مرة واحدة وعيّنها لأي عدد من العملاء، وكل عميل بياخد نسخته اللي تقدر تعدّلها. اعمل خطة جديدة من غير عميل، أو احفظ خطة موجودة كقالب."
     },
+    "status": {
+      "endingSoon": "تنتهي قريباً",
+      "active": "نشطة",
+      "notStarted": "لم تبدأ",
+      "ended": "منتهية"
+    },
+    "dayOf": "اليوم <num>{day}</num> من <num>{total}</num>",
+    "dayOngoing": "اليوم <num>{day}</num> · مستمرة",
+    "startsIn": "{count, plural, =1 {تبدأ غداً} =2 {تبدأ بعد يومين} few {تبدأ بعد <num>{value}</num> أيام} other {تبدأ بعد <num>{value}</num> يوماً}}",
+    "chips": {
+      "kcal": "<num>{value}</num> سعرة/يوم",
+      "meals": "{count, plural, =0 {بدون وجبات} =1 {وجبة واحدة} =2 {وجبتان} few {<num>{value}</num> وجبات} other {<num>{value}</num> وجبة}}"
+    },
+    "openPlan": "فتح الخطة",
+    "duplicatePlan": "نسخ خطة {name}",
+    "assignToClient": "تعيين لعميل",
+    "editTemplate": "تعديل",
+    "noResults": "مفيش نتايج",
+    "noResultsHint": "جرّب اسم خطة أو عميل تاني.",
     "template": "قالب",
     "dateRange": "{start} – {end}",
     "ongoing": "مستمر",

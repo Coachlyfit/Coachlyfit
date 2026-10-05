@@ -33,10 +33,17 @@ export function AssignDietTemplateDialog({
   locale,
   dietPlanId,
   clients,
+  triggerLabel,
+  triggerVariant = "outline",
+  triggerClassName,
 }: {
   locale: string;
   dietPlanId: string;
   clients: { id: string; display_name: string }[];
+  /** The /diets template card renders this as its primary action. */
+  triggerLabel?: string;
+  triggerVariant?: "outline" | "default";
+  triggerClassName?: string;
 }) {
   const t = useTranslations("diets.assignTemplateDialog");
   const tErrors = useTranslations("diets.errors");
@@ -67,9 +74,11 @@ export function AssignDietTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" disabled={clients.length === 0} />}>
+      <DialogTrigger
+        render={<Button variant={triggerVariant} className={triggerClassName} disabled={clients.length === 0} />}
+      >
         <Send className="size-4" />
-        {t("title")}
+        {triggerLabel ?? t("title")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -2512,16 +2512,40 @@
     "allTab": "All",
     "templatesTab": "Templates",
     "assignedTab": "Assigned",
-    "empty": {
-      "title": "No nutrition plans yet",
-      "description": "Build a plan once and apply it to any number of clients."
+    "tabsLabel": "Plan type",
+    "searchPlaceholder": "Search by plan or client",
+    "summaryActive": "{count, plural, =0 {No active plans} one {<num>{value}</num> active plan} other {<num>{value}</num> active plans}}",
+    "summaryEnding": "{count, plural, =0 {none ending this week} one {<num>{value}</num> ends this week} other {<num>{value}</num> end this week}}",
+    "clientPlans": {
+      "title": "Client plans",
+      "emptyTitle": "No client plans yet",
+      "emptyDescription": "Create a new plan for a client, or assign them a ready-made template."
     },
-    "table": {
-      "name": "Name",
-      "client": "Client",
-      "dates": "Dates",
-      "created": "Created"
+    "templates": {
+      "title": "Templates",
+      "subtitle": "Ready-made plans you can assign to any client in one click",
+      "emptyTitle": "No templates yet",
+      "emptyDescription": "A template is a nutrition plan with no client: build it once, assign it to any number of clients, and each one gets their own editable copy. Create a new plan with no client, or save an existing plan as a template."
     },
+    "status": {
+      "endingSoon": "Ending soon",
+      "active": "Active",
+      "notStarted": "Not started",
+      "ended": "Ended"
+    },
+    "dayOf": "Day <num>{day}</num> of <num>{total}</num>",
+    "dayOngoing": "Day <num>{day}</num> · ongoing",
+    "startsIn": "{count, plural, =1 {Starts tomorrow} other {Starts in <num>{value}</num> days}}",
+    "chips": {
+      "kcal": "<num>{value}</num> kcal/day",
+      "meals": "{count, plural, =0 {No meals} one {<num>{value}</num> meal} other {<num>{value}</num> meals}}"
+    },
+    "openPlan": "Open plan",
+    "duplicatePlan": "Duplicate {name}",
+    "assignToClient": "Assign to client",
+    "editTemplate": "Edit",
+    "noResults": "No matches",
+    "noResultsHint": "Try a different plan or client name.",
     "template": "Template",
     "dateRange": "{start} – {end}",
     "ongoing": "Ongoing",
