@@ -3,8 +3,9 @@
 import { List, LayoutGrid, Columns3 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Segmented } from "@/components/ui/segmented";
+import type { LibraryView } from "@/domain/library/library-params";
 
-export type LibraryView = "list" | "card" | "kanban";
+export type { LibraryView };
 
 const OPTIONS = [
   { value: "list", icon: List },

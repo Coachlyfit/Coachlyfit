@@ -17,11 +17,14 @@ export function TrashDialog<T extends { id: string }>({
   restore,
   renderRow,
   onRestored,
+  iconOnly = false,
 }: {
   listArchived: () => Promise<T[]>;
   restore: (id: string) => Promise<{ error: string } | void>;
   renderRow: (item: T) => string;
   onRestored: () => void;
+  /** Icon-button trigger for a crowded toolbar; the label moves to aria-label. */
+  iconOnly?: boolean;
 }) {
   const t = useTranslations("common.trash");
   const [open, setOpen] = useState(false);
@@ -58,10 +61,16 @@ export function TrashDialog<T extends { id: string }>({
         if (next) void load();
       }}
     >
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
-        <Trash2 className="size-4" />
-        {t("trigger")}
-      </DialogTrigger>
+      {iconOnly ? (
+        <DialogTrigger render={<Button variant="outline" size="icon-sm" aria-label={t("trigger")} title={t("trigger")} />}>
+          <Trash2 className="size-4" />
+        </DialogTrigger>
+      ) : (
+        <DialogTrigger render={<Button variant="outline" size="sm" />}>
+          <Trash2 className="size-4" />
+          {t("trigger")}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>

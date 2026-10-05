@@ -1691,7 +1691,10 @@
       "group": "Muscle group",
       "allGroups": "All muscle groups",
       "category": "Category",
-      "allCategories": "All categories"
+      "allCategories": "All categories",
+      "all": "All",
+      "equipment": "Equipment",
+      "allEquipment": "All equipment"
     },
     "media": {
       "play": "Play video",
@@ -1707,7 +1710,13 @@
       "media": "Media",
       "serving": "Serving",
       "macros": "Macros",
-      "source": "Source"
+      "source": "Source",
+      "exercise": "Exercise",
+      "food": "Food",
+      "kcal": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat"
     },
     "exercise": {
       "add": "Add exercise",
@@ -1801,9 +1810,6 @@
       "already_cloned": "You already have your own version of this entry.",
       "unknown": "Something went wrong. Please try again."
     },
-    "official": "Official",
-    "mine": "Mine",
-    "customized": "Customized",
     "basedOn": "Based on: {name}",
     "clone": "Clone & Customize",
     "editMyVersion": "Edit my version",
@@ -1811,31 +1817,77 @@
     "source": {
       "label": "Source",
       "all": "All",
-      "global": "Exercise Library",
+      "global": "Official library",
       "mine": "My Exercises"
     },
     "foodSource": {
       "label": "Source",
       "all": "All",
-      "global": "Food Library",
+      "global": "Official library",
       "mine": "My Foods"
     },
     "emptyStates": {
-      "clearFilter": "Clear filter",
-      "searchAll": "Search all exercises",
-      "searchMine": "Search my exercises",
       "mineNoneHint": "Anything you create is private to you and stays out of the shared library.",
-      "globalNoMatchHint": "You can add it to your own exercises instead.",
       "exercises": {
         "mineNone": "You haven't created any exercises yet.",
-        "mineNoMatch": "No exercises of yours match \"{query}\".",
-        "globalNoMatch": "No official exercise matches \"{query}\"."
+        "noResults": "No exercises match your search or filters.",
+        "none": "No exercises yet."
       },
       "foods": {
         "mineNone": "You haven't created any foods yet.",
-        "mineNoMatch": "No foods of yours match \"{query}\".",
-        "globalNoMatch": "No official food matches \"{query}\"."
-      }
+        "noResults": "No foods match your search or filters.",
+        "none": "No foods yet."
+      },
+      "clearAll": "Clear all filters",
+      "noResultsHint": "Try a different search, or remove a filter.",
+      "noneHint": "Add your first one with the button above."
+    },
+    "equipment": {
+      "body_weight": "Bodyweight",
+      "dumbbell": "Dumbbell",
+      "barbell": "Barbell",
+      "cable": "Cable",
+      "leverage_machine": "Leverage machine",
+      "band": "Resistance band",
+      "smith_machine": "Smith machine",
+      "kettlebell": "Kettlebell",
+      "weighted": "Weighted",
+      "none": "No equipment",
+      "stability_ball": "Stability ball",
+      "ez_barbell": "EZ bar",
+      "assisted": "Assisted",
+      "sled_machine": "Sled machine",
+      "medicine_ball": "Medicine ball",
+      "rope": "Rope",
+      "machine": "Machine",
+      "roller": "Roller",
+      "bosu_ball": "Bosu ball",
+      "olympic_barbell": "Olympic barbell",
+      "wheel_roller": "Ab wheel",
+      "trap_bar": "Trap bar",
+      "skierg_machine": "SkiErg",
+      "stationary_bike": "Stationary bike",
+      "elliptical_machine": "Elliptical",
+      "upper_body_ergometer": "Upper-body ergometer",
+      "hammer": "Sledgehammer",
+      "tire": "Tire",
+      "stepmill_machine": "Stepmill"
+    },
+    "searchPlaceholder": {
+      "exercises": "Search exercises by name",
+      "foods": "Search foods by name"
+    },
+    "mineBadge": {
+      "exercises": "My exercise",
+      "foods": "My food"
+    },
+    "preview": {
+      "label": "Preview",
+      "duplicateAndEdit": "Duplicate & edit",
+      "perServing": "Per <mono>{serving}</mono>",
+      "kcalUnit": "kcal",
+      "kcalPerServing": "kcal / <bdi>{serving}</bdi>",
+      "macroSplit": "Macro split"
     }
   },
   "admin": {

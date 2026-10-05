@@ -27,6 +27,52 @@ export const FOOD_CATEGORIES = [
   "other",
 ] as const;
 
+// The equipment values the curated (global) exercises actually carry after
+// 20261006000001_library_facets.sql normalized them, most common first.
+// `equipment` is still free text for a coach's own rows, so anything outside
+// this list is shown as typed and isn't offered in the filter.
+export const EQUIPMENT = [
+  "body weight",
+  "dumbbell",
+  "barbell",
+  "cable",
+  "leverage machine",
+  "band",
+  "smith machine",
+  "kettlebell",
+  "weighted",
+  "none",
+  "stability ball",
+  "ez barbell",
+  "assisted",
+  "sled machine",
+  "medicine ball",
+  "rope",
+  "machine",
+  "roller",
+  "bosu ball",
+  "olympic barbell",
+  "wheel roller",
+  "trap bar",
+  "skierg machine",
+  "stationary bike",
+  "elliptical machine",
+  "upper body ergometer",
+  "hammer",
+  "tire",
+  "stepmill machine",
+] as const;
+
+export type Equipment = (typeof EQUIPMENT)[number];
+
+/** Message key under `library.equipment` for a stored equipment value, or
+ * null when it's coach free text with no translation. */
+export function equipmentKey(value: string | null | undefined): string | null {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized || !(EQUIPMENT as readonly string[]).includes(normalized)) return null;
+  return normalized.replaceAll(" ", "_");
+}
+
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
 export type FoodCategory = (typeof FOOD_CATEGORIES)[number];
 

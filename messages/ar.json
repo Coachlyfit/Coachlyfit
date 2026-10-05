@@ -1691,7 +1691,10 @@
       "group": "المجموعة العضلية",
       "allGroups": "كل المجموعات",
       "category": "الفئة",
-      "allCategories": "كل الفئات"
+      "allCategories": "كل الفئات",
+      "all": "الكل",
+      "equipment": "المعدات",
+      "allEquipment": "كل المعدات"
     },
     "media": {
       "play": "شغّل الفيديو",
@@ -1707,7 +1710,13 @@
       "media": "الوسائط",
       "serving": "الحصة",
       "macros": "العناصر الغذائية",
-      "source": "المصدر"
+      "source": "المصدر",
+      "exercise": "التمرين",
+      "food": "الطعام",
+      "kcal": "سعرات",
+      "protein": "بروتين",
+      "carbs": "كارب",
+      "fat": "دهون"
     },
     "exercise": {
       "add": "ضيف تمرين",
@@ -1801,9 +1810,6 @@
       "already_cloned": "عندك نسخة خاصة بيك من العنصر ده خلاص.",
       "unknown": "حصل خطأ. جرّب تاني."
     },
-    "official": "رسمي",
-    "mine": "خاص بيا",
-    "customized": "مخصّص",
     "basedOn": "مبني على: {name}",
     "clone": "خصّص نسختك",
     "editMyVersion": "عدّل نسختي",
@@ -1811,31 +1817,77 @@
     "source": {
       "label": "المصدر",
       "all": "الكل",
-      "global": "مكتبة التمارين",
+      "global": "المكتبة الرسمية",
       "mine": "تماريني"
     },
     "foodSource": {
       "label": "المصدر",
       "all": "الكل",
-      "global": "مكتبة الأطعمة",
+      "global": "المكتبة الرسمية",
       "mine": "أطعمتي"
     },
     "emptyStates": {
-      "clearFilter": "امسح الفلتر",
-      "searchAll": "دوّر في كل التمارين",
-      "searchMine": "دوّر في تماريني",
       "mineNoneHint": "كل حاجة تعملها بتفضل خاصة بيك ومتظهرش في المكتبة المشتركة.",
-      "globalNoMatchHint": "تقدر تضيفه لتمارينك الخاصة بدل كده.",
       "exercises": {
         "mineNone": "لسه معملتش أي تمارين.",
-        "mineNoMatch": "مفيش تمارين خاصة بيك بتطابق \"{query}\".",
-        "globalNoMatch": "مفيش تمرين رسمي بيطابق \"{query}\"."
+        "noResults": "مفيش تمارين بتطابق البحث أو الفلاتر.",
+        "none": "مفيش تمارين لسه."
       },
       "foods": {
         "mineNone": "لسه معملتش أي أطعمة.",
-        "mineNoMatch": "مفيش أطعمة خاصة بيك بتطابق \"{query}\".",
-        "globalNoMatch": "مفيش طعام رسمي بيطابق \"{query}\"."
-      }
+        "noResults": "مفيش أطعمة بتطابق البحث أو الفلاتر.",
+        "none": "مفيش أطعمة لسه."
+      },
+      "clearAll": "امسح كل الفلاتر",
+      "noResultsHint": "جرّب كلمة تانية أو شيل فلتر.",
+      "noneHint": "ضيف أول عنصر من الزرار اللي فوق."
+    },
+    "equipment": {
+      "body_weight": "وزن الجسم",
+      "dumbbell": "دمبل",
+      "barbell": "بار",
+      "cable": "كابل",
+      "leverage_machine": "جهاز رافعة",
+      "band": "حبل مطاطي",
+      "smith_machine": "جهاز سميث",
+      "kettlebell": "كيتل بل",
+      "weighted": "بأوزان إضافية",
+      "none": "بدون معدات",
+      "stability_ball": "كرة توازن",
+      "ez_barbell": "بار EZ",
+      "assisted": "بمساعدة",
+      "sled_machine": "جهاز الزلاجة",
+      "medicine_ball": "كرة طبية",
+      "rope": "حبل",
+      "machine": "جهاز",
+      "roller": "رول",
+      "bosu_ball": "كرة بوسو",
+      "olympic_barbell": "بار أولمبي",
+      "wheel_roller": "عجلة البطن",
+      "trap_bar": "تراب بار",
+      "skierg_machine": "جهاز سكي إرج",
+      "stationary_bike": "دراجة ثابتة",
+      "elliptical_machine": "جهاز إليبتيكال",
+      "upper_body_ergometer": "دراجة الذراعين",
+      "hammer": "مطرقة",
+      "tire": "إطار",
+      "stepmill_machine": "جهاز السلالم"
+    },
+    "searchPlaceholder": {
+      "exercises": "دوّر على تمرين بالاسم",
+      "foods": "دوّر على طعام بالاسم"
+    },
+    "mineBadge": {
+      "exercises": "تمريني",
+      "foods": "أطعمتي"
+    },
+    "preview": {
+      "label": "معاينة",
+      "duplicateAndEdit": "نسخ وتعديل",
+      "perServing": "لكل <mono>{serving}</mono>",
+      "kcalUnit": "سعرة",
+      "kcalPerServing": "سعرة / <bdi>{serving}</bdi>",
+      "macroSplit": "توزيع العناصر الغذائية"
     }
   },
   "admin": {

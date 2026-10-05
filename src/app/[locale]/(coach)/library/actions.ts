@@ -21,7 +21,17 @@ import {
   searchFoodsAction as searchFoodsActionImpl,
   getExerciseAction as getExerciseActionImpl,
   getFoodAction as getFoodActionImpl,
+  exerciseFacetsAction as exerciseFacetsActionImpl,
+  foodFacetsAction as foodFacetsActionImpl,
 } from "@/domain/library/library-actions";
+
+export async function exerciseFacetsAction(...args: Parameters<typeof exerciseFacetsActionImpl>) {
+  return exerciseFacetsActionImpl(...args);
+}
+
+export async function foodFacetsAction(...args: Parameters<typeof foodFacetsActionImpl>) {
+  return foodFacetsActionImpl(...args);
+}
 
 export async function searchExercisesAction(...args: Parameters<typeof searchExercisesActionImpl>) {
   return searchExercisesActionImpl(...args);

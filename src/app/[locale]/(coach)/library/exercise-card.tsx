@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { resolveExerciseMedia } from "@/lib/video-embed";
 import { isKnownMuscleGroup } from "@/domain/library/taxonomy";
-import { exerciseToBodyState } from "@/domain/library/muscle-regions";
-import { BodyMap } from "@/components/body-map/body-map";
+import { cn } from "@/lib/utils";
+import { useEquipmentLabel } from "./equipment-filter";
 import type { searchExercisesAction } from "./actions";
 
 type Exercise = Awaited<ReturnType<typeof searchExercisesAction>>["rows"][number];
@@ -41,19 +41,15 @@ export function ExerciseCard({
 }) {
   const t = useTranslations("library");
   const tGroups = useTranslations("library.muscleGroups");
+  const equipmentLabel = useEquipmentLabel();
   const name = pickLocale(exercise, locale);
   const groupLabel = isKnownMuscleGroup(exercise.muscle_group)
     ? tGroups(exercise.muscle_group)
     : exercise.muscle_group;
-  const meta = [groupLabel, exercise.equipment].filter(Boolean).join(" · ");
-  // A clone that's been promoted to global (coach_id -> null) keeps its
-  // source_exercise_id, but there's no coach left to have "customized" it
-  // from the viewer's perspective — so the badge/attribution only shows
-  // while the row is still coach-owned.
-  const isCustomized = !!exercise.coach_id && !!exercise.source_exercise_id;
-  const badgeLabel = !exercise.coach_id ? t("official") : isCustomized ? t("customized") : t("mine");
+  const equipment = equipmentLabel(exercise.equipment);
 
   if (variant === "compact") {
+    const meta = [groupLabel, equipment].filter(Boolean).join(" · ");
     return (
       <Card size="sm">
         <CardContent className="flex flex-col gap-0.5 p-2.5">
@@ -65,67 +61,74 @@ export function ExerciseCard({
   }
 
   const media = resolveExerciseMedia(exercise.thumbnail_url || exercise.image_url || exercise.video_url);
-  const bodyState = exerciseToBodyState(exercise.primary_muscles, exercise.secondary_muscles, exercise.muscle_group);
 
   return (
-    <Card className="pt-0">
-      <ExerciseMedia media={media} name={name} />
-      <CardContent className="flex flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <p className="line-clamp-2 font-medium">{name}</p>
-          <div className="flex shrink-0 gap-1">
-            {exercise.difficulty && (
-              <Badge variant="outline">{t(`exercise.difficultyLevel.${exercise.difficulty}`)}</Badge>
-            )}
-            <Badge variant={exercise.coach_id ? "secondary" : "outline"}>{badgeLabel}</Badge>
-          </div>
+    <Card className="gap-0 py-0">
+      <div className="relative">
+        <ExerciseMedia media={media} name={name} className="aspect-[4/3]" />
+        {exercise.coach_id && (
+          <Badge variant="warning" className="absolute end-2.5 top-2.5">
+            {t("mineBadge.exercises")}
+          </Badge>
+        )}
+      </div>
+      <CardContent className="flex flex-1 flex-col gap-2 p-4">
+        <h3 className="line-clamp-2 font-semibold">{name}</h3>
+        <div className="flex flex-wrap gap-1.5">
+          {groupLabel && (
+            <Badge variant="secondary" className="rounded-md">
+              {groupLabel}
+            </Badge>
+          )}
+          {equipment && (
+            <Badge variant="outline" className="rounded-md">
+              {equipment}
+            </Badge>
+          )}
         </div>
-        {isCustomized && (
-          <p className="text-xs text-muted-foreground">
-            {t("basedOn", { name: pickLocale(exercise, locale, "source_name") })}
-          </p>
-        )}
-        {meta && <p className="text-sm text-muted-foreground">{meta}</p>}
-        {Object.keys(bodyState).length > 0 && (
-          <BodyMap state={bodyState} ariaLabel={t("musclesWorked")} className="mx-auto max-w-[180px]" />
-        )}
-        {media?.kind === "link" && (
-          <a
-            href={media.src}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm text-primary underline underline-offset-4"
-          >
-            {t("watchVideo")}
-          </a>
-        )}
-        <div className="flex justify-end gap-1">
+        <div className="mt-auto flex justify-end gap-1">
           {!exercise.coach_id ? (
             exercise.my_clone_id ? (
-              <Button variant="ghost" size="sm" onClick={onEditMyClone}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${t("editMyVersion")}: ${name}`}
+                title={t("editMyVersion")}
+                onClick={onEditMyClone}
+              >
                 <Pencil className="size-4" />
-                {t("editMyVersion")}
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={onClone}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${t("preview.duplicateAndEdit")}: ${name}`}
+                title={t("preview.duplicateAndEdit")}
+                onClick={onClone}
+              >
                 <Copy className="size-4" />
-                {t("clone")}
               </Button>
             )
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={onEdit}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${t("edit")}: ${name}`}
+                title={t("edit")}
+                onClick={onEdit}
+              >
                 <Pencil className="size-4" />
-                {t("edit")}
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon-sm"
                 className="text-destructive hover:text-destructive"
+                aria-label={`${t("delete")}: ${name}`}
+                title={t("delete")}
                 onClick={onDelete}
               >
                 <Trash2 className="size-4" />
-                {t("delete")}
               </Button>
             </>
           )}
@@ -135,17 +138,25 @@ export function ExerciseCard({
   );
 }
 
-/** Fixed aspect-video box regardless of media state — image, embed, link, or
+/** Fixed-aspect box (16:9 unless `className` says otherwise) regardless of media state — image, embed, link, or
  * none — so a missing/broken GIF can't collapse the card or shift the grid
  * as results stream in. The iframe only mounts after a click: 24 eager
  * embeds on one page is real bandwidth, not just a media nicety. */
-export function ExerciseMedia({ media, name }: { media: ReturnType<typeof resolveExerciseMedia>; name: string }) {
+export function ExerciseMedia({
+  media,
+  name,
+  className = "aspect-video",
+}: {
+  media: ReturnType<typeof resolveExerciseMedia>;
+  name: string;
+  className?: string;
+}) {
   const t = useTranslations("library.media");
   const [playing, setPlaying] = useState(false);
 
   if (media?.kind === "image") {
     return (
-      <div className="aspect-video w-full overflow-hidden bg-muted">
+      <div className={cn(className, "w-full overflow-hidden bg-muted")}>
         <img
           src={media.src}
           alt={name}
@@ -160,7 +171,7 @@ export function ExerciseMedia({ media, name }: { media: ReturnType<typeof resolv
   if (media?.kind === "embed") {
     if (playing) {
       return (
-        <div className="aspect-video w-full overflow-hidden bg-black">
+        <div className={cn(className, "w-full overflow-hidden bg-black")}>
           <iframe src={media.src} className="h-full w-full" allowFullScreen title={name} />
         </div>
       );
@@ -169,7 +180,7 @@ export function ExerciseMedia({ media, name }: { media: ReturnType<typeof resolv
       <button
         type="button"
         onClick={() => setPlaying(true)}
-        className="group/play relative aspect-video w-full overflow-hidden bg-muted"
+        className={cn(className, "group/play relative w-full overflow-hidden bg-muted")}
         aria-label={t("play")}
       >
         <Film className="absolute inset-0 m-auto size-8 text-muted-foreground/50" aria-hidden="true" />
@@ -183,7 +194,7 @@ export function ExerciseMedia({ media, name }: { media: ReturnType<typeof resolv
   }
 
   return (
-    <div className="flex aspect-video w-full items-center justify-center bg-muted">
+    <div className={cn(className, "flex w-full items-center justify-center bg-muted")}>
       <Dumbbell className="size-8 text-muted-foreground/40" aria-hidden="true" />
     </div>
   );

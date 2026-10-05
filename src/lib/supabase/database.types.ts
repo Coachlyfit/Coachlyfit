@@ -3958,6 +3958,20 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      library_exercise_facets: {
+        Args: { p_equipment?: string; p_query?: string; p_source?: string }
+        Returns: {
+          grp: string
+          n: number
+        }[]
+      }
+      library_food_facets: {
+        Args: { p_query?: string; p_source?: string }
+        Returns: {
+          grp: string
+          n: number
+        }[]
+      }
       link_existing_client: { Args: { p_email: string }; Returns: string }
       list_online_users: {
         Args: { p_limit?: number; p_offset?: number; p_search?: string }

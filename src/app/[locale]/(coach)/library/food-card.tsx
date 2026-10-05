@@ -6,9 +6,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { pickLocale, type AppLocale } from "@/domain/locale";
+import { macroPercentages } from "@/domain/nutrition/macros";
 import type { searchFoodsAction } from "./actions";
 
 type Food = Awaited<ReturnType<typeof searchFoodsAction>>["rows"][number];
+
+// Same macro → chart colour pairing as MacroSummary (components/nutrition),
+// so protein is the same colour here as in a diet plan.
+export const FOOD_MACROS = [
+  { key: "protein", field: "protein_g", percent: "proteinPercent", color: "bg-chart-1" },
+  { key: "carbs", field: "carb_g", percent: "carbPercent", color: "bg-chart-2" },
+  { key: "fat", field: "fat_g", percent: "fatPercent", color: "bg-chart-3" },
+] as const;
 
 export function FoodCard({
   food,
@@ -34,16 +43,15 @@ export function FoodCard({
 }) {
   const t = useTranslations("library");
   const tFood = useTranslations("library.food");
-  // See exercise-card.tsx: a promoted clone keeps source_food_id but has no
-  // owning coach left, so it reads as Official rather than Customized.
-  const isCustomized = !!food.coach_id && !!food.source_food_id;
-  const badgeLabel = !food.coach_id ? t("official") : isCustomized ? t("customized") : t("mine");
+  const tColumns = useTranslations("library.columns");
+  const tCategories = useTranslations("library.foodCategories");
+  const name = pickLocale(food, locale);
 
   if (variant === "compact") {
     return (
       <Card size="sm">
         <CardContent className="flex flex-col gap-0.5 p-2.5">
-          <p className="line-clamp-2 text-sm font-medium">{pickLocale(food, locale)}</p>
+          <p className="line-clamp-2 text-sm font-medium">{name}</p>
           <p className="text-xs text-muted-foreground">
             {food.serving_label} · {food.kcal} {tFood("kcal")}
           </p>
@@ -52,66 +60,83 @@ export function FoodCard({
     );
   }
 
+  const shares = macroPercentages(food);
+
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-2 p-4">
+    <Card className="py-0">
+      <CardContent className="flex h-full flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
-          <p className="line-clamp-2 font-medium">{pickLocale(food, locale)}</p>
-          <Badge variant={food.coach_id ? "secondary" : "outline"} className="shrink-0">
-            {badgeLabel}
+          <h3 className="line-clamp-2 font-semibold">{name}</h3>
+          <Badge variant="secondary" className="rounded-md">
+            {tCategories(food.category)}
           </Badge>
         </div>
-        {isCustomized && (
-          <p className="text-xs text-muted-foreground">
-            {t("basedOn", { name: pickLocale(food, locale, "source_name") })}
-          </p>
-        )}
-        <p className="text-sm text-muted-foreground">{food.serving_label}</p>
-        <div className="grid grid-cols-4 gap-2 text-center text-xs tabular-nums">
-          <div>
-            <p className="font-medium">{food.kcal}</p>
-            <p className="text-muted-foreground">{tFood("kcal")}</p>
-          </div>
-          <div>
-            <p className="font-medium">{food.protein_g}</p>
-            <p className="text-muted-foreground">{tFood("protein")}</p>
-          </div>
-          <div>
-            <p className="font-medium">{food.carb_g}</p>
-            <p className="text-muted-foreground">{tFood("carbs")}</p>
-          </div>
-          <div>
-            <p className="font-medium">{food.fat_g}</p>
-            <p className="text-muted-foreground">{tFood("fat")}</p>
-          </div>
+        {food.coach_id && <Badge variant="warning">{t("mineBadge.foods")}</Badge>}
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono text-2xl font-semibold tabular-nums">{food.kcal}</span>
+          <span className="text-sm text-muted-foreground">
+            {t.rich("preview.kcalPerServing", {
+              serving: food.serving_label,
+              // serving_label is one untranslated string ("1 serving"); isolate
+              // it so its digits don't get reordered inside Arabic text.
+              bdi: (chunks) => <bdi>{chunks}</bdi>,
+            })}
+          </span>
         </div>
-        <div className="flex justify-end gap-1">
+        <div className="flex flex-col gap-1.5 text-sm">
+          {FOOD_MACROS.map(({ key, field, percent, color }) => (
+            <div key={key} className="flex items-center gap-2">
+              <span className="w-14 shrink-0 truncate">{tColumns(key)}</span>
+              <span className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                <span className={`h-full rounded-full ${color}`} style={{ width: `${shares[percent]}%` }} />
+              </span>
+              <span className="w-13 shrink-0 text-end font-mono tabular-nums">{food[field]}g</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-auto flex justify-end gap-1">
           {!food.coach_id ? (
             food.my_clone_id ? (
-              <Button variant="ghost" size="sm" onClick={onEditMyClone}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${t("editMyVersion")}: ${name}`}
+                title={t("editMyVersion")}
+                onClick={onEditMyClone}
+              >
                 <Pencil className="size-4" />
-                {t("editMyVersion")}
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={onClone}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${t("preview.duplicateAndEdit")}: ${name}`}
+                title={t("preview.duplicateAndEdit")}
+                onClick={onClone}
+              >
                 <Copy className="size-4" />
-                {t("clone")}
               </Button>
             )
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={onEdit}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`${t("edit")}: ${name}`}
+                title={t("edit")}
+                onClick={onEdit}
+              >
                 <Pencil className="size-4" />
-                {t("edit")}
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon-sm"
                 className="text-destructive hover:text-destructive"
+                aria-label={`${t("delete")}: ${name}`}
+                title={t("delete")}
                 onClick={onDelete}
               >
                 <Trash2 className="size-4" />
-                {t("delete")}
               </Button>
             </>
           )}

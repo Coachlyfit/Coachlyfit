@@ -300,6 +300,54 @@ describe("LibraryService", () => {
       await new LibraryService(db).searchExercises({ group: null });
       expect(groupFilters).toHaveLength(0);
     });
+
+    it("narrows exercises by equipment alongside the group", async () => {
+      const { db, groupFilters } = fakeSupabase([]);
+      await new LibraryService(db).searchExercises({ group: "legs", equipment: "barbell" });
+      expect(groupFilters).toEqual(["eq:muscle_group=legs", "eq:equipment=barbell"]);
+    });
+  });
+
+  describe("facets", () => {
+    function fakeRpc(rows: { grp: string | null; n: number }[]) {
+      const calls: { fn: string; args: unknown }[] = [];
+      const db = {
+        rpc: async (fn: string, args: unknown) => {
+          calls.push({ fn, args });
+          return { data: rows, error: null };
+        },
+      };
+      return { db: db as never, calls };
+    }
+
+    it("sums every row into total but keys only the rows that have a group", async () => {
+      const { db } = fakeRpc([
+        { grp: "legs", n: 10 },
+        { grp: "back", n: 5 },
+        { grp: null, n: 2 },
+      ]);
+      expect(await new LibraryService(db).exerciseFacets()).toEqual({
+        total: 17,
+        groups: { legs: 10, back: 5 },
+      });
+    });
+
+    it("sends the sanitized search term, source and equipment — never a group", async () => {
+      const { db, calls } = fakeRpc([]);
+      await new LibraryService(db).exerciseFacets({ query: " 3,5(kg) ", source: "mine", equipment: "cable" });
+      expect(calls).toEqual([
+        { fn: "library_exercise_facets", args: { p_query: "3 5 kg", p_source: "mine", p_equipment: "cable" } },
+      ]);
+    });
+
+    it("counts foods by category through its own function", async () => {
+      const { db, calls } = fakeRpc([{ grp: "protein", n: 3 }]);
+      expect(await new LibraryService(db).foodFacets({ source: "global" })).toEqual({
+        total: 3,
+        groups: { protein: 3 },
+      });
+      expect(calls[0]).toEqual({ fn: "library_food_facets", args: { p_query: "", p_source: "global" } });
+    });
   });
 
   describe("pagination", () => {
