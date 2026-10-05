@@ -61,12 +61,28 @@ export type LibraryQuery = {
   source?: LibrarySource;
   /** `muscle_group` for exercises, `category` for foods. Null = every group. */
   group?: string | null;
+  /** Exercises only — exact match on `equipment`. Null = any. */
+  equipment?: string | null;
   /** 1-based. */
   page?: number;
   pageSize?: number;
 };
 
 export type LibraryPage<T> = { rows: T[]; total: number; page: number; pageSize: number };
+
+/** Row counts per muscle_group/category for the current search + source
+ * (+ equipment), ignoring the group filter itself. `total` also includes
+ * rows with no group, which appear under no key. */
+export type LibraryFacets = { total: number; groups: Record<string, number> };
+
+function toFacets(rows: { grp: string | null; n: number }[] | null): LibraryFacets {
+  const facets: LibraryFacets = { total: 0, groups: {} };
+  for (const { grp, n } of rows ?? []) {
+    facets.total += n;
+    if (grp) facets.groups[grp] = n;
+  }
+  return facets;
+}
 
 const DEFAULT_PAGE_SIZE = 24;
 // Caps what one request can pull regardless of what a caller asks for — the
@@ -172,6 +188,7 @@ export class LibraryService {
         .order("id");
       q = applySource(q, params.source ?? "all");
       if (params.group) q = q.eq("muscle_group", params.group);
+      if (params.equipment) q = q.eq("equipment", params.equipment);
       const term = sanitizeSearchTerm(params.query ?? "");
       if (term) q = q.or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%`);
       // .returns<T>() has to be the true last call in the chain (supabase-js
@@ -197,6 +214,27 @@ export class LibraryService {
       return q.range((p - 1) * pageSize, p * pageSize - 1).returns<Food[]>();
     };
     return runPaged(build, page, pageSize);
+  }
+
+  // One grouped query per tab (20261006000001_library_facets.sql) feeds both
+  // the tab's total badge and every chip count.
+  async exerciseFacets(params: Pick<LibraryQuery, "query" | "source" | "equipment"> = {}): Promise<LibraryFacets> {
+    const { data, error } = await this.db.rpc("library_exercise_facets", {
+      p_query: sanitizeSearchTerm(params.query ?? ""),
+      p_source: params.source ?? "all",
+      p_equipment: params.equipment || undefined,
+    });
+    if (error) throw error;
+    return toFacets(data);
+  }
+
+  async foodFacets(params: Pick<LibraryQuery, "query" | "source"> = {}): Promise<LibraryFacets> {
+    const { data, error } = await this.db.rpc("library_food_facets", {
+      p_query: sanitizeSearchTerm(params.query ?? ""),
+      p_source: params.source ?? "all",
+    });
+    if (error) throw error;
+    return toFacets(data);
   }
 
   /** Used by "Edit my version" on a global card that's already been cloned:

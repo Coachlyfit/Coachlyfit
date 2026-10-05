@@ -1,71 +1,88 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
-import { adherenceAverage, isClientLate, lastCheckinDate } from "@/domain/progress/stats";
-import type { AppLocale } from "@/domain/locale";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ClientsService } from "@/domain/clients/clients.service";
+import { subscriptionRosterStatus } from "@/domain/billing/client-subscription";
+import { clientCheckinStatus, daysSince } from "@/domain/progress/stats";
+import { pickLocale, type AppLocale } from "@/domain/locale";
+import { formatNumber } from "@/lib/format";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { InviteClientDialog } from "./invite-client-dialog";
-import { ClientsTable } from "./clients-table";
-
-const RECENT_CHECKIN_WINDOW_DAYS = 90;
+import { ClientsTable, type ClientRow } from "./clients-table";
+import { STATUS_FILTERS, type StatusFilter } from "./schemas";
 
 export default async function ClientsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: AppLocale }>;
+  searchParams: Promise<{ status?: string }>;
 }) {
   const { locale } = await params;
+  const { status: rawStatus } = await searchParams;
   const t = await getTranslations("clients");
   const supabase = await createClient();
 
-  const since = new Date(new Date().getTime() - RECENT_CHECKIN_WINDOW_DAYS * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  // Unknown values from a hand-edited URL fall back to "all", not an error.
+  const status: StatusFilter = STATUS_FILTERS.includes(rawStatus as StatusFilter) ? (rawStatus as StatusFilter) : "all";
 
-  const [{ data: clients }, { data: checkins }] = await Promise.all([
-    supabase
-      .from("clients")
-      .select("id, display_name, email, phone, status, created_at")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("checkins")
-      .select("client_id, checkin_date, adherence")
-      .gte("checkin_date", since),
-  ]);
+  const roster = await new ClientsService(supabase).listRoster();
+  const now = new Date();
 
-  const checkinsByClient = new Map<string, typeof checkins>();
-  for (const row of checkins ?? []) {
-    const bucket = checkinsByClient.get(row.client_id);
-    if (bucket) bucket.push(row);
-    else checkinsByClient.set(row.client_id, [row]);
-  }
+  const rows: ClientRow[] = roster.map((client) => ({
+    id: client.id,
+    name: client.displayName,
+    email: client.email,
+    invited: client.status === "invited",
+    program: client.program ? pickLocale(client.program, locale) : null,
+    lastCheckin: client.lastCheckin,
+    daysAgo: client.lastCheckin ? daysSince(client.lastCheckin, now) : null,
+    adherence: client.adherence,
+    checkinStatus: client.status === "archived" ? "archived" : clientCheckinStatus(client.lastCheckin, now),
+    subscription: subscriptionRosterStatus(client.subscription, now),
+  }));
 
-  const today = new Date();
-
-  const rows = (clients ?? []).map((client) => {
-    const clientCheckins = checkinsByClient.get(client.id) ?? [];
-    const lastActive = lastCheckinDate(clientCheckins);
-    return {
-      ...client,
-      adherence: adherenceAverage(clientCheckins),
-      lastActive,
-      isLate: isClientLate(client.status, lastActive, today),
-    };
-  });
+  const current = rows.filter((row) => row.checkinStatus !== "archived");
+  const needFollowUp = current.filter((row) => row.checkinStatus !== "active").length;
+  const num = (chunks: React.ReactNode) => <span className="font-mono tabular-nums">{chunks}</span>;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageTitle title={t("title")} />
-      <div className="flex items-center justify-end">
+
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl leading-9 font-semibold">{t("heading")}</h1>
+          {current.length > 0 && (
+            <p className="text-base text-muted-foreground">
+              {needFollowUp === 0
+                ? t("summaryAllClear")
+                : t.rich("summary", {
+                    need: formatNumber(needFollowUp, locale),
+                    total: formatNumber(current.length, locale),
+                    num,
+                    strong: (chunks) => (
+                      <span className="font-mono font-semibold text-foreground tabular-nums">{chunks}</span>
+                    ),
+                  })}
+            </p>
+          )}
+        </div>
         <InviteClientDialog locale={locale} />
-      </div>
+      </header>
 
       {rows.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">{t("empty")}</CardContent>
+          <EmptyState
+            brandMark
+            title={t("emptyTitle")}
+            description={t("empty")}
+            action={<InviteClientDialog locale={locale} />}
+          />
         </Card>
       ) : (
-        <ClientsTable locale={locale} clients={rows} />
+        <ClientsTable locale={locale} clients={rows} status={status} />
       )}
     </div>
   );

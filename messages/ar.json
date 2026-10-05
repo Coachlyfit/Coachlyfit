@@ -479,44 +479,83 @@
     }
   },
   "dashboard": {
-    "welcome": "أهلاً بعودتك، {name}",
-    "activeClients": "العملاء النشطين",
-    "plan": "الباقة",
-    "trialEndsAt": "التجربة المجانية بتخلص",
-    "renewsAt": "التجديد",
-    "clientLimit": "من {max} في باقتك",
-    "status": {
-      "trialing": "تجربة مجانية",
-      "active": "نشط",
-      "past_due": "متأخر في السداد",
-      "canceled": "ملغي"
-    },
-    "kpi": {
-      "clients": "العملاء النشطين",
-      "online": "متصل الآن",
-      "submissions": "ردود جديدة",
-      "submissionsWindow": "آخر ٧ أيام",
-      "mrr": "دخل شهري · ج.م"
-    },
-    "online": {
-      "title": "متصل الآن",
-      "empty": "مفيش عميل متصل دلوقتي.",
-      "never": "أبدًا"
-    },
     "pendingReview": "{count} متابعة مستنياك تراجعها",
-    "queue": {
-      "title": "آخر الردود",
-      "empty": "مفيش ردود لسه.",
-      "viewAll": "شوف الكل"
+    "header": {
+      "greeting": "أهلاً، {name}",
+      "greetingNoName": "أهلاً",
+      "tasks": "{count, plural, one {عندك <num></num> مهمة محتاجة قرارك النهارده.} two {عندك <num></num> مهمة محتاجة قرارك النهارده.} few {عندك <num></num> مهام محتاجة قرارك النهارده.} other {عندك <num></num> مهمة محتاجة قرارك النهارده.}}",
+      "allClear": "مفيش حاجة مستنياك دلوقتي."
     },
-    "activity": {
-      "title": "آخر نشاط",
-      "empty": "مفيش حاجة لسه."
+    "attention": {
+      "title": "يحتاج انتباهك اليوم",
+      "clear": "تمام",
+      "review": {
+        "badge": "جديد",
+        "label": "تسجيلات بانتظار المراجعة",
+        "cta": "ابدأ المراجعة"
+      },
+      "invoices": {
+        "badge": "متأخرة",
+        "label": "فواتير لم تُدفع",
+        "cta": "شوف الفواتير"
+      },
+      "programs": {
+        "badge": "هذا الأسبوع",
+        "label": "برامج تنتهي قريباً",
+        "cta": "افتح البرامج"
+      }
     },
-    "followUps": {
-      "title": "متابعات",
-      "empty": "لسه مفيش نتايج للمراجعة.",
-      "viewAll": "عرض"
+    "inbox": {
+      "title": "صندوق التسجيلات",
+      "filterLabel": "تصفية التسجيلات",
+      "filter": {
+        "all": "الكل",
+        "new": "جديد",
+        "reviewed": "تمت المراجعة"
+      },
+      "status": {
+        "new": "جديد",
+        "reviewed": "تمت المراجعة"
+      },
+      "review": "مراجعة",
+      "reviewLabel": "مراجعة تسجيل {name}",
+      "viewAll": "عرض كل التسجيلات",
+      "showAll": "اعرض الكل",
+      "empty": {
+        "all": "مفيش تسجيلات لسه. ابعت تسجيل عشان تبدأ.",
+        "new": "مفيش تسجيلات جديدة. خلصت كل اللي عندك.",
+        "reviewed": "لسه ما راجعتش أي تسجيل."
+      }
+    },
+    "quiet": {
+      "title": "عملاء بلا تسجيل",
+      "subtitle": "آخر تسجيل منذ أكثر من <num>{days}</num> أيام",
+      "days": "{count, plural, one {<num>{value}</num> يوم} two {<num>{value}</num> يوم} few {<num>{value}</num> أيام} other {<num>{value}</num> يوم}}",
+      "never": "مفيش تسجيل لسه",
+      "remind": "ابعت رسالة لـ {name}",
+      "empty": "كل العملاء النشطين سجّلوا الأسبوع ده."
+    },
+    "payments": {
+      "title": "مدفوعات هذا الأسبوع",
+      "empty": "مفيش فواتير مستحقة الأسبوع ده.",
+      "viewInvoices": "شوف الفواتير",
+      "status": {
+        "overdue": "متأخرة",
+        "due": "مستحقة",
+        "paid": "مدفوعة"
+      }
+    },
+    "sendCheckin": {
+      "title": "إرسال تسجيل",
+      "description": "بيبعت نموذج التسجيل الافتراضي لعميل واحد.",
+      "submit": "ابعت",
+      "sent": "التسجيل اتبعت.",
+      "failed": "ما قدرناش نبعت التسجيل. جرّب تاني.",
+      "pickClient": "اختار عميل.",
+      "noTemplate": "اختار نموذج التسجيل الافتراضي من الإعدادات وانشره الأول.",
+      "noClients": "لسه ما عندكش عملاء نشطين.",
+      "goToSettings": "افتح الإعدادات",
+      "goToClients": "روح للعملاء"
     }
   },
   "settings": {
@@ -637,23 +676,62 @@
   "clients": {
     "title": "العملاء",
     "invite": "ادعُ عميل",
+    "heading": "عملاؤك",
+    "summary": "<strong>{need}</strong> من <num>{total}</num> يحتاجون متابعة",
+    "summaryAllClear": "كل عملائك على المسار",
+    "emptyTitle": "لا عملاء بعد",
     "empty": "مفيش عملاء لسه. ادعُ أول عميل عندك وابدأ.",
     "noResults": "مفيش نتايج",
-    "noResultsHint": "جرّب اسم تاني أو امسح الفلتر.",
-    "searchPlaceholder": "دوّر بالاسم...",
-    "filters": {
+    "noResultsHint": "جرّب اسم أو بريد تاني، أو غيّر الفلتر.",
+    "searchPlaceholder": "بحث بالاسم أو البريد",
+    "noData": "لا بيانات بعد",
+    "noProgram": "لم يُعيَّن بعد",
+    "showing": "عرض <num>{shown}</num> من <num>{total}</num>",
+    "lastCheckin": "{count, plural, =0 {اليوم} =1 {أمس} =2 {منذ يومين} few {منذ <num>{value}</num> أيام} other {منذ <num>{value}</num> يوم}}",
+    "cardsLabel": "تصفية حسب الحالة",
+    "cards": {
       "all": "الكل",
       "active": "نشط",
-      "late": "متأخر"
+      "late": "تسجيل متأخر",
+      "awaiting": "بانتظار أول تسجيل"
     },
-    "countLabel": "{shown} من {total}",
+    "checkinStatus": {
+      "active": "نشط",
+      "late": "تسجيل متأخر",
+      "awaiting": "بانتظار أول تسجيل"
+    },
+    "subscription": {
+      "active": "ساري",
+      "renewsSoon": "يتجدد قريباً",
+      "expired": "منتهي",
+      "frozen": "مجمّد",
+      "canceled": "ملغي",
+      "none": "بلا اشتراك"
+    },
+    "toolbar": {
+      "program": "البرنامج: {value}",
+      "programAll": "الكل",
+      "sort": "ترتيب: {value}",
+      "sortLabel": "الترتيب",
+      "sortBy": {
+        "lastCheckin": "آخر تسجيل",
+        "name": "الاسم",
+        "adherence": "الأقل التزاماً"
+      }
+    },
+    "actions": {
+      "message": "مراسلة {name}",
+      "more": "إجراءات أخرى لـ {name}",
+      "openProfile": "افتح الملف"
+    },
     "table": {
-      "name": "الاسم",
-      "contact": "التواصل",
-      "status": "الحالة",
-      "joined": "تاريخ الانضمام",
+      "client": "العميل",
+      "program": "البرنامج",
+      "lastCheckin": "آخر تسجيل",
       "adherence": "الالتزام",
-      "lastActivity": "آخر نشاط"
+      "status": "الحالة",
+      "subscription": "الاشتراك",
+      "actions": "إجراءات"
     },
     "status": {
       "invited": "اتبعتله دعوة",
@@ -1235,7 +1313,9 @@
         "form": "النموذج",
         "submittedAt": "تاريخ الإرسال"
       },
-      "view": "شوف"
+      "view": "شوف",
+      "markReviewed": "تمت المراجعة",
+      "reviewed": "تمت المراجعة"
     },
     "fill": {
       "submit": "ابعت",
@@ -1288,7 +1368,8 @@
       "not_linked": "حسابك لسه مش متربط بمدرّب. كلّم مدرّبك أو الدعم.",
       "publish_failed": "مقدرناش ننشر النموذج ده. جرّب تاني.",
       "submit_failed": "مقدرناش نبعت النموذج ده. جرّب تاني.",
-      "not_found": "النموذج ده مش موجود."
+      "not_found": "النموذج ده مش موجود.",
+      "review_failed": "ما قدرناش نسجّل المراجعة. جرّب تاني."
     }
   },
   "programs": {
@@ -1610,7 +1691,10 @@
       "group": "المجموعة العضلية",
       "allGroups": "كل المجموعات",
       "category": "الفئة",
-      "allCategories": "كل الفئات"
+      "allCategories": "كل الفئات",
+      "all": "الكل",
+      "equipment": "المعدات",
+      "allEquipment": "كل المعدات"
     },
     "media": {
       "play": "شغّل الفيديو",
@@ -1626,7 +1710,13 @@
       "media": "الوسائط",
       "serving": "الحصة",
       "macros": "العناصر الغذائية",
-      "source": "المصدر"
+      "source": "المصدر",
+      "exercise": "التمرين",
+      "food": "الطعام",
+      "kcal": "سعرات",
+      "protein": "بروتين",
+      "carbs": "كارب",
+      "fat": "دهون"
     },
     "exercise": {
       "add": "ضيف تمرين",
@@ -1720,9 +1810,6 @@
       "already_cloned": "عندك نسخة خاصة بيك من العنصر ده خلاص.",
       "unknown": "حصل خطأ. جرّب تاني."
     },
-    "official": "رسمي",
-    "mine": "خاص بيا",
-    "customized": "مخصّص",
     "basedOn": "مبني على: {name}",
     "clone": "خصّص نسختك",
     "editMyVersion": "عدّل نسختي",
@@ -1730,31 +1817,77 @@
     "source": {
       "label": "المصدر",
       "all": "الكل",
-      "global": "مكتبة التمارين",
+      "global": "المكتبة الرسمية",
       "mine": "تماريني"
     },
     "foodSource": {
       "label": "المصدر",
       "all": "الكل",
-      "global": "مكتبة الأطعمة",
+      "global": "المكتبة الرسمية",
       "mine": "أطعمتي"
     },
     "emptyStates": {
-      "clearFilter": "امسح الفلتر",
-      "searchAll": "دوّر في كل التمارين",
-      "searchMine": "دوّر في تماريني",
       "mineNoneHint": "كل حاجة تعملها بتفضل خاصة بيك ومتظهرش في المكتبة المشتركة.",
-      "globalNoMatchHint": "تقدر تضيفه لتمارينك الخاصة بدل كده.",
       "exercises": {
         "mineNone": "لسه معملتش أي تمارين.",
-        "mineNoMatch": "مفيش تمارين خاصة بيك بتطابق \"{query}\".",
-        "globalNoMatch": "مفيش تمرين رسمي بيطابق \"{query}\"."
+        "noResults": "مفيش تمارين بتطابق البحث أو الفلاتر.",
+        "none": "مفيش تمارين لسه."
       },
       "foods": {
         "mineNone": "لسه معملتش أي أطعمة.",
-        "mineNoMatch": "مفيش أطعمة خاصة بيك بتطابق \"{query}\".",
-        "globalNoMatch": "مفيش طعام رسمي بيطابق \"{query}\"."
-      }
+        "noResults": "مفيش أطعمة بتطابق البحث أو الفلاتر.",
+        "none": "مفيش أطعمة لسه."
+      },
+      "clearAll": "امسح كل الفلاتر",
+      "noResultsHint": "جرّب كلمة تانية أو شيل فلتر.",
+      "noneHint": "ضيف أول عنصر من الزرار اللي فوق."
+    },
+    "equipment": {
+      "body_weight": "وزن الجسم",
+      "dumbbell": "دمبل",
+      "barbell": "بار",
+      "cable": "كابل",
+      "leverage_machine": "جهاز رافعة",
+      "band": "حبل مطاطي",
+      "smith_machine": "جهاز سميث",
+      "kettlebell": "كيتل بل",
+      "weighted": "بأوزان إضافية",
+      "none": "بدون معدات",
+      "stability_ball": "كرة توازن",
+      "ez_barbell": "بار EZ",
+      "assisted": "بمساعدة",
+      "sled_machine": "جهاز الزلاجة",
+      "medicine_ball": "كرة طبية",
+      "rope": "حبل",
+      "machine": "جهاز",
+      "roller": "رول",
+      "bosu_ball": "كرة بوسو",
+      "olympic_barbell": "بار أولمبي",
+      "wheel_roller": "عجلة البطن",
+      "trap_bar": "تراب بار",
+      "skierg_machine": "جهاز سكي إرج",
+      "stationary_bike": "دراجة ثابتة",
+      "elliptical_machine": "جهاز إليبتيكال",
+      "upper_body_ergometer": "دراجة الذراعين",
+      "hammer": "مطرقة",
+      "tire": "إطار",
+      "stepmill_machine": "جهاز السلالم"
+    },
+    "searchPlaceholder": {
+      "exercises": "دوّر على تمرين بالاسم",
+      "foods": "دوّر على طعام بالاسم"
+    },
+    "mineBadge": {
+      "exercises": "تمريني",
+      "foods": "أطعمتي"
+    },
+    "preview": {
+      "label": "معاينة",
+      "duplicateAndEdit": "نسخ وتعديل",
+      "perServing": "لكل <mono>{serving}</mono>",
+      "kcalUnit": "سعرة",
+      "kcalPerServing": "سعرة / <bdi>{serving}</bdi>",
+      "macroSplit": "توزيع العناصر الغذائية"
     }
   },
   "admin": {
@@ -2378,17 +2511,41 @@
     "new": "خطة جديدة",
     "allTab": "الكل",
     "templatesTab": "القوالب",
-    "assignedTab": "المعينة",
-    "empty": {
-      "title": "لسه مفيش خطط تغذية",
-      "description": "ابني خطة مرة واحدة وطبّقها على أي عدد من العملاء."
+    "assignedTab": "المعيّنة",
+    "tabsLabel": "نوع الخطط",
+    "searchPlaceholder": "بحث بالخطة أو العميل",
+    "summaryActive": "{count, plural, =0 {لا توجد خطط نشطة} =1 {<num>{value}</num> خطة نشطة} =2 {<num>{value}</num> خطتان نشطتان} few {<num>{value}</num> خطط نشطة} other {<num>{value}</num> خطة نشطة}}",
+    "summaryEnding": "{count, plural, =0 {لا شيء ينتهي هذا الأسبوع} other {<num>{value}</num> تنتهي هذا الأسبوع}}",
+    "clientPlans": {
+      "title": "خطط العملاء",
+      "emptyTitle": "لسه مفيش خطط للعملاء",
+      "emptyDescription": "اعمل خطة جديدة لعميل، أو عيّن له قالب جاهز."
     },
-    "table": {
-      "name": "الاسم",
-      "client": "العميل",
-      "dates": "التواريخ",
-      "created": "تاريخ الإنشاء"
+    "templates": {
+      "title": "القوالب",
+      "subtitle": "خطط جاهزة تعيّنها لأي عميل بنقرة",
+      "emptyTitle": "لسه مفيش قوالب",
+      "emptyDescription": "القالب خطة تغذية من غير عميل: ابنيها مرة واحدة وعيّنها لأي عدد من العملاء، وكل عميل بياخد نسخته اللي تقدر تعدّلها. اعمل خطة جديدة من غير عميل، أو احفظ خطة موجودة كقالب."
     },
+    "status": {
+      "endingSoon": "تنتهي قريباً",
+      "active": "نشطة",
+      "notStarted": "لم تبدأ",
+      "ended": "منتهية"
+    },
+    "dayOf": "اليوم <num>{day}</num> من <num>{total}</num>",
+    "dayOngoing": "اليوم <num>{day}</num> · مستمرة",
+    "startsIn": "{count, plural, =1 {تبدأ غداً} =2 {تبدأ بعد يومين} few {تبدأ بعد <num>{value}</num> أيام} other {تبدأ بعد <num>{value}</num> يوماً}}",
+    "chips": {
+      "kcal": "<num>{value}</num> سعرة/يوم",
+      "meals": "{count, plural, =0 {بدون وجبات} =1 {وجبة واحدة} =2 {وجبتان} few {<num>{value}</num> وجبات} other {<num>{value}</num> وجبة}}"
+    },
+    "openPlan": "فتح الخطة",
+    "duplicatePlan": "نسخ خطة {name}",
+    "assignToClient": "تعيين لعميل",
+    "editTemplate": "تعديل",
+    "noResults": "مفيش نتايج",
+    "noResultsHint": "جرّب اسم خطة أو عميل تاني.",
     "template": "قالب",
     "dateRange": "{start} – {end}",
     "ongoing": "مستمر",

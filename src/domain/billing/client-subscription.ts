@@ -16,3 +16,22 @@ export function subscriptionDisplayStatus(
   const endOfDay = new Date(`${sub.end_date}T23:59:59.999Z`);
   return endOfDay.getTime() < now.getTime() ? "expired" : "active";
 }
+
+export const RENEWS_SOON_DAYS = 7;
+
+export type SubscriptionRosterStatus = SubscriptionDisplayStatus | "renewsSoon" | "none";
+
+/** The roster's subscription badge: subscriptionDisplayStatus plus "none"
+ * (no subscription row) and "renewsSoon" (active, ending within
+ * RENEWS_SOON_DAYS). There is no paid/unpaid state on a subscription --
+ * that lives on invoices -- so this never claims one. */
+export function subscriptionRosterStatus(
+  sub: { status: ClientSubscriptionStatus; end_date: string } | null,
+  now: Date
+): SubscriptionRosterStatus {
+  if (!sub) return "none";
+  const status = subscriptionDisplayStatus(sub, now);
+  if (status !== "active") return status;
+  const soon = new Date(now.getTime() + RENEWS_SOON_DAYS * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  return sub.end_date <= soon ? "renewsSoon" : "active";
+}

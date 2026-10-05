@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// Roster status filter (?status=). Lives here, not in clients-table.tsx: the
+// server page validates the query param against it, and a value imported
+// from a "use client" module is only a reference on the server.
+export const STATUS_FILTERS = ["all", "active", "late", "awaiting"] as const;
+export type StatusFilter = (typeof STATUS_FILTERS)[number];
+
 // .or(z.literal("")): RHF reports an untouched optional text input as ""
 // (not undefined), so the empty string must validate on the client too.
 // The server action then normalizes "" | null -> undefined before this

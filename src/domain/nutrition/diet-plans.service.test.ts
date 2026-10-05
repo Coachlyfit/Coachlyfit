@@ -12,9 +12,11 @@ function fakeSupabase(
     ownClientRow?: Record<string, unknown> | null;
     sourceMeal?: Record<string, unknown> | null;
     childCount?: number;
+    overviewRows?: Record<string, unknown>[];
   } = {}
 ) {
   const {
+    overviewRows = [],
     parentRow = null,
     treeRow = null,
     affected = [{ id: "1" }],
@@ -35,6 +37,11 @@ function fakeSupabase(
           // nextIndex: select("id", { count, head }).eq(...) resolves a count.
           if (selectOpts?.head) {
             return { eq: async () => ({ count: childCount, error: null }) };
+          }
+          // listOverview: select("*, clients(...), meals(id, ...)").is().is().order()
+          if (cols?.includes("meals(id")) {
+            const chain = { is: () => chain, order: async () => ({ data: overviewRows, error: null }) };
+            return chain;
           }
           // copyMeal's source-meal read.
           if (cols?.startsWith("label_ar")) {
@@ -118,6 +125,29 @@ function fakeSupabase(
 }
 
 describe("DietPlansService", () => {
+  describe("listOverview", () => {
+    it("adds meal count and planned kcal, and drops the nested meals", async () => {
+      const food = { kcal: 100, protein_g: 10, carb_g: 10, fat_g: 2 };
+      const { db } = fakeSupabase({
+        overviewRows: [
+          {
+            id: "p1",
+            meals: [
+              { id: "m1", meal_items: [{ quantity: 1.5, foods: food }, { quantity: 2, foods: food }] },
+              { id: "m2", meal_items: [] },
+            ],
+          },
+          { id: "p2", meals: [] },
+        ],
+      });
+
+      expect(await new DietPlansService(db).listOverview()).toEqual([
+        { id: "p1", mealCount: 2, plannedKcal: 350 },
+        { id: "p2", mealCount: 0, plannedKcal: 0 },
+      ]);
+    });
+  });
+
   describe("child tenant derivation (security)", () => {
     it("addMeal takes coach_id/client_id from the parent diet_plan row, not from any argument", async () => {
       const { db, inserts } = fakeSupabase({ parentRow: { coach_id: "coach-1", client_id: "client-9" } });

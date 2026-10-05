@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBadge } from "@/components/status-badge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/format";
 import { listExerciseOptions, listFoodOptions } from "@/domain/forms/library-refs";
 import type { FormField } from "@/domain/forms/schema";
 import type { AppLocale } from "@/domain/locale";
 import { FormRenderer } from "@/components/forms-runtime/form-renderer";
+import { MarkReviewedButton } from "./mark-reviewed-button";
 
 export default async function SubmissionDetailPage({
   params,
@@ -20,7 +22,7 @@ export default async function SubmissionDetailPage({
   const { data: submission } = await supabase
     .from("form_submissions")
     .select(
-      "id, answers, submitted_at, clients(display_name), form_template_versions(schema, form_templates!form_template_versions_template_id_fkey(name_ar, name_en))"
+      "id, answers, submitted_at, reviewed_at, clients(display_name), form_template_versions(schema, form_templates!form_template_versions_template_id_fkey(name_ar, name_en))"
     )
     .eq("id", id)
     .maybeSingle();
@@ -48,6 +50,13 @@ export default async function SubmissionDetailPage({
           <p className="text-sm text-muted-foreground">
             {submission.clients?.display_name} · {formatDate(submission.submitted_at, locale)}
           </p>
+          <CardAction>
+            {submission.reviewed_at ? (
+              <StatusBadge tone="success">{t("reviewed")}</StatusBadge>
+            ) : (
+              <MarkReviewedButton locale={locale} submissionId={submission.id} />
+            )}
+          </CardAction>
         </CardHeader>
         <CardContent>
           <FormRenderer

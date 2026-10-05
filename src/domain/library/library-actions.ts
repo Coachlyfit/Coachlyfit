@@ -21,6 +21,16 @@ export async function searchFoodsAction(params: LibraryQuery = {}) {
   return new LibraryService(supabase).searchFoods(params);
 }
 
+export async function exerciseFacetsAction(params: Pick<LibraryQuery, "query" | "source" | "equipment"> = {}) {
+  const supabase = await createClient();
+  return new LibraryService(supabase).exerciseFacets(params);
+}
+
+export async function foodFacetsAction(params: Pick<LibraryQuery, "query" | "source"> = {}) {
+  const supabase = await createClient();
+  return new LibraryService(supabase).foodFacets(params);
+}
+
 export async function getExerciseAction(id: string) {
   const supabase = await createClient();
   return new LibraryService(supabase).getExercise(id);

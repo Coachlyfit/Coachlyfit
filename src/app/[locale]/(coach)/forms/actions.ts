@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { TemplatesService } from "@/domain/forms/templates.service";
@@ -68,4 +69,19 @@ export async function assignTemplateAction(
     dueAt: parsed.data.dueAt,
   });
   revalidatePath(`/${locale}/forms`);
+}
+
+export async function markSubmissionReviewedAction(locale: string, submissionId: string): Promise<ActionResult> {
+  const parsed = z.string().uuid().safeParse(submissionId);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  try {
+    await new SubmissionsService(supabase).markReviewed(parsed.data);
+  } catch {
+    return { error: "review_failed" };
+  }
+  revalidatePath(`/${locale}/dashboard`);
+  revalidatePath(`/${locale}/forms/submissions`);
+  revalidatePath(`/${locale}/forms/submissions/${parsed.data}`);
 }

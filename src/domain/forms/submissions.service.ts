@@ -114,4 +114,13 @@ export class SubmissionsService {
     if (error) throw error;
     return data;
   }
+
+  /** The only write path for a coach on form_submissions -- see
+   * mark_form_submission_reviewed() in 20261005000001_form_submission_review.sql.
+   * Idempotent server-side, so a double click is harmless. */
+  async markReviewed(id: string): Promise<Submission> {
+    const { data, error } = await this.db.rpc("mark_form_submission_reviewed", { p_submission_id: id });
+    if (error) throw error;
+    return data;
+  }
 }

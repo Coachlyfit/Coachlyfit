@@ -479,44 +479,83 @@
     }
   },
   "dashboard": {
-    "welcome": "Welcome back, {name}",
-    "activeClients": "Active clients",
-    "plan": "Plan",
-    "trialEndsAt": "Trial ends",
-    "renewsAt": "Renews",
-    "clientLimit": "of {max} on your plan",
-    "status": {
-      "trialing": "Trial",
-      "active": "Active",
-      "past_due": "Past due",
-      "canceled": "Canceled"
-    },
-    "kpi": {
-      "clients": "Active clients",
-      "online": "Online now",
-      "submissions": "Recent submissions",
-      "submissionsWindow": "Last 7 days",
-      "mrr": "MRR · EGP"
-    },
-    "online": {
-      "title": "Online now",
-      "empty": "No clients online right now.",
-      "never": "Never"
-    },
     "pendingReview": "{count} check-ins waiting for review",
-    "queue": {
-      "title": "Recent submissions",
-      "empty": "No submissions yet.",
-      "viewAll": "View all"
+    "header": {
+      "greeting": "Hello, {name}",
+      "greetingNoName": "Hello",
+      "tasks": "{count, plural, one {You have <num></num> task that needs you today.} other {You have <num></num> tasks that need you today.}}",
+      "allClear": "Nothing needs you right now."
     },
-    "activity": {
-      "title": "Recent activity",
-      "empty": "Nothing yet."
+    "attention": {
+      "title": "Needs attention today",
+      "clear": "All clear",
+      "review": {
+        "badge": "New",
+        "label": "Check-ins awaiting review",
+        "cta": "Start reviewing"
+      },
+      "invoices": {
+        "badge": "Overdue",
+        "label": "Unpaid invoices",
+        "cta": "View invoices"
+      },
+      "programs": {
+        "badge": "This week",
+        "label": "Programs ending soon",
+        "cta": "Open programs"
+      }
     },
-    "followUps": {
-      "title": "Follow-ups",
-      "empty": "No outcomes to review yet.",
-      "viewAll": "View"
+    "inbox": {
+      "title": "Check-in inbox",
+      "filterLabel": "Filter check-ins",
+      "filter": {
+        "all": "All",
+        "new": "New",
+        "reviewed": "Reviewed"
+      },
+      "status": {
+        "new": "New",
+        "reviewed": "Reviewed"
+      },
+      "review": "Review",
+      "reviewLabel": "Review {name}'s check-in",
+      "viewAll": "View all check-ins",
+      "showAll": "Show all",
+      "empty": {
+        "all": "No check-ins yet. Send one to get started.",
+        "new": "No new check-ins. You're caught up.",
+        "reviewed": "You haven't reviewed any check-ins yet."
+      }
+    },
+    "quiet": {
+      "title": "Clients with no check-in",
+      "subtitle": "Last check-in more than <num>{days}</num> days ago",
+      "days": "{count, plural, one {<num>{value}</num> day} other {<num>{value}</num> days}}",
+      "never": "No check-in yet",
+      "remind": "Message {name}",
+      "empty": "Every active client has checked in this week."
+    },
+    "payments": {
+      "title": "Payments this week",
+      "empty": "No invoices due this week.",
+      "viewInvoices": "View invoices",
+      "status": {
+        "overdue": "Overdue",
+        "due": "Due",
+        "paid": "Paid"
+      }
+    },
+    "sendCheckin": {
+      "title": "Send check-in",
+      "description": "Sends your default check-in form to one client.",
+      "submit": "Send",
+      "sent": "Check-in sent.",
+      "failed": "Couldn't send the check-in. Try again.",
+      "pickClient": "Choose a client.",
+      "noTemplate": "Pick a default check-in form in Settings and publish it first.",
+      "noClients": "You don't have any active clients yet.",
+      "goToSettings": "Open settings",
+      "goToClients": "Go to clients"
     }
   },
   "settings": {
@@ -637,23 +676,62 @@
   "clients": {
     "title": "Clients",
     "invite": "Invite client",
+    "heading": "Your clients",
+    "summary": "<strong>{need}</strong> of <num>{total}</num> need follow-up",
+    "summaryAllClear": "All your clients are on track",
+    "emptyTitle": "No clients yet",
     "empty": "No clients yet. Invite your first one to get started.",
     "noResults": "No matches",
-    "noResultsHint": "Try a different name or clear the filter.",
-    "searchPlaceholder": "Search by name...",
-    "filters": {
+    "noResultsHint": "Try a different name or email, or change the filter.",
+    "searchPlaceholder": "Search by name or email",
+    "noData": "No data yet",
+    "noProgram": "Not assigned yet",
+    "showing": "Showing <num>{shown}</num> of <num>{total}</num>",
+    "lastCheckin": "{count, plural, =0 {Today} =1 {Yesterday} other {<num>{value}</num> days ago}}",
+    "cardsLabel": "Filter by status",
+    "cards": {
       "all": "All",
       "active": "Active",
-      "late": "Late"
+      "late": "Late check-in",
+      "awaiting": "Awaiting first check-in"
     },
-    "countLabel": "{shown} of {total}",
+    "checkinStatus": {
+      "active": "Active",
+      "late": "Late check-in",
+      "awaiting": "Awaiting first check-in"
+    },
+    "subscription": {
+      "active": "Active",
+      "renewsSoon": "Renews soon",
+      "expired": "Expired",
+      "frozen": "Frozen",
+      "canceled": "Canceled",
+      "none": "No subscription"
+    },
+    "toolbar": {
+      "program": "Program: {value}",
+      "programAll": "All",
+      "sort": "Sort: {value}",
+      "sortLabel": "Sort",
+      "sortBy": {
+        "lastCheckin": "Last check-in",
+        "name": "Name",
+        "adherence": "Lowest adherence"
+      }
+    },
+    "actions": {
+      "message": "Message {name}",
+      "more": "More actions for {name}",
+      "openProfile": "Open profile"
+    },
     "table": {
-      "name": "Name",
-      "contact": "Contact",
-      "status": "Status",
-      "joined": "Joined",
+      "client": "Client",
+      "program": "Program",
+      "lastCheckin": "Last check-in",
       "adherence": "Adherence",
-      "lastActivity": "Last activity"
+      "status": "Status",
+      "subscription": "Subscription",
+      "actions": "Actions"
     },
     "status": {
       "invited": "Invited",
@@ -1235,7 +1313,9 @@
         "form": "Form",
         "submittedAt": "Submitted"
       },
-      "view": "View"
+      "view": "View",
+      "markReviewed": "Mark reviewed",
+      "reviewed": "Reviewed"
     },
     "fill": {
       "submit": "Submit",
@@ -1288,7 +1368,8 @@
       "not_linked": "Your account isn't connected to a coach yet. Contact your coach or support.",
       "publish_failed": "Couldn't publish this form. Please try again.",
       "submit_failed": "Couldn't submit this form. Please try again.",
-      "not_found": "This form could not be found."
+      "not_found": "This form could not be found.",
+      "review_failed": "Couldn't mark this as reviewed. Try again."
     }
   },
   "programs": {
@@ -1610,7 +1691,10 @@
       "group": "Muscle group",
       "allGroups": "All muscle groups",
       "category": "Category",
-      "allCategories": "All categories"
+      "allCategories": "All categories",
+      "all": "All",
+      "equipment": "Equipment",
+      "allEquipment": "All equipment"
     },
     "media": {
       "play": "Play video",
@@ -1626,7 +1710,13 @@
       "media": "Media",
       "serving": "Serving",
       "macros": "Macros",
-      "source": "Source"
+      "source": "Source",
+      "exercise": "Exercise",
+      "food": "Food",
+      "kcal": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat"
     },
     "exercise": {
       "add": "Add exercise",
@@ -1720,9 +1810,6 @@
       "already_cloned": "You already have your own version of this entry.",
       "unknown": "Something went wrong. Please try again."
     },
-    "official": "Official",
-    "mine": "Mine",
-    "customized": "Customized",
     "basedOn": "Based on: {name}",
     "clone": "Clone & Customize",
     "editMyVersion": "Edit my version",
@@ -1730,31 +1817,77 @@
     "source": {
       "label": "Source",
       "all": "All",
-      "global": "Exercise Library",
+      "global": "Official library",
       "mine": "My Exercises"
     },
     "foodSource": {
       "label": "Source",
       "all": "All",
-      "global": "Food Library",
+      "global": "Official library",
       "mine": "My Foods"
     },
     "emptyStates": {
-      "clearFilter": "Clear filter",
-      "searchAll": "Search all exercises",
-      "searchMine": "Search my exercises",
       "mineNoneHint": "Anything you create is private to you and stays out of the shared library.",
-      "globalNoMatchHint": "You can add it to your own exercises instead.",
       "exercises": {
         "mineNone": "You haven't created any exercises yet.",
-        "mineNoMatch": "No exercises of yours match \"{query}\".",
-        "globalNoMatch": "No official exercise matches \"{query}\"."
+        "noResults": "No exercises match your search or filters.",
+        "none": "No exercises yet."
       },
       "foods": {
         "mineNone": "You haven't created any foods yet.",
-        "mineNoMatch": "No foods of yours match \"{query}\".",
-        "globalNoMatch": "No official food matches \"{query}\"."
-      }
+        "noResults": "No foods match your search or filters.",
+        "none": "No foods yet."
+      },
+      "clearAll": "Clear all filters",
+      "noResultsHint": "Try a different search, or remove a filter.",
+      "noneHint": "Add your first one with the button above."
+    },
+    "equipment": {
+      "body_weight": "Bodyweight",
+      "dumbbell": "Dumbbell",
+      "barbell": "Barbell",
+      "cable": "Cable",
+      "leverage_machine": "Leverage machine",
+      "band": "Resistance band",
+      "smith_machine": "Smith machine",
+      "kettlebell": "Kettlebell",
+      "weighted": "Weighted",
+      "none": "No equipment",
+      "stability_ball": "Stability ball",
+      "ez_barbell": "EZ bar",
+      "assisted": "Assisted",
+      "sled_machine": "Sled machine",
+      "medicine_ball": "Medicine ball",
+      "rope": "Rope",
+      "machine": "Machine",
+      "roller": "Roller",
+      "bosu_ball": "Bosu ball",
+      "olympic_barbell": "Olympic barbell",
+      "wheel_roller": "Ab wheel",
+      "trap_bar": "Trap bar",
+      "skierg_machine": "SkiErg",
+      "stationary_bike": "Stationary bike",
+      "elliptical_machine": "Elliptical",
+      "upper_body_ergometer": "Upper-body ergometer",
+      "hammer": "Sledgehammer",
+      "tire": "Tire",
+      "stepmill_machine": "Stepmill"
+    },
+    "searchPlaceholder": {
+      "exercises": "Search exercises by name",
+      "foods": "Search foods by name"
+    },
+    "mineBadge": {
+      "exercises": "My exercise",
+      "foods": "My food"
+    },
+    "preview": {
+      "label": "Preview",
+      "duplicateAndEdit": "Duplicate & edit",
+      "perServing": "Per <mono>{serving}</mono>",
+      "kcalUnit": "kcal",
+      "kcalPerServing": "kcal / <bdi>{serving}</bdi>",
+      "macroSplit": "Macro split"
     }
   },
   "admin": {
@@ -2379,16 +2512,40 @@
     "allTab": "All",
     "templatesTab": "Templates",
     "assignedTab": "Assigned",
-    "empty": {
-      "title": "No nutrition plans yet",
-      "description": "Build a plan once and apply it to any number of clients."
+    "tabsLabel": "Plan type",
+    "searchPlaceholder": "Search by plan or client",
+    "summaryActive": "{count, plural, =0 {No active plans} one {<num>{value}</num> active plan} other {<num>{value}</num> active plans}}",
+    "summaryEnding": "{count, plural, =0 {none ending this week} one {<num>{value}</num> ends this week} other {<num>{value}</num> end this week}}",
+    "clientPlans": {
+      "title": "Client plans",
+      "emptyTitle": "No client plans yet",
+      "emptyDescription": "Create a new plan for a client, or assign them a ready-made template."
     },
-    "table": {
-      "name": "Name",
-      "client": "Client",
-      "dates": "Dates",
-      "created": "Created"
+    "templates": {
+      "title": "Templates",
+      "subtitle": "Ready-made plans you can assign to any client in one click",
+      "emptyTitle": "No templates yet",
+      "emptyDescription": "A template is a nutrition plan with no client: build it once, assign it to any number of clients, and each one gets their own editable copy. Create a new plan with no client, or save an existing plan as a template."
     },
+    "status": {
+      "endingSoon": "Ending soon",
+      "active": "Active",
+      "notStarted": "Not started",
+      "ended": "Ended"
+    },
+    "dayOf": "Day <num>{day}</num> of <num>{total}</num>",
+    "dayOngoing": "Day <num>{day}</num> · ongoing",
+    "startsIn": "{count, plural, =1 {Starts tomorrow} other {Starts in <num>{value}</num> days}}",
+    "chips": {
+      "kcal": "<num>{value}</num> kcal/day",
+      "meals": "{count, plural, =0 {No meals} one {<num>{value}</num> meal} other {<num>{value}</num> meals}}"
+    },
+    "openPlan": "Open plan",
+    "duplicatePlan": "Duplicate {name}",
+    "assignToClient": "Assign to client",
+    "editTemplate": "Edit",
+    "noResults": "No matches",
+    "noResultsHint": "Try a different plan or client name.",
     "template": "Template",
     "dateRange": "{start} – {end}",
     "ongoing": "Ongoing",

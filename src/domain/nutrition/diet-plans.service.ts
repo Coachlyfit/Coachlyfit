@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/supabase/database.types";
+import { planMacros } from "./macros";
 
 type DietPlan = Database["public"]["Tables"]["diet_plans"]["Row"];
 type Meal = Database["public"]["Tables"]["meals"]["Row"];
@@ -100,6 +101,27 @@ export class DietPlansService {
     const { data, error } = await q;
     if (error) throw error;
     return data;
+  }
+
+  /** list() plus each plan's meal count and planned daily kcal, for the
+   * /diets cards — one request, the meals come back nested.
+   * ponytail: ships every meal item to sum it here; move to a
+   * security_invoker view (see coach_client_roster) if the payload gets heavy. */
+  async listOverview() {
+    const { data, error } = await this.db
+      .from("diet_plans")
+      .select("*, clients(display_name), meals(id, meal_items(quantity, foods(kcal, protein_g, carb_g, fat_g)))")
+      .is("archived_at", null)
+      .is("program_id", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(({ meals, ...plan }) => ({
+      ...plan,
+      mealCount: meals.length,
+      plannedKcal: Math.round(
+        planMacros(meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: i.foods })))).kcal
+      ),
+    }));
   }
 
   async listArchived() {
