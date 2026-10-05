@@ -3,6 +3,8 @@ import type { Database } from "@/lib/supabase/database.types";
 import {
   adherenceAverage,
   checkinStreak,
+  clientCheckinStatus,
+  daysSince,
   isClientLate,
   lastCheckinDate,
   longestStreak,
@@ -188,6 +190,30 @@ describe("parseRange", () => {
   it("passes through valid values", () => {
     expect(parseRange("7d")).toBe("7d");
     expect(parseRange("all")).toBe("all");
+  });
+});
+
+describe("clientCheckinStatus", () => {
+  const today = new Date("2026-08-15T10:00:00Z");
+
+  it("is awaiting with no check-in yet", () => {
+    expect(clientCheckinStatus(null, today)).toBe("awaiting");
+  });
+
+  it("is still active exactly 7 days after the last check-in", () => {
+    expect(clientCheckinStatus("2026-08-08", today)).toBe("active");
+    expect(clientCheckinStatus("2026-08-15", today)).toBe("active");
+  });
+
+  it("is late once the last check-in is older than 7 days", () => {
+    expect(clientCheckinStatus("2026-08-07", today)).toBe("late");
+  });
+});
+
+describe("daysSince", () => {
+  it("counts whole calendar days regardless of the time of day", () => {
+    expect(daysSince("2026-08-15", new Date("2026-08-15T23:30:00Z"))).toBe(0);
+    expect(daysSince("2026-08-06", new Date("2026-08-15T00:10:00Z"))).toBe(9);
   });
 });
 

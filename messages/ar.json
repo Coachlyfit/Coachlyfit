@@ -676,23 +676,62 @@
   "clients": {
     "title": "العملاء",
     "invite": "ادعُ عميل",
+    "heading": "عملاؤك",
+    "summary": "<strong>{need}</strong> من <num>{total}</num> يحتاجون متابعة",
+    "summaryAllClear": "كل عملائك على المسار",
+    "emptyTitle": "لا عملاء بعد",
     "empty": "مفيش عملاء لسه. ادعُ أول عميل عندك وابدأ.",
     "noResults": "مفيش نتايج",
-    "noResultsHint": "جرّب اسم تاني أو امسح الفلتر.",
-    "searchPlaceholder": "دوّر بالاسم...",
-    "filters": {
+    "noResultsHint": "جرّب اسم أو بريد تاني، أو غيّر الفلتر.",
+    "searchPlaceholder": "بحث بالاسم أو البريد",
+    "noData": "لا بيانات بعد",
+    "noProgram": "لم يُعيَّن بعد",
+    "showing": "عرض <num>{shown}</num> من <num>{total}</num>",
+    "lastCheckin": "{count, plural, =0 {اليوم} =1 {أمس} =2 {منذ يومين} few {منذ <num>{value}</num> أيام} other {منذ <num>{value}</num> يوم}}",
+    "cardsLabel": "تصفية حسب الحالة",
+    "cards": {
       "all": "الكل",
       "active": "نشط",
-      "late": "متأخر"
+      "late": "تسجيل متأخر",
+      "awaiting": "بانتظار أول تسجيل"
     },
-    "countLabel": "{shown} من {total}",
+    "checkinStatus": {
+      "active": "نشط",
+      "late": "تسجيل متأخر",
+      "awaiting": "بانتظار أول تسجيل"
+    },
+    "subscription": {
+      "active": "ساري",
+      "renewsSoon": "يتجدد قريباً",
+      "expired": "منتهي",
+      "frozen": "مجمّد",
+      "canceled": "ملغي",
+      "none": "بلا اشتراك"
+    },
+    "toolbar": {
+      "program": "البرنامج: {value}",
+      "programAll": "الكل",
+      "sort": "ترتيب: {value}",
+      "sortLabel": "الترتيب",
+      "sortBy": {
+        "lastCheckin": "آخر تسجيل",
+        "name": "الاسم",
+        "adherence": "الأقل التزاماً"
+      }
+    },
+    "actions": {
+      "message": "مراسلة {name}",
+      "more": "إجراءات أخرى لـ {name}",
+      "openProfile": "افتح الملف"
+    },
     "table": {
-      "name": "الاسم",
-      "contact": "التواصل",
-      "status": "الحالة",
-      "joined": "تاريخ الانضمام",
+      "client": "العميل",
+      "program": "البرنامج",
+      "lastCheckin": "آخر تسجيل",
       "adherence": "الالتزام",
-      "lastActivity": "آخر نشاط"
+      "status": "الحالة",
+      "subscription": "الاشتراك",
+      "actions": "إجراءات"
     },
     "status": {
       "invited": "اتبعتله دعوة",

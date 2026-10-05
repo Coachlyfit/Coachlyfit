@@ -16,8 +16,49 @@ export type UpdateClientInput = {
  * (clients_enforce_cap, extended in 20260923000001 to also fire on this
  * status update), so a coach can't dodge their tier limit by archiving and
  * restoring clients. */
+export type RosterClient = {
+  id: string;
+  displayName: string;
+  email: string | null;
+  status: Database["public"]["Enums"]["client_status"];
+  lastCheckin: string | null;
+  adherence: number | null;
+  program: { id: string; name_ar: string; name_en: string } | null;
+  subscription: { status: "active" | "frozen" | "canceled"; end_date: string } | null;
+};
+
 export class ClientsService {
   constructor(private db: Db) {}
+
+  /** The coach's whole roster in one query (coach_client_roster view). No
+   * coachId argument: the view is security_invoker, so the caller's RLS on
+   * clients and the joined tables does the scoping. */
+  async listRoster(): Promise<RosterClient[]> {
+    const { data, error } = await this.db
+      .from("coach_client_roster")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    // Every view column is typed nullable; the ones asserted here come from
+    // not-null columns on the driving `clients` row.
+    return data.map((row) => ({
+      id: row.client_id!,
+      displayName: row.display_name!,
+      email: row.email,
+      status: row.status!,
+      lastCheckin: row.last_checkin_date,
+      adherence: row.adherence,
+      program: row.program_id
+        ? { id: row.program_id, name_ar: row.program_name_ar!, name_en: row.program_name_en! }
+        : null,
+      subscription: row.subscription_status
+        ? {
+            status: row.subscription_status as "active" | "frozen" | "canceled",
+            end_date: row.subscription_end_date!,
+          }
+        : null,
+    }));
+  }
 
   async update(id: string, input: UpdateClientInput): Promise<boolean> {
     const { error } = await this.db

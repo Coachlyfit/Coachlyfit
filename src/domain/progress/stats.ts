@@ -126,6 +126,23 @@ export function lastCheckinDate(checkins: Pick<CheckinRow, "checkin_date">[]): s
 
 export const LATE_AFTER_DAYS = 7;
 
+/** Whole days from a `date` column value to today, UTC-normalized like the
+ * rest of this file. */
+export function daysSince(isoDay: string, today: Date): number {
+  return Math.round((toUtcDate(isoDate(today)) - toUtcDate(isoDay)) / (24 * 60 * 60 * 1000));
+}
+
+export type ClientCheckinStatus = "awaiting" | "late" | "active";
+
+/** The roster's status, derived from the last check-in alone: none yet is
+ * "awaiting", older than LATE_AFTER_DAYS is "late", anything else "active".
+ * Deliberately not isClientLate: that one counts a never-checked-in active
+ * client as late, which the dashboard and attention strip still want. */
+export function clientCheckinStatus(lastCheckin: string | null, today: Date): ClientCheckinStatus {
+  if (!lastCheckin) return "awaiting";
+  return daysSince(lastCheckin, today) > LATE_AFTER_DAYS ? "late" : "active";
+}
+
 /** A client is "late" once they're active and have gone quiet — no
  * check-in ever, or none within LATE_AFTER_DAYS. Invited/archived clients
  * are never late; there's nothing to be late on. Pulled out of the client

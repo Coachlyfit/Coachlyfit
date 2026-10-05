@@ -72,6 +72,13 @@ export type Database = {
             foreignKeyName: "activity_logs_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "activity_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -180,6 +187,13 @@ export type Database = {
             foreignKeyName: "body_metrics_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "body_metrics_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -275,6 +289,13 @@ export type Database = {
             foreignKeyName: "checkins_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "checkins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -336,6 +357,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_body_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "client_body_profiles_client_id_fkey"
@@ -413,6 +441,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_observations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "client_observations_client_id_fkey"
@@ -555,6 +590,13 @@ export type Database = {
             foreignKeyName: "client_subscriptions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -618,6 +660,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "client_transactions_client_id_fkey"
@@ -853,6 +902,13 @@ export type Database = {
             foreignKeyName: "coaching_decisions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -869,6 +925,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_decisions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["program_id"]
           },
           {
             foreignKeyName: "coaching_decisions_program_id_fkey"
@@ -924,6 +987,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_relationships_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "coaching_relationships_client_id_fkey"
@@ -1017,6 +1087,13 @@ export type Database = {
             foreignKeyName: "diet_plans_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "diet_plans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -1026,6 +1103,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "coaches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plans_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["program_id"]
           },
           {
             foreignKeyName: "diet_plans_program_id_fkey"
@@ -1324,6 +1408,13 @@ export type Database = {
             foreignKeyName: "form_assignments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "form_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -1394,6 +1485,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "form_submissions_client_id_fkey"
@@ -1616,6 +1714,13 @@ export type Database = {
             foreignKeyName: "invites_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "invites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -1759,6 +1864,13 @@ export type Database = {
             foreignKeyName: "invoices_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -1816,6 +1928,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "meal_items_client_id_fkey"
@@ -1897,6 +2016,13 @@ export type Database = {
             foreignKeyName: "meals_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "meals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -1969,6 +2095,13 @@ export type Database = {
             foreignKeyName: "media_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "media_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -2026,6 +2159,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "messages_client_id_fkey"
@@ -2190,6 +2330,13 @@ export type Database = {
             foreignKeyName: "nutrition_logs_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "nutrition_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -2241,6 +2388,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_reminder_settings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "nutrition_reminder_settings_client_id_fkey"
@@ -2450,6 +2604,13 @@ export type Database = {
             foreignKeyName: "program_activities_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "program_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -2524,6 +2685,13 @@ export type Database = {
             foreignKeyName: "program_days_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "program_days_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -2540,6 +2708,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "diet_plans"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_days_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["program_id"]
           },
           {
             foreignKeyName: "program_days_program_id_fkey"
@@ -2591,6 +2766,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_item_sets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "program_item_sets_client_id_fkey"
@@ -2685,6 +2867,13 @@ export type Database = {
             foreignKeyName: "program_items_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "program_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -2762,6 +2951,13 @@ export type Database = {
             foreignKeyName: "program_revisions_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["program_id"]
+          },
+          {
+            foreignKeyName: "program_revisions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
             referencedRelation: "programs"
             referencedColumns: ["id"]
           },
@@ -2822,6 +3018,13 @@ export type Database = {
             foreignKeyName: "programs_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -2831,6 +3034,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "coaches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programs_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["program_id"]
           },
           {
             foreignKeyName: "programs_source_template_id_fkey"
@@ -2934,6 +3144,13 @@ export type Database = {
             foreignKeyName: "rehab_phases_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "rehab_phases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -3008,6 +3225,13 @@ export type Database = {
             foreignKeyName: "rehab_protocols_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "rehab_protocols_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -3017,6 +3241,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "coaches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rehab_protocols_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["program_id"]
           },
           {
             foreignKeyName: "rehab_protocols_program_id_fkey"
@@ -3214,6 +3445,13 @@ export type Database = {
             foreignKeyName: "workout_exercise_results_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_results_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -3303,6 +3541,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "workout_sessions_client_id_fkey"
@@ -3408,6 +3653,13 @@ export type Database = {
             foreignKeyName: "workout_set_logs_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "coach_inbox_threads"
             referencedColumns: ["client_id"]
           },
@@ -3457,6 +3709,32 @@ export type Database = {
       }
     }
     Views: {
+      coach_client_roster: {
+        Row: {
+          adherence: number | null
+          client_id: string | null
+          coach_id: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          last_checkin_date: string | null
+          program_id: string | null
+          program_name_ar: string | null
+          program_name_en: string | null
+          status: Database["public"]["Enums"]["client_status"] | null
+          subscription_end_date: string | null
+          subscription_status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_inbox_threads: {
         Row: {
           client_id: string | null

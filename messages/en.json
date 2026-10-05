@@ -676,23 +676,62 @@
   "clients": {
     "title": "Clients",
     "invite": "Invite client",
+    "heading": "Your clients",
+    "summary": "<strong>{need}</strong> of <num>{total}</num> need follow-up",
+    "summaryAllClear": "All your clients are on track",
+    "emptyTitle": "No clients yet",
     "empty": "No clients yet. Invite your first one to get started.",
     "noResults": "No matches",
-    "noResultsHint": "Try a different name or clear the filter.",
-    "searchPlaceholder": "Search by name...",
-    "filters": {
+    "noResultsHint": "Try a different name or email, or change the filter.",
+    "searchPlaceholder": "Search by name or email",
+    "noData": "No data yet",
+    "noProgram": "Not assigned yet",
+    "showing": "Showing <num>{shown}</num> of <num>{total}</num>",
+    "lastCheckin": "{count, plural, =0 {Today} =1 {Yesterday} other {<num>{value}</num> days ago}}",
+    "cardsLabel": "Filter by status",
+    "cards": {
       "all": "All",
       "active": "Active",
-      "late": "Late"
+      "late": "Late check-in",
+      "awaiting": "Awaiting first check-in"
     },
-    "countLabel": "{shown} of {total}",
+    "checkinStatus": {
+      "active": "Active",
+      "late": "Late check-in",
+      "awaiting": "Awaiting first check-in"
+    },
+    "subscription": {
+      "active": "Active",
+      "renewsSoon": "Renews soon",
+      "expired": "Expired",
+      "frozen": "Frozen",
+      "canceled": "Canceled",
+      "none": "No subscription"
+    },
+    "toolbar": {
+      "program": "Program: {value}",
+      "programAll": "All",
+      "sort": "Sort: {value}",
+      "sortLabel": "Sort",
+      "sortBy": {
+        "lastCheckin": "Last check-in",
+        "name": "Name",
+        "adherence": "Lowest adherence"
+      }
+    },
+    "actions": {
+      "message": "Message {name}",
+      "more": "More actions for {name}",
+      "openProfile": "Open profile"
+    },
     "table": {
-      "name": "Name",
-      "contact": "Contact",
-      "status": "Status",
-      "joined": "Joined",
+      "client": "Client",
+      "program": "Program",
+      "lastCheckin": "Last check-in",
       "adherence": "Adherence",
-      "lastActivity": "Last activity"
+      "status": "Status",
+      "subscription": "Subscription",
+      "actions": "Actions"
     },
     "status": {
       "invited": "Invited",
