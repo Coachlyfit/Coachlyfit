@@ -26,7 +26,7 @@ export async function inviteTeamMemberAction(locale: string, formData: FormData)
   if (!coachId) return { error: "not_authenticated" };
 
   const { token } = await new TeamService(supabase).invite(coachId, parsed.data.email);
-  revalidatePath(`/${locale}/settings`);
+  revalidatePath(`/${locale}/settings/account`);
   return { token };
 }
 
@@ -40,5 +40,5 @@ export async function removeTeamMemberAction(locale: string, id: string): Promis
 
   const ok = await new TeamService(supabase).remove(id);
   if (!ok) return { error: "not_found_or_forbidden" };
-  revalidatePath(`/${locale}/settings`);
+  revalidatePath(`/${locale}/settings/account`);
 }

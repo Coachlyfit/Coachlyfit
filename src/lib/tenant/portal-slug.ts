@@ -1,3 +1,9 @@
+/** Mirrors the coaches_slug_format CHECK constraint
+ * (20260826000001_portal_branding.sql): lowercase letters, digits and
+ * internal hyphens, up to 40 chars. One copy for the settings form and
+ * updateSlugAction, so bad input fails before the round trip. */
+export const SLUG_PATTERN = /^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])?$/;
+
 /** Root domain the app is served from — a coach's white-label subdomain is
  * `<slug>.<root domain>`. Defaults to "localhost" so `<slug>.localhost:3000`
  * works in local dev without any env setup (Chrome resolves *.localhost to
