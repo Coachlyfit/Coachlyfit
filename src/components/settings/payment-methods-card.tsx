@@ -6,11 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { pickLocale, type AppLocale } from "@/domain/locale";
@@ -65,11 +64,32 @@ export function PaymentMethodsCard({ methods }: { methods: PaymentMethod[] }) {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+    <section className="flex flex-col gap-2">
+      <h3 className="text-sm font-medium">{t("title")}</h3>
+      {methods.length === 0 && <p className="text-sm text-muted-foreground">{t("empty")}</p>}
+      <div className="flex flex-wrap gap-2">
+        {methods.map((method) => (
+          <span
+            key={method.id}
+            className="flex h-10 max-w-full items-center gap-1 rounded-full bg-muted ps-3.5 pe-1 text-sm font-medium"
+          >
+            <span className="min-w-0 truncate">{pickLocale(method, locale)}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="shrink-0 rounded-full"
+              aria-label={`${t("delete")}: ${pickLocale(method, locale)}`}
+              onClick={() => setPendingDelete(method.id)}
+            >
+              <X className="size-3.5" />
+            </Button>
+          </span>
+        ))}
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
+          <DialogTrigger
+            render={<Button type="button" variant="outline" size="sm" className="rounded-full border-dashed" />}
+          >
             <Plus className="size-4" />
             {t("add")}
           </DialogTrigger>
@@ -94,23 +114,7 @@ export function PaymentMethodsCard({ methods }: { methods: PaymentMethod[] }) {
             </form>
           </DialogContent>
         </Dialog>
-      </CardHeader>
-      <CardContent>
-        {methods.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {methods.map((method) => (
-              <li key={method.id} className="flex items-center justify-between gap-2 text-sm">
-                <span className="min-w-0 truncate">{pickLocale(method, locale)}</span>
-                <Button type="button" variant="ghost" size="icon-sm" className="shrink-0" onClick={() => setPendingDelete(method.id)}>
-                  <Trash2 className="size-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
+      </div>
       <ConfirmDialog
         open={!!pendingDelete}
         onOpenChange={(o) => !o && setPendingDelete(null)}
@@ -119,6 +123,6 @@ export function PaymentMethodsCard({ methods }: { methods: PaymentMethod[] }) {
         onConfirm={confirmDelete}
         pending={pending}
       />
-    </Card>
+    </section>
   );
 }

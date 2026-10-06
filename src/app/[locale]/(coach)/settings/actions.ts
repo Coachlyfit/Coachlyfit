@@ -4,14 +4,14 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireCoach } from "@/lib/auth/require-coach";
+import { SLUG_PATTERN } from "@/lib/tenant/portal-slug";
 import { businessProfileSchema } from "./business-profile-schema";
 
 type ActionResult = { error: string } | void;
 
-// Mirrors the coaches_slug_format CHECK constraint
-// (20260826000001_portal_branding.sql) so a malformed slug fails fast with
-// `invalid_input` instead of a raw 23514 falling through to update_failed.
-const slugSchema = z.string().regex(/^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])?$/);
+// A malformed slug fails fast with `invalid_input` instead of a raw 23514
+// falling through to update_failed.
+const slugSchema = z.string().regex(SLUG_PATTERN);
 
 /** `templateId: null` clears the setting — a coach turning auto-send back
  * off, not an error state. RLS (coach_rw-equivalent policy on coaches)
@@ -66,7 +66,7 @@ export async function updateEmailNotificationsAction(locale: string, enabled: bo
   const { error } = await supabase.from("profiles").update({ email_notifications: enabled }).eq("id", user.id);
   if (error) return { error: "update_failed" };
 
-  revalidatePath(`/${locale}/settings`);
+  revalidatePath(`/${locale}/settings/account`);
 }
 
 const emailSchema = z.string().email();
@@ -82,7 +82,7 @@ export async function changeEmailAction(locale: string, email: string): Promise<
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   const { error } = await supabase.auth.updateUser(
     { email: parsed.data },
-    { emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/settings` }
+    { emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/settings/account` }
   );
   if (error) return { error: "update_failed" };
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState, useTransition } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations, useLocale } from "next-intl";
@@ -10,8 +10,6 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { pickLocale, type AppLocale } from "@/domain/locale";
@@ -30,9 +28,29 @@ const packageFormSchema = z.object({
 });
 type PackageFormInput = z.input<typeof packageFormSchema>;
 
-type Package = { id: string; name_ar: string; name_en: string; duration_days: number; price_egp: number };
+export type Package = { id: string; name_ar: string; name_en: string; duration_days: number; price_egp: number };
 
-export function PackagesCard({ packages }: { packages: Package[] }) {
+/** What's being typed in the add/edit dialog right now (`id: null` = a new
+ * package), so the live preview can show it before it's saved. */
+export type PackageDraft = {
+  id: string | null;
+  name_ar?: string;
+  name_en?: string;
+  duration_days?: unknown;
+  price_egp?: unknown;
+};
+
+function mono(chunks: React.ReactNode) {
+  return <span className="font-mono tabular-nums">{chunks}</span>;
+}
+
+export function PackagesCard({
+  packages,
+  onDraftChange,
+}: {
+  packages: Package[];
+  onDraftChange?: (draft: PackageDraft | null) => void;
+}) {
   const t = useTranslations("settings.packages");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("settings.errors");
@@ -44,10 +62,17 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<PackageFormInput>({ resolver: zodResolver(packageFormSchema) });
+
+  const draft = useWatch({ control });
+  const editingId = editing?.id ?? null;
+  useEffect(() => {
+    onDraftChange?.(open ? { id: editingId, ...draft } : null);
+  }, [open, editingId, draft, onDraftChange]);
 
   function openCreate() {
     setEditing(null);
@@ -91,9 +116,9 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold">{t("title")}</h2>
         <Dialog
           open={open}
           onOpenChange={(o) => {
@@ -123,12 +148,12 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="pkg_duration">{t("duration")}</Label>
-                  <Input id="pkg_duration" type="number" min={1} {...register("duration_days")} />
+                  <Input id="pkg_duration" type="number" min={1} className="font-mono tabular-nums" {...register("duration_days")} />
                   {errors.duration_days && <p className="text-sm text-destructive">{errors.duration_days.message}</p>}
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="pkg_price">{t("price")}</Label>
-                  <Input id="pkg_price" type="number" min={0} step="0.01" {...register("price_egp")} />
+                  <Input id="pkg_price" type="number" min={0} step="0.01" className="font-mono tabular-nums" {...register("price_egp")} />
                   {errors.price_egp && <p className="text-sm text-destructive">{errors.price_egp.message}</p>}
                 </div>
               </div>
@@ -138,51 +163,46 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
             </form>
           </DialogContent>
         </Dialog>
-      </CardHeader>
-      <CardContent>
-        {packages.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("nameAr")}</TableHead>
-                <TableHead>{t("duration")}</TableHead>
-                <TableHead>{t("price")}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {packages.map((pkg) => (
-                <TableRow key={pkg.id}>
-                  <TableCell className="font-medium">{pickLocale(pkg, locale)}</TableCell>
-                  <TableCell className="tabular-nums text-muted-foreground">
-                    {t("durationDays", { count: pkg.duration_days })}
-                  </TableCell>
-                  <TableCell className="tabular-nums text-muted-foreground">
-                    {formatNumber(pkg.price_egp, locale)} {t("egp")}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button type="button" variant="ghost" size="icon-sm" onClick={() => openEdit(pkg)}>
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setPendingDelete(pkg.id)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
+      </div>
+      {packages.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("empty")}</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {packages.map((pkg) => (
+            <li key={pkg.id} className="flex items-center gap-3 rounded-xl py-2 ps-3.5 pe-1.5 ring-1 ring-foreground/10">
+              <span className="flex min-w-0 flex-1 flex-col leading-snug">
+                <span className="truncate font-semibold">{pickLocale(pkg, locale)}</span>
+                <span className="text-sm text-muted-foreground">
+                  {t.rich("durationDays", { count: pkg.duration_days, num: mono })}
+                </span>
+              </span>
+              <span className="shrink-0 font-mono font-semibold tabular-nums">
+                {formatNumber(pkg.price_egp, locale)} <span className="font-sans text-xs font-normal">{t("egp")}</span>
+              </span>
+              <span className="flex shrink-0 items-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`${t("edit")}: ${pickLocale(pkg, locale)}`}
+                  onClick={() => openEdit(pkg)}
+                >
+                  <Pencil className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`${t("delete")}: ${pickLocale(pkg, locale)}`}
+                  onClick={() => setPendingDelete(pkg.id)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       <ConfirmDialog
         open={!!pendingDelete}
         onOpenChange={(o) => !o && setPendingDelete(null)}
@@ -191,6 +211,6 @@ export function PackagesCard({ packages }: { packages: Package[] }) {
         onConfirm={confirmDelete}
         pending={pending}
       />
-    </Card>
+    </>
   );
 }

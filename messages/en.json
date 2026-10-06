@@ -560,6 +560,50 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Edit and instantly see what your clients will see.",
+    "tabsLabel": "Sections",
+    "tabs": {
+      "identity": "Identity",
+      "billing": "Billing",
+      "packages": "Packages",
+      "portal": "Portal"
+    },
+    "headings": {
+      "identity": "Your identity",
+      "billing": "Billing",
+      "portal": "Portal & client experience"
+    },
+    "view": {
+      "label": "View",
+      "edit": "Edit",
+      "preview": "Client preview"
+    },
+    "saved": "Saved.",
+    "accountAndTeam": "Account & team",
+    "backToSettings": "Back to settings",
+    "unsaved": {
+      "title": "You have unsaved changes",
+      "description": "If you switch now, these changes will be lost.",
+      "discard": "Discard changes",
+      "leave": "You have unsaved changes. Leave this page?"
+    },
+    "preview": {
+      "label": "Client preview",
+      "invoiceLabel": "The invoice as your client sees it",
+      "packagesLabel": "Packages as your client sees them",
+      "loginLabel": "Client login screen",
+      "sampleClient": "Sample client",
+      "sampleItem": "Sample package",
+      "paymentMethods": "You accept:",
+      "placeholders": {
+        "businessName": "[Business name]",
+        "phone": "[Phone]",
+        "email": "[Email]",
+        "address": "[Address]",
+        "packageName": "[Package name]",
+        "slug": "your-name"
+      }
+    },
     "account": "Account",
     "businessName": "Business name",
     "email": "Email",
@@ -582,7 +626,7 @@
       "nameAr": "Name (Arabic)",
       "nameEn": "Name (English)",
       "duration": "Duration (days)",
-      "durationDays": "{count} days",
+      "durationDays": "<num>{count}</num> days",
       "price": "Price",
       "egp": "EGP",
       "submit": "Save",
@@ -652,7 +696,11 @@
       "urlLabel": "Shareable link",
       "copy": "Copy link",
       "copied": "Copied",
-      "qrAlt": "QR code for your portal link"
+      "qrAlt": "QR code for your portal link",
+      "checking": "Checking availability…",
+      "available": "This link is available.",
+      "downloadQr": "Download QR",
+      "shareQr": "Share QR"
     },
     "emailNotifications": "Email notifications",
     "businessProfile": {

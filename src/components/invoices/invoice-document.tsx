@@ -1,22 +1,40 @@
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 import type { Database } from "@/lib/supabase/database.types";
 import type { InvoiceCurrency, InvoiceParties } from "@/domain/billing/invoices";
 import type { AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
 
-type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
-type InvoiceItem = Database["public"]["Tables"]["invoice_items"]["Row"];
+// Only the columns the sheet prints, so the settings live preview can feed it
+// a sample invoice without inventing a full row.
+type Invoice = Pick<
+  Database["public"]["Tables"]["invoices"]["Row"],
+  | "status"
+  | "currency"
+  | "invoice_number"
+  | "issue_date"
+  | "due_date"
+  | "subtotal"
+  | "tax_rate"
+  | "tax"
+  | "total"
+  | "notes"
+>;
+type InvoiceItem = Pick<
+  Database["public"]["Tables"]["invoice_items"]["Row"],
+  "id" | "description" | "quantity" | "unit_price" | "line_total"
+>;
 
 /** The invoice as a document -- one component for the coach's detail page,
- * the client portal and the print route, so what the client sees is what
- * prints. Always a white "paper" sheet regardless of app theme. Direction
+ * the client portal, the print route and the settings live preview, so what
+ * the client sees is what prints. Not async and no server-only imports, so it
+ * renders on either side of the client boundary. Always a white "paper" sheet regardless of app theme. Direction
  * comes from <html dir> (ar -> RTL); the layout is all logical properties,
  * so Arabic and English mirror without a separate template. Free text the
  * coach typed (names, address, lines, notes) is wrapped in <bdi> so an
  * Arabic line inside an English invoice (or vice versa) keeps its own
  * direction and punctuation; contact values (phone, email) are forced LTR
  * so "+20 ..." doesn't reorder inside RTL. */
-export async function InvoiceDocument({
+export function InvoiceDocument({
   invoice,
   items,
   parties,
@@ -29,8 +47,8 @@ export async function InvoiceDocument({
   logoUrl: string | null;
   locale: AppLocale;
 }) {
-  const t = await getTranslations("invoices.document");
-  const tCurrency = await getTranslations("invoices.currency");
+  const t = useTranslations("invoices.document");
+  const tCurrency = useTranslations("invoices.currency");
   const currency = tCurrency(invoice.currency as InvoiceCurrency);
   const money = (value: number) =>
     formatNumber(value, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });

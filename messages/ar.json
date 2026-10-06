@@ -560,6 +560,50 @@
   },
   "settings": {
     "title": "الإعدادات",
+    "subtitle": "عدّل وشوف فوراً عملاؤك هيشوفوا إيه.",
+    "tabsLabel": "الأقسام",
+    "tabs": {
+      "identity": "الهوية",
+      "billing": "الفوترة",
+      "packages": "الباقات",
+      "portal": "البوابة"
+    },
+    "headings": {
+      "identity": "هويتك",
+      "billing": "الفوترة",
+      "portal": "البوابة وتجربة العميل"
+    },
+    "view": {
+      "label": "طريقة العرض",
+      "edit": "تعديل",
+      "preview": "معاينة العميل"
+    },
+    "saved": "اتحفظ.",
+    "accountAndTeam": "الحساب والفريق",
+    "backToSettings": "رجوع للإعدادات",
+    "unsaved": {
+      "title": "عندك تعديلات متحفظتش",
+      "description": "لو غيّرت القسم دلوقتي، التعديلات دي هتضيع.",
+      "discard": "تجاهل التعديلات",
+      "leave": "عندك تعديلات متحفظتش. تسيب الصفحة؟"
+    },
+    "preview": {
+      "label": "معاينة العميل",
+      "invoiceLabel": "الفاتورة كما يراها العميل",
+      "packagesLabel": "الباقات كما يراها العميل",
+      "loginLabel": "شاشة دخول العميل",
+      "sampleClient": "عميل تجريبي",
+      "sampleItem": "باقة تجريبية",
+      "paymentMethods": "بتقبل الدفع عبر:",
+      "placeholders": {
+        "businessName": "[اسم النشاط]",
+        "phone": "[الهاتف]",
+        "email": "[البريد]",
+        "address": "[العنوان]",
+        "packageName": "[اسم الباقة]",
+        "slug": "your-name"
+      }
+    },
     "account": "الحساب",
     "businessName": "اسم نشاطك التجاري",
     "email": "الإيميل",
@@ -582,7 +626,7 @@
       "nameAr": "الاسم (عربي)",
       "nameEn": "الاسم (إنجليزي)",
       "duration": "المدة (أيام)",
-      "durationDays": "{count} يوم",
+      "durationDays": "<num>{count}</num> يوم",
       "price": "السعر",
       "egp": "جنيه",
       "submit": "حفظ",
@@ -652,7 +696,11 @@
       "urlLabel": "الرابط اللي هتشاركه",
       "copy": "انسخ الرابط",
       "copied": "اتنسخ",
-      "qrAlt": "كود QR لرابط البورتال بتاعك"
+      "qrAlt": "كود QR لرابط البورتال بتاعك",
+      "checking": "بنتأكد إن الرابط متاح…",
+      "available": "الرابط ده متاح.",
+      "downloadQr": "تحميل QR",
+      "shareQr": "مشاركة QR"
     },
     "emailNotifications": "إشعارات البريد الإلكتروني",
     "businessProfile": {

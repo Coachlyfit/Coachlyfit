@@ -10,7 +10,6 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { pickLocale, type AppLocale } from "@/domain/locale";
@@ -70,11 +69,14 @@ export function CustomMetricsCard({ metrics }: { metrics: MetricDefinition[] }) 
   }
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
-        <CardTitle className="text-base">{t("title")}</CardTitle>
+    <section className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-col">
+          <h3 className="text-sm font-medium">{t("title")}</h3>
+          {metrics.length === 0 && <p className="text-sm text-muted-foreground">{t("empty")}</p>}
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
+          <DialogTrigger render={<Button type="button" variant="outline" size="sm" className="shrink-0" />}>
             <Plus className="size-4" />
             {t("add")}
           </DialogTrigger>
@@ -104,25 +106,28 @@ export function CustomMetricsCard({ metrics }: { metrics: MetricDefinition[] }) 
             </form>
           </DialogContent>
         </Dialog>
-      </CardHeader>
-      <CardContent>
-        {metrics.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {metrics.map((metric) => (
-              <li key={metric.id} className="flex items-center justify-between gap-2 text-sm">
-                <span className="min-w-0 truncate">
-                  {pickLocale(metric, locale, "label")} <span className="text-muted-foreground">({metric.unit})</span>
-                </span>
-                <Button type="button" variant="ghost" size="icon-sm" className="shrink-0" onClick={() => setPendingDelete(metric.id)}>
-                  <Trash2 className="size-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
+      </div>
+      {metrics.length > 0 && (
+        <ul className="flex flex-col gap-1">
+          {metrics.map((metric) => (
+            <li key={metric.id} className="flex items-center justify-between gap-2 text-sm">
+              <span className="min-w-0 truncate">
+                {pickLocale(metric, locale, "label")} <span className="text-muted-foreground">({metric.unit})</span>
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0"
+                aria-label={`${t("delete")}: ${pickLocale(metric, locale, "label")}`}
+                onClick={() => setPendingDelete(metric.id)}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
       <ConfirmDialog
         open={!!pendingDelete}
         onOpenChange={(o) => !o && setPendingDelete(null)}
@@ -131,6 +136,6 @@ export function CustomMetricsCard({ metrics }: { metrics: MetricDefinition[] }) 
         onConfirm={confirmDelete}
         pending={pending}
       />
-    </Card>
+    </section>
   );
 }
