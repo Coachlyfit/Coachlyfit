@@ -229,6 +229,27 @@ export class ProgramsService {
     return data;
   }
 
+  /** Everything the Programs page shows, in one round trip: every live
+   * program (assigned and template) with its days, a per-day item count
+   * (zero = rest day) and the sessions started in [fromIso, toIso). The page
+   * derives plan and done/missed from this via week-status.ts — no per-client
+   * or per-day follow-up query. RLS's coach_read on workout_sessions scopes
+   * the embed the same way it scopes the programs themselves. */
+  async listOverview(fromIso: string, toIso: string) {
+    const { data, error } = await this.db
+      .from("programs")
+      .select(
+        "*, clients(display_name), program_days(id, day_index, weekday, label_ar, label_en, program_items(count), workout_sessions(started_at, completed_at))"
+      )
+      .is("archived_at", null)
+      .gte("program_days.workout_sessions.started_at", fromIso)
+      .lt("program_days.workout_sessions.started_at", toIso)
+      .order("created_at", { ascending: false })
+      .order("order_index", { referencedTable: "program_days" });
+    if (error) throw error;
+    return data;
+  }
+
   async listArchived() {
     const { data, error } = await this.db
       .from("programs")

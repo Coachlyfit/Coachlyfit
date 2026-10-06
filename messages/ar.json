@@ -1432,11 +1432,76 @@
       "description": "ابني برنامج مرة واحدة وطبّقه على أي عدد من العملاء.",
       "cta": "ابدأ برنامج جديد"
     },
-    "table": {
-      "name": "الاسم",
+    "heading": "البرامج",
+    "summary": "<strong>{active}</strong> {activeCount, plural, one {برنامج نشط} two {برنامج نشط} few {برامج نشطة} other {برنامج نشط}} · <strong>{missed}</strong> {missedCount, plural, one {تمرين فائت} two {تمرين فائت} few {تمارين فائتة} other {تمرين فائت}} هذا الأسبوع",
+    "view": {
+      "label": "طريقة العرض",
+      "cards": "بطاقات",
+      "week": "الأسبوع"
+    },
+    "tabsLabel": "نوع البرامج",
+    "searchPlaceholder": "بحث بالبرنامج أو العميل",
+    "noResults": "مفيش برامج مطابقة",
+    "noResultsHint": "جرّب اسم تاني أو غيّر التبويب.",
+    "status": {
+      "ongoing": "مستمر",
+      "behind": "متأخر",
+      "notStarted": "لم يبدأ"
+    },
+    "cell": {
+      "done": "تم",
+      "missed": "فات",
+      "upcoming": "قادم",
+      "rest": "راحة"
+    },
+    "cellTitle": "{day}: {workout} — {status}",
+    "cellTitleRest": "{day}: راحة",
+    "todaySuffix": "{label} (اليوم)",
+    "thisWeek": "هذا الأسبوع",
+    "workoutsDone": "<num>{done}/{planned}</num> تمارين",
+    "chips": {
+      "week": "الأسبوع <num>{value}</num>",
+      "daysPerWeek": "<num>{value}</num> {count, plural, one {يوم} two {يوم} few {أيام} other {يوم}}/أسبوع",
+      "started": "بدأ <num>{date}</num>",
+      "starts": "يبدأ <num>{date}</num>",
+      "exercises": "<num>{value}</num> {count, plural, one {تمرين} two {تمرين} few {تمارين} other {تمرين}}",
+      "usedBy": "مستخدم مع <num>{value}</num> {count, plural, one {عميل} two {عميل} few {عملاء} other {عميل}}"
+    },
+    "actions": {
+      "open": "فتح البرنامج",
+      "message": "مراسلة {name}",
+      "duplicate": "نسخ البرنامج لعميل تاني",
+      "assign": "تعيين لعميل",
+      "edit": "تعديل"
+    },
+    "sections": {
+      "clientPrograms": "برامج العملاء",
+      "templates": "القوالب",
+      "templatesHint": "برامج جاهزة تعيّنها لأي عميل بنقرة",
+      "allTemplates": "الكل"
+    },
+    "week": {
+      "title": "أسبوع العملاء",
+      "doneSoFar": "<strong>{done}/{planned}</strong> تمرين اتعمل حتى الآن",
+      "prev": "الأسبوع السابق",
+      "current": "هذا الأسبوع",
+      "next": "الأسبوع التالي",
+      "client": "العميل والبرنامج",
+      "adherence": "الالتزام",
+      "weekShort": "أ<num>{value}</num>",
+      "days": "<num>{value}</num> {count, plural, one {يوم} two {يوم} few {أيام} other {يوم}}",
+      "daysLabel": "أيام الأسبوع",
+      "training": "{count, plural, one {عميل واحد بيتمرن} two {عميلين بيتمرنوا} few {# عملاء بيتمرنوا} other {# عميل بيتمرن}}",
+      "doneOf": "{done} من {total} اتعمل",
+      "allRest": "يوم راحة لكل العملاء",
+      "empty": "لسه مفيش برامج للعملاء",
+      "emptyHint": "عيّن قالب لعميل عشان تشوف أسبوعه هنا."
+    },
+    "duplicateDialog": {
+      "title": "انسخ البرنامج ده",
+      "description": "هيعمل نسخة من البرنامج ده للعميل اللي هتختاره تبدأ من النهارده — البرنامج الأصلي بيفضل زي ما هو.",
       "client": "العميل",
-      "dates": "التواريخ",
-      "created": "تاريخ الإنشاء"
+      "submit": "انسخ"
     },
     "template": "قالب",
     "dateRange": "{start} – {end}",

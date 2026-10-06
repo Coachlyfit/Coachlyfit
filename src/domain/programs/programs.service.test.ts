@@ -787,4 +787,34 @@ describe("ProgramsService", () => {
       expect(eqCalls).toEqual([["client_id", "client-9"]]);
     });
   });
+
+  describe("listOverview", () => {
+    it("is one programs query, with sessions bounded to the requested range", async () => {
+      const calls: unknown[][] = [];
+      const tables: string[] = [];
+      const chain: Record<string, unknown> = {
+        then: (resolve: (v: { data: unknown[]; error: null }) => void) => resolve({ data: [{ id: "p1" }], error: null }),
+      };
+      for (const method of ["select", "is", "gte", "lt", "order"]) {
+        chain[method] = (...args: unknown[]) => {
+          calls.push([method, ...args]);
+          return chain;
+        };
+      }
+      const db = {
+        from: (table: string) => {
+          tables.push(table);
+          return chain;
+        },
+      };
+
+      const result = await new ProgramsService(db as never).listOverview("2026-10-03", "2026-10-10");
+
+      expect(result).toEqual([{ id: "p1" }]);
+      expect(tables).toEqual(["programs"]);
+      expect(calls).toContainEqual(["is", "archived_at", null]);
+      expect(calls).toContainEqual(["gte", "program_days.workout_sessions.started_at", "2026-10-03"]);
+      expect(calls).toContainEqual(["lt", "program_days.workout_sessions.started_at", "2026-10-10"]);
+    });
+  });
 });

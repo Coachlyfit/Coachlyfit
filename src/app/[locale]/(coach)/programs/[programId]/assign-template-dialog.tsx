@@ -33,12 +33,21 @@ export function AssignTemplateDialog({
   locale,
   programId,
   clients,
+  mode = "assign",
+  trigger,
+  children,
 }: {
   locale: string;
   programId: string;
   clients: { id: string; display_name: string }[];
+  /** Same clone either way; "duplicate" only swaps the copy, for a client
+   * program being copied to another client rather than a template. */
+  mode?: "assign" | "duplicate";
+  /** Replaces the default outline button (the Programs list's cards). */
+  trigger?: React.ReactElement;
+  children?: React.ReactNode;
 }) {
-  const t = useTranslations("programs.assignTemplateDialog");
+  const t = useTranslations(mode === "duplicate" ? "programs.duplicateDialog" : "programs.assignTemplateDialog");
   const tErrors = useTranslations("programs.errors");
   const tCommon = useTranslations("common");
   const router = useRouter();
@@ -67,9 +76,13 @@ export function AssignTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" disabled={clients.length === 0} />}>
-        <Send className="size-4" />
-        {t("title")}
+      <DialogTrigger render={trigger ?? <Button variant="outline" disabled={clients.length === 0} />}>
+        {children ?? (
+          <>
+            <Send className="size-4" />
+            {t("title")}
+          </>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

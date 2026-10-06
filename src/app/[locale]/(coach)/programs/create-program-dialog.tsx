@@ -35,6 +35,7 @@ export function CreateProgramDialog({
   defaultClientId,
   defaultOpen = false,
   trigger,
+  triggerClassName,
 }: {
   locale: string;
   clients: { id: string; display_name: string }[];
@@ -44,6 +45,7 @@ export function CreateProgramDialog({
   defaultClientId?: string;
   defaultOpen?: boolean;
   trigger?: React.ReactNode;
+  triggerClassName?: string;
 }) {
   const t = useTranslations("programs.createDialog");
   const tPrograms = useTranslations("programs");
@@ -92,7 +94,7 @@ export function CreateProgramDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>
+      <DialogTrigger render={<Button className={triggerClassName} />}>
         <Plus className="size-4" />
         {trigger ?? tPrograms("new")}
       </DialogTrigger>
