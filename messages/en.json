@@ -1432,11 +1432,76 @@
       "description": "Build a program once and apply it to any number of clients.",
       "cta": "Start a new program"
     },
-    "table": {
-      "name": "Name",
+    "heading": "Programs",
+    "summary": "<strong>{active}</strong> {activeCount, plural, one {active program} other {active programs}} · <strong>{missed}</strong> {missedCount, plural, one {missed workout} other {missed workouts}} this week",
+    "view": {
+      "label": "View",
+      "cards": "Cards",
+      "week": "Week"
+    },
+    "tabsLabel": "Program type",
+    "searchPlaceholder": "Search by program or client",
+    "noResults": "No programs match",
+    "noResultsHint": "Try another name, or switch tabs.",
+    "status": {
+      "ongoing": "On track",
+      "behind": "Behind",
+      "notStarted": "Not started"
+    },
+    "cell": {
+      "done": "Done",
+      "missed": "Missed",
+      "upcoming": "Upcoming",
+      "rest": "Rest"
+    },
+    "cellTitle": "{day}: {workout} — {status}",
+    "cellTitleRest": "{day}: Rest",
+    "todaySuffix": "{label} (today)",
+    "thisWeek": "This week",
+    "workoutsDone": "<num>{done}/{planned}</num> workouts",
+    "chips": {
+      "week": "Week <num>{value}</num>",
+      "daysPerWeek": "<num>{value}</num> {count, plural, one {day} other {days}}/week",
+      "started": "Started <num>{date}</num>",
+      "starts": "Starts <num>{date}</num>",
+      "exercises": "<num>{value}</num> {count, plural, one {exercise} other {exercises}}",
+      "usedBy": "Used by <num>{value}</num> {count, plural, one {client} other {clients}}"
+    },
+    "actions": {
+      "open": "Open program",
+      "message": "Message {name}",
+      "duplicate": "Copy program to another client",
+      "assign": "Assign to client",
+      "edit": "Edit"
+    },
+    "sections": {
+      "clientPrograms": "Client programs",
+      "templates": "Templates",
+      "templatesHint": "Ready-made programs you assign to any client in one click",
+      "allTemplates": "All"
+    },
+    "week": {
+      "title": "Clients' week",
+      "doneSoFar": "<strong>{done}/{planned}</strong> workouts done so far",
+      "prev": "Previous week",
+      "current": "This week",
+      "next": "Next week",
+      "client": "Client and program",
+      "adherence": "Adherence",
+      "weekShort": "W<num>{value}</num>",
+      "days": "<num>{value}</num> {count, plural, one {day} other {days}}",
+      "daysLabel": "Days of the week",
+      "training": "{count, plural, one {# client training} other {# clients training}}",
+      "doneOf": "{done} of {total} done",
+      "allRest": "Rest day for all clients",
+      "empty": "No client programs yet",
+      "emptyHint": "Assign a template to a client to see their week here."
+    },
+    "duplicateDialog": {
+      "title": "Copy this program",
+      "description": "Creates a copy of this program for the client you pick, starting today — the original stays unchanged.",
       "client": "Client",
-      "dates": "Dates",
-      "created": "Created"
+      "submit": "Copy"
     },
     "template": "Template",
     "dateRange": "{start} – {end}",
