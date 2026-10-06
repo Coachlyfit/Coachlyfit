@@ -622,11 +622,12 @@ export type Database = {
           client_id: string
           coach_id: string
           created_at: string
+          currency: string
           id: string
           payment_method_id: string
           proof_path: string | null
           recorded_by: string | null
-          subscription_id: string
+          subscription_id: string | null
           transaction_date: string
         }
         Insert: {
@@ -634,11 +635,12 @@ export type Database = {
           client_id: string
           coach_id: string
           created_at?: string
+          currency?: string
           id?: string
           payment_method_id: string
           proof_path?: string | null
           recorded_by?: string | null
-          subscription_id: string
+          subscription_id?: string | null
           transaction_date?: string
         }
         Update: {
@@ -646,11 +648,12 @@ export type Database = {
           client_id?: string
           coach_id?: string
           created_at?: string
+          currency?: string
           id?: string
           payment_method_id?: string
           proof_path?: string | null
           recorded_by?: string | null
-          subscription_id?: string
+          subscription_id?: string | null
           transaction_date?: string
         }
         Relationships: [
@@ -1808,6 +1811,7 @@ export type Database = {
           invoice_number: string | null
           issue_date: string | null
           notes: string | null
+          paid_at: string | null
           snapshot: Json | null
           status: string
           subtotal: number
@@ -1826,6 +1830,7 @@ export type Database = {
           invoice_number?: string | null
           issue_date?: string | null
           notes?: string | null
+          paid_at?: string | null
           snapshot?: Json | null
           status?: string
           subtotal?: number
@@ -1844,6 +1849,7 @@ export type Database = {
           invoice_number?: string | null
           issue_date?: string | null
           notes?: string | null
+          paid_at?: string | null
           snapshot?: Json | null
           status?: string
           subtotal?: number
@@ -3735,6 +3741,20 @@ export type Database = {
           },
         ]
       }
+      coach_finance_summary: {
+        Row: {
+          coach_id: string | null
+          collected_month: number | null
+          collected_total: number | null
+          currency: string | null
+          expected_month: number | null
+          outstanding_amount: number | null
+          outstanding_count: number | null
+          overdue_amount: number | null
+          overdue_count: number | null
+        }
+        Relationships: []
+      }
       coach_inbox_threads: {
         Row: {
           client_id: string | null
@@ -3943,6 +3963,7 @@ export type Database = {
           invoice_number: string | null
           issue_date: string | null
           notes: string | null
+          paid_at: string | null
           snapshot: Json | null
           status: string
           subtotal: number
@@ -4095,6 +4116,39 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "form_submissions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_invoice_payment: {
+        Args: {
+          p_invoice_id: string
+          p_paid_on?: string
+          p_payment_method_id: string
+          p_proof_path?: string
+        }
+        Returns: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          issue_date: string | null
+          notes: string | null
+          paid_at: string | null
+          snapshot: Json | null
+          status: string
+          subtotal: number
+          tax: number
+          tax_rate: number
+          total: number
+          transaction_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invoices"
           isOneToOne: true
           isSetofReturn: false
         }

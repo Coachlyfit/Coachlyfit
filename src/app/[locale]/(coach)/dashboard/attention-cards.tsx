@@ -24,7 +24,7 @@ export async function AttentionCards({ locale }: { locale: AppLocale }) {
 
   const cards: { key: CardKey; count: number; href: string; icon: LucideIcon; tone: StatusTone }[] = [
     { key: "review", count: counts.awaitingReview, href: "/forms/submissions", icon: FileText, tone: "accent" },
-    { key: "invoices", count: counts.overdueInvoices, href: "/invoices?status=issued", icon: Receipt, tone: "destructive" },
+    { key: "invoices", count: counts.overdueInvoices, href: "/finance?status=overdue", icon: Receipt, tone: "destructive" },
     { key: "programs", count: counts.programsEnding, href: "/programs", icon: ClipboardList, tone: "warning" },
   ];
 

@@ -5,8 +5,7 @@ import {
   FileText,
   Dumbbell,
   Salad,
-  CreditCard,
-  Receipt,
+  Wallet,
   Settings,
   MessageCircle,
   MessageSquareText,
@@ -16,7 +15,7 @@ import {
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "billing" | "invoices" | "settings" | "admin" | "inbox" | "feedback" | "online";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online";
   icon: LucideIcon;
 };
 
@@ -35,8 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/forms", labelKey: "forms", icon: FileText },
   { href: "/library", labelKey: "library", icon: Dumbbell },
   { href: "/diets", labelKey: "diets", icon: Salad },
-  { href: "/invoices", labelKey: "invoices", icon: Receipt },
-  { href: "/billing", labelKey: "billing", icon: CreditCard },
+  { href: "/finance", labelKey: "finance", icon: Wallet },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/inbox", labelKey: "inbox", icon: MessageCircle },
 ];

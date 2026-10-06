@@ -8,6 +8,11 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { canTransition, type InvoiceStatus } from "@/domain/billing/invoices";
 import {
+  RecordPaymentDialog,
+  type PayableInvoice,
+  type PaymentMethodOption,
+} from "@/components/finance/record-payment-dialog";
+import {
   deleteDraftAction,
   issueInvoiceAction,
   markPaidAction,
@@ -19,7 +24,19 @@ type Confirming = "issue" | "void" | "delete" | null;
 
 /** Only the actions the current status can actually take are rendered --
  * same transition table the DB trigger enforces (canTransition). */
-export function InvoiceActions({ invoiceId, status }: { invoiceId: string; status: InvoiceStatus }) {
+export function InvoiceActions({
+  invoiceId,
+  status,
+  payment,
+}: {
+  invoiceId: string;
+  status: InvoiceStatus;
+  /** Present when paying this invoice should record a payment (method, date,
+   * proof). Absent for one created from a recorded payment: that one is just
+   * marked paid. */
+  payment?: { coachId: string; invoice: PayableInvoice; paymentMethods: PaymentMethodOption[] };
+}) {
+  const [paying, setPaying] = useState(false);
   const t = useTranslations("invoices.actions");
   const tConfirm = useTranslations("invoices.confirm");
   const tErrors = useTranslations("invoices.errors");
@@ -75,7 +92,11 @@ export function InvoiceActions({ invoiceId, status }: { invoiceId: string; statu
         </Button>
       )}
       {canTransition(status, "paid") && (
-        <Button type="button" onClick={() => run(() => markPaidAction(locale, invoiceId))} disabled={pending}>
+        <Button
+          type="button"
+          onClick={() => (payment ? setPaying(true) : run(() => markPaidAction(locale, invoiceId)))}
+          disabled={pending}
+        >
           <CheckCircle2 className="size-4" />
           {t("markPaid")}
         </Button>
@@ -134,6 +155,16 @@ export function InvoiceActions({ invoiceId, status }: { invoiceId: string; statu
           variant={confirmCopy[confirming].variant}
           onConfirm={onConfirm}
           pending={pending}
+        />
+      )}
+      {payment && (
+        <RecordPaymentDialog
+          open={paying}
+          onOpenChange={setPaying}
+          coachId={payment.coachId}
+          invoices={[payment.invoice]}
+          paymentMethods={payment.paymentMethods}
+          invoiceId={invoiceId}
         />
       )}
     </div>

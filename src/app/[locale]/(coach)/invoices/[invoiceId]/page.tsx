@@ -8,6 +8,7 @@ import { InvoiceDocument } from "@/components/invoices/invoice-document";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { createClient } from "@/lib/supabase/server";
+import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { InvoicesService } from "@/domain/billing/invoices.service";
 import type { InvoiceCurrency, InvoiceStatus } from "@/domain/billing/invoices";
 import type { AppLocale } from "@/domain/locale";
@@ -28,10 +29,28 @@ export default async function InvoicePage({
   const status = invoice.status as InvoiceStatus;
   const BackIcon = locale === "ar" ? ArrowRight : ArrowLeft;
 
+  // Paying an issued invoice records the payment behind it -- unless it was
+  // created from a payment that is already recorded.
+  const payment =
+    status === "issued" && invoice.transaction_id == null
+      ? {
+          coachId: invoice.coach_id,
+          paymentMethods: await new ClientBillingService(supabase).listPaymentMethods(invoice.coach_id),
+          invoice: {
+            id: invoice.id,
+            number: invoice.invoice_number ?? "",
+            clientId: invoice.client_id,
+            clientName: parties.client.display_name,
+            total: invoice.total,
+            currency: invoice.currency as InvoiceCurrency,
+          },
+        }
+      : undefined;
+
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={invoice.invoice_number ?? t("draftTitle")} />
-      <Link href="/invoices" className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <Link href="/finance" className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <BackIcon className="size-4" />
         {t("back")}
       </Link>
@@ -41,7 +60,7 @@ export default async function InvoicePage({
           <span className="font-medium">{parties.client.display_name}</span>
           <InvoiceStatusBadge status={status} />
         </div>
-        <InvoiceActions invoiceId={invoice.id} status={status} />
+        <InvoiceActions invoiceId={invoice.id} status={status} payment={payment} />
       </div>
 
       {status === "draft" ? (

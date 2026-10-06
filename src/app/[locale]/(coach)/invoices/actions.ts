@@ -11,7 +11,7 @@ import { InvoiceError, InvoicesService } from "@/domain/billing/invoices.service
 import { renderInvoiceEmail } from "@/domain/billing/invoice-email";
 import type { InvoiceCurrency } from "@/domain/billing/invoices";
 import type { AppLocale } from "@/domain/locale";
-import { invoiceDraftSchema, type InvoiceDraftInput } from "./schemas";
+import { invoiceDraftSchema, recordPaymentSchema, type InvoiceDraftInput } from "./schemas";
 
 type ActionResult = { error: string } | void;
 
@@ -38,7 +38,7 @@ function draftFields(data: InvoiceDraftInput) {
 }
 
 function revalidateInvoice(locale: string, id: string) {
-  revalidatePath(`/${locale}/invoices`);
+  revalidatePath(`/${locale}/finance`);
   revalidatePath(`/${locale}/invoices/${id}`);
 }
 
@@ -59,7 +59,7 @@ export async function createInvoiceAction(locale: string, input: unknown): Promi
   } catch (err) {
     return toError(err);
   }
-  revalidatePath(`/${locale}/invoices`);
+  revalidatePath(`/${locale}/finance`);
   redirect(`/${locale}/invoices/${id}`);
 }
 
@@ -80,7 +80,7 @@ export async function createInvoiceFromTransactionAction(locale: string, transac
   } catch (err) {
     return toError(err);
   }
-  revalidatePath(`/${locale}/invoices`);
+  revalidatePath(`/${locale}/finance`);
   redirect(`/${locale}/invoices/${id}`);
 }
 
@@ -110,8 +110,8 @@ export async function deleteDraftAction(locale: string, id: string): Promise<Act
   } catch (err) {
     return toError(err);
   }
-  revalidatePath(`/${locale}/invoices`);
-  redirect(`/${locale}/invoices`);
+  revalidatePath(`/${locale}/finance`);
+  redirect(`/${locale}/finance`);
 }
 
 export async function issueInvoiceAction(
@@ -144,6 +144,24 @@ export async function markPaidAction(locale: string, id: string): Promise<Action
     return toError(err);
   }
   revalidateInvoice(locale, id);
+}
+
+/** Marks an issued invoice paid and records the payment behind it (method,
+ * date, optional proof) in one step. */
+export async function recordInvoicePaymentAction(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = recordPaymentSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const auth = await requireCoach();
+  if ("error" in auth) return auth;
+
+  const { invoice_id, ...payment } = parsed.data;
+  try {
+    await new InvoicesService(auth.supabase).recordPayment(invoice_id, payment);
+  } catch (err) {
+    return toError(err);
+  }
+  revalidateInvoice(locale, invoice_id);
 }
 
 export async function voidInvoiceAction(locale: string, id: string): Promise<ActionResult> {

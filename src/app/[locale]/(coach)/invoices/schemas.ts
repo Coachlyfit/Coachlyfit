@@ -23,3 +23,12 @@ export const invoiceDraftSchema = z.object({
 // output -- same split as clients/schemas.ts's RecordTransactionFormInput.
 export type InvoiceDraftFormInput = z.input<typeof invoiceDraftSchema>;
 export type InvoiceDraftInput = z.output<typeof invoiceDraftSchema>;
+
+export const recordPaymentSchema = z.object({
+  invoice_id: z.string().uuid(),
+  payment_method_id: z.string().uuid(),
+  paid_on: optionalDate,
+  proof_path: z.string().max(300).optional().or(z.literal("")),
+});
+
+export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;

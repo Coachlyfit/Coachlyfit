@@ -1,4 +1,6 @@
-export const INVOICE_STATUSES = ["draft", "issued", "paid", "void"] as const;
+import { daysSince } from "@/domain/progress/stats";
+
+export const INVOICE_STATUSES =["draft", "issued", "paid", "void"] as const;
 export type InvoiceStatus = (typeof INVOICE_STATUSES)[number];
 
 export const INVOICE_CURRENCIES = ["EGP", "SAR", "AED"] as const;
@@ -53,4 +55,41 @@ export function canTransition(from: InvoiceStatus, to: InvoiceStatus): boolean {
 
 export function isEditable(status: InvoiceStatus): boolean {
   return status === "draft";
+}
+
+/** [first day, first day of the next month) for a "YYYY-MM" filter value. */
+export function monthRange(month: string): [string, string] {
+  const [y, m] = month.split("-").map(Number);
+  return [`${month}-01`, new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10)];
+}
+
+// What the finance page shows and filters by. "overdue" is derived, never
+// stored: an issued invoice whose due_date has passed (due today is still
+// "issued") -- same rule as invoicePaymentStatus on the coach home page.
+export const INVOICE_DISPLAY_STATUSES = ["overdue", "issued", "draft", "paid", "void"] as const;
+export type InvoiceDisplayStatus = (typeof INVOICE_DISPLAY_STATUSES)[number];
+
+type DatedInvoice = { status: string; due_date: string | null; paid_at?: string | null };
+
+export function invoiceDisplayStatus(invoice: DatedInvoice, now: Date): InvoiceDisplayStatus {
+  if (invoice.status === "issued" && invoice.due_date != null && daysSince(invoice.due_date, now) > 0) {
+    return "overdue";
+  }
+  return invoice.status as InvoiceStatus;
+}
+
+export type DueNote =
+  | { kind: "overdue" | "dueIn"; days: number }
+  | { kind: "paid"; date: string | null }
+  | { kind: "dueToday" | "notIssued" | "none" };
+
+/** The line under the due date: "5 days overdue" / "in 4 days" / "paid 02.10".
+ * A void invoice, or an issued one with no due date, has nothing to say. */
+export function dueNote(invoice: DatedInvoice, now: Date): DueNote {
+  if (invoice.status === "draft") return { kind: "notIssued" };
+  if (invoice.status === "paid") return { kind: "paid", date: invoice.paid_at ?? null };
+  if (invoice.status !== "issued" || invoice.due_date == null) return { kind: "none" };
+  const late = daysSince(invoice.due_date, now);
+  if (late > 0) return { kind: "overdue", days: late };
+  return late === 0 ? { kind: "dueToday" } : { kind: "dueIn", days: -late };
 }

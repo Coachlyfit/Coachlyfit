@@ -1,6 +1,48 @@
 import { describe, expect, it } from "vitest";
-import { calculateTotals, canTransition, isEditable, INVOICE_STATUSES } from "./invoices";
+import {
+  calculateTotals,
+  canTransition,
+  dueNote,
+  invoiceDisplayStatus,
+  isEditable,
+  monthRange,
+  INVOICE_STATUSES,
+} from "./invoices";
 import { InvoiceError, InvoicesService } from "./invoices.service";
+
+describe("invoiceDisplayStatus / dueNote", () => {
+  const NOW = new Date("2026-10-06T10:00:00Z");
+
+  it("derives overdue only for an issued invoice past its due date", () => {
+    expect(invoiceDisplayStatus({ status: "issued", due_date: "2026-10-01" }, NOW)).toBe("overdue");
+    expect(invoiceDisplayStatus({ status: "issued", due_date: "2026-10-06" }, NOW)).toBe("issued");
+    expect(invoiceDisplayStatus({ status: "issued", due_date: null }, NOW)).toBe("issued");
+    expect(invoiceDisplayStatus({ status: "paid", due_date: "2026-09-30" }, NOW)).toBe("paid");
+    expect(invoiceDisplayStatus({ status: "draft", due_date: "2026-09-30" }, NOW)).toBe("draft");
+    expect(invoiceDisplayStatus({ status: "void", due_date: "2026-09-30" }, NOW)).toBe("void");
+  });
+
+  it("counts days late and days left", () => {
+    expect(dueNote({ status: "issued", due_date: "2026-10-01" }, NOW)).toEqual({ kind: "overdue", days: 5 });
+    expect(dueNote({ status: "issued", due_date: "2026-10-10" }, NOW)).toEqual({ kind: "dueIn", days: 4 });
+    expect(dueNote({ status: "issued", due_date: "2026-10-06" }, NOW)).toEqual({ kind: "dueToday" });
+  });
+
+  it("monthRange is half-open and rolls over the year", () => {
+    expect(monthRange("2026-10")).toEqual(["2026-10-01", "2026-11-01"]);
+    expect(monthRange("2026-12")).toEqual(["2026-12-01", "2027-01-01"]);
+  });
+
+  it("has a note for drafts and paid invoices, none for void or undated", () => {
+    expect(dueNote({ status: "draft", due_date: null }, NOW)).toEqual({ kind: "notIssued" });
+    expect(dueNote({ status: "paid", due_date: "2026-09-30", paid_at: "2026-10-02T00:00:00Z" }, NOW)).toEqual({
+      kind: "paid",
+      date: "2026-10-02T00:00:00Z",
+    });
+    expect(dueNote({ status: "void", due_date: "2026-09-30" }, NOW)).toEqual({ kind: "none" });
+    expect(dueNote({ status: "issued", due_date: null }, NOW)).toEqual({ kind: "none" });
+  });
+});
 
 describe("calculateTotals", () => {
   it("sums rounded lines and applies no tax at rate 0", () => {
@@ -69,7 +111,7 @@ describe("status transitions", () => {
  * fakeSupabase(): every builder method returns the chain, awaiting it (or
  * .single()/.maybeSingle()) resolves per operation. `status` seeds what a
  * `select("status")` guard read sees. */
-function fakeSupabase(opts: { status?: string | null; transaction?: unknown } = {}) {
+function fakeSupabase(opts: { status?: string | null; transaction?: unknown; rpcError?: { code: string } } = {}) {
   const calls: { table: string; op: string; payload?: unknown; filters: [string, unknown][] }[] = [];
   const rpcs: { fn: string; args: unknown }[] = [];
 
@@ -101,6 +143,7 @@ function fakeSupabase(opts: { status?: string | null; transaction?: unknown } = 
     },
     rpc: async (fn: string, args: unknown) => {
       rpcs.push({ fn, args });
+      if (opts.rpcError) return { data: null, error: opts.rpcError };
       return { data: { id: "inv-1", status: "issued", invoice_number: "INV-0001" }, error: null };
     },
   };
@@ -197,6 +240,31 @@ describe("InvoicesService", () => {
     expect(issued.invoice_number).toBe("INV-0001");
     expect(calls.filter((c) => c.op === "update")).toEqual([]);
   });
+
+  it("recordPayment goes through the record_invoice_payment RPC, never a direct write", async () => {
+    const { db, calls, rpcs } = fakeSupabase();
+    await new InvoicesService(db).recordPayment("inv-1", { payment_method_id: "pm-1", paid_on: "2026-10-02", proof_path: "" });
+
+    expect(rpcs).toEqual([
+      {
+        fn: "record_invoice_payment",
+        args: { p_invoice_id: "inv-1", p_payment_method_id: "pm-1", p_paid_on: "2026-10-02", p_proof_path: undefined },
+      },
+    ]);
+    expect(calls).toEqual([]);
+  });
+
+  for (const [pgCode, code] of [
+    ["P0002", "not_found"],
+    ["22023", "invalid_transition"],
+  ]) {
+    it(`recordPayment maps the RPC's ${pgCode} to ${code}`, async () => {
+      const { db } = fakeSupabase({ rpcError: { code: pgCode } });
+      await expect(new InvoicesService(db).recordPayment("inv-1", { payment_method_id: "pm-1" })).rejects.toMatchObject({
+        code,
+      });
+    });
+  }
 
   it("issue refuses an already-issued invoice", async () => {
     const { db, rpcs } = fakeSupabase({ status: "issued" });

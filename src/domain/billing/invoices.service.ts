@@ -5,6 +5,7 @@ import {
   calculateTotals,
   canTransition,
   isEditable,
+  monthRange,
   type InvoiceCurrency,
   type InvoiceLineInput,
   type InvoiceParties,
@@ -29,7 +30,15 @@ export type InvoiceDraftInput = {
   items: InvoiceLineInput[];
 };
 
-export type InvoiceListFilters = { status?: InvoiceStatus; clientId?: string };
+/** month is "YYYY-MM". No status filter: "overdue" is derived, so the
+ * finance page filters by display status after loading. */
+export type InvoiceListFilters = { clientId?: string; month?: string };
+
+export type RecordPaymentInput = {
+  payment_method_id: string;
+  paid_on?: string | null;
+  proof_path?: string | null;
+};
 
 /** Thrown for rule violations the UI should explain (vs. a raw DB error). */
 export class InvoiceError extends Error {
@@ -48,12 +57,42 @@ export class InvoicesService {
   async list(coachId: string, filters: InvoiceListFilters = {}) {
     let query = this.db
       .from("invoices")
-      .select("*, clients(display_name)")
+      // Only the first line: the list shows it as the invoice's subject.
+      .select("*, clients(display_name), invoice_items(description)")
       .eq("coach_id", coachId)
-      .order("created_at", { ascending: false });
-    if (filters.status) query = query.eq("status", filters.status);
+      .order("created_at", { ascending: false })
+      .order("position", { referencedTable: "invoice_items" })
+      .limit(1, { referencedTable: "invoice_items" });
     if (filters.clientId) query = query.eq("client_id", filters.clientId);
+    if (filters.month) {
+      // By due date; an invoice without one (most drafts) falls in the month
+      // it was created.
+      const [from, to] = monthRange(filters.month);
+      query = query.or(
+        `and(due_date.gte.${from},due_date.lt.${to}),and(due_date.is.null,created_at.gte.${from},created_at.lt.${to})`
+      );
+    }
     const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  /** Issued invoices, for the "record payment" picker. */
+  async listUnpaid(coachId: string) {
+    const { data, error } = await this.db
+      .from("invoices")
+      .select("id, invoice_number, client_id, total, currency, transaction_id, clients(display_name)")
+      .eq("coach_id", coachId)
+      .eq("status", "issued")
+      .order("due_date", { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return data;
+  }
+
+  /** Totals for the finance cards, one row per currency -- see
+   * coach_finance_summary (20261006000002_finance.sql). */
+  async summary(coachId: string) {
+    const { data, error } = await this.db.from("coach_finance_summary").select("*").eq("coach_id", coachId);
     if (error) throw error;
     return data;
   }
@@ -195,6 +234,24 @@ export class InvoicesService {
     return data;
   }
 
+  /** Issued -> paid with the payment behind it, atomically, through
+   * record_invoice_payment(). The RPC re-checks everything; its two error
+   * codes map onto the same InvoiceError codes the other paths use. */
+  async recordPayment(id: string, input: RecordPaymentInput): Promise<Invoice> {
+    const { data, error } = await this.db.rpc("record_invoice_payment", {
+      p_invoice_id: id,
+      p_payment_method_id: input.payment_method_id,
+      p_paid_on: input.paid_on || undefined,
+      p_proof_path: input.proof_path || undefined,
+    });
+    if (error?.code === "P0002") throw new InvoiceError("not_found");
+    if (error?.code === "22023") throw new InvoiceError("invalid_transition");
+    if (error) throw error;
+    return data;
+  }
+
+  /** Bare status flip, no payment row -- only for an invoice that already
+   * has its transaction (created from a recorded payment). */
   markPaid(id: string) {
     return this.transition(id, "paid");
   }

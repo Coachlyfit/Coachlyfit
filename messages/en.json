@@ -54,7 +54,8 @@
     "diets": "Nutrition",
     "feedback": "Feedback",
     "online": "Online",
-    "invoices": "Invoices"
+    "invoices": "Invoices",
+    "finance": "Finance"
   },
   "palette": {
     "navigation": "Navigation",
@@ -3029,6 +3030,106 @@
       "not_authenticated": "Please log in again.",
       "respond_failed": "Something went wrong. Please try again.",
       "coach_full": "This coach has no free spots right now."
+    }
+  },
+  "finance": {
+    "title": "Finance",
+    "subtitle": "Your clients' invoices and everything that's been paid, in one place.",
+    "recordPayment": "Record payment",
+    "newInvoice": "New invoice",
+    "recordsLabel": "Records",
+    "statusLabel": "Status",
+    "summary": {
+      "label": "This month's summary",
+      "collectedMonth": "Collected · {month}",
+      "progressLabel": "Collected out of expected this month",
+      "ofExpected": "of <num>{amount}</num> expected",
+      "outstanding": "Outstanding, unpaid",
+      "outstandingShort": "Outstanding",
+      "issuedCount": "{count, plural, =0 {No issued invoices} one {<num>{value}</num> issued invoice} other {<num>{value}</num> issued invoices}}",
+      "overdue": "Overdue",
+      "remind": "Remind clients",
+      "noneOverdue": "Nothing overdue",
+      "totalCollected": "Total collected",
+      "sinceStart": "All time",
+      "other": "{currency}: collected <num>{collected}</num> · outstanding <num>{outstanding}</num> · overdue <num>{overdue}</num>"
+    },
+    "tabs": {
+      "label": "View",
+      "invoices": "Invoices",
+      "payments": "Payments"
+    },
+    "filters": {
+      "client": "Client",
+      "month": "Month",
+      "allClients": "All clients",
+      "allMonths": "All months"
+    },
+    "status": {
+      "all": "All",
+      "overdue": "Overdue",
+      "issued": "Issued",
+      "draft": "Draft",
+      "paid": "Paid",
+      "void": "Void"
+    },
+    "table": {
+      "invoice": "Invoice",
+      "client": "Client",
+      "due": "Due",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "note": {
+      "overdue": "{count, plural, one {# day overdue} other {# days overdue}}",
+      "dueIn": "{count, plural, one {in # day} other {in # days}}",
+      "dueToday": "Due today",
+      "paid": "Paid {date}",
+      "notIssued": "Not issued yet"
+    },
+    "actions": {
+      "issue": "Issue",
+      "recordPayment": "Record payment",
+      "remind": "Send reminder",
+      "reminded": "Reminder sent to {email}.",
+      "paid": "Payment recorded.",
+      "pdf": "Download PDF of invoice {number}",
+      "more": "More actions for invoice {number}",
+      "open": "Open invoice"
+    },
+    "payments": {
+      "for": "for <num>{number}</num>"
+    },
+    "empty": {
+      "invoicesTitle": "No invoices yet",
+      "invoicesBody": "Create your first client invoice, then track what's issued, paid and overdue from here.",
+      "paymentsTitle": "No payments yet",
+      "paymentsBody": "Every payment you record against an invoice or a client subscription shows up here.",
+      "filteredTitle": "Nothing matches",
+      "filteredBody": "Try another status, client or month."
+    },
+    "payDialog": {
+      "title": "Record payment",
+      "invoice": "Invoice",
+      "invoicePlaceholder": "Choose an issued invoice",
+      "invoiceRequired": "Choose the invoice.",
+      "method": "Payment method",
+      "methodRequired": "Choose a payment method.",
+      "date": "Payment date",
+      "submit": "Record payment",
+      "recorded": "Payment recorded and invoice marked paid.",
+      "noUnpaid": "No issued invoices are waiting for payment. Issue an invoice first.",
+      "noMethods": "Add at least one payment method before recording payments.",
+      "addMethods": "Add payment methods in Settings"
+    },
+    "subscription": {
+      "label": "Your subscription",
+      "title": "Your Coachly Fit subscription",
+      "current": "{plan} · {status}",
+      "none": "No active plan right now",
+      "manage": "Manage subscription",
+      "back": "Finance"
     }
   }
 }

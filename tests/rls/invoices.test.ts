@@ -207,3 +207,90 @@ describe("invoices: numbering", () => {
     expect(issue.error).not.toBeNull();
   });
 });
+
+describe("invoices: recording a payment", () => {
+  let issuedId: string;
+  let methodId: string;
+
+  beforeAll(async () => {
+    const draftId = await createDraft(coachA, clientOfA.clientRowId);
+    const issued = await coachA.client.rpc("issue_invoice", { p_invoice_id: draftId });
+    if (issued.error) throw issued.error;
+    issuedId = draftId;
+
+    const { data: method, error } = await coachA.client
+      .from("client_payment_methods")
+      .insert({ coach_id: coachA.userId, name_ar: "إنستاباي", name_en: "InstaPay" })
+      .select("id")
+      .single();
+    if (error) throw error;
+    methodId = method.id;
+  }, 60_000);
+
+  it("paid_at cannot be forged by a direct update", async () => {
+    const { error } = await coachA.client.from("invoices").update({ paid_at: "2020-01-01" }).eq("id", issuedId);
+    expect(error).not.toBeNull();
+  });
+
+  it("a foreign coach cannot record a payment on it", async () => {
+    const { error } = await coachB.client.rpc("record_invoice_payment", {
+      p_invoice_id: issuedId,
+      p_payment_method_id: methodId,
+    });
+    expect(error).not.toBeNull();
+    const { data } = await admin.from("invoices").select("status, transaction_id").eq("id", issuedId).single();
+    expect(data).toEqual({ status: "issued", transaction_id: null });
+  });
+
+  it("another coach's payment method and a foreign proof path are rejected", async () => {
+    const { data: foreign, error } = await coachB.client
+      .from("client_payment_methods")
+      .insert({ coach_id: coachB.userId, name_ar: "كاش", name_en: "Cash" })
+      .select("id")
+      .single();
+    if (error) throw error;
+
+    const wrongMethod = await coachA.client.rpc("record_invoice_payment", {
+      p_invoice_id: issuedId,
+      p_payment_method_id: foreign.id,
+    });
+    expect(wrongMethod.error).not.toBeNull();
+
+    const wrongProof = await coachA.client.rpc("record_invoice_payment", {
+      p_invoice_id: issuedId,
+      p_payment_method_id: methodId,
+      p_proof_path: `${coachB.userId}/${clientOfB.clientRowId}/proof.png`,
+    });
+    expect(wrongProof.error).not.toBeNull();
+  });
+
+  it("marks it paid, stamps paid_at and records the payment for the full amount, once", async () => {
+    const { data, error } = await coachA.client.rpc("record_invoice_payment", {
+      p_invoice_id: issuedId,
+      p_payment_method_id: methodId,
+      p_paid_on: "2026-10-02",
+    });
+    if (error) throw error;
+    expect(data.status).toBe("paid");
+    expect(data.paid_at).toContain("2026-10-02");
+
+    const { data: tx } = await admin
+      .from("client_transactions")
+      .select("amount_egp, currency, transaction_date, client_id, subscription_id")
+      .eq("id", data.transaction_id!)
+      .single();
+    expect(tx).toEqual({
+      amount_egp: 500,
+      currency: "EGP",
+      transaction_date: "2026-10-02",
+      client_id: clientOfA.clientRowId,
+      subscription_id: null,
+    });
+
+    const again = await coachA.client.rpc("record_invoice_payment", {
+      p_invoice_id: issuedId,
+      p_payment_method_id: methodId,
+    });
+    expect(again.error).not.toBeNull();
+  });
+});
