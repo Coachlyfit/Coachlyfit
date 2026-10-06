@@ -4,21 +4,17 @@ import { useState, useTransition } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations, useLocale } from "next-intl";
-import { Plus, Upload, Check } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormDatePicker } from "@/components/date-picker";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { createClient } from "@/lib/supabase/client";
-import { PAYMENT_PROOFS_BUCKET } from "@/domain/billing/client-billing.service";
+import { ProofUploadField } from "@/components/finance/proof-upload-field";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { recordTransactionSchema, type RecordTransactionFormInput } from "@/app/[locale]/(coach)/clients/schemas";
 import { recordTransactionAction } from "@/app/[locale]/(coach)/clients/actions";
-
-const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "pdf"]);
 
 export function RecordTransactionDialog({
   locale,
@@ -42,7 +38,6 @@ export function RecordTransactionDialog({
   const [formError, setFormError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [proofPath, setProofPath] = useState<string | null>(null);
-  const [proofError, setProofError] = useState<string | null>(null);
 
   const {
     handleSubmit,
@@ -56,35 +51,6 @@ export function RecordTransactionDialog({
     // start-subscription-dialog.tsx's package_id default.
     defaultValues: { subscription_id: subscriptionId, payment_method_id: "" },
   });
-
-  async function handleProofChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setProofError(null);
-
-    if (file.size > MAX_BYTES) {
-      setProofError(tErrors("file_too_large"));
-      return;
-    }
-    const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "";
-    if (!ALLOWED_EXT.has(rawExt)) {
-      setProofError(tErrors("invalid_file"));
-      return;
-    }
-
-    const path = `${coachId}/${clientId}/${crypto.randomUUID()}.${rawExt}`;
-    setUploading(true);
-    const supabase = createClient();
-    const { error: uploadError } = await supabase.storage.from(PAYMENT_PROOFS_BUCKET).upload(path, file);
-    setUploading(false);
-
-    if (uploadError) {
-      setProofError(tErrors("upload_failed"));
-      return;
-    }
-    setProofPath(path);
-  }
 
   const onSubmit = handleSubmit((data) => {
     setFormError(null);
@@ -152,21 +118,13 @@ export function RecordTransactionDialog({
             <Label htmlFor="transaction_date">{t("date")}</Label>
             <FormDatePicker id="transaction_date" control={control} name="transaction_date" />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label>{t("proof")}</Label>
-            <label className="flex h-11 w-fit cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-4 text-sm text-muted-foreground hover:bg-muted">
-              {proofPath ? <Check className="size-4" /> : <Upload className="size-4" />}
-              {proofPath ? t("proofAttached") : uploading ? t("uploading") : t("proofUpload")}
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                className="hidden"
-                onChange={handleProofChange}
-                disabled={uploading}
-              />
-            </label>
-            {proofError && <p className="text-sm text-destructive">{proofError}</p>}
-          </div>
+          <ProofUploadField
+            coachId={coachId}
+            clientId={clientId}
+            path={proofPath}
+            onPathChange={setProofPath}
+            onUploadingChange={setUploading}
+          />
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
           <Button type="submit" disabled={pending || uploading} className="min-w-24">
             {pending ? tCommon("pending") : t("submit")}

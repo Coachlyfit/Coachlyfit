@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { monthRange } from "./invoices";
 
 type ClientPackage = Database["public"]["Tables"]["client_packages"]["Row"];
 type ClientPaymentMethod = Database["public"]["Tables"]["client_payment_methods"]["Row"];
@@ -185,6 +186,24 @@ export class ClientBillingService {
       .select("*, client_payment_methods(*)")
       .eq("client_id", clientId)
       .order("transaction_date", { ascending: false });
+    if (error) throw error;
+    return data;
+  }
+
+  /** Every payment the coach recorded, across clients, for the finance
+   * page. `invoices` is the reverse side of invoices.transaction_id. */
+  async listAllTransactions(coachId: string, filters: { clientId?: string; month?: string } = {}) {
+    let query = this.db
+      .from("client_transactions")
+      .select("*, clients(display_name), client_payment_methods(name_ar, name_en), invoices(id, invoice_number, status)")
+      .eq("coach_id", coachId)
+      .order("transaction_date", { ascending: false });
+    if (filters.clientId) query = query.eq("client_id", filters.clientId);
+    if (filters.month) {
+      const [from, to] = monthRange(filters.month);
+      query = query.gte("transaction_date", from).lt("transaction_date", to);
+    }
+    const { data, error } = await query;
     if (error) throw error;
     return data;
   }

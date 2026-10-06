@@ -54,7 +54,8 @@
     "diets": "التغذية",
     "feedback": "الملاحظات",
     "online": "متصل الآن",
-    "invoices": "الفواتير"
+    "invoices": "الفواتير",
+    "finance": "المالية"
   },
   "palette": {
     "navigation": "التنقل",
@@ -3029,6 +3030,106 @@
       "not_authenticated": "سجّل الدخول تاني.",
       "respond_failed": "حصل خطأ. جرّب تاني.",
       "coach_full": "الكوتش ده مفيش عنده أماكن فاضية دلوقتي."
+    }
+  },
+  "finance": {
+    "title": "المالية",
+    "subtitle": "فواتير عملائك وكل اللي اتدفع، في مكان واحد.",
+    "recordPayment": "تسجيل دفعة",
+    "newInvoice": "فاتورة جديدة",
+    "recordsLabel": "السجل",
+    "statusLabel": "الحالة",
+    "summary": {
+      "label": "ملخص الشهر",
+      "collectedMonth": "اتحصّل · {month}",
+      "progressLabel": "المحصّل من المتوقع هذا الشهر",
+      "ofExpected": "من <num>{amount}</num> متوقع",
+      "outstanding": "مستحق ولم يُدفع",
+      "outstandingShort": "مستحق",
+      "issuedCount": "{count, plural, =0 {لا توجد فواتير صادرة} =1 {فاتورة صادرة واحدة} =2 {فاتورتان صادرتان} few {<num>{value}</num> فواتير صادرة} other {<num>{value}</num> فاتورة صادرة}}",
+      "overdue": "متأخر",
+      "remind": "ذكّر العميل",
+      "noneOverdue": "لا توجد فواتير متأخرة",
+      "totalCollected": "إجمالي المحصّل",
+      "sinceStart": "منذ البداية",
+      "other": "{currency}: محصّل <num>{collected}</num> · مستحق <num>{outstanding}</num> · متأخر <num>{overdue}</num>"
+    },
+    "tabs": {
+      "label": "العرض",
+      "invoices": "الفواتير",
+      "payments": "المدفوعات"
+    },
+    "filters": {
+      "client": "العميل",
+      "month": "الشهر",
+      "allClients": "كل العملاء",
+      "allMonths": "كل الشهور"
+    },
+    "status": {
+      "all": "الكل",
+      "overdue": "متأخرة",
+      "issued": "صادرة",
+      "draft": "مسودة",
+      "paid": "مدفوعة",
+      "void": "ملغاة"
+    },
+    "table": {
+      "invoice": "الفاتورة",
+      "client": "العميل",
+      "due": "الاستحقاق",
+      "amount": "المبلغ",
+      "status": "الحالة",
+      "actions": "إجراءات"
+    },
+    "note": {
+      "overdue": "{count, plural, =1 {متأخرة يوم} =2 {متأخرة يومين} few {متأخرة # أيام} other {متأخرة # يوم}}",
+      "dueIn": "{count, plural, =1 {بعد يوم} =2 {بعد يومين} few {بعد # أيام} other {بعد # يوم}}",
+      "dueToday": "تستحق اليوم",
+      "paid": "دُفعت {date}",
+      "notIssued": "لم تُصدر بعد"
+    },
+    "actions": {
+      "issue": "إصدار",
+      "recordPayment": "تسجيل دفعة",
+      "remind": "إرسال تذكير",
+      "reminded": "تم إرسال التذكير إلى {email}.",
+      "paid": "تم تسجيل الدفعة.",
+      "pdf": "تحميل PDF للفاتورة {number}",
+      "more": "إجراءات أخرى للفاتورة {number}",
+      "open": "فتح الفاتورة"
+    },
+    "payments": {
+      "for": "عن <num>{number}</num>"
+    },
+    "empty": {
+      "invoicesTitle": "لا توجد فواتير بعد",
+      "invoicesBody": "أنشئ أول فاتورة لعميلك، وتابع من هنا ما صدر وما دُفع وما تأخر.",
+      "paymentsTitle": "لا توجد مدفوعات بعد",
+      "paymentsBody": "كل دفعة تسجّلها على فاتورة أو على اشتراك عميل تظهر هنا.",
+      "filteredTitle": "لا توجد نتائج مطابقة",
+      "filteredBody": "جرّب حالة أو عميلاً أو شهراً آخر."
+    },
+    "payDialog": {
+      "title": "تسجيل دفعة",
+      "invoice": "الفاتورة",
+      "invoicePlaceholder": "اختر فاتورة صادرة",
+      "invoiceRequired": "اختر الفاتورة.",
+      "method": "طريقة الدفع",
+      "methodRequired": "اختر طريقة الدفع.",
+      "date": "تاريخ الدفع",
+      "submit": "تسجيل الدفعة",
+      "recorded": "تم تسجيل الدفعة وتحديد الفاتورة كمدفوعة.",
+      "noUnpaid": "لا توجد فواتير صادرة بانتظار الدفع. أصدر فاتورة أولاً.",
+      "noMethods": "أضف طريقة دفع واحدة على الأقل قبل تسجيل الدفعات.",
+      "addMethods": "إضافة طرق الدفع من الإعدادات"
+    },
+    "subscription": {
+      "label": "اشتراكك",
+      "title": "اشتراكك في كوتشلي فت",
+      "current": "{plan} · {status}",
+      "none": "لا توجد باقة مفعّلة حالياً",
+      "manage": "إدارة الاشتراك",
+      "back": "المالية"
     }
   }
 }

@@ -38,7 +38,7 @@ export async function PaymentsWeek({ locale }: { locale: AppLocale }) {
           title={t("empty")}
           className="py-6"
           action={
-            <Link href="/invoices" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            <Link href="/finance" className={buttonVariants({ variant: "outline", size: "sm" })}>
               {t("viewInvoices")}
             </Link>
           }
