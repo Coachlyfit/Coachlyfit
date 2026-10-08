@@ -5,7 +5,6 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
-import { PenSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +19,13 @@ const composeSchema = z.object({
 });
 type ComposeInput = z.infer<typeof composeSchema>;
 
-export function NewMessageDialog({ clients }: { clients: { id: string; display_name: string }[] }) {
+export function NewMessageDialog({
+  clients,
+  trigger,
+}: {
+  clients: { id: string; display_name: string }[];
+  trigger: React.ReactElement;
+}) {
   const t = useTranslations("inbox.compose");
   const tCommon = useTranslations("common");
   const tErrors = useTranslations("inbox.errors");
@@ -40,23 +45,20 @@ export function NewMessageDialog({ clients }: { clients: { id: string; display_n
   const onSubmit = handleSubmit((data) => {
     setFormError(null);
     startTransition(async () => {
-      const result = await sendMessageAction(data.clientId, data.body);
+      const result = await sendMessageAction(data.clientId, data.body, crypto.randomUUID());
       if (result?.error) {
         setFormError(result.error);
         return;
       }
       reset();
       setOpen(false);
-      router.push(`/inbox/${data.clientId}`);
+      router.push(`/messages/${data.clientId}`);
     });
   });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type="button" variant="outline" size="sm" />}>
-        <PenSquare className="size-4" />
-        {t("trigger")}
-      </DialogTrigger>
+      <DialogTrigger render={trigger} />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>

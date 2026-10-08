@@ -307,7 +307,7 @@ export function ClientsTable({
                   <TableCell>
                     <div className="flex justify-end gap-1">
                       <Link
-                        href={`/inbox/${client.id}`}
+                        href={`/messages/${client.id}`}
                         className={buttonVariants({ variant: "ghost", size: "icon" })}
                         aria-label={t("actions.message", { name: client.name })}
                       >

@@ -193,7 +193,7 @@ export function ProgramCard({
           {t("actions.open")}
         </Link>
         <Link
-          href={`/inbox/${row.clientId}`}
+          href={`/messages/${row.clientId}`}
           className={buttonVariants({ variant: "outline", size: "icon-sm" })}
           aria-label={t("actions.message", { name: row.client })}
         >

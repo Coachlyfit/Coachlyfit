@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/sign-out-action";
+import { UnreadMessagesBadge, UnreadMessagesDot } from "@/components/messages/unread-messages-badge";
 import { NAV_ITEMS, ADMIN_NAV_ITEMS } from "./nav-items";
 
 // Bottom tab bar for <1024px (below the sidebar's lg breakpoint). Capped at 5
@@ -67,7 +68,13 @@ export function BottomNav({ locale, admin = false }: { locale: string; admin?: b
             />
           }
         >
-          <MoreHorizontal className="size-5" aria-hidden="true" />
+          <span className="relative">
+            <MoreHorizontal className="size-5" aria-hidden="true" />
+            {/* The messages item lives behind this tab, so its unread state surfaces here. */}
+            {overflow.some((item) => item.badge === "unreadMessages") && (
+              <UnreadMessagesDot className="absolute -end-1.5 -top-0.5" />
+            )}
+          </span>
           {tCommon("more")}
         </SheetTrigger>
         <SheetContent side="bottom">
@@ -86,6 +93,7 @@ export function BottomNav({ locale, admin = false }: { locale: string; admin?: b
                 >
                   <Icon className="size-4" aria-hidden="true" />
                   {t(item.labelKey)}
+                  {item.badge === "unreadMessages" && <UnreadMessagesBadge className="ms-auto" />}
                 </Link>
               );
             })}

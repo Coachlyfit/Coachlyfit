@@ -84,7 +84,7 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     const payload = (notification.payload ?? {}) as Record<string, unknown>;
     if (notification.kind === "new_message") {
       const clientId = payload.client_id as string | null;
-      return clientId ? `/inbox/${clientId}` : null;
+      return clientId ? `/messages/${clientId}` : null;
     }
     if (notification.kind === "decision_outcome") {
       const clientId = payload.client_id as string | null;

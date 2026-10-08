@@ -11,6 +11,7 @@ import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner
 import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
 import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
+import { InboxRealtime } from "@/components/messages/unread-messages-badge";
 
 export default async function CoachLayout({
   children,
@@ -74,6 +75,7 @@ export default async function CoachLayout({
       {/* Don't mark the real coach "online" while an admin is impersonating
        * them -- that's the admin's activity, not the coach's. */}
       {!impersonating && <PresenceHeartbeat />}
+      <InboxRealtime />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}

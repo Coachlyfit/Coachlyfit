@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
           "/finance/",
           "/invoices/",
           "/inbox/",
+          "/messages/",
           "/library/",
           "/programs/",
           "/diets/",

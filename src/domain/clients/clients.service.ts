@@ -39,25 +39,20 @@ export class ClientsService {
       .select("*")
       .order("created_at", { ascending: false });
     if (error) throw error;
-    // Every view column is typed nullable; the ones asserted here come from
-    // not-null columns on the driving `clients` row.
-    return data.map((row) => ({
-      id: row.client_id!,
-      displayName: row.display_name!,
-      email: row.email,
-      status: row.status!,
-      lastCheckin: row.last_checkin_date,
-      adherence: row.adherence,
-      program: row.program_id
-        ? { id: row.program_id, name_ar: row.program_name_ar!, name_en: row.program_name_en! }
-        : null,
-      subscription: row.subscription_status
-        ? {
-            status: row.subscription_status as "active" | "frozen" | "canceled",
-            end_date: row.subscription_end_date!,
-          }
-        : null,
-    }));
+    return data.map(toRosterClient);
+  }
+
+  /** One roster row -- the same view and shape as listRoster, for surfaces
+   * that show a single client's summary (the messages context panel). Null
+   * when the client isn't the caller's (RLS) or doesn't exist. */
+  async getRosterClient(clientId: string): Promise<RosterClient | null> {
+    const { data, error } = await this.db
+      .from("coach_client_roster")
+      .select("*")
+      .eq("client_id", clientId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toRosterClient(data) : null;
   }
 
   async update(id: string, input: UpdateClientInput): Promise<boolean> {
@@ -97,4 +92,26 @@ export class ClientsService {
     if (error) throw error;
     return true;
   }
+}
+
+// Every view column is typed nullable; the ones asserted here come from
+// not-null columns on the driving `clients` row.
+function toRosterClient(row: Database["public"]["Views"]["coach_client_roster"]["Row"]): RosterClient {
+  return {
+    id: row.client_id!,
+    displayName: row.display_name!,
+    email: row.email,
+    status: row.status!,
+    lastCheckin: row.last_checkin_date,
+    adherence: row.adherence,
+    program: row.program_id
+      ? { id: row.program_id, name_ar: row.program_name_ar!, name_en: row.program_name_en! }
+      : null,
+    subscription: row.subscription_status
+      ? {
+          status: row.subscription_status as "active" | "frozen" | "canceled",
+          end_date: row.subscription_end_date!,
+        }
+      : null,
+  };
 }
