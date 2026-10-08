@@ -8,24 +8,35 @@ import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { TemplatesService } from "@/domain/forms/templates.service";
 import { SubmissionsService } from "@/domain/forms/submissions.service";
 import { formTemplateSchema, type FormField } from "@/domain/forms/schema";
-import { createTemplateSchema, assignFormSchema } from "./schemas";
+import { FORM_STARTERS } from "@/domain/forms/starters";
+import { findPublishIssue } from "@/domain/forms/publish-check";
+import { createTemplateSchema, assignFormSchema, type CreateTemplateInput } from "./schemas";
 
 type ActionResult = { error: string } | void;
 
-export async function createTemplateAction(locale: string, formData: FormData) {
-  const parsed = createTemplateSchema.safeParse({
-    kind: formData.get("kind"),
-    name_ar: formData.get("name_ar"),
-    name_en: formData.get("name_en"),
-  });
+export async function createTemplateAction(locale: string, input: CreateTemplateInput): Promise<ActionResult> {
+  const parsed = createTemplateSchema.safeParse(input);
   if (!parsed.success) return { error: "invalid_input" };
+  const { starter, ...names } = parsed.data;
 
   const supabase = await createClient();
   const coachId = await resolveCoachId(supabase);
   if (!coachId) return { error: "not_authenticated" };
 
-  const template = await new TemplatesService(supabase).create(coachId, parsed.data);
-  redirect(`/${locale}/forms/${template.id}`);
+  const fields = starter ? FORM_STARTERS[names.kind].fields : [];
+  let templateId: string;
+  try {
+    const template = await new TemplatesService(supabase).create(coachId, {
+      ...names,
+      // Saved as a draft, not published: the coach reviews it in the builder first.
+      draft_schema: fields.length > 0 ? { version: 1, fields } : null,
+    });
+    templateId = template.id;
+  } catch {
+    return { error: "create_failed" };
+  }
+  revalidatePath(`/${locale}/forms`);
+  redirect(`/${locale}/forms/${templateId}`);
 }
 
 export async function publishTemplateAction(
@@ -35,6 +46,10 @@ export async function publishTemplateAction(
 ): Promise<ActionResult> {
   const parsed = formTemplateSchema.safeParse({ version: 1, fields });
   if (!parsed.success) return { error: "invalid_input" };
+  // The builder checks this before calling; repeated here because a client
+  // fills in whatever gets published.
+  const issue = findPublishIssue(parsed.data.fields);
+  if (issue) return { error: `publish_${issue.code}` };
 
   const supabase = await createClient();
   const coachId = await resolveCoachId(supabase);
@@ -45,7 +60,71 @@ export async function publishTemplateAction(
   } catch {
     return { error: "publish_failed" };
   }
+  revalidatePath(`/${locale}/forms`);
   revalidatePath(`/${locale}/forms/${templateId}`);
+}
+
+/** The builder's debounced autosave. No revalidatePath on purpose: it would
+ * re-render the builder page under the coach on every pause in typing, and
+ * the list refetches when navigated to. */
+export async function saveDraftAction(templateId: string, fields: FormField[]): Promise<ActionResult> {
+  const id = z.string().uuid().safeParse(templateId);
+  const parsed = formTemplateSchema.safeParse({ version: 1, fields });
+  if (!id.success || !parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  try {
+    await new TemplatesService(supabase).saveDraft(id.data, parsed.data);
+  } catch {
+    return { error: "save_failed" };
+  }
+}
+
+export async function renameTemplateAction(
+  locale: string,
+  templateId: string,
+  names: { name_ar: string; name_en: string }
+): Promise<ActionResult> {
+  const id = z.string().uuid().safeParse(templateId);
+  const parsed = createTemplateSchema.pick({ name_ar: true, name_en: true }).safeParse(names);
+  if (!id.success || !parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  try {
+    await new TemplatesService(supabase).rename(id.data, parsed.data);
+  } catch {
+    return { error: "rename_failed" };
+  }
+  revalidatePath(`/${locale}/forms`);
+}
+
+export async function duplicateTemplateAction(locale: string, templateId: string): Promise<ActionResult> {
+  const parsed = z.string().uuid().safeParse(templateId);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  try {
+    await new TemplatesService(supabase).duplicate(coachId, parsed.data);
+  } catch {
+    return { error: "duplicate_failed" };
+  }
+  revalidatePath(`/${locale}/forms`);
+}
+
+export async function archiveTemplateAction(locale: string, templateId: string): Promise<ActionResult> {
+  const parsed = z.string().uuid().safeParse(templateId);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  try {
+    await new TemplatesService(supabase).archive(parsed.data);
+  } catch {
+    return { error: "delete_failed" };
+  }
+  revalidatePath(`/${locale}/forms`);
 }
 
 export async function assignTemplateAction(

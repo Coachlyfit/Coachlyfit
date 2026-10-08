@@ -1285,27 +1285,89 @@
       "checkin": "Check-in",
       "custom": "Custom"
     },
-    "table": {
-      "name": "Name",
-      "kind": "Type",
-      "updated": "Last updated"
+    "subtitle": "The intake forms and check-ins your clients fill in.",
+    "list": {
+      "emptyTitle": "No forms yet",
+      "filterLabel": "Type",
+      "all": "All",
+      "searchPlaceholder": "Search by name",
+      "noResults": "No matching forms",
+      "noResultsHint": "Try another type or clear the search.",
+      "newCardTitle": "New form",
+      "newCardHint": "Start blank or from suggested questions",
+      "updated": "Updated <num>{date}</num>",
+      "assignNeedsPublish": "Publish the form before assigning it.",
+      "status": {
+        "published": "Published",
+        "draft": "Draft",
+        "unpublishedChanges": "Unpublished changes"
+      },
+      "stats": {
+        "questions": "{count, plural, one {question} other {questions}}",
+        "clients": "{count, plural, one {client} other {clients}}",
+        "newResponses": "{count, plural, one {new response} other {new responses}}"
+      },
+      "actions": {
+        "edit": "Edit",
+        "assign": "Assign",
+        "more": "More: {name}",
+        "duplicate": "Duplicate",
+        "delete": "Delete"
+      },
+      "deleteTitle": "Delete “{name}”?",
+      "deleteBody": "The form will be removed from this list.",
+      "deleteBodyAssigned": "The form will be removed from this list. Clients it was assigned to can still open it, and their responses are kept.",
+      "duplicated": "Copy created.",
+      "deleted": "Form deleted."
     },
-    "createDialog": {
+    "new": {
       "title": "New form",
-      "nameAr": "Name (Arabic)",
-      "nameEn": "Name (English)",
-      "kind": "Type",
-      "submit": "Create"
+      "back": "Forms",
+      "step1": "What is this form for?",
+      "step2": "Name it",
+      "step3": "Where do you want to start?",
+      "nameAr": "Arabic name",
+      "nameEn": "English name",
+      "optional": "(optional)",
+      "nameRequired": "Enter the form's Arabic name.",
+      "suggested": "Suggested questions",
+      "suggestedHint": "<num>{value}</num> {count, plural, one {ready-made question} other {ready-made questions}} you can edit",
+      "suggestedNone": "No suggested questions for this type",
+      "suggestedSwitch": "Start with suggested questions",
+      "blank": "Blank form",
+      "blankHint": "Add every question yourself",
+      "create": "Create and open editor",
+      "previewBadge": "How your client sees it",
+      "previewBlank": "You'll add the questions in the editor",
+      "kinds": {
+        "intake": {
+          "description": "A new client's details: goals, health, experience.",
+          "when": "Sent once, when they sign up"
+        },
+        "checkin": {
+          "description": "A quick daily log: sleep, energy, adherence.",
+          "when": "Sent every day or week"
+        },
+        "workout": {
+          "description": "Post-workout feedback: difficulty, pain, notes.",
+          "when": "Sent after each workout"
+        },
+        "diet": {
+          "description": "Eating habits, preferences and allergies.",
+          "when": "Before a nutrition plan starts"
+        },
+        "custom": {
+          "description": "Anything else you need.",
+          "when": "You decide"
+        }
+      }
     },
     "builder": {
-      "title": "Form builder",
-      "palette": "Add field",
-      "canvasEmpty": "Drag fields here to build your form.",
+      "canvasEmpty": "Pick a question type from the list to start",
       "preview": "Preview",
       "publish": "Publish",
       "published": "Published",
-      "publishedAt": "Published · version {version}",
-      "autosaved": "Draft auto-saved",
+      "autosaved": "Saved automatically",
       "fieldTypes": {
         "text": "Short text",
         "textarea": "Long text",
@@ -1322,33 +1384,66 @@
         "exercise_ref": "Exercise reference",
         "food_ref": "Food reference"
       },
+      "back": "Back to forms",
+      "nameLabel": "Form name",
+      "saving": "Saving…",
+      "saveFailed": "Couldn't save. We'll retry on your next edit.",
+      "questionCount": "<num>{value}</num> {count, plural, one {question} other {questions}}",
+      "paletteTitle": "Add question",
+      "groups": {
+        "text": "Text & numbers",
+        "choice": "Choices",
+        "other": "Other"
+      },
+      "questions": "Questions",
+      "canvasEmptyTitle": "This form is empty",
+      "canvasEmptyMobile": "Tap “Add question” to start",
+      "addQuestion": "New question",
+      "untitled": "Untitled question",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "deleteQuestion": "Delete question",
+      "drag": "Drag to reorder",
+      "editQuestion": "Edit question",
+      "questionType": "Question type",
+      "done": "Done",
+      "delete": "Delete",
       "inspector": {
-        "title": "Field settings",
-        "empty": "Select a field to edit it.",
-        "labelAr": "Label (Arabic)",
-        "labelEn": "Label (English)",
+        "title": "Question properties",
+        "empty": "Select a question to edit it.",
+        "labelAr": "Question text (Arabic)",
+        "labelEn": "Question text (English)",
         "helpAr": "Help text (Arabic)",
         "helpEn": "Help text (English)",
         "required": "Required",
-        "options": "Options",
-        "addOption": "Add option",
-        "optionValue": "Value",
-        "optionLabelAr": "Label (Arabic)",
-        "optionLabelEn": "Label (English)",
+        "options": "Choices",
+        "addOption": "Choice",
+        "optionLabelAr": "Choice (Arabic)",
+        "optionLabelEn": "Choice (English)",
         "min": "Min",
         "max": "Max",
         "step": "Step",
         "unit": "Unit",
         "visibleIf": "Show only if",
         "visibleIfNone": "Always visible",
-        "visibleIfField": "Field",
         "visibleIfOp": "Condition",
         "visibleIfValue": "Value",
-        "deleteField": "Delete field"
+        "questionN": "Question <num>{n}</num>",
+        "help": "Help text",
+        "helpHint": "(optional, shown under the question)",
+        "arabic": "عربي",
+        "english": "English",
+        "removeOption": "Remove choice",
+        "scaleAt": "At {value}",
+        "scaleMinAr": "Lowest value label (Arabic)",
+        "scaleMinEn": "Lowest value label (English)",
+        "scaleMaxAr": "Highest value label (Arabic)",
+        "scaleMaxEn": "Highest value label (English)",
+        "advanced": "Advanced settings"
       }
     },
     "assign": {
-      "title": "Assign to a client",
+      "title": "Assign to client",
       "client": "Client",
       "dueAt": "Due date (optional)",
       "submit": "Assign",
@@ -1416,9 +1511,17 @@
       "not_authenticated": "Please log in again.",
       "not_linked": "Your account isn't connected to a coach yet. Contact your coach or support.",
       "publish_failed": "Couldn't publish this form. Please try again.",
+      "create_failed": "Couldn't create the form. Please try again.",
+      "duplicate_failed": "Couldn't duplicate this form. Please try again.",
+      "delete_failed": "Couldn't delete this form. Please try again.",
       "submit_failed": "Couldn't submit this form. Please try again.",
       "not_found": "This form could not be found.",
-      "review_failed": "Couldn't mark this as reviewed. Try again."
+      "review_failed": "Couldn't mark this as reviewed. Try again.",
+      "publish_empty": "Add at least one question before publishing.",
+      "publish_label": "A question has no text. Write it, then publish.",
+      "publish_options": "A choice is blank. Fill it in or remove it, then publish.",
+      "save_failed": "Couldn't save your changes. Please try again.",
+      "rename_failed": "Couldn't rename the form. Please try again."
     }
   },
   "programs": {

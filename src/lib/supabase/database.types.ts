@@ -1580,31 +1580,40 @@ export type Database = {
       }
       form_templates: {
         Row: {
+          archived_at: string | null
           coach_id: string
           created_at: string
           current_version_id: string | null
+          draft_schema: Json | null
           id: string
           kind: string
           name_ar: string
           name_en: string
+          updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           coach_id: string
           created_at?: string
           current_version_id?: string | null
+          draft_schema?: Json | null
           id?: string
           kind: string
           name_ar: string
           name_en: string
+          updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           coach_id?: string
           created_at?: string
           current_version_id?: string | null
+          draft_schema?: Json | null
           id?: string
           kind?: string
           name_ar?: string
           name_en?: string
+          updated_at?: string
         }
         Relationships: [
           {

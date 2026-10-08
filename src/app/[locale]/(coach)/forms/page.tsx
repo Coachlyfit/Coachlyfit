@@ -1,75 +1,70 @@
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Plus } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { TemplatesService } from "@/domain/forms/templates.service";
-import { formatDate } from "@/lib/format";
-import type { AppLocale } from "@/domain/locale";
-import { Link } from "@/i18n/navigation";
+import { FORM_KINDS, type FormKind } from "@/domain/forms/schema";
+import { pickLocale, type AppLocale } from "@/domain/locale";
 import { PageTitle } from "@/components/dashboard/page-title";
-import { CreateTemplateDialog } from "./create-template-dialog";
+import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { FormsClient, type KindFilter } from "./forms-client";
 
 export default async function FormsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: AppLocale }>;
+  searchParams: Promise<{ kind?: string }>;
 }) {
   const { locale } = await params;
+  const { kind: rawKind } = await searchParams;
+  // An unknown value from a hand-edited URL falls back to "all", not an error.
+  const kind: KindFilter = (FORM_KINDS as readonly string[]).includes(rawKind ?? "") ? (rawKind as FormKind) : "all";
   const t = await getTranslations("forms");
-  const tKinds = await getTranslations("forms.kinds");
   const supabase = await createClient();
-  const templates = await new TemplatesService(supabase).list();
+
+  const [templates, { data: clients }] = await Promise.all([
+    new TemplatesService(supabase).listOverview(),
+    supabase.from("clients").select("id, display_name").eq("status", "active").order("display_name"),
+  ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5 max-md:pb-16">
       <PageTitle title={t("title")} />
-      <div className="flex items-center justify-end">
-        <CreateTemplateDialog locale={locale} />
-      </div>
+
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl leading-9 font-semibold">{t("title")}</h1>
+          <p className="text-base text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        {/* Pinned above the bottom nav on mobile (end-20 clears the feedback
+            widget), inline from md up. */}
+        <Link
+          href="/forms/new"
+          className={cn(
+            buttonVariants(),
+            "max-md:fixed max-md:start-4 max-md:end-20 max-md:bottom-[calc(var(--bottom-nav-h)+0.75rem)] max-md:z-30 max-md:h-13 max-md:text-base max-md:shadow-lg"
+          )}
+        >
+          <Plus className="size-4" aria-hidden="true" />
+          {t("newTemplate")}
+        </Link>
+      </header>
 
       {templates.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            {t("empty")}
-          </CardContent>
+          <EmptyState brandMark title={t("list.emptyTitle")} description={t("empty")} />
         </Card>
       ) : (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("table.name")}</TableHead>
-                <TableHead>{t("table.kind")}</TableHead>
-                <TableHead>{t("table.updated")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {templates.map((template) => (
-                <TableRow key={template.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/forms/${template.id}`} className="hover:underline">
-                      {locale === "ar" ? template.name_ar : template.name_en}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{tKinds(template.kind)}</Badge>
-                  </TableCell>
-                  <TableCell className="tabular-nums text-muted-foreground">
-                    {formatDate(template.created_at, locale)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <FormsClient
+          locale={locale}
+          kind={kind}
+          forms={templates.map((row) => ({ ...row, name: pickLocale(row, locale) }))}
+          clients={clients ?? []}
+        />
       )}
     </div>
   );

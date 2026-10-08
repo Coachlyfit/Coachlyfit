@@ -5,15 +5,14 @@ import { Controller, useFormContext } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScaleButtons } from "@/components/ui/scale-buttons";
 import type { FormField } from "@/domain/forms/schema";
 import type { LibraryRefOption } from "@/domain/forms/library-refs";
 import { NumericPad } from "./numeric-pad";
 import { FieldInput } from "./field-input";
 import { useMediaUpload } from "./photo-file-input";
 
-/** Step-shaped input for the design's three bespoke types (number, scale,
- * textarea) plus a camera-styled capture for photo. Everything else falls
+/** Step-shaped input for the design's bespoke number type plus a
+ * camera-styled capture for photo. Everything else (scale included) falls
  * through to the existing FieldInput — no reason to re-teach select/radio/
  * multiselect/date/checkbox/refs/file how to render themselves. */
 export function StepFieldInput({
@@ -43,18 +42,6 @@ export function StepFieldInput({
             delta={delta}
           />
         )}
-      />
-    );
-  }
-
-  if (field.type === "scale") {
-    const min = field.min ?? 1;
-    const max = field.max ?? 5;
-    return (
-      <Controller
-        name={field.id}
-        control={control}
-        render={({ field: f }) => <ScaleButtons value={f.value} onChange={f.onChange} min={min} max={max} />}
       />
     );
   }

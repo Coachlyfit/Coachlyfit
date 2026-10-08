@@ -23,19 +23,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { assignFormSchema, type AssignFormInput } from "../schemas";
-import { assignTemplateAction } from "../actions";
+import { assignFormSchema, type AssignFormInput } from "./schemas";
+import { assignTemplateAction } from "./actions";
 
 export function AssignDialog({
   locale,
   templateVersionId,
   clients,
   disabled,
+  trigger,
+  children,
 }: {
   locale: string;
   templateVersionId: string | null;
   clients: { id: string; display_name: string }[];
   disabled?: boolean;
+  /** Replaces the default outline button; `children` become its content. */
+  trigger?: React.ReactElement;
+  children?: React.ReactNode;
 }) {
   const t = useTranslations("forms.assign");
   const tCommon = useTranslations("common");
@@ -71,9 +76,13 @@ export function AssignDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" disabled={disabled || !templateVersionId} />}>
-        <Send className="size-4" />
-        {t("title")}
+      <DialogTrigger render={trigger ?? <Button variant="outline" disabled={disabled || !templateVersionId} />}>
+        {children ?? (
+          <>
+            <Send className="size-4" />
+            {t("title")}
+          </>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

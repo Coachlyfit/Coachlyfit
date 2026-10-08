@@ -7,6 +7,7 @@ import { FormDatePicker } from "@/components/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScaleButtons } from "@/components/ui/scale-buttons";
 import {
   Select,
   SelectContent,
@@ -63,26 +64,20 @@ export function FieldInput({
     case "scale": {
       const min = field.min ?? 1;
       const max = field.max ?? 5;
-      const values = Array.from({ length: max - min + 1 }, (_, i) => min + i);
       return (
         <Controller
           name={field.id}
           control={control}
           render={({ field: f }) => (
-            <RadioGroup
-              value={f.value ? String(f.value) : undefined}
-              onValueChange={(v) => f.onChange(Number(v))}
-              className="flex flex-wrap gap-3"
-            >
-              {values.map((v) => (
-                <div key={v} className="flex min-w-9 flex-col items-center gap-1 py-1">
-                  <RadioGroupItem value={String(v)} id={`${field.id}-${v}`} />
-                  <label htmlFor={`${field.id}-${v}`} className="text-xs text-muted-foreground">
-                    {v}
-                  </label>
+            <div className="flex flex-col gap-1.5">
+              <ScaleButtons value={f.value} onChange={f.onChange} min={min} max={max} />
+              {(field.minLabel || field.maxLabel) && (
+                <div className="flex justify-between gap-3 text-xs text-muted-foreground">
+                  <span>{field.minLabel && pickBilingual(field.minLabel, locale)}</span>
+                  <span className="text-end">{field.maxLabel && pickBilingual(field.maxLabel, locale)}</span>
                 </div>
-              ))}
-            </RadioGroup>
+              )}
+            </div>
           )}
         />
       );

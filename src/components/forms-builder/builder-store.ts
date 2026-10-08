@@ -13,7 +13,13 @@ function defaultFieldFor(type: FieldType): FormField {
     required: false,
   };
   if (type === "select" || type === "multiselect" || type === "radio") {
-    return { ...base, options: [{ value: "option_1", label: { ar: "", en: "" } }] } as FormField;
+    return {
+      ...base,
+      options: [
+        { value: "option_1", label: { ar: "اختيار 1", en: "Option 1" } },
+        { value: "option_2", label: { ar: "اختيار 2", en: "Option 2" } },
+      ],
+    } as FormField;
   }
   if (type === "scale") {
     return { ...base, min: 1, max: 5, step: 1 } as FormField;
@@ -29,6 +35,8 @@ type BuilderState = {
   updateField: (id: string, patch: Partial<FormField>) => void;
   removeField: (id: string) => void;
   reorder: (fromIndex: number, toIndex: number) => void;
+  /** One step up (-1) or down (1); a no-op at either end. */
+  moveField: (id: string, delta: -1 | 1) => void;
   select: (id: string | null) => void;
 };
 
@@ -59,6 +67,15 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       const fields = [...state.fields];
       const [moved] = fields.splice(fromIndex, 1);
       fields.splice(toIndex, 0, moved);
+      return { fields };
+    }),
+  moveField: (id, delta) =>
+    set((state) => {
+      const from = state.fields.findIndex((f) => f.id === id);
+      const to = from + delta;
+      if (from === -1 || to < 0 || to >= state.fields.length) return state;
+      const fields = [...state.fields];
+      [fields[from], fields[to]] = [fields[to], fields[from]];
       return { fields };
     }),
   select: (id) => set({ selectedId: id }),

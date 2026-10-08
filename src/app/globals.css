@@ -58,6 +58,8 @@
   --color-destructive-tint-foreground: var(--destructive-tint-foreground);
   --color-accent-tint: var(--accent-tint);
   --color-accent-tint-foreground: var(--accent-tint-foreground);
+  --color-info-tint: var(--info-tint);
+  --color-info-tint-foreground: var(--info-tint-foreground);
   /* Client avatar tints — design system §01. Assigned by client index,
      never chosen; the same client gets the same tint in the sidebar, the
      queue and the invoice. Not brand colors — avatars only. */
@@ -129,6 +131,9 @@
   --destructive-tint-foreground: #991b1b;
   --accent-tint: #ffedd5;
   --accent-tint-foreground: #9a3412;
+  /* Neutral "category" pair (sky 100 / 800, 7.6:1) -- not a status. */
+  --info-tint: #e0f2fe;
+  --info-tint-foreground: #075985;
   --tint-1: #7c3aed;
   --tint-2: #0ea5e9;
   --tint-3: #c2410c;
@@ -196,6 +201,8 @@
   --destructive-tint-foreground: #f87171;
   --accent-tint: rgba(234, 88, 12, .15);
   --accent-tint-foreground: #fb923c;
+  --info-tint: rgba(14, 165, 233, .15);
+  --info-tint-foreground: #38bdf8;
   --tint-1: #7c3aed;
   --tint-2: #0ea5e9;
   --tint-3: #c2410c;
