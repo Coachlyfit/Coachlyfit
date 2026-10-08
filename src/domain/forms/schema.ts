@@ -53,6 +53,10 @@ export const formFieldSchema = z
     max: z.number().optional(),
     step: z.number().optional(),
     unit: z.string().optional(),
+    // Scale only: what the lowest / highest value means ("exhausted" … "full
+    // of energy"), shown under the two ends of the scale.
+    minLabel: bilingualText.optional(),
+    maxLabel: bilingualText.optional(),
     visibleIf: visibleIfSchema.optional(),
   })
   .refine(

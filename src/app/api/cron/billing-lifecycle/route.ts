@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
         .from("form_templates")
         .select("coach_id, current_version_id")
         .eq("id", templateId)
+        .is("archived_at", null)
         .maybeSingle();
       if (template?.current_version_id) {
         await supabase.from("form_assignments").insert({

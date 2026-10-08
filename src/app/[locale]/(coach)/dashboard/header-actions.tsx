@@ -11,7 +11,7 @@ export async function HeaderActions({ locale }: { locale: string }) {
     coachId
       ? supabase
           .from("coaches")
-          .select("form_templates!coaches_default_checkin_template_id_fkey(current_version_id)")
+          .select("form_templates!coaches_default_checkin_template_id_fkey(current_version_id, archived_at)")
           .eq("id", coachId)
           .maybeSingle()
       : Promise.resolve({ data: null }),
@@ -22,7 +22,10 @@ export async function HeaderActions({ locale }: { locale: string }) {
     <div className="flex flex-wrap gap-2">
       <SendCheckinDialog
         locale={locale}
-        templateVersionId={coach?.form_templates?.current_version_id ?? null}
+        // A deleted (archived) default form is treated as no default at all.
+        templateVersionId={
+          coach?.form_templates?.archived_at ? null : (coach?.form_templates?.current_version_id ?? null)
+        }
         clients={clients ?? []}
       />
       <InviteClientDialog locale={locale} />

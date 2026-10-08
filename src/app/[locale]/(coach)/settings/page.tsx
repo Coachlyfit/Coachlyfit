@@ -34,6 +34,7 @@ export default async function SettingsPage() {
       .select("id, name_ar, name_en")
       .eq("kind", "checkin")
       .not("current_version_id", "is", null)
+      .is("archived_at", null)
       .order("name_en"),
     billing.listPackages(coachId),
     billing.listPaymentMethods(coachId),

@@ -1,40 +1,59 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { FIELD_TYPES, type FieldType } from "@/domain/forms/schema";
+import type { FieldType } from "@/domain/forms/schema";
 import { FIELD_ICONS } from "./field-icons";
 import { useBuilderStore } from "./builder-store";
 
-/** `onAdd` fires after adding — the mobile bottom-sheet variant (builder.tsx)
- * uses it to close the sheet, so tapping a field type both adds it and hands
- * off straight to the Inspector sheet, without adding a second control. */
-export function FieldPalette({ className, onAdd }: { className?: string; onAdd?: () => void }) {
-  const t = useTranslations("forms.builder.fieldTypes");
+const GROUPS = [
+  { key: "text", types: ["text", "textarea", "number"] },
+  { key: "choice", types: ["radio", "multiselect", "select", "checkbox"] },
+  { key: "other", types: ["date", "scale", "photo", "file", "section", "exercise_ref", "food_ref"] },
+] as const satisfies readonly { key: string; types: readonly FieldType[] }[];
+
+/** Click adds the type at the end of the form and selects it. `onAdd` fires
+ * after adding -- the mobile bottom sheet (builder.tsx) uses it to hand off
+ * to the edit sheet. `gridClassName` sets the tile columns: two beside the
+ * canvas, three in the sheet. */
+export function FieldPalette({
+  className,
+  gridClassName = "grid-cols-2",
+  onAdd,
+}: {
+  className?: string;
+  gridClassName?: string;
+  onAdd?: () => void;
+}) {
+  const t = useTranslations("forms.builder");
   const addField = useBuilderStore((s) => s.addField);
 
   return (
-    <div className={cn("flex w-56 shrink-0 flex-col gap-1 border-e border-border p-3", className)}>
-      {FIELD_TYPES.map((type: FieldType) => {
-        const Icon = FIELD_ICONS[type];
-        return (
-          <Button
-            key={type}
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="justify-start gap-2"
-            onClick={() => {
-              addField(type);
-              onAdd?.();
-            }}
-          >
-            <Icon className="size-4" />
-            {t(type)}
-          </Button>
-        );
-      })}
+    <div className={cn("flex flex-col gap-3.5", className)}>
+      {GROUPS.map((group) => (
+        <div key={group.key} className="flex flex-col gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">{t(`groups.${group.key}`)}</span>
+          <div className={cn("grid gap-1.5", gridClassName)}>
+            {group.types.map((type) => {
+              const Icon = FIELD_ICONS[type];
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => {
+                    addField(type);
+                    onAdd?.();
+                  }}
+                  className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-[10px] border border-border bg-card p-1.5 leading-tight outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <Icon className="size-4.5 text-primary" aria-hidden="true" />
+                  <span className="text-center text-[0.8125rem]">{t(`fieldTypes.${type}`)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

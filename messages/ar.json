@@ -1285,27 +1285,89 @@
       "checkin": "متابعة يومية",
       "custom": "مخصص"
     },
-    "table": {
-      "name": "الاسم",
-      "kind": "النوع",
-      "updated": "آخر تحديث"
+    "subtitle": "الاستمارات والمتابعات اللي عملاؤك بيملوها.",
+    "list": {
+      "emptyTitle": "مفيش نماذج لسه",
+      "filterLabel": "النوع",
+      "all": "الكل",
+      "searchPlaceholder": "بحث بالاسم",
+      "noResults": "مفيش نماذج مطابقة",
+      "noResultsHint": "جرّب نوع تاني أو امسح البحث.",
+      "newCardTitle": "نموذج جديد",
+      "newCardHint": "ابدأ من الصفر أو من أسئلة جاهزة",
+      "updated": "تحديث <num>{date}</num>",
+      "assignNeedsPublish": "انشر النموذج الأول عشان تقدر تعيّنه.",
+      "status": {
+        "published": "منشور",
+        "draft": "مسودة",
+        "unpublishedChanges": "تعديلات غير منشورة"
+      },
+      "stats": {
+        "questions": "سؤال",
+        "clients": "عميل",
+        "newResponses": "رد جديد"
+      },
+      "actions": {
+        "edit": "تعديل",
+        "assign": "تعيين",
+        "more": "المزيد: {name}",
+        "duplicate": "نسخ",
+        "delete": "حذف"
+      },
+      "deleteTitle": "تحذف «{name}»؟",
+      "deleteBody": "النموذج هيختفي من القايمة.",
+      "deleteBodyAssigned": "النموذج هيختفي من القايمة. العملاء اللي اتعيّن لهم هيفضلوا شايفينه، وردودهم هتفضل محفوظة.",
+      "duplicated": "اتعملت نسخة.",
+      "deleted": "النموذج اتحذف."
     },
-    "createDialog": {
+    "new": {
       "title": "نموذج جديد",
-      "nameAr": "الاسم (عربي)",
-      "nameEn": "الاسم (إنجليزي)",
-      "kind": "النوع",
-      "submit": "إنشاء"
+      "back": "النماذج",
+      "step1": "النموذج ده هيستخدم في إيه؟",
+      "step2": "سمّيه",
+      "step3": "تبدأ منين؟",
+      "nameAr": "الاسم بالعربي",
+      "nameEn": "الاسم بالإنجليزي",
+      "optional": "(اختياري)",
+      "nameRequired": "اكتب اسم النموذج بالعربي.",
+      "suggested": "أسئلة مقترحة",
+      "suggestedHint": "<num>{value}</num> أسئلة جاهزة تقدر تعدّلها",
+      "suggestedNone": "مفيش أسئلة مقترحة للنوع ده",
+      "suggestedSwitch": "ابدأ بأسئلة مقترحة",
+      "blank": "نموذج فاضي",
+      "blankHint": "تضيف كل سؤال بنفسك",
+      "create": "إنشاء وفتح المحرر",
+      "previewBadge": "كده هيشوفه العميل",
+      "previewBlank": "هتضيف الأسئلة في المحرر",
+      "kinds": {
+        "intake": {
+          "description": "بيانات العميل الجديد: أهدافه، صحته، خبرته.",
+          "when": "تتبعت مرة واحدة عند الاشتراك"
+        },
+        "checkin": {
+          "description": "تسجيل سريع كل يوم: نوم، طاقة، التزام.",
+          "when": "تتبعت كل يوم أو أسبوع"
+        },
+        "workout": {
+          "description": "تقييم بعد التمرين: صعوبة، ألم، ملاحظات.",
+          "when": "تتبعت بعد كل تمرين"
+        },
+        "diet": {
+          "description": "عادات الأكل والتفضيلات والحساسية.",
+          "when": "قبل بداية خطة التغذية"
+        },
+        "custom": {
+          "description": "أي حاجة تانية تحتاجها.",
+          "when": "إنت اللي بتحدد"
+        }
+      }
     },
     "builder": {
-      "title": "منشئ النماذج",
-      "palette": "ضيف حقل",
-      "canvasEmpty": "اسحب الحقول هنا وابني نموذجك.",
+      "canvasEmpty": "اختار نوع سؤال من القائمة عشان تبدأ",
       "preview": "معاينة",
-      "publish": "انشر",
+      "publish": "نشر",
       "published": "اتنشر",
-      "publishedAt": "منشور · نسخة {version}",
-      "autosaved": "المسودة اتحفظت لوحدها",
+      "autosaved": "اتحفظ تلقائياً",
       "fieldTypes": {
         "text": "نص قصير",
         "textarea": "نص طويل",
@@ -1322,33 +1384,66 @@
         "exercise_ref": "مرجع تمرين",
         "food_ref": "مرجع طعام"
       },
+      "back": "رجوع للنماذج",
+      "nameLabel": "اسم النموذج",
+      "saving": "بيتحفظ…",
+      "saveFailed": "الحفظ فشل. هنجرّب تاني مع أول تعديل.",
+      "questionCount": "<num>{value}</num> أسئلة",
+      "paletteTitle": "إضافة سؤال",
+      "groups": {
+        "text": "نص وأرقام",
+        "choice": "اختيارات",
+        "other": "أخرى"
+      },
+      "questions": "الأسئلة",
+      "canvasEmptyTitle": "النموذج فاضي",
+      "canvasEmptyMobile": "دوس «إضافة سؤال» عشان تبدأ",
+      "addQuestion": "سؤال جديد",
+      "untitled": "سؤال من غير عنوان",
+      "moveUp": "لأعلى",
+      "moveDown": "لأسفل",
+      "deleteQuestion": "حذف السؤال",
+      "drag": "اسحب لإعادة الترتيب",
+      "editQuestion": "تعديل السؤال",
+      "questionType": "نوع السؤال",
+      "done": "تم",
+      "delete": "حذف",
       "inspector": {
-        "title": "إعدادات الحقل",
-        "empty": "اختر حقلاً لتعديله.",
-        "labelAr": "التسمية (عربي)",
-        "labelEn": "التسمية (إنجليزي)",
-        "helpAr": "نص مساعد (عربي)",
-        "helpEn": "نص مساعد (إنجليزي)",
-        "required": "مطلوب",
-        "options": "الخيارات",
-        "addOption": "إضافة خيار",
-        "optionValue": "القيمة",
-        "optionLabelAr": "التسمية (عربي)",
-        "optionLabelEn": "التسمية (إنجليزي)",
+        "title": "خصائص السؤال",
+        "empty": "اختار سؤال عشان تعدّله.",
+        "labelAr": "نص السؤال (عربي)",
+        "labelEn": "نص السؤال (إنجليزي)",
+        "helpAr": "توضيح (عربي)",
+        "helpEn": "توضيح (إنجليزي)",
+        "required": "إجباري",
+        "options": "الاختيارات",
+        "addOption": "اختيار",
+        "optionLabelAr": "الاختيار (عربي)",
+        "optionLabelEn": "الاختيار (إنجليزي)",
         "min": "الحد الأدنى",
         "max": "الحد الأقصى",
         "step": "الخطوة",
         "unit": "الوحدة",
         "visibleIf": "إظهار فقط إذا",
         "visibleIfNone": "مرئي دائمًا",
-        "visibleIfField": "الحقل",
         "visibleIfOp": "الشرط",
         "visibleIfValue": "القيمة",
-        "deleteField": "حذف الحقل"
+        "questionN": "السؤال <num>{n}</num>",
+        "help": "توضيح",
+        "helpHint": "(اختياري، يظهر تحت السؤال)",
+        "arabic": "عربي",
+        "english": "English",
+        "removeOption": "حذف الاختيار",
+        "scaleAt": "عند {value}",
+        "scaleMinAr": "وصف أقل قيمة (عربي)",
+        "scaleMinEn": "وصف أقل قيمة (إنجليزي)",
+        "scaleMaxAr": "وصف أعلى قيمة (عربي)",
+        "scaleMaxEn": "وصف أعلى قيمة (إنجليزي)",
+        "advanced": "إعدادات متقدمة"
       }
     },
     "assign": {
-      "title": "عيّنه لعميل",
+      "title": "تعيين لعميل",
       "client": "العميل",
       "dueAt": "تاريخ الاستحقاق (اختياري)",
       "submit": "عيّن",
@@ -1416,9 +1511,17 @@
       "not_authenticated": "سجّل الدخول تاني.",
       "not_linked": "حسابك لسه مش متربط بمدرّب. كلّم مدرّبك أو الدعم.",
       "publish_failed": "مقدرناش ننشر النموذج ده. جرّب تاني.",
+      "create_failed": "مقدرناش نعمل النموذج. جرّب تاني.",
+      "duplicate_failed": "مقدرناش ننسخ النموذج ده. جرّب تاني.",
+      "delete_failed": "مقدرناش نحذف النموذج ده. جرّب تاني.",
       "submit_failed": "مقدرناش نبعت النموذج ده. جرّب تاني.",
       "not_found": "النموذج ده مش موجود.",
-      "review_failed": "ما قدرناش نسجّل المراجعة. جرّب تاني."
+      "review_failed": "ما قدرناش نسجّل المراجعة. جرّب تاني.",
+      "publish_empty": "ضيف سؤال واحد على الأقل قبل النشر.",
+      "publish_label": "فيه سؤال من غير نص. اكتب نص السؤال وبعدين انشر.",
+      "publish_options": "فيه اختيار فاضي. اكتب نصه أو احذفه وبعدين انشر.",
+      "save_failed": "مقدرناش نحفظ التعديلات. جرّب تاني.",
+      "rename_failed": "مقدرناش نغيّر الاسم. جرّب تاني."
     }
   },
   "programs": {
