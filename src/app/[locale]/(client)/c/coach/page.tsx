@@ -26,7 +26,14 @@ export default async function ClientCoachPage({
       <h1 className="text-2xl font-semibold tracking-tight">
         {clientRow?.coaches?.business_name ?? t("coach")}
       </h1>
-      {clientRow && <MessageThread clientId={clientRow.id} viewerRole="client" locale={locale} />}
+      {clientRow && (
+        <MessageThread
+          clientId={clientRow.id}
+          viewerRole="client"
+          locale={locale}
+          className="overflow-hidden rounded-xl border border-border"
+        />
+      )}
     </div>
   );
 }

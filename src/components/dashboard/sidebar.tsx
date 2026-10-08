@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { CoachlyLockup } from "@/components/brand/coachly-lockup";
+import { UnreadMessagesBadge } from "@/components/messages/unread-messages-badge";
 import { NAV_ITEMS, type NavItem } from "./nav-items";
 
 export function Sidebar({ items = NAV_ITEMS }: { items?: NavItem[] }) {
@@ -46,6 +47,7 @@ export function Sidebar({ items = NAV_ITEMS }: { items?: NavItem[] }) {
               />
               <Icon className="size-4 shrink-0" aria-hidden="true" />
               <span className="truncate">{t(item.labelKey)}</span>
+              {item.badge === "unreadMessages" && <UnreadMessagesBadge className="ms-auto" />}
             </Link>
           );
         })}

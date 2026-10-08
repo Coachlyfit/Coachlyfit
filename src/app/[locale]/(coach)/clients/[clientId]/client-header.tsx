@@ -105,7 +105,7 @@ export function ClientHeader({ locale, client }: { locale: AppLocale; client: Cl
 
           <div className="flex items-center gap-2">
             {!archived && (
-              <Button render={<Link href={`/inbox/${client.id}`} />} size="sm">
+              <Button render={<Link href={`/messages/${client.id}`} />} size="sm">
                 <MessageCircle className="size-4" />
                 {tProfile("message")}
               </Button>

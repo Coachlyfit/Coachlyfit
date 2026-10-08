@@ -1231,7 +1231,7 @@
     "send": "ابعت",
     "retry": "إعادة المحاولة",
     "typing": "بيكتب دلوقتي…",
-    "online": "متصل",
+    "online": "متصل الآن",
     "offline": "غير متصل",
     "lastSeen": "آخر ظهور {time}",
     "today": "النهاردة",
@@ -1240,38 +1240,74 @@
     "clientList": {
       "empty": "مفيش عملاء لسه."
     },
-    "broadcast": {
-      "trigger": "بث لكل العملاء",
-      "title": "ابعت رسالة لكل العملاء النشطين",
-      "placeholder": "اكتب رسالة تتبعت لكل عميل نشط…",
-      "submit": "ابعت للكل",
-      "success": "اتبعتت لكل عميل نشط."
-    },
     "errors": {
       "invalid_input": "راجع الرسالة وجرّب تاني.",
       "no_recipients": "لسه معندكش عملاء نشطين.",
       "send_failed": "الرسالة معملتش تتبعت."
     },
-    "search": "دور على محادثة…",
+    "search": "بحث باسم العميل أو الرسالة",
     "filter": {
       "all": "الكل",
-      "unread": "لسه ما اتقرتش"
-    },
-    "view": {
-      "label": "العرض",
-      "list": "قائمة",
-      "grid": "شبكة"
+      "unread": "غير مقروءة",
+      "label": "تصفية المحادثات",
+      "awaitingRead": "لسه ما اتقرتش"
     },
     "unreadCount": "{count, plural, one {# رسالة جديدة} other {# رسايل جديدة}}",
-    "you": "انت:",
+    "you": "إنت:",
     "noMessages": "مفيش رسائل لسه",
     "noResults": "مفيش محادثات مطابقة.",
     "compose": {
-      "trigger": "رسالة جديدة",
-      "title": "رسالة جديدة",
+      "trigger": "محادثة جديدة",
+      "title": "محادثة جديدة",
       "client": "العميل",
       "placeholder": "اكتب رسالة…",
       "submit": "ابعت"
+    },
+    "searchLabel": "بحث في المحادثات",
+    "conversations": "المحادثات",
+    "conversation": "المحادثة",
+    "loading": "بنحمّل الرسائل…",
+    "loadingOlder": "بنحمّل رسائل أقدم…",
+    "selectConversation": {
+      "title": "اختار محادثة",
+      "description": "اختار عميل من القائمة عشان تقرا وترد."
+    },
+    "status": {
+      "sending": "بتتبعت…",
+      "sent": "اتبعتت",
+      "read": "اتقرت",
+      "failed": "ما اتبعتتش"
+    },
+    "quickReplies": {
+      "label": "ردود سريعة",
+      "greatWork": "شغل ممتاز، كمّل كده",
+      "sendPhotos": "ابعتلي صور التقدم",
+      "checkinReminder": "فاكر تسجيل الأسبوع؟"
+    },
+    "header": {
+      "back": "رجوع للمحادثات",
+      "clientFile": "ملف العميل"
+    },
+    "context": {
+      "program": "البرنامج",
+      "lastCheckin": "آخر تسجيل",
+      "adherence": "الالتزام",
+      "subscription": "الاشتراك",
+      "openProfile": "فتح ملف العميل",
+      "sendCheckin": "إرسال تسجيل"
+    },
+    "broadcast": {
+      "trigger": "رسالة لكل العملاء",
+      "title": "رسالة لكل العملاء",
+      "audienceLabel": "لمين؟",
+      "audienceGroup": "المستلمين",
+      "all": "كل العملاء",
+      "subscribed": "النشطين فقط",
+      "messageLabel": "الرسالة",
+      "placeholder": "مثلاً: الجيم هيقفل يوم الجمعة…",
+      "note": "هتوصل لكل عميل في محادثته الخاصة، ومحدش هيشوف ردود التانيين.",
+      "submit": "إرسال لـ {count, plural, one {عميل واحد} two {عميلين} few {# عملاء} many {# عميل} other {# عميل}}",
+      "success": "اتبعتت لـ {count, plural, one {عميل واحد} two {عميلين} few {# عملاء} many {# عميل} other {# عميل}}."
     }
   },
   "forms": {

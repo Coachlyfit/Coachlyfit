@@ -1,29 +1,10 @@
-import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { MessageThread } from "@/components/messages/message-thread";
-import { PageTitle } from "@/components/dashboard/page-title";
-import type { AppLocale } from "@/domain/locale";
+import { redirect } from "next/navigation";
 
-export default async function InboxThreadPage({
+export default async function InboxThreadRedirect({
   params,
 }: {
-  params: Promise<{ locale: AppLocale; clientId: string }>;
+  params: Promise<{ locale: string; clientId: string }>;
 }) {
   const { locale, clientId } = await params;
-  const supabase = await createClient();
-
-  const { data: client } = await supabase
-    .from("clients")
-    .select("id, display_name, coach_id")
-    .eq("id", clientId)
-    .maybeSingle();
-
-  if (!client) notFound();
-
-  return (
-    <div className="flex h-[calc(100dvh-6rem-var(--bottom-nav-h))] flex-col gap-4 lg:h-[calc(100dvh-6.5rem)]">
-      <PageTitle title={client.display_name} />
-      <MessageThread clientId={client.id} viewerRole="coach" locale={locale} />
-    </div>
-  );
+  redirect(`/${locale}/messages/${clientId}`);
 }

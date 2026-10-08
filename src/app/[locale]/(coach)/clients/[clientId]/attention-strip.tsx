@@ -92,7 +92,7 @@ export async function AttentionStrip({ clientId }: { clientId: string }) {
       key: "unread",
       icon: MessageCircle,
       text: t("unreadMessages", { count: unread }),
-      href: `/inbox/${clientId}`,
+      href: `/messages/${clientId}`,
     });
   }
 

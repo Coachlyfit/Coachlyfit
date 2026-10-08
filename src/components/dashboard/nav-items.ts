@@ -17,6 +17,8 @@ export type NavItem = {
   href: string;
   labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online";
   icon: LucideIcon;
+  /** Live count shown next to the label -- see UnreadMessagesBadge. */
+  badge?: "unreadMessages";
 };
 
 // No standalone "progress" page: a coach views a client's check-ins and
@@ -36,7 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/diets", labelKey: "diets", icon: Salad },
   { href: "/finance", labelKey: "finance", icon: Wallet },
   { href: "/settings", labelKey: "settings", icon: Settings },
-  { href: "/inbox", labelKey: "inbox", icon: MessageCircle },
+  { href: "/messages", labelKey: "inbox", icon: MessageCircle, badge: "unreadMessages" },
 ];
 
 // Separate list, not an append to NAV_ITEMS: an admin is not a coach with

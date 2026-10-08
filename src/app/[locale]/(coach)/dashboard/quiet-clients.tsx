@@ -51,7 +51,7 @@ export async function QuietClients({ locale }: { locale: AppLocale }) {
               {/* No reminder action exists yet -- the bell opens the
                   client's message thread so the coach can nudge them there. */}
               <Link
-                href={`/inbox/${client.id}`}
+                href={`/messages/${client.id}`}
                 className={buttonVariants({ variant: "outline", size: "icon" })}
                 aria-label={t("remind", { name: client.name })}
               >

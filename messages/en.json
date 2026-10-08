@@ -50,7 +50,7 @@
     "admin": "Admin",
     "plan": "Plan",
     "coach": "Coach",
-    "inbox": "Inbox",
+    "inbox": "Messages",
     "diets": "Nutrition",
     "feedback": "Feedback",
     "online": "Online",
@@ -1225,13 +1225,13 @@
     }
   },
   "inbox": {
-    "title": "Inbox",
+    "title": "Messages",
     "emptyThread": "No messages yet. Say hello.",
     "placeholder": "Type a message…",
     "send": "Send",
     "retry": "Retry",
     "typing": "Typing…",
-    "online": "Online",
+    "online": "Online now",
     "offline": "Offline",
     "lastSeen": "Last seen {time}",
     "today": "Today",
@@ -1240,38 +1240,74 @@
     "clientList": {
       "empty": "No clients yet."
     },
-    "broadcast": {
-      "trigger": "Broadcast",
-      "title": "Message all active clients",
-      "placeholder": "Type a message to send to every active client…",
-      "submit": "Send to all",
-      "success": "Sent to every active client."
-    },
     "errors": {
       "invalid_input": "Please check the message and try again.",
       "no_recipients": "You don't have any active clients yet.",
       "send_failed": "Message failed to send."
     },
-    "search": "Search conversations…",
+    "search": "Search by client name or message",
     "filter": {
       "all": "All",
-      "unread": "Unread"
-    },
-    "view": {
-      "label": "View",
-      "list": "List",
-      "grid": "Grid"
+      "unread": "Unread",
+      "label": "Filter conversations",
+      "awaitingRead": "Not read yet"
     },
     "unreadCount": "{count, plural, one {# unread} other {# unread}}",
     "you": "You:",
     "noMessages": "No messages yet",
     "noResults": "No conversations match.",
     "compose": {
-      "trigger": "New message",
-      "title": "New message",
+      "trigger": "New conversation",
+      "title": "New conversation",
       "client": "Client",
       "placeholder": "Type a message…",
       "submit": "Send"
+    },
+    "searchLabel": "Search conversations",
+    "conversations": "Conversations",
+    "conversation": "Conversation",
+    "loading": "Loading messages…",
+    "loadingOlder": "Loading older messages…",
+    "selectConversation": {
+      "title": "Pick a conversation",
+      "description": "Choose a client from the list to read and reply."
+    },
+    "status": {
+      "sending": "Sending…",
+      "sent": "Sent",
+      "read": "Read",
+      "failed": "Not sent"
+    },
+    "quickReplies": {
+      "label": "Quick replies",
+      "greatWork": "Great work, keep it up",
+      "sendPhotos": "Send me your progress photos",
+      "checkinReminder": "Remember this week's check-in?"
+    },
+    "header": {
+      "back": "Back to conversations",
+      "clientFile": "Client file"
+    },
+    "context": {
+      "program": "Program",
+      "lastCheckin": "Last check-in",
+      "adherence": "Adherence",
+      "subscription": "Subscription",
+      "openProfile": "Open client file",
+      "sendCheckin": "Send check-in"
+    },
+    "broadcast": {
+      "trigger": "Message all clients",
+      "title": "Message all clients",
+      "audienceLabel": "Who gets it?",
+      "audienceGroup": "Recipients",
+      "all": "All clients",
+      "subscribed": "Active subscriptions only",
+      "messageLabel": "Message",
+      "placeholder": "e.g. The gym is closed this Friday…",
+      "note": "Each client gets it in their own private chat. Nobody sees anyone else's replies.",
+      "submit": "Send to {count, plural, one {# client} other {# clients}}",
+      "success": "Sent to {count, plural, one {# client} other {# clients}}."
     }
   },
   "forms": {

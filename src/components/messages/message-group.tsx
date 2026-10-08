@@ -13,12 +13,11 @@ export function MessageGroup({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      {group.messages.map((message, index) => (
+      {group.messages.map((message) => (
         <MessageBubble
           key={message.key}
           message={message}
           locale={locale}
-          showMeta={index === group.messages.length - 1}
           onRetry={onRetry}
         />
       ))}

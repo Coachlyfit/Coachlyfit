@@ -17,11 +17,11 @@ export function DateSeparator({ date, locale }: { date: string; locale: AppLocal
     ? t("today")
     : isSameDay(value, yesterday)
       ? t("yesterday")
-      : formatDate(value, locale, { dateStyle: "medium" });
+      : formatDate(value, locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 
   return (
     <div className="flex justify-center py-2" role="separator" aria-label={label}>
-      <span className="rounded-full bg-muted px-3 py-1 font-mono text-[10px] text-muted-foreground">{label}</span>
+      <span className="rounded-full bg-muted px-2.5 py-0.5 font-mono text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }
