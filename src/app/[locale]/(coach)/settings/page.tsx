@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { getBranding } from "@/lib/branding";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { SettingsShell } from "@/components/settings/settings-shell";
@@ -18,11 +19,11 @@ export default async function SettingsPage() {
   if (!coachId) notFound();
 
   const billing = new ClientBillingService(supabase);
-  const [{ data: coach }, { data: checkinTemplates }, packages, paymentMethods, customMetrics] = await Promise.all([
+  const [{ data: coach }, { data: checkinTemplates }, packages, paymentMethods, customMetrics, branding] = await Promise.all([
     supabase
       .from("coaches")
       .select(
-        "business_name, default_checkin_template_id, slug, logo_path, address, tax_number, contact_phone, contact_email, default_currency, default_tax_rate"
+        "business_name, default_checkin_template_id, slug, logo_path, address, tax_number, contact_phone, contact_email, default_currency, default_tax_rate, brand_primary, brand_accent"
       )
       .eq("id", coachId)
       .single(),
@@ -39,6 +40,8 @@ export default async function SettingsPage() {
     billing.listPackages(coachId),
     billing.listPaymentMethods(coachId),
     new MetricDefinitionsService(supabase).list(coachId),
+    // Non-null exactly when the plan includes custom branding.
+    getBranding(),
   ]);
   if (!coach) notFound();
 
@@ -60,6 +63,8 @@ export default async function SettingsPage() {
           logo_path: coach.logo_path,
         }}
         portal={{ slug: coach.slug, default_checkin_template_id: coach.default_checkin_template_id }}
+        brand={{ brand_primary: coach.brand_primary ?? "", brand_accent: coach.brand_accent ?? "" }}
+        brandingEnabled={branding !== null}
         checkinTemplates={checkinTemplates ?? []}
         packages={packages}
         paymentMethods={paymentMethods}

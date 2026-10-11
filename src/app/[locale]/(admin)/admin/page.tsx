@@ -1,117 +1,90 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { formatNumber } from "@/lib/format";
+import { coachNote, coachStage, needsAttention } from "@/domain/billing/coach-stage";
 import type { AppLocale } from "@/domain/locale";
-import { CoachesTable } from "./coaches-table";
+import { CoachesSection } from "./coaches-section";
+import { KpiCards } from "./kpi-cards";
+import { MIN_CHART_MONTHS, MrrChart } from "./mrr-chart";
+import { PeriodSelect } from "./period-select";
+import { PlanMix } from "./plan-mix";
+import {
+  COACH_VIEWS,
+  PERIODS,
+  type AdminMetrics,
+  type CoachView,
+  type CoachesViewMode,
+  type Period,
+} from "./types";
 
-type AdminMetrics = {
-  mrr_egp: number;
-  active_count: number;
-  trialing_count: number;
-  past_due_count: number;
-  canceled_count: number;
-  churn_rate: number;
-};
-
-/** roleHome() has always sent admins to /{locale}/admin; until this route
- * existed that was a 404. Deliberately a plain index — the metrics dashboard
- * (admin_metrics / admin_list_coaches already exist in SQL) is its own task. */
+/** Admin home. Two RPCs, both admin-checked in the database
+ * (private.is_admin()): admin_metrics() for everything aggregate and
+ * admin_list_coaches() for the rows -- no per-coach queries. The layout's
+ * role redirect is the UX guard; the RPCs are the authorization boundary. */
 export default async function AdminHomePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: AppLocale }>;
+  searchParams: Promise<{ view?: string; period?: string }>;
 }) {
   const { locale } = await params;
+  const { view: rawView, period: rawPeriod } = await searchParams;
   const t = await getTranslations("admin");
-  const tLibrary = await getTranslations("admin.library");
-  const tMetrics = await getTranslations("admin.metrics");
-  const tCoaches = await getTranslations("admin.coaches");
   const supabase = await createClient();
 
-  const [{ data: metricsData }, { data: coaches }] = await Promise.all([
+  // Unknown values from a hand-edited URL fall back to the defaults.
+  const view: CoachesViewMode = COACH_VIEWS.includes(rawView as CoachesViewMode) ? (rawView as CoachesViewMode) : "list";
+  const period: Period = PERIODS.includes(Number(rawPeriod) as Period) ? (Number(rawPeriod) as Period) : 12;
+
+  const [{ data: metricsData }, { data: rows }] = await Promise.all([
     supabase.rpc("admin_metrics"),
     supabase.rpc("admin_list_coaches"),
   ]);
   const metrics = metricsData as AdminMetrics | null;
 
+  const now = new Date();
+  // Same key format as mrr_snapshots.month (first of the month, UTC date).
+  const currentMonth = `${now.toISOString().slice(0, 7)}-01`;
+  const history = metrics?.mrr_history ?? [];
+
+  const coaches: CoachView[] = (rows ?? []).map((row) => {
+    const stage = coachStage(row.status);
+    return {
+      id: row.coach_id,
+      name: row.business_name,
+      owner: row.owner_name,
+      phone: row.phone,
+      tier: row.tier_key,
+      amount: stage === "active" || stage === "pastDue" ? row.price_egp_monthly : null,
+      clients: row.client_count,
+      periodEnd: stage === "trial" ? (row.trial_ends_at ?? row.current_period_end) : row.current_period_end,
+      stage,
+      note: coachNote(row, now),
+      attention: needsAttention(row, now),
+    };
+  });
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl leading-9 font-semibold">{t("title")}</h1>
+          <p className="text-base text-muted-foreground">{t("home.subtitle")}</p>
+        </div>
+        {history.length >= MIN_CHART_MONTHS && <PeriodSelect value={period} />}
+      </header>
 
       {metrics && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {tMetrics("mrr")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold tabular-nums">
-                {formatNumber(metrics.mrr_egp, locale)} EGP
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {tMetrics("churnRate")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold tabular-nums">
-                {formatNumber(metrics.churn_rate * 100, locale, { maximumFractionDigits: 1 })}%
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {tMetrics("active")} / {tMetrics("trialing")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold tabular-nums">
-                {metrics.active_count} / {metrics.trialing_count}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {tMetrics("pastDue")} / {tMetrics("canceled")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold tabular-nums">
-                {metrics.past_due_count} / {metrics.canceled_count}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <>
+          <KpiCards metrics={metrics} history={history} currentMonth={currentMonth} locale={locale} />
+          <div className="flex flex-wrap items-stretch gap-5">
+            <MrrChart points={history.slice(-period)} currentMonth={currentMonth} locale={locale} />
+            <PlanMix metrics={metrics} locale={locale} />
+          </div>
+        </>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link href="/admin/library">
-          <Card className="transition-colors hover:bg-muted/50">
-            <CardContent className="flex flex-col gap-1 p-4">
-              <p className="font-medium">{tLibrary("title")}</p>
-              <p className="text-sm text-muted-foreground">{tLibrary("description")}</p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{tCoaches("title")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CoachesTable locale={locale} coaches={coaches ?? []} />
-        </CardContent>
-      </Card>
+      <CoachesSection locale={locale} coaches={coaches} view={view} />
     </div>
   );
 }

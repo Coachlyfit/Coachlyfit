@@ -10,6 +10,7 @@ export const tierSchema = z.object({
   custom_library: z.coerce.boolean(),
   priority_support: z.coerce.boolean(),
   white_label: z.coerce.boolean(),
+  custom_branding: z.coerce.boolean(),
 });
 export type TierInput = z.input<typeof tierSchema>;
 

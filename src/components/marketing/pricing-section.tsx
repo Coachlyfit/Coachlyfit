@@ -13,7 +13,13 @@ const UNLIMITED_THRESHOLD = 100000;
 // Display order for feature flags — `features` is stored as a flags object
 // ({forms_builder: true, ...}), not a list, so unknown/future keys are
 // silently skipped rather than rendered in an arbitrary jsonb key order.
-const FEATURE_ORDER = ["forms_builder", "custom_library", "priority_support", "white_label"] as const;
+const FEATURE_ORDER = [
+  "forms_builder",
+  "custom_library",
+  "priority_support",
+  "white_label",
+  "custom_branding",
+] as const;
 
 export async function PricingSection() {
   const t = await getTranslations("marketing.pricing");

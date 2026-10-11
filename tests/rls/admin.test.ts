@@ -77,6 +77,45 @@ describe("admin RPC surface", () => {
     expect(coaches.error).not.toBeNull();
   });
 
+  it("returns the dashboard aggregates and per-coach columns the admin home reads", async () => {
+    const metrics = await adminUser.client.rpc("admin_metrics");
+    expect(metrics.data).toMatchObject({
+      past_due_amount_egp: expect.any(Number),
+      canceled_90d_count: expect.any(Number),
+      churn_window_complete: expect.any(Boolean),
+      plan_mix: expect.any(Array),
+      mrr_history: expect.any(Array),
+      online_count: expect.any(Number),
+    });
+
+    const coaches = await adminUser.client.rpc("admin_list_coaches");
+    const row = coaches.data?.find((c) => c.coach_id === coach.userId);
+    expect(row).toMatchObject({ owner_name: "Coach coach", price_egp_monthly: expect.any(Number) });
+  });
+
+  it("stamps status_changed_at when a subscription's status changes", async () => {
+    await admin.from("subscriptions").update({ status: "past_due" }).eq("coach_id", coach.userId);
+    const { data: sub } = await admin
+      .from("subscriptions")
+      .select("status_changed_at")
+      .eq("coach_id", coach.userId)
+      .single();
+    expect(sub?.status_changed_at).not.toBeNull();
+  });
+
+  it("keeps MRR snapshots admin-read-only and snapshot_mrr() cron-only", async () => {
+    expect((await admin.rpc("snapshot_mrr")).error).toBeNull();
+
+    const asAdmin = await adminUser.client.from("mrr_snapshots").select("month");
+    expect(asAdmin.data?.length).toBeGreaterThan(0);
+
+    const asCoach = await coach.client.from("mrr_snapshots").select("month");
+    expect(asCoach.data).toEqual([]);
+
+    expect((await coach.client.rpc("snapshot_mrr")).error).not.toBeNull();
+    expect((await adminUser.client.rpc("snapshot_mrr")).error).not.toBeNull();
+  });
+
   it("does NOT let an admin read client-owned tables directly (checkins, body_metrics)", async () => {
     const checkins = await adminUser.client.from("checkins").select("id");
     expect(checkins.data).toEqual([]);

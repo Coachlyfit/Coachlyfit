@@ -28,7 +28,20 @@ import { recordPaymentAction } from "./actions";
 
 const METHODS = ["instapay", "bank_transfer", "vodafone_cash", "cash"] as const;
 
-export function RecordPaymentDialog({ locale, coachId }: { locale: string; coachId: string }) {
+export function RecordPaymentDialog({
+  locale,
+  coachId,
+  label,
+  defaultAmount,
+  className,
+}: {
+  locale: string;
+  coachId: string;
+  /** Trigger text; the dialog title stays "record a payment". */
+  label?: string;
+  defaultAmount?: number;
+  className?: string;
+}) {
   const t = useTranslations("admin.coaches.recordPaymentDialog");
   const tMethods = useTranslations("admin.coaches.methods");
   const tErrors = useTranslations("admin.coaches.errors");
@@ -51,6 +64,7 @@ export function RecordPaymentDialog({ locale, coachId }: { locale: string; coach
     resolver: zodResolver(recordPaymentSchema),
     defaultValues: {
       coachId,
+      amountEgp: defaultAmount,
       method: "instapay",
       periodStart: today,
       periodEnd: nextMonth.toISOString().slice(0, 10),
@@ -79,9 +93,9 @@ export function RecordPaymentDialog({ locale, coachId }: { locale: string; coach
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
+      <DialogTrigger render={<Button variant="outline" size="sm" className={className} />}>
         <Wallet className="size-4" />
-        {t("title")}
+        {label ?? t("title")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

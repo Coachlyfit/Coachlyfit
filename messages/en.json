@@ -331,7 +331,8 @@
         "forms_builder": "Custom forms builder",
         "custom_library": "Your own exercise & food library",
         "priority_support": "Priority support",
-        "white_label": "Your logo on invoices"
+        "white_label": "Your logo on invoices",
+        "custom_branding": "Your brand colors & logo in the app"
       }
     },
     "faq": {
@@ -567,12 +568,14 @@
       "identity": "Identity",
       "billing": "Billing",
       "packages": "Packages",
-      "portal": "Portal"
+      "portal": "Portal",
+      "brand": "Brand"
     },
     "headings": {
       "identity": "Your identity",
       "billing": "Billing",
-      "portal": "Portal & client experience"
+      "portal": "Portal & client experience",
+      "brand": "Your brand"
     },
     "view": {
       "label": "View",
@@ -603,6 +606,16 @@
         "address": "[Address]",
         "packageName": "[Package name]",
         "slug": "your-name"
+      },
+      "brandLabel": "What your clients see",
+      "brand": {
+        "businessName": "Your business",
+        "badge": "Today",
+        "workoutTitle": "Upper body, week 3",
+        "start": "Start workout",
+        "noteTitle": "Note from your coach",
+        "noteBody": "Great progress this week. Keep the rest times short.",
+        "link": "View full plan"
       }
     },
     "account": "Account",
@@ -656,7 +669,8 @@
       "not_authenticated": "Please log in again.",
       "metric_already_exists": "You already have a metric with a similar name.",
       "upload_failed": "Upload failed. Try again.",
-      "invalid_file": "Use a PNG, JPG or WebP image under 2 MB."
+      "invalid_file": "Use a PNG, JPG or WebP image under 2 MB.",
+      "upgrade_required": "Custom branding is part of the Studio plan."
     },
     "customMetrics": {
       "title": "Custom Metrics",
@@ -720,6 +734,27 @@
       "defaultTaxRate": "Default tax rate (%)",
       "save": "Save profile",
       "saved": "Business profile saved."
+    },
+    "brand": {
+      "description": "Your colors and logo replace Coachlyfit's across the app, for you, your team and your clients.",
+      "brand_primary": {
+        "label": "Primary color",
+        "hint": "Buttons, links, active menu items and charts."
+      },
+      "brand_accent": {
+        "label": "Accent color",
+        "hint": "Highlights, badges and selected items. Leave empty to match the primary color."
+      },
+      "presets": "Suggested colors",
+      "invalidColor": "Use a 6-digit hex color, like #2563eb.",
+      "contrastNote": "We adjust the shade automatically where needed so text stays readable in light and dark mode.",
+      "logoLink": "Change your logo",
+      "reset": "Reset to default",
+      "locked": {
+        "title": "Make the app yours",
+        "description": "Use your own colors and logo across the app for you and your clients. Available on the Studio plan.",
+        "cta": "View plans"
+      }
     }
   },
   "clients": {
@@ -2200,48 +2235,114 @@
       "emptyGlobal": "No global entries yet.",
       "emptyCoach": "No coach-created entries."
     },
-    "metrics": {
-      "mrr": "MRR",
-      "churnRate": "Churn rate",
-      "active": "Active",
-      "trialing": "Trialing",
+    "home": {
+      "subtitle": "Platform health, coaches, and revenue.",
+      "kpiLabel": "Key metrics",
+      "currency": "EGP",
+      "mrr": "Monthly recurring revenue",
+      "mrrDelta": "{amount} vs last month",
+      "activeCoaches": "Active coaches",
+      "activeShort": "Active",
+      "trialsNote": "+ <num>{count}</num> on trial",
+      "trialsShort": "+<num>{count}</num> trial",
       "pastDue": "Past due",
-      "canceled": "Canceled"
+      "pastDueAmount": "<num>{amount}</num> EGP waiting",
+      "churn90": "Churn · 90 days",
+      "churnAll": "Churn · all time",
+      "churn90Short": "Churn · 90d",
+      "churnAllShort": "Churn · all time",
+      "churnOf": "<num>{canceled}</num> of <num>{total}</num> canceled",
+      "online": "Online now",
+      "onlineNote": "Coaches and clients",
+      "chart": {
+        "title": "Monthly revenue",
+        "unit": "Thousand EGP",
+        "aria": "Monthly recurring revenue for the last {count} months, from {min} to {max} thousand EGP",
+        "miniAria": "Monthly recurring revenue over the last {count} months",
+        "emptyTitle": "No monthly history yet",
+        "emptyBody": "Monthly revenue is recorded from now on. The chart appears once two months are in."
+      },
+      "period": {
+        "label": "Period",
+        "months": "Last {count} months"
+      },
+      "mix": {
+        "title": "Plan mix",
+        "trial": "Trial"
+      },
+      "library": {
+        "note": "Exercises and foods for every coach",
+        "manage": "Manage"
+      }
     },
     "coaches": {
       "title": "Coaches",
       "search": "Name, phone, or ID",
       "filterLabel": "Filter by segment",
-      "shownCount": "{shown} of {total}",
+      "shown": "Showing <num>{shown}</num> of <num>{total}</num>",
+      "empty": "No coaches yet.",
+      "noResults": "No coaches match.",
+      "noResultsHint": "Try another filter or clear the search.",
+      "showAll": "Show all",
+      "clientsCount": "{count, plural, =0 {No clients} one {<num>{value}</num> client} other {<num>{value}</num> clients}}",
       "segments": {
         "all": "All",
-        "atRisk": "At risk",
+        "atRisk": "Needs follow-up",
         "trialing": "Trial",
         "starter": "Starter",
         "pro": "Pro",
         "elite": "Elite"
       },
-      "health": {
-        "good": "Good",
-        "atRisk": "At risk",
-        "stalled": "Stalled",
+      "stage": {
         "trial": "Trial",
-        "none": "—"
+        "active": "Active",
+        "pastDue": "Past due",
+        "cancelled": "Canceled"
+      },
+      "stageShort": {
+        "trial": "Trial",
+        "active": "Active",
+        "pastDue": "Late",
+        "cancelled": "Canceled"
+      },
+      "note": {
+        "trialEnds": "{count, plural, =0 {Trial ends today} one {Trial ends in <num>{value}</num> day} other {Trial ends in <num>{value}</num> days}}",
+        "overdue": "{count, plural, =0 {Due today} one {<num>{value}</num> day overdue} other {<num>{value}</num> days overdue}}",
+        "renews": "{count, plural, =0 {Renews today} one {Renews in <num>{value}</num> day} other {Renews in <num>{value}</num> days}}",
+        "inactive": "{count, plural, one {Last seen <num>{value}</num> day ago} other {Last seen <num>{value}</num> days ago}}",
+        "cancelledAgo": "{count, plural, =0 {Canceled today} one {Canceled <num>{value}</num> day ago} other {Canceled <num>{value}</num> days ago}}"
+      },
+      "lane": {
+        "label": "Stage",
+        "empty": "No coaches here"
+      },
+      "actions": {
+        "contact": "Contact",
+        "checkIn": "Check in",
+        "winBack": "Win back",
+        "more": "More",
+        "open": "Open account",
+        "copyId": "Copy ID",
+        "copied": "ID copied.",
+        "copyFailed": "Couldn't copy the ID."
       },
       "table": {
-        "business": "Business",
-        "tier": "Tier",
+        "coach": "Coach",
+        "tier": "Plan",
         "status": "Status",
         "mrr": "MRR · EGP",
-        "health": "Health",
+        "monthly": "Monthly · EGP",
+        "monthlyShort": "Monthly",
         "clients": "Clients",
         "period": "Period ends",
+        "actions": "Actions",
         "joined": "Joined"
       },
       "view": {
         "label": "View",
         "list": "List",
-        "grid": "Grid"
+        "cards": "Cards",
+        "kanban": "Kanban"
       },
       "recordPayment": "Record payment",
       "recordPaymentDialog": {
@@ -2340,7 +2441,8 @@
           "forms_builder": "Forms builder",
           "custom_library": "Custom library",
           "priority_support": "Priority support",
-          "white_label": "White label"
+          "white_label": "White label",
+          "custom_branding": "Custom branding"
         }
       },
       "audit": {

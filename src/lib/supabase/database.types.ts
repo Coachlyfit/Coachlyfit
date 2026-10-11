@@ -759,6 +759,8 @@ export type Database = {
       coaches: {
         Row: {
           address: string | null
+          brand_accent: string | null
+          brand_primary: string | null
           business_name: string
           contact_email: string | null
           contact_phone: string | null
@@ -775,6 +777,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          brand_accent?: string | null
+          brand_primary?: string | null
           business_name: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -791,6 +795,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          brand_accent?: string | null
+          brand_primary?: string | null
           business_name?: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -2205,6 +2211,30 @@ export type Database = {
           },
         ]
       }
+      mrr_snapshots: {
+        Row: {
+          active_count: number
+          created_at: string
+          month: string
+          mrr_egp: number
+          updated_at: string
+        }
+        Insert: {
+          active_count: number
+          created_at?: string
+          month: string
+          mrr_egp: number
+          updated_at?: string
+        }
+        Update: {
+          active_count?: number
+          created_at?: string
+          month?: string
+          mrr_egp?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_deliveries: {
         Row: {
           attempts: number
@@ -3316,6 +3346,7 @@ export type Database = {
           current_period_end: string | null
           id: string
           status: string
+          status_changed_at: string | null
           tier_id: string
           trial_ends_at: string | null
         }
@@ -3325,6 +3356,7 @@ export type Database = {
           current_period_end?: string | null
           id?: string
           status?: string
+          status_changed_at?: string | null
           tier_id: string
           trial_ends_at?: string | null
         }
@@ -3334,6 +3366,7 @@ export type Database = {
           current_period_end?: string | null
           id?: string
           status?: string
+          status_changed_at?: string | null
           tier_id?: string
           trial_ends_at?: string | null
         }
@@ -3771,6 +3804,7 @@ export type Database = {
           display_name: string | null
           last_body: string | null
           last_message_at: string | null
+          last_read_at: string | null
           last_sender_role: string | null
           status: Database["public"]["Enums"]["client_status"] | null
           unread_count: number | null
@@ -3910,9 +3944,13 @@ export type Database = {
           coach_id: string
           created_at: string
           current_period_end: string
+          last_seen_at: string
           mrr_egp: number
+          owner_name: string
           phone: string
+          price_egp_monthly: number
           status: string
+          status_changed_at: string
           tier_key: string
           trial_ends_at: string
         }[]
@@ -3959,6 +3997,7 @@ export type Database = {
       }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
+      get_my_branding: { Args: never; Returns: Json }
       get_portal_branding: { Args: { p_slug: string }; Returns: Json }
       issue_invoice: {
         Args: { p_invoice_id: string }
@@ -4217,6 +4256,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      snapshot_mrr: { Args: never; Returns: undefined }
       touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireCoach } from "@/lib/auth/require-coach";
 import { SLUG_PATTERN } from "@/lib/tenant/portal-slug";
 import { businessProfileSchema } from "./business-profile-schema";
+import { brandSchema } from "./brand-schema";
 
 type ActionResult = { error: string } | void;
 
@@ -116,4 +117,28 @@ export async function updateBusinessProfileAction(locale: string, input: unknown
   if (error) return { error: "update_failed" };
 
   revalidatePath(`/${locale}/settings`);
+}
+
+/** Brand colors (Studio). The plan check is the coaches_guard_branding
+ * trigger (20261011000001_coach_branding.sql), not this action -- a coach
+ * without the custom_branding flag gets its P0001 back as upgrade_required.
+ * Clearing a color is always allowed. Revalidates the whole locale layout
+ * since every coach and client page picks the colors up from its layout. */
+export async function updateBrandingAction(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = brandSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const auth = await requireCoach();
+  if ("error" in auth) return auth;
+
+  const { error } = await auth.supabase
+    .from("coaches")
+    .update({
+      brand_primary: parsed.data.brand_primary || null,
+      brand_accent: parsed.data.brand_accent || null,
+    })
+    .eq("id", auth.coachId);
+  if (error) return { error: error.hint === "upgrade_required" ? "upgrade_required" : "update_failed" };
+
+  revalidatePath(`/${locale}`, "layout");
 }
