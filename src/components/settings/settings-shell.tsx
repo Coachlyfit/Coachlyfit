@@ -19,12 +19,15 @@ import {
   type BusinessProfileFormInput,
 } from "@/app/[locale]/(coach)/settings/business-profile-schema";
 import { portalSchema, type PortalFormInput } from "@/app/[locale]/(coach)/settings/portal-schema";
+import { brandSchema, type BrandFormInput } from "@/app/[locale]/(coach)/settings/brand-schema";
 import {
+  updateBrandingAction,
   updateBusinessProfileAction,
   updateDefaultCheckinTemplateAction,
   updateSlugAction,
 } from "@/app/[locale]/(coach)/settings/actions";
 import { BillingFields } from "./billing-fields";
+import { BrandFields } from "./brand-fields";
 import { CustomMetricsCard } from "./custom-metrics-card";
 import { IdentityFields } from "./identity-fields";
 import { PackagesCard, type Package, type PackageDraft } from "./packages-card";
@@ -32,7 +35,7 @@ import { PaymentMethodsCard } from "./payment-methods-card";
 import { PortalFields } from "./portal-fields";
 import { SettingsPreview, type SettingsTab } from "./settings-preview";
 
-const TABS = ["identity", "billing", "packages", "portal"] as const satisfies readonly SettingsTab[];
+const TABS = ["identity", "billing", "packages", "portal", "brand"] as const satisfies readonly SettingsTab[];
 const FORM_ID = "settings-form";
 
 type Named = { id: string; name_ar: string; name_en: string };
@@ -41,6 +44,8 @@ export function SettingsShell({
   coachId,
   profile,
   portal,
+  brand,
+  brandingEnabled,
   checkinTemplates,
   packages,
   paymentMethods,
@@ -49,6 +54,9 @@ export function SettingsShell({
   coachId: string;
   profile: BusinessProfileFormInput;
   portal: PortalFormInput;
+  brand: BrandFormInput;
+  /** Whether the coach's plan includes custom branding (Studio). */
+  brandingEnabled: boolean;
   checkinTemplates: Named[];
   packages: Package[];
   paymentMethods: Named[];
@@ -73,12 +81,16 @@ export function SettingsShell({
     defaultValues: profile,
   });
   const portalForm = useForm<PortalFormInput>({ resolver: zodResolver(portalSchema), defaultValues: portal });
+  const brandForm = useForm<BrandFormInput>({ resolver: zodResolver(brandSchema), defaultValues: brand });
   const profileDirty = profileForm.formState.isDirty;
   const { isDirty: portalDirty, dirtyFields: portalDirtyFields } = portalForm.formState;
-  const hasForm = tab !== "packages";
-  const dirty = tab === "portal" ? portalDirty : hasForm && profileDirty;
-  const anyDirty = profileDirty || portalDirty;
-  const invalid = Object.keys((tab === "portal" ? portalForm : profileForm).formState.errors).length > 0;
+  const brandDirty = brandForm.formState.isDirty;
+  const hasForm = tab !== "packages" && (tab !== "brand" || brandingEnabled);
+  const dirty =
+    tab === "portal" ? portalDirty : tab === "brand" ? hasForm && brandDirty : hasForm && profileDirty;
+  const anyDirty = profileDirty || portalDirty || brandDirty;
+  const activeForm = tab === "portal" ? portalForm : tab === "brand" ? brandForm : profileForm;
+  const invalid = Object.keys(activeForm.formState.errors).length > 0;
 
   const logoPath = useWatch({ control: profileForm.control, name: "logo_path" });
   const logoUrl = useMemo(
@@ -123,6 +135,7 @@ export function SettingsShell({
     if (!pendingTab) return;
     profileForm.reset();
     portalForm.reset();
+    brandForm.reset();
     goTab(pendingTab);
     setPendingTab(null);
   }
@@ -156,6 +169,18 @@ export function SettingsShell({
         }
       }
       portalForm.reset(portalForm.getValues());
+      toast.success(t("saved"));
+    });
+  });
+
+  const saveBrand = brandForm.handleSubmit((data) => {
+    startTransition(async () => {
+      const result = await updateBrandingAction(locale, data);
+      if (result?.error) {
+        toast.error(tErrors(result.error));
+        return;
+      }
+      brandForm.reset(brandForm.getValues());
       toast.success(t("saved"));
     });
   });
@@ -232,6 +257,15 @@ export function SettingsShell({
               <CustomMetricsCard metrics={customMetrics} />
             </>
           )}
+          {tab === "brand" && (
+            <>
+              <h2 className="text-xl font-semibold">{t("headings.brand")}</h2>
+              <p className="text-sm text-muted-foreground">{t("brand.description")}</p>
+              <form id={FORM_ID} onSubmit={saveBrand} className="flex flex-col gap-4" noValidate>
+                <BrandFields form={brandForm} enabled={brandingEnabled} />
+              </form>
+            </>
+          )}
 
           {hasForm && invalid && <p className="text-sm text-destructive">{tErrors("invalid_input")}</p>}
 
@@ -247,6 +281,7 @@ export function SettingsShell({
           tab={tab}
           profileControl={profileForm.control}
           portalControl={portalForm.control}
+          brandControl={brandForm.control}
           logoUrl={logoUrl}
           packages={packages}
           packageDraft={packageDraft}

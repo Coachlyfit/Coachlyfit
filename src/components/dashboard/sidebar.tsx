@@ -5,10 +5,18 @@ import { Link } from "@/i18n/navigation";
 import { usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { CoachlyLockup } from "@/components/brand/coachly-lockup";
+import { BrandLogo } from "@/components/brand/coach-brand";
 import { UnreadMessagesBadge } from "@/components/messages/unread-messages-badge";
 import { NAV_ITEMS, type NavItem } from "./nav-items";
 
-export function Sidebar({ items = NAV_ITEMS }: { items?: NavItem[] }) {
+export function Sidebar({
+  items = NAV_ITEMS,
+  brandLogo,
+}: {
+  items?: NavItem[];
+  /** Studio coaches' own logo (see lib/branding.ts); null keeps the lockup. */
+  brandLogo?: { src: string; name: string } | null;
+}) {
   const t = useTranslations("nav");
   const pathname = usePathname();
 
@@ -17,7 +25,7 @@ export function Sidebar({ items = NAV_ITEMS }: { items?: NavItem[] }) {
       <div className="px-5 py-5">
         {/* Sidebar ground is always dark (#0F172A light mode / #020617 dark
             mode) regardless of app theme, so the lockup asset is forced. */}
-        <CoachlyLockup height={26} onDarkGround />
+        {brandLogo ? <BrandLogo {...brandLogo} /> : <CoachlyLockup height={26} onDarkGround />}
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
         {items.map((item) => {

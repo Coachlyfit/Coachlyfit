@@ -331,7 +331,8 @@
         "forms_builder": "Custom forms builder",
         "custom_library": "Your own exercise & food library",
         "priority_support": "Priority support",
-        "white_label": "Your logo on invoices"
+        "white_label": "Your logo on invoices",
+        "custom_branding": "Your brand colors & logo in the app"
       }
     },
     "faq": {
@@ -567,12 +568,14 @@
       "identity": "Identity",
       "billing": "Billing",
       "packages": "Packages",
-      "portal": "Portal"
+      "portal": "Portal",
+      "brand": "Brand"
     },
     "headings": {
       "identity": "Your identity",
       "billing": "Billing",
-      "portal": "Portal & client experience"
+      "portal": "Portal & client experience",
+      "brand": "Your brand"
     },
     "view": {
       "label": "View",
@@ -603,6 +606,16 @@
         "address": "[Address]",
         "packageName": "[Package name]",
         "slug": "your-name"
+      },
+      "brandLabel": "What your clients see",
+      "brand": {
+        "businessName": "Your business",
+        "badge": "Today",
+        "workoutTitle": "Upper body, week 3",
+        "start": "Start workout",
+        "noteTitle": "Note from your coach",
+        "noteBody": "Great progress this week. Keep the rest times short.",
+        "link": "View full plan"
       }
     },
     "account": "Account",
@@ -656,7 +669,8 @@
       "not_authenticated": "Please log in again.",
       "metric_already_exists": "You already have a metric with a similar name.",
       "upload_failed": "Upload failed. Try again.",
-      "invalid_file": "Use a PNG, JPG or WebP image under 2 MB."
+      "invalid_file": "Use a PNG, JPG or WebP image under 2 MB.",
+      "upgrade_required": "Custom branding is part of the Studio plan."
     },
     "customMetrics": {
       "title": "Custom Metrics",
@@ -720,6 +734,27 @@
       "defaultTaxRate": "Default tax rate (%)",
       "save": "Save profile",
       "saved": "Business profile saved."
+    },
+    "brand": {
+      "description": "Your colors and logo replace Coachlyfit's across the app, for you, your team and your clients.",
+      "brand_primary": {
+        "label": "Primary color",
+        "hint": "Buttons, links, active menu items and charts."
+      },
+      "brand_accent": {
+        "label": "Accent color",
+        "hint": "Highlights, badges and selected items. Leave empty to match the primary color."
+      },
+      "presets": "Suggested colors",
+      "invalidColor": "Use a 6-digit hex color, like #2563eb.",
+      "contrastNote": "We adjust the shade automatically where needed so text stays readable in light and dark mode.",
+      "logoLink": "Change your logo",
+      "reset": "Reset to default",
+      "locked": {
+        "title": "Make the app yours",
+        "description": "Use your own colors and logo across the app for you and your clients. Available on the Studio plan.",
+        "cta": "View plans"
+      }
     }
   },
   "clients": {
@@ -2340,7 +2375,8 @@
           "forms_builder": "Forms builder",
           "custom_library": "Custom library",
           "priority_support": "Priority support",
-          "white_label": "White label"
+          "white_label": "White label",
+          "custom_branding": "Custom branding"
         }
       },
       "audit": {

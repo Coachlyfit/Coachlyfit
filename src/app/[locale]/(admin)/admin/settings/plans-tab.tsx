@@ -42,6 +42,7 @@ function TierCard({ locale, tier }: { locale: string; tier: Tier }) {
       custom_library: !!features.custom_library,
       priority_support: !!features.priority_support,
       white_label: !!features.white_label,
+      custom_branding: !!features.custom_branding,
     },
   });
 
@@ -57,7 +58,13 @@ function TierCard({ locale, tier }: { locale: string; tier: Tier }) {
     });
   });
 
-  const featureKeys = ["forms_builder", "custom_library", "priority_support", "white_label"] as const;
+  const featureKeys = [
+    "forms_builder",
+    "custom_library",
+    "priority_support",
+    "white_label",
+    "custom_branding",
+  ] as const;
 
   return (
     <Card>

@@ -6,6 +6,7 @@ import { LogOut, User, Languages, SunMoon } from "lucide-react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
+import { BrandLogo } from "@/components/brand/coach-brand";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
@@ -29,9 +30,12 @@ export function Topbar({
   locale,
   fullName,
   navItems,
+  brandLogo,
 }: {
   locale: string;
   fullName: string | null;
+  /** Studio coaches' own logo (see lib/branding.ts); null keeps the mark. */
+  brandLogo?: { src: string; name: string } | null;
   /** Forwarded to CommandPalette; defaults to the coach NAV_ITEMS there.
    *  (admin)/layout.tsx passes ADMIN_NAV_ITEMS since Topbar is shared by
    *  both role layouts. */
@@ -52,7 +56,11 @@ export function Topbar({
 
   return (
     <header className="flex items-center gap-2 border-b border-border px-4 py-3 sm:gap-4 md:px-6">
-      <CoachlyMark size={24} className="shrink-0 text-foreground lg:hidden" />
+      {brandLogo ? (
+        <BrandLogo {...brandLogo} className="lg:hidden" />
+      ) : (
+        <CoachlyMark size={24} className="shrink-0 text-foreground lg:hidden" />
+      )}
       {title && (
         <div className="flex min-w-0 items-baseline gap-3">
           <span className="truncate text-base font-semibold">{title}</span>

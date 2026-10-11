@@ -12,9 +12,15 @@ import { getRootDomain } from "@/lib/tenant/portal-slug";
 import { cn } from "@/lib/utils";
 import type { BusinessProfileFormInput } from "@/app/[locale]/(coach)/settings/business-profile-schema";
 import type { PortalFormInput } from "@/app/[locale]/(coach)/settings/portal-schema";
+import type { BrandFormInput } from "@/app/[locale]/(coach)/settings/brand-schema";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CoachlyMark } from "@/components/brand/coachly-mark";
+import { BrandLogo, BrandStyle } from "@/components/brand/coach-brand";
+import { brandCss } from "@/lib/brand-theme";
 import type { Package, PackageDraft } from "./packages-card";
 
-export type SettingsTab = "identity" | "billing" | "packages" | "portal";
+export type SettingsTab = "identity" | "billing" | "packages" | "portal" | "brand";
 
 type Named = { id: string; name_ar: string; name_en: string };
 
@@ -29,6 +35,7 @@ export function SettingsPreview({
   tab,
   profileControl,
   portalControl,
+  brandControl,
   logoUrl,
   packages,
   packageDraft,
@@ -38,6 +45,7 @@ export function SettingsPreview({
   tab: SettingsTab;
   profileControl: Control<BusinessProfileFormInput>;
   portalControl: Control<PortalFormInput>;
+  brandControl: Control<BrandFormInput>;
   logoUrl: string | null;
   packages: Package[];
   packageDraft: PackageDraft | null;
@@ -52,9 +60,19 @@ export function SettingsPreview({
       className={cn("flex min-w-0 flex-col items-center gap-3.5 rounded-2xl bg-muted p-4 md:p-6", className)}
     >
       <span className="self-start rounded-md bg-background px-2.5 py-0.5 text-xs font-medium">
-        {t(tab === "portal" ? "loginLabel" : tab === "packages" ? "packagesLabel" : "invoiceLabel")}
+        {t(
+          tab === "portal"
+            ? "loginLabel"
+            : tab === "packages"
+              ? "packagesLabel"
+              : tab === "brand"
+                ? "brandLabel"
+                : "invoiceLabel"
+        )}
       </span>
-      {tab === "packages" ? (
+      {tab === "brand" ? (
+        <BrandPreview control={brandControl} profileControl={profileControl} logoUrl={logoUrl} />
+      ) : tab === "packages" ? (
         <PackagesPreview packages={packages} draft={packageDraft} />
       ) : tab === "portal" ? (
         <LoginPreview profileControl={profileControl} portalControl={portalControl} />
@@ -207,6 +225,65 @@ function LoginPreview({
             <LoginCard locale={locale} />
           </PortalAuthFrame>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** The client app's home, recolored live. Overrides are scoped to this box,
+ * so the rest of the settings page keeps its current colors until save. */
+function BrandPreview({
+  control,
+  profileControl,
+  logoUrl,
+}: {
+  control: Control<BrandFormInput>;
+  profileControl: Control<BusinessProfileFormInput>;
+  logoUrl: string | null;
+}) {
+  const t = useTranslations("settings.preview.brand");
+  const values = useWatch({ control });
+  const businessName = useWatch({ control: profileControl, name: "business_name" });
+  // Empty slots preview as the stock orange explicitly, so a pending reset
+  // isn't masked by the saved brand already applied to the page.
+  const css = brandCss(
+    { primary: values.brand_primary || "#c2410c", accent: values.brand_accent || null },
+    "[data-brand-preview]"
+  );
+
+  return (
+    <div className="w-75 max-w-full rounded-[36px] bg-foreground p-2.5">
+      <BrandStyle css={css} />
+      <div
+        data-brand-preview
+        inert
+        className="flex min-h-130 flex-col gap-3 overflow-hidden rounded-[28px] bg-background p-4"
+      >
+        <div className="flex items-center gap-2 border-b border-border pb-3">
+          {logoUrl ? (
+            <BrandLogo src={logoUrl} name={businessName ?? ""} />
+          ) : (
+            <CoachlyMark size={24} className="text-foreground" />
+          )}
+          <span className="truncate text-sm font-semibold">
+            <bdi>{businessName?.trim() || t("businessName")}</bdi>
+          </span>
+        </div>
+        <div className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+          <Badge variant="info" className="self-start">
+            {t("badge")}
+          </Badge>
+          <p className="text-base font-semibold">{t("workoutTitle")}</p>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full w-3/5 rounded-full bg-primary" />
+          </div>
+          <Button className="w-full">{t("start")}</Button>
+        </div>
+        <div className="rounded-xl bg-accent-tint p-4 text-accent-tint-foreground">
+          <p className="text-sm font-semibold">{t("noteTitle")}</p>
+          <p className="mt-1 text-xs">{t("noteBody")}</p>
+        </div>
+        <span className="text-sm font-medium text-primary underline underline-offset-4">{t("link")}</span>
       </div>
     </div>
   );

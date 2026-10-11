@@ -759,6 +759,8 @@ export type Database = {
       coaches: {
         Row: {
           address: string | null
+          brand_accent: string | null
+          brand_primary: string | null
           business_name: string
           contact_email: string | null
           contact_phone: string | null
@@ -775,6 +777,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          brand_accent?: string | null
+          brand_primary?: string | null
           business_name: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -791,6 +795,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          brand_accent?: string | null
+          brand_primary?: string | null
           business_name?: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -3959,6 +3965,7 @@ export type Database = {
       }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
+      get_my_branding: { Args: never; Returns: Json }
       get_portal_branding: { Args: { p_slug: string }; Returns: Json }
       issue_invoice: {
         Args: { p_invoice_id: string }
