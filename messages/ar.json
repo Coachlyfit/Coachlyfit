@@ -54,6 +54,7 @@
     "diets": "التغذية",
     "feedback": "الملاحظات",
     "online": "متصل الآن",
+    "requests": "الطلبات",
     "invoices": "الفواتير",
     "finance": "المالية"
   },
@@ -2337,6 +2338,8 @@
         "all": "الكل",
         "atRisk": "محتاج متابعة",
         "trialing": "تجربة",
+        "pastDue": "متأخر",
+        "cancelled": "ملغي",
         "starter": "Starter",
         "pro": "Pro",
         "elite": "Elite"
@@ -2416,12 +2419,45 @@
         "cash": "نقدًا"
       },
       "errors": {
+        "update_failed": "مقدرناش نحفظ. جرّب تاني.",
+        "already_resolved": "الطلب ده اتراجع قبل كده.",
         "invalid_input": "راجع البيانات وجرّب تاني.",
         "forbidden": "للمشرفين بس.",
         "not_found": "مفيش اشتراك للمدرب ده."
       },
       "detail": {
         "joined": "انضم في {date}",
+        "cancelScheduled": "هيتلغي بنهاية الفترة",
+        "suspended": "موقوف",
+        "requestsTitle": "الطلبات",
+        "manage": {
+          "action": "إدارة الاشتراك",
+          "title": "إدارة الاشتراك",
+          "plan": "الباقة",
+          "status": "الحالة",
+          "periodEnd": "تاريخ الانتهاء",
+          "periodEndHint": "سيبه فاضي عشان التاريخ الحالي يفضل زي ما هو. في التجربة المجانية ده تاريخ نهاية التجربة.",
+          "cancelAtPeriodEnd": "إلغاء في نهاية الفترة",
+          "saved": "اتحدّث الاشتراك."
+        },
+        "suspend": {
+          "action": "إيقاف",
+          "unsuspend": "إلغاء الإيقاف",
+          "confirmTitle": "توقف المدرب ده؟",
+          "confirmBody": "مش هيقدر يستخدم حسابه لحد ما تلغي الإيقاف. بياناته هتفضل محفوظة.",
+          "unsuspendTitle": "تلغي إيقاف المدرب ده؟",
+          "unsuspendBody": "هيرجع يقدر يستخدم حسابه.",
+          "suspended": "اتوقف المدرب.",
+          "unsuspended": "اتلغى إيقاف المدرب."
+        },
+        "activity": {
+          "title": "نشاط المشرفين",
+          "empty": "مفيش إجراءات على المدرب ده لسه.",
+          "noteLabel": "ملاحظة داخلية",
+          "notePlaceholder": "المشرفين بس اللي بيشوفوها",
+          "addNote": "إضافة ملاحظة",
+          "noteSaved": "اتضافت الملاحظة."
+        },
         "risk": {
           "pastDue": "متأخر في السداد",
           "canceled": "الاشتراك اتلغى",
@@ -2436,6 +2472,31 @@
           "method": "طريقة الدفع",
           "amount": "المبلغ (جنيه)"
         }
+      }
+    },
+    "requests": {
+      "title": "طلبات الاشتراك",
+      "empty": "مفيش طلبات.",
+      "approve": "موافقة",
+      "reject": "رفض",
+      "approveTitle": "توافق على الطلب؟",
+      "rejectTitle": "ترفض الطلب؟",
+      "approvePlanBody": "باقة المدرب هتتغير لـ {plan} فورًا.",
+      "approveBody": "الطلب هيتعلّم إنه اتنفذ. أي تعديل اعمله من صفحة المدرب.",
+      "rejectBody": "المدرب هيشوف ردّك.",
+      "responseLabel": "رد للمدرب (اختياري)",
+      "response": "الرد",
+      "approved": "تمت الموافقة على الطلب.",
+      "rejected": "اترفض الطلب.",
+      "types": {
+        "change_plan": "تغيير الباقة",
+        "reactivate": "إعادة تفعيل الاشتراك",
+        "other": "حاجة تانية"
+      },
+      "status": {
+        "pending": "قيد المراجعة",
+        "approved": "تمت الموافقة",
+        "rejected": "مرفوض"
       }
     },
     "feedback": {
@@ -2508,9 +2569,17 @@
           "suspend": "إيقاف",
           "unsuspend": "إلغاء الإيقاف",
           "delete": "حذف",
+          "subscription_update": "تعديل الاشتراك",
+          "note": "ملاحظة",
+          "request_approve": "موافقة على طلب",
+          "request_reject": "رفض طلب",
           "invite_link_created": "إنشاء رابط دعوة"
         },
         "fields": {
+          "tier": "الباقة",
+          "status": "الحالة",
+          "period_end": "تاريخ الانتهاء",
+          "cancel_at_period_end": "إلغاء بنهاية الفترة",
           "full_name": "الاسم",
           "phone": "الهاتف",
           "email": "البريد الإلكتروني",
@@ -2696,6 +2765,67 @@
     "priceMonthly": "{price} جنيه / شهريًا",
     "paidThisMonth": "المدفوع · الشهر ده",
     "totalPaid": "إجمالي المدفوع",
+    "noSubscription": "لسه مفيش اشتراك على حسابك. ابعت طلب من تحت وهنظبطه لك.",
+    "endsAt": "ينتهي في",
+    "cancelScheduledNotice": "اشتراكك هينتهي يوم {date}. حسابك شغال عادي لحد اليوم ده.",
+    "cancelScheduledNoDate": "اشتراكك هينتهي مع نهاية الفترة الحالية.",
+    "ownerOnly": "صاحب الحساب بس هو اللي يقدر يدير الاشتراك.",
+    "cancel": {
+      "action": "إلغاء الاشتراك",
+      "confirmTitle": "تلغي اشتراكك؟",
+      "confirmBody": "حسابك هيفضل شغال لحد {date}، وبعدها مزايا باقتك هتقف.",
+      "confirmBodyNoDate": "حسابك هيفضل شغال لحد نهاية الفترة الحالية، وبعدها مزايا باقتك هتقف.",
+      "done": "اشتراكك هيتلغي في نهاية الفترة.",
+      "resume": "استكمال الاشتراك",
+      "resumed": "رجّعنا اشتراكك."
+    },
+    "plans": {
+      "title": "الباقات",
+      "current": "الحالية",
+      "clients": "لحد {max} عميل",
+      "unlimited": "عملاء بلا حد",
+      "upgrade": "اطلب ترقية",
+      "downgrade": "اطلب باقة أقل",
+      "choose": "اطلب الباقة دي"
+    },
+    "requests": {
+      "title": "طلباتك",
+      "new": "طلب تعديل",
+      "empty": "مفيش طلبات لسه.",
+      "pendingHint": "عندك طلب قيد المراجعة. هنرد عليك قريب.",
+      "withdraw": "سحب الطلب",
+      "withdrawn": "اتسحب الطلب.",
+      "sent": "وصلنا طلبك وهنراجعه قريب.",
+      "response": "ردّنا",
+      "dialogTitle": "طلب تعديل على الاشتراك",
+      "type": "محتاج إيه؟",
+      "plan": "الباقة",
+      "planPlaceholder": "اختار باقة",
+      "planRequired": "اختار الباقة اللي عايزها.",
+      "note": "ملاحظة",
+      "notePlaceholder": "أي تفاصيل تحب نعرفها",
+      "noteRequired": "اكتب تفاصيل طلبك.",
+      "submit": "إرسال الطلب",
+      "sending": "جارٍ الإرسال…",
+      "types": {
+        "change_plan": "تغيير الباقة",
+        "reactivate": "إعادة تفعيل الاشتراك",
+        "other": "حاجة تانية"
+      },
+      "status": {
+        "pending": "قيد المراجعة",
+        "approved": "تمت الموافقة",
+        "rejected": "مرفوض"
+      }
+    },
+    "errors": {
+      "invalid_input": "راجع البيانات وجرّب تاني.",
+      "not_authenticated": "سجّل دخولك وجرّب تاني.",
+      "request_pending": "عندك طلب قيد المراجعة بالفعل.",
+      "forbidden": "صاحب الحساب بس هو اللي يقدر يعمل كده.",
+      "request_failed": "حصلت مشكلة. جرّب تاني.",
+      "not_found_or_forbidden": "الطلب ده مبقاش ينفع يتسحب."
+    },
     "history": {
       "title": "سجل المدفوعات",
       "empty": "مفيش مدفوعات متسجلة لسه.",

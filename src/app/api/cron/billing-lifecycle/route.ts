@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   const supabase = createAdminClient();
   const { data: subscriptions, error } = await supabase
     .from("subscriptions")
-    .select("id, status, trial_ends_at, current_period_end")
+    .select("id, status, trial_ends_at, current_period_end, cancel_at_period_end")
     .neq("status", "canceled");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

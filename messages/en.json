@@ -54,6 +54,7 @@
     "diets": "Nutrition",
     "feedback": "Feedback",
     "online": "Online",
+    "requests": "Requests",
     "invoices": "Invoices",
     "finance": "Finance"
   },
@@ -2337,6 +2338,8 @@
         "all": "All",
         "atRisk": "Needs follow-up",
         "trialing": "Trial",
+        "pastDue": "Past due",
+        "cancelled": "Cancelled",
         "starter": "Starter",
         "pro": "Pro",
         "elite": "Elite"
@@ -2416,12 +2419,45 @@
         "cash": "Cash"
       },
       "errors": {
+        "update_failed": "Couldn't save. Try again.",
+        "already_resolved": "This request was already resolved.",
         "invalid_input": "Please check the form and try again.",
         "forbidden": "Admin only.",
         "not_found": "No subscription found for that coach."
       },
       "detail": {
         "joined": "Joined {date}",
+        "cancelScheduled": "Cancels at period end",
+        "suspended": "Suspended",
+        "requestsTitle": "Requests",
+        "manage": {
+          "action": "Manage subscription",
+          "title": "Manage subscription",
+          "plan": "Plan",
+          "status": "Status",
+          "periodEnd": "End date",
+          "periodEndHint": "Leave empty to keep the current date. For a trial this is the trial end.",
+          "cancelAtPeriodEnd": "Cancel at the end of the period",
+          "saved": "Subscription updated."
+        },
+        "suspend": {
+          "action": "Suspend",
+          "unsuspend": "Unsuspend",
+          "confirmTitle": "Suspend this coach?",
+          "confirmBody": "They won't be able to use their account until you unsuspend them. Their data is kept.",
+          "unsuspendTitle": "Unsuspend this coach?",
+          "unsuspendBody": "They get access to their account again.",
+          "suspended": "Coach suspended.",
+          "unsuspended": "Coach unsuspended."
+        },
+        "activity": {
+          "title": "Admin activity",
+          "empty": "No admin actions on this coach yet.",
+          "noteLabel": "Internal note",
+          "notePlaceholder": "Only admins see this",
+          "addNote": "Add note",
+          "noteSaved": "Note added."
+        },
         "risk": {
           "pastDue": "Payment past due",
           "canceled": "Subscription canceled",
@@ -2436,6 +2472,31 @@
           "method": "Method",
           "amount": "Amount (EGP)"
         }
+      }
+    },
+    "requests": {
+      "title": "Subscription requests",
+      "empty": "No requests.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveTitle": "Approve request?",
+      "rejectTitle": "Reject request?",
+      "approvePlanBody": "The coach's plan changes to {plan} right away.",
+      "approveBody": "This marks the request as handled. Apply any change from the coach's page.",
+      "rejectBody": "The coach will see your reply.",
+      "responseLabel": "Reply to the coach (optional)",
+      "response": "Reply",
+      "approved": "Request approved.",
+      "rejected": "Request rejected.",
+      "types": {
+        "change_plan": "Change plan",
+        "reactivate": "Reactivate subscription",
+        "other": "Something else"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
       }
     },
     "feedback": {
@@ -2508,9 +2569,17 @@
           "suspend": "Suspended",
           "unsuspend": "Unsuspended",
           "delete": "Deleted",
+          "subscription_update": "Subscription changed",
+          "note": "Note",
+          "request_approve": "Request approved",
+          "request_reject": "Request rejected",
           "invite_link_created": "Invite link created"
         },
         "fields": {
+          "tier": "Plan",
+          "status": "Status",
+          "period_end": "End date",
+          "cancel_at_period_end": "Cancel at period end",
           "full_name": "Name",
           "phone": "Phone",
           "email": "Email",
@@ -2696,6 +2765,67 @@
     "priceMonthly": "{price} EGP / month",
     "paidThisMonth": "Paid · this month",
     "totalPaid": "Total paid",
+    "noSubscription": "You don't have a subscription yet. Send a request below and we'll set it up.",
+    "endsAt": "Ends",
+    "cancelScheduledNotice": "Your subscription ends on {date}. You keep full access until then.",
+    "cancelScheduledNoDate": "Your subscription will end when the current period is over.",
+    "ownerOnly": "Only the account owner can manage the subscription.",
+    "cancel": {
+      "action": "Cancel subscription",
+      "confirmTitle": "Cancel your subscription?",
+      "confirmBody": "You keep access until {date}. After that your plan's features stop.",
+      "confirmBodyNoDate": "You keep access until the current period ends. After that your plan's features stop.",
+      "done": "Your subscription will end at the end of the period.",
+      "resume": "Resume subscription",
+      "resumed": "Subscription resumed."
+    },
+    "plans": {
+      "title": "Plans",
+      "current": "Current",
+      "clients": "Up to {max} clients",
+      "unlimited": "Unlimited clients",
+      "upgrade": "Request upgrade",
+      "downgrade": "Request downgrade",
+      "choose": "Request this plan"
+    },
+    "requests": {
+      "title": "Your requests",
+      "new": "Request an update",
+      "empty": "No requests yet.",
+      "pendingHint": "You have a pending request. We'll get back to you soon.",
+      "withdraw": "Withdraw",
+      "withdrawn": "Request withdrawn.",
+      "sent": "Request sent. We'll review it shortly.",
+      "response": "Our reply",
+      "dialogTitle": "Request a subscription update",
+      "type": "What do you need?",
+      "plan": "Plan",
+      "planPlaceholder": "Choose a plan",
+      "planRequired": "Choose the plan you want.",
+      "note": "Note",
+      "notePlaceholder": "Anything we should know",
+      "noteRequired": "Tell us what you need.",
+      "submit": "Send request",
+      "sending": "Sending…",
+      "types": {
+        "change_plan": "Change plan",
+        "reactivate": "Reactivate subscription",
+        "other": "Something else"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Sign in and try again.",
+      "request_pending": "You already have a pending request.",
+      "forbidden": "Only the account owner can do this.",
+      "request_failed": "Something went wrong. Try again.",
+      "not_found_or_forbidden": "That request can no longer be withdrawn."
+    },
     "history": {
       "title": "Payment history",
       "empty": "No payments recorded yet.",
