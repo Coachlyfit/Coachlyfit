@@ -2235,19 +2235,56 @@
       "emptyGlobal": "مفيش عناصر عامة لسه.",
       "emptyCoach": "مفيش عناصر من إنشاء المدربين."
     },
-    "metrics": {
+    "home": {
+      "subtitle": "حالة المنصة والمدربين والإيرادات.",
+      "kpiLabel": "المؤشرات",
+      "currency": "ج.م",
       "mrr": "الإيراد الشهري المتكرر",
-      "churnRate": "معدل التسرب",
-      "active": "نشط",
-      "trialing": "تجربة مجانية",
+      "mrrDelta": "{amount} عن الشهر الماضي",
+      "activeCoaches": "مدربين نشطين",
+      "activeShort": "نشط",
+      "trialsNote": "+ <num>{count}</num> في فترة تجربة",
+      "trialsShort": "+<num>{count}</num> تجربة",
       "pastDue": "متأخر السداد",
-      "canceled": "ملغي"
+      "pastDueAmount": "<num>{amount}</num> ج.م معلّقة",
+      "churn90": "معدل التسرب · 90 يوم",
+      "churnAll": "معدل التسرب · منذ البداية",
+      "churn90Short": "التسرب · 90 يوم",
+      "churnAllShort": "التسرب · منذ البداية",
+      "churnOf": "<num>{canceled}</num> من <num>{total}</num> ألغوا",
+      "online": "متصل الآن",
+      "onlineNote": "مدربين وعملاء",
+      "chart": {
+        "title": "الإيراد الشهري",
+        "unit": "بالألف جنيه",
+        "aria": "الإيراد الشهري لآخر {count} شهر، من {min} إلى {max} ألف جنيه",
+        "miniAria": "الإيراد الشهري خلال آخر {count} شهر",
+        "emptyTitle": "لسه مفيش سجل شهري",
+        "emptyBody": "بدأنا نسجّل الإيراد كل شهر من دلوقتي. الرسم هيظهر لما يتجمع شهرين."
+      },
+      "period": {
+        "label": "الفترة",
+        "months": "آخر {count} شهر"
+      },
+      "mix": {
+        "title": "توزيع الباقات",
+        "trial": "تجربة"
+      },
+      "library": {
+        "note": "تمارين وأطعمة كل المدربين",
+        "manage": "إدارة"
+      }
     },
     "coaches": {
       "title": "المدربون",
       "search": "الاسم، الموبايل، أو المعرّف",
       "filterLabel": "فلترة حسب الفئة",
-      "shownCount": "{shown} من {total}",
+      "shown": "عرض <num>{shown}</num> من <num>{total}</num>",
+      "empty": "مفيش مدربين لسه.",
+      "noResults": "مفيش مدربين مطابقين.",
+      "noResultsHint": "جرّب فلتر تاني أو امسح البحث.",
+      "showAll": "اعرض الكل",
+      "clientsCount": "{count, plural, =0 {بدون عملاء} =1 {عميل واحد} =2 {عميلان} few {<num>{value}</num> عملاء} other {<num>{value}</num> عميل}}",
       "segments": {
         "all": "الكل",
         "atRisk": "محتاج متابعة",
@@ -2256,27 +2293,56 @@
         "pro": "Pro",
         "elite": "Elite"
       },
-      "health": {
-        "good": "تمام",
-        "atRisk": "محتاج متابعة",
-        "stalled": "متوقف",
+      "stage": {
         "trial": "تجربة",
-        "none": "—"
+        "active": "نشط",
+        "pastDue": "متأخر السداد",
+        "cancelled": "ملغي"
+      },
+      "stageShort": {
+        "trial": "تجربة",
+        "active": "نشط",
+        "pastDue": "متأخر",
+        "cancelled": "ملغي"
+      },
+      "note": {
+        "trialEnds": "{count, plural, =0 {التجربة تنتهي اليوم} =1 {التجربة تنتهي بكرة} =2 {التجربة تنتهي بعد يومين} few {التجربة تنتهي بعد <num>{value}</num> أيام} other {التجربة تنتهي بعد <num>{value}</num> يوم}}",
+        "overdue": "{count, plural, =0 {متأخر من اليوم} =1 {متأخر يوم} =2 {متأخر يومين} few {متأخر <num>{value}</num> أيام} other {متأخر <num>{value}</num> يوم}}",
+        "renews": "{count, plural, =0 {يتجدد اليوم} =1 {يتجدد بكرة} =2 {يتجدد بعد يومين} few {يتجدد بعد <num>{value}</num> أيام} other {يتجدد بعد <num>{value}</num> يوم}}",
+        "inactive": "{count, plural, =2 {آخر دخول منذ يومين} few {آخر دخول منذ <num>{value}</num> أيام} other {آخر دخول منذ <num>{value}</num> يوم}}",
+        "cancelledAgo": "{count, plural, =0 {ألغى اليوم} =1 {ألغى أمس} =2 {ألغى منذ يومين} few {ألغى منذ <num>{value}</num> أيام} other {ألغى منذ <num>{value}</num> يوم}}"
+      },
+      "lane": {
+        "label": "المرحلة",
+        "empty": "لا يوجد مدربين هنا"
+      },
+      "actions": {
+        "contact": "تواصل",
+        "checkIn": "اطمّن عليه",
+        "winBack": "استرجاع",
+        "more": "المزيد",
+        "open": "افتح الحساب",
+        "copyId": "انسخ المعرّف",
+        "copied": "اتنسخ المعرّف.",
+        "copyFailed": "ماقدرناش ننسخ المعرّف."
       },
       "table": {
-        "business": "النشاط التجاري",
+        "coach": "المدرب",
         "tier": "الباقة",
         "status": "الحالة",
         "mrr": "دخل شهري · ج.م",
-        "health": "الحالة الصحية",
+        "monthly": "شهرياً · ج.م",
+        "monthlyShort": "شهرياً",
         "clients": "العملاء",
         "period": "نهاية الفترة",
+        "actions": "إجراءات",
         "joined": "تاريخ الانضمام"
       },
       "view": {
-        "label": "العرض",
+        "label": "طريقة العرض",
         "list": "قائمة",
-        "grid": "شبكة"
+        "cards": "بطاقات",
+        "kanban": "كانبان"
       },
       "recordPayment": "سجّل دفعة",
       "recordPaymentDialog": {

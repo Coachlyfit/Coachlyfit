@@ -29,6 +29,12 @@ export async function GET(request: NextRequest) {
     await supabase.from("subscriptions").update({ status: next }).eq("id", id);
   }
 
+  // After the transitions, so this month's row reflects today's statuses.
+  // Feeds the admin home's MRR chart; a failed write only costs one day's
+  // refresh of the current month, so it doesn't fail the job.
+  const { error: snapshotError } = await supabase.rpc("snapshot_mrr");
+  if (snapshotError) console.error("mrr snapshot failed", { code: snapshotError.code });
+
   // Plan lifecycle: a program past its end_date auto-sends the coach's
   // designated check-in form, closing the loop that otherwise depends on
   // the coach remembering. `checkin_triggered_at is null` bounds the scan to

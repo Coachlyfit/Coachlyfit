@@ -2235,48 +2235,114 @@
       "emptyGlobal": "No global entries yet.",
       "emptyCoach": "No coach-created entries."
     },
-    "metrics": {
-      "mrr": "MRR",
-      "churnRate": "Churn rate",
-      "active": "Active",
-      "trialing": "Trialing",
+    "home": {
+      "subtitle": "Platform health, coaches, and revenue.",
+      "kpiLabel": "Key metrics",
+      "currency": "EGP",
+      "mrr": "Monthly recurring revenue",
+      "mrrDelta": "{amount} vs last month",
+      "activeCoaches": "Active coaches",
+      "activeShort": "Active",
+      "trialsNote": "+ <num>{count}</num> on trial",
+      "trialsShort": "+<num>{count}</num> trial",
       "pastDue": "Past due",
-      "canceled": "Canceled"
+      "pastDueAmount": "<num>{amount}</num> EGP waiting",
+      "churn90": "Churn · 90 days",
+      "churnAll": "Churn · all time",
+      "churn90Short": "Churn · 90d",
+      "churnAllShort": "Churn · all time",
+      "churnOf": "<num>{canceled}</num> of <num>{total}</num> canceled",
+      "online": "Online now",
+      "onlineNote": "Coaches and clients",
+      "chart": {
+        "title": "Monthly revenue",
+        "unit": "Thousand EGP",
+        "aria": "Monthly recurring revenue for the last {count} months, from {min} to {max} thousand EGP",
+        "miniAria": "Monthly recurring revenue over the last {count} months",
+        "emptyTitle": "No monthly history yet",
+        "emptyBody": "Monthly revenue is recorded from now on. The chart appears once two months are in."
+      },
+      "period": {
+        "label": "Period",
+        "months": "Last {count} months"
+      },
+      "mix": {
+        "title": "Plan mix",
+        "trial": "Trial"
+      },
+      "library": {
+        "note": "Exercises and foods for every coach",
+        "manage": "Manage"
+      }
     },
     "coaches": {
       "title": "Coaches",
       "search": "Name, phone, or ID",
       "filterLabel": "Filter by segment",
-      "shownCount": "{shown} of {total}",
+      "shown": "Showing <num>{shown}</num> of <num>{total}</num>",
+      "empty": "No coaches yet.",
+      "noResults": "No coaches match.",
+      "noResultsHint": "Try another filter or clear the search.",
+      "showAll": "Show all",
+      "clientsCount": "{count, plural, =0 {No clients} one {<num>{value}</num> client} other {<num>{value}</num> clients}}",
       "segments": {
         "all": "All",
-        "atRisk": "At risk",
+        "atRisk": "Needs follow-up",
         "trialing": "Trial",
         "starter": "Starter",
         "pro": "Pro",
         "elite": "Elite"
       },
-      "health": {
-        "good": "Good",
-        "atRisk": "At risk",
-        "stalled": "Stalled",
+      "stage": {
         "trial": "Trial",
-        "none": "—"
+        "active": "Active",
+        "pastDue": "Past due",
+        "cancelled": "Canceled"
+      },
+      "stageShort": {
+        "trial": "Trial",
+        "active": "Active",
+        "pastDue": "Late",
+        "cancelled": "Canceled"
+      },
+      "note": {
+        "trialEnds": "{count, plural, =0 {Trial ends today} one {Trial ends in <num>{value}</num> day} other {Trial ends in <num>{value}</num> days}}",
+        "overdue": "{count, plural, =0 {Due today} one {<num>{value}</num> day overdue} other {<num>{value}</num> days overdue}}",
+        "renews": "{count, plural, =0 {Renews today} one {Renews in <num>{value}</num> day} other {Renews in <num>{value}</num> days}}",
+        "inactive": "{count, plural, one {Last seen <num>{value}</num> day ago} other {Last seen <num>{value}</num> days ago}}",
+        "cancelledAgo": "{count, plural, =0 {Canceled today} one {Canceled <num>{value}</num> day ago} other {Canceled <num>{value}</num> days ago}}"
+      },
+      "lane": {
+        "label": "Stage",
+        "empty": "No coaches here"
+      },
+      "actions": {
+        "contact": "Contact",
+        "checkIn": "Check in",
+        "winBack": "Win back",
+        "more": "More",
+        "open": "Open account",
+        "copyId": "Copy ID",
+        "copied": "ID copied.",
+        "copyFailed": "Couldn't copy the ID."
       },
       "table": {
-        "business": "Business",
-        "tier": "Tier",
+        "coach": "Coach",
+        "tier": "Plan",
         "status": "Status",
         "mrr": "MRR · EGP",
-        "health": "Health",
+        "monthly": "Monthly · EGP",
+        "monthlyShort": "Monthly",
         "clients": "Clients",
         "period": "Period ends",
+        "actions": "Actions",
         "joined": "Joined"
       },
       "view": {
         "label": "View",
         "list": "List",
-        "grid": "Grid"
+        "cards": "Cards",
+        "kanban": "Kanban"
       },
       "recordPayment": "Record payment",
       "recordPaymentDialog": {
