@@ -68,8 +68,8 @@ create trigger coaches_guard_branding
 
 -- The caller's effective branding: their own tenant if they're a coach or
 -- team member, otherwise the coach of their active coaching relationship.
--- Returns only the narrow display subset (never the whole coaches row, which
--- clients can't read under RLS), and null when the tier lacks the flag.
+-- Returns only the narrow display subset, and null when the tier lacks the
+-- flag.
 create function public.get_my_branding()
 returns json
 language sql
@@ -97,5 +97,8 @@ as $$
   where private.coach_has_feature(c.id, 'custom_branding');
 $$;
 
-revoke execute on function public.get_my_branding() from public;
+-- anon is named explicitly: Supabase's default privileges grant it EXECUTE
+-- directly, so revoking from public alone leaves the RPC callable signed out
+-- (see 20260930000005).
+revoke execute on function public.get_my_branding() from public, anon;
 grant execute on function public.get_my_branding() to authenticated;

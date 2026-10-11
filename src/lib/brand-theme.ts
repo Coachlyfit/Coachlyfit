@@ -19,6 +19,11 @@ export type BrandColors = { primary: string | null; accent: string | null };
 const WHITE = "#ffffff";
 const BLACK = "#000000";
 const DARK_GROUND = "#020617";
+// Primary is also link text, so its shade is picked against the lowest-contrast
+// ground it sits on in each mode: the page (--background) in light, cards
+// (--card) in dark. Clearing those clears white and DARK_GROUND too.
+const LIGHT_PAGE = "#f8fafc";
+const DARK_CARD = "#0f172a";
 const AA = 4.5;
 
 const HEX = /^#?([0-9a-f]{6})$/i;
@@ -78,8 +83,8 @@ export function brandTokens(colors: BrandColors) {
   const dark: Record<string, string> = {};
 
   if (primary) {
-    const fillLight = shadeFor(primary, BLACK, WHITE);
-    const fillDark = shadeFor(primary, WHITE, DARK_GROUND);
+    const fillLight = shadeFor(primary, BLACK, LIGHT_PAGE);
+    const fillDark = shadeFor(primary, WHITE, DARK_CARD);
     const textOnDark = bestText(fillDark, [DARK_GROUND, WHITE]);
     Object.assign(light, {
       "--primary": fillLight,

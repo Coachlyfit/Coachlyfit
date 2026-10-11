@@ -20,9 +20,9 @@ describe("brandTokens", () => {
   it.each(swatches)("keeps every text pairing at AA for %s", (color) => {
     const { light, dark } = brandTokens({ primary: color, accent: color });
     expect(contrast(light["--primary"], light["--primary-foreground"])).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(light["--primary"], "#ffffff")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(light["--primary"], "#f8fafc")).toBeGreaterThanOrEqual(4.5);
     expect(contrast(dark["--primary"], dark["--primary-foreground"])).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(dark["--primary"], "#020617")).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(dark["--primary"], "#0f172a")).toBeGreaterThanOrEqual(4.5);
     expect(contrast(light["--accent-tint"], light["--accent-tint-foreground"])).toBeGreaterThanOrEqual(4.5);
     expect(contrast(dark["--accent-tint"], dark["--accent-tint-foreground"])).toBeGreaterThanOrEqual(4.5);
   });
