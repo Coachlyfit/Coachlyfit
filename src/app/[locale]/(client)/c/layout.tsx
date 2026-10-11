@@ -6,6 +6,8 @@ import { roleHome } from "@/lib/auth/role-home";
 import { getAuthUser, getViewerProfile } from "@/lib/auth/session";
 import { signOutAction } from "@/lib/auth/sign-out-action";
 import { getPlatformSettings } from "@/lib/platform-settings";
+import { getBranding } from "@/lib/branding";
+import { BrandLogo, BrandStyle } from "@/components/brand/coach-brand";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { subscriptionDisplayStatus, type ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
 import { LocaleSwitcher } from "@/components/locale-switcher";
@@ -37,10 +39,11 @@ export default async function ClientLayout({
   // one another, so fetch them together instead of one at a time. The
   // active-subscription check below does depend on the client row, so it
   // has to wait for that one result.
-  const [profile, clientRow, settings] = await Promise.all([
+  const [profile, clientRow, settings, branding] = await Promise.all([
     getViewerProfile(),
     supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle().then((r) => r.data),
     getPlatformSettings(),
+    getBranding(),
   ]);
 
   if (profile?.role !== "client") redirect(roleHome(locale, profile?.role));
@@ -62,6 +65,7 @@ export default async function ClientLayout({
 
   return (
     <div className="flex min-h-dvh flex-col">
+      {branding && <BrandStyle css={branding.css} />}
       <PresenceHeartbeat />
       {settings.announcement.enabled && (
         <AnnouncementBanner
@@ -71,7 +75,11 @@ export default async function ClientLayout({
         />
       )}
       <header className="mx-auto flex w-full max-w-lg items-center gap-2 border-b border-border px-4 py-3">
-        <CoachlyMark size={24} className="text-foreground" />
+        {branding?.logoUrl ? (
+          <BrandLogo src={branding.logoUrl} name={branding.businessName} />
+        ) : (
+          <CoachlyMark size={24} className="text-foreground" />
+        )}
         <div className="ms-auto flex items-center gap-2">
           <LocaleSwitcher />
           <ThemeToggle />

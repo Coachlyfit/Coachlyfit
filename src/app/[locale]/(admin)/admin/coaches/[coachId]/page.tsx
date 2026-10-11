@@ -16,9 +16,8 @@ import { formatDate, formatNumber } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import { Link } from "@/i18n/navigation";
 import { RecordPaymentDialog } from "../../record-payment-dialog";
+import { TRIAL_ENDING_SOON_DAYS as DAYS_SOON } from "@/domain/billing/coach-stage";
 import { ImpersonateButton } from "./impersonate-button";
-
-const DAYS_SOON = 7;
 
 function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);

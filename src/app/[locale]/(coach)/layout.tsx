@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { getAuthUser, getViewerProfile, getRequestCoachId } from "@/lib/auth/session";
 import { getPlatformSettings } from "@/lib/platform-settings";
+import { getBranding } from "@/lib/branding";
+import { BrandStyle } from "@/components/brand/coach-brand";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
@@ -34,10 +36,11 @@ export default async function CoachLayout({
   // profile / platform settings / tenant coachId are independent of one
   // another -- none needs another's result -- so fetch them together
   // instead of one at a time.
-  const [profile, settings, coachId] = await Promise.all([
+  const [profile, settings, coachId, branding] = await Promise.all([
     getViewerProfile(),
     getPlatformSettings(),
     getRequestCoachId(),
+    getBranding(),
   ]);
 
   if (profile?.role !== "coach") redirect(roleHome(locale, profile?.role));
@@ -70,13 +73,16 @@ export default async function CoachLayout({
   // shows/hides a banner, nothing more.
   const impersonating = (await cookies()).get("impersonating")?.value === "1";
 
+  const brandLogo = branding?.logoUrl ? { src: branding.logoUrl, name: branding.businessName } : null;
+
   return (
     <div className="flex min-h-dvh">
+      {branding && <BrandStyle css={branding.css} />}
       {/* Don't mark the real coach "online" while an admin is impersonating
        * them -- that's the admin's activity, not the coach's. */}
       {!impersonating && <PresenceHeartbeat />}
       <InboxRealtime />
-      <Sidebar />
+      <Sidebar brandLogo={brandLogo} />
       <div className="flex min-w-0 flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
         {settings.announcement.enabled && (
@@ -86,7 +92,7 @@ export default async function CoachLayout({
             text_en={settings.announcement.text_en}
           />
         )}
-        <Topbar locale={locale} fullName={profile.full_name} />
+        <Topbar locale={locale} fullName={profile.full_name} brandLogo={brandLogo} />
         <main className="min-w-0 flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] lg:p-6 lg:pb-6">
           {children}
         </main>

@@ -36,18 +36,19 @@ export async function updateTierAction(locale: string, tierId: string, formData:
     custom_library: formData.get("custom_library") === "true",
     priority_support: formData.get("priority_support") === "true",
     white_label: formData.get("white_label") === "true",
+    custom_branding: formData.get("custom_branding") === "true",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { forms_builder, custom_library, priority_support, white_label, ...rest } = parsed.data;
+  const { forms_builder, custom_library, priority_support, white_label, custom_branding, ...rest } = parsed.data;
   const { error: dbError } = await supabase
     .from("subscription_tiers")
     .update({
       ...rest,
-      features: { forms_builder, custom_library, priority_support, white_label },
+      features: { forms_builder, custom_library, priority_support, white_label, custom_branding },
     })
     .eq("id", tierId);
   if (dbError) return { error: "update_failed" };
