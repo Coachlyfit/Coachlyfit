@@ -16,14 +16,20 @@ export type AuditEntry = {
 
 type Change = { from: unknown; to: unknown };
 
-function changes(details: unknown): [string, Change][] {
+export function changes(details: unknown): [string, Change][] {
   if (!details || typeof details !== "object") return [];
   return Object.entries(details as Record<string, unknown>).filter(
     (e): e is [string, Change] => !!e[1] && typeof e[1] === "object" && "to" in e[1]
   );
 }
 
-const show = (v: unknown) => (v == null || v === "" ? "—" : String(v));
+/** Text of an internal note entry (action "note"), else null. */
+export function noteOf(details: unknown): string | null {
+  const note = (details as { note?: unknown } | null)?.note;
+  return typeof note === "string" ? note : null;
+}
+
+export const show = (v: unknown) => (v == null || v === "" ? "—" : String(v));
 
 export function AuditTab({ locale, entries }: { locale: AppLocale; entries: AuditEntry[] }) {
   const t = useTranslations("admin.settings.audit");
@@ -65,6 +71,7 @@ export function AuditTab({ locale, entries }: { locale: AppLocale; entries: Audi
                   {t.has(`fields.${field}`) ? t(`fields.${field}`) : field}: {show(c.from)} → {show(c.to)}
                 </div>
               ))}
+              {noteOf(e.details) && <div className="whitespace-pre-wrap">{noteOf(e.details)}</div>}
             </TableCell>
           </TableRow>
         ))}

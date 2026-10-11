@@ -4,6 +4,8 @@ export type SubscriptionLike = {
   status: SubscriptionStatus;
   trial_ends_at: string | null;
   current_period_end: string | null;
+  /** The coach asked to stop at the end of the period: no grace window. */
+  cancel_at_period_end?: boolean;
 };
 
 const GRACE_PERIOD_DAYS = 7;
@@ -23,6 +25,6 @@ export function nextStatus(sub: SubscriptionLike, now: Date): SubscriptionStatus
   const daysOverdue = (now.getTime() - new Date(deadline).getTime()) / MS_PER_DAY;
   if (daysOverdue < 0) return null; // still within the current period/trial
 
-  if (daysOverdue >= GRACE_PERIOD_DAYS) return "canceled";
+  if (sub.cancel_at_period_end || daysOverdue >= GRACE_PERIOD_DAYS) return "canceled";
   return sub.status === "past_due" ? null : "past_due";
 }

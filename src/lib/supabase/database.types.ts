@@ -3303,6 +3303,67 @@ export type Database = {
           },
         ]
       }
+      subscription_requests: {
+        Row: {
+          admin_response: string | null
+          coach_id: string
+          created_at: string
+          id: string
+          note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          tier_id: string | null
+          type: string
+        }
+        Insert: {
+          admin_response?: string | null
+          coach_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          tier_id?: string | null
+          type: string
+        }
+        Update: {
+          admin_response?: string | null
+          coach_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          tier_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_requests_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_tiers: {
         Row: {
           created_at: string
@@ -3341,6 +3402,7 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          cancel_at_period_end: boolean
           coach_id: string
           created_at: string
           current_period_end: string | null
@@ -3351,6 +3413,7 @@ export type Database = {
           trial_ends_at: string | null
         }
         Insert: {
+          cancel_at_period_end?: boolean
           coach_id: string
           created_at?: string
           current_period_end?: string | null
@@ -3361,6 +3424,7 @@ export type Database = {
           trial_ends_at?: string | null
         }
         Update: {
+          cancel_at_period_end?: boolean
           coach_id?: string
           created_at?: string
           current_period_end?: string | null
@@ -3932,14 +3996,33 @@ export type Database = {
         Args: { p_ip?: unknown; p_token: string }
         Returns: Json
       }
+      admin_add_coach_note: {
+        Args: { p_coach_id: string; p_note: string }
+        Returns: undefined
+      }
       admin_authorize_user_action: {
         Args: { p_action: string; p_user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      admin_coach_clients: {
+        Args: { p_coach_id: string }
+        Returns: {
+          can_invite: boolean
+          client_id: string
+          last_seen_at: string
+          name: string
+          user_id: string
+        }[]
+      }
+      admin_create_invite: {
+        Args: { p_client_id: string; p_token_hash: string }
+        Returns: string
       }
       admin_list_coaches: {
         Args: never
         Returns: {
           business_name: string
+          cancel_at_period_end: boolean
           client_count: number
           coach_id: string
           created_at: string
@@ -3951,6 +4034,8 @@ export type Database = {
           price_egp_monthly: number
           status: string
           status_changed_at: string
+          suspended_at: string
+          tier_id: string
           tier_key: string
           trial_ends_at: string
         }[]
@@ -3978,8 +4063,13 @@ export type Database = {
         Returns: undefined
       }
       admin_metrics: { Args: never; Returns: Json }
+      admin_online_summary: { Args: never; Returns: Json }
       admin_promote_exercise: { Args: { p_id: string }; Returns: undefined }
       admin_promote_food: { Args: { p_id: string }; Returns: undefined }
+      admin_resolve_subscription_request: {
+        Args: { p_approve: boolean; p_request_id: string; p_response?: string }
+        Returns: undefined
+      }
       admin_set_role: {
         Args: {
           p_role: Database["public"]["Enums"]["user_role"]
@@ -3989,6 +4079,16 @@ export type Database = {
       }
       admin_set_suspended: {
         Args: { p_suspended: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      admin_update_subscription: {
+        Args: {
+          p_cancel_at_period_end?: boolean
+          p_coach_id: string
+          p_period_end?: string
+          p_status?: string
+          p_tier_id?: string
+        }
         Returns: undefined
       }
       admin_update_user_profile: {
@@ -4255,6 +4355,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      set_my_subscription_cancel: {
+        Args: { p_cancel: boolean }
+        Returns: undefined
       }
       snapshot_mrr: { Args: never; Returns: undefined }
       touch_last_seen: { Args: never; Returns: undefined }

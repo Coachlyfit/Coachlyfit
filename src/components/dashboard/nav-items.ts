@@ -10,12 +10,13 @@ import {
   MessageCircle,
   MessageSquareText,
   Radio,
+  Inbox,
   type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge. */
   badge?: "unreadMessages";
@@ -46,6 +47,7 @@ export const NAV_ITEMS: NavItem[] = [
 // layout bounces on role), so sharing one array would render dead links.
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin", labelKey: "admin", icon: LayoutDashboard },
+  { href: "/admin/requests", labelKey: "requests", icon: Inbox },
   { href: "/admin/online", labelKey: "online", icon: Radio },
   { href: "/admin/library", labelKey: "library", icon: Dumbbell },
   { href: "/admin/feedback", labelKey: "feedback", icon: MessageSquareText },

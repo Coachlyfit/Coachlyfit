@@ -15,6 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatNumber } from "@/lib/format";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { PageTitle } from "@/components/dashboard/page-title";
+import { getAuthUser, getRequestCoachId } from "@/lib/auth/session";
+import { CancelControl, PlansAndRequests } from "./subscription-manager";
 
 // The coach's own Coachly Fit subscription (coach -> platform money). Client
 // invoices and payments are on /finance, which links here.
@@ -29,19 +31,46 @@ export default async function SubscriptionPage({
   const tFinance = await getTranslations("finance");
   const supabase = await createClient();
 
-  const [{ data: subscription }, { count: clientCount }, { data: payments }] = await Promise.all([
+  const [
+    { data: subscription },
+    { count: clientCount },
+    { data: payments },
+    { data: tiers },
+    { data: requests },
+    user,
+    coachId,
+  ] = await Promise.all([
+    // maybeSingle: a coach can have no row at all, and that is a state the
+    // page has to explain rather than an error to swallow.
     supabase
       .from("subscriptions")
-      .select("status, trial_ends_at, current_period_end, subscription_tiers(name_ar, name_en, price_egp_monthly, max_clients)")
-      .single(),
+      .select(
+        "status, tier_id, trial_ends_at, current_period_end, cancel_at_period_end, subscription_tiers(name_ar, name_en, price_egp_monthly, max_clients)"
+      )
+      .maybeSingle(),
     supabase.from("clients").select("id", { count: "exact", head: true }).neq("status", "archived"),
     supabase.from("payments").select("*").order("created_at", { ascending: false }),
+    supabase
+      .from("subscription_tiers")
+      .select("id, name_ar, name_en, price_egp_monthly, max_clients")
+      .order("price_egp_monthly"),
+    supabase
+      .from("subscription_requests")
+      .select("id, type, note, status, admin_response, created_at, subscription_tiers(name_ar, name_en)")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    getAuthUser(),
+    getRequestCoachId(),
   ]);
 
+  // Only the tenant owner manages the subscription; a team member sees it.
+  const isOwner = !!user && user.id === coachId;
   const tier = subscription?.subscription_tiers;
+  const canceled = subscription?.status === "canceled";
+  const cancelScheduled = !!subscription?.cancel_at_period_end && !canceled;
   const periodValue =
     subscription?.status === "trialing" ? subscription.trial_ends_at : subscription?.current_period_end;
-  const periodLabel = subscription?.status === "trialing" ? "trialEndsAt" : "renewsAt";
+  const periodLabel = cancelScheduled ? "endsAt" : subscription?.status === "trialing" ? "trialEndsAt" : "renewsAt";
 
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const paidThisMonth = (payments ?? [])
@@ -98,7 +127,8 @@ export default async function SubscriptionPage({
               {t("clientLimit", { count: clientCount ?? 0, max: tier.max_clients })}
             </p>
           )}
-          {periodValue && (
+          {!subscription && <p className="text-sm text-muted-foreground">{t("noSubscription")}</p>}
+          {periodValue && !canceled && (
             <p className="text-sm text-muted-foreground">
               {t(periodLabel)}: {formatDate(periodValue, locale)}
             </p>
@@ -109,8 +139,44 @@ export default async function SubscriptionPage({
           {subscription?.status === "canceled" && (
             <p className="text-sm text-destructive">{t("canceledNotice")}</p>
           )}
+          {cancelScheduled && (
+            <p className="text-sm text-warning-tint-foreground">
+              {periodValue
+                ? t("cancelScheduledNotice", { date: formatDate(periodValue, locale) })
+                : t("cancelScheduledNoDate")}
+            </p>
+          )}
+          {subscription && !canceled && isOwner && (
+            <CancelControl
+              locale={locale}
+              cancelAtPeriodEnd={subscription.cancel_at_period_end}
+              periodEnd={periodValue ?? null}
+            />
+          )}
         </CardContent>
       </Card>
+
+      <PlansAndRequests
+        locale={locale}
+        tiers={(tiers ?? []).map((row) => ({
+          id: row.id,
+          name: pickLocale(row, locale),
+          price: row.price_egp_monthly,
+          maxClients: row.max_clients,
+        }))}
+        currentTierId={canceled ? null : (subscription?.tier_id ?? null)}
+        canceled={canceled}
+        isOwner={isOwner}
+        requests={(requests ?? []).map((row) => ({
+          id: row.id,
+          type: row.type,
+          tierName: row.subscription_tiers ? pickLocale(row.subscription_tiers, locale) : null,
+          note: row.note,
+          status: row.status,
+          adminResponse: row.admin_response,
+          createdAt: row.created_at,
+        }))}
+      />
 
       <Card>
         <CardHeader>

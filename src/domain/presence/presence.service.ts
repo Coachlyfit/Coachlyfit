@@ -26,11 +26,43 @@ export type OnlineUsersPage = {
   online: number;
 };
 
-export type CoachGroup = {
-  /** null = "Unassigned" -- clients whose coach row no longer exists. */
-  coach: { id: string; name: string; online: boolean; lastSeenAt: string | null } | null;
-  clients: OnlineUserRow[];
-  onlineCount: number;
+/** One coach on the admin "Online now" page. clientUserIds are the account
+ * ids of their clients -- what the presence state is matched against to get
+ * "online / total" without loading the clients themselves. */
+export type OnlineCoach = {
+  id: string;
+  name: string;
+  lastSeenAt: string | null;
+  clientTotal: number;
+  clientUserIds: string[];
+};
+
+export type OnlineSummary = {
+  coachTotal: number;
+  clientTotal: number;
+  activeToday: number;
+  active7d: number;
+  neverCount: number;
+  coaches: OnlineCoach[];
+};
+
+/** userId is null for an invited client who has no account yet -- the only
+ * kind a new invite link can be made for (canInvite). */
+export type CoachClientRow = {
+  clientId: string;
+  userId: string | null;
+  name: string;
+  lastSeenAt: string | null;
+  canInvite: boolean;
+};
+
+type SummaryJson = {
+  coach_total: number;
+  client_total: number;
+  active_today: number;
+  active_7d: number;
+  never_count: number;
+  coaches: { id: string; name: string; last_seen_at: string | null; client_total: number; client_user_ids: string[] }[];
 };
 
 /** Presence = "online now" (last_seen_at within ONLINE_WINDOW_MINUTES),
@@ -78,36 +110,39 @@ export class PresenceService {
       online: data?.[0]?.online_count ?? 0,
     };
   }
-}
 
-/** Groups a page of rows by coach for the admin view. Pure -- pulled out of
- * PresenceService so it's testable without a fake DB. A "coach" row (role
- * === 'coach', emitted by the RPC only for admin callers) becomes the
- * group's header info instead of a client row inside it; a client whose
- * coach_id is null (coach row deleted/missing) lands in the `coach: null`
- * "Unassigned" group. */
-export function groupByCoach(rows: OnlineUserRow[]): CoachGroup[] {
-  const groups = new Map<string | null, CoachGroup>();
-
-  function groupFor(coachId: string | null): CoachGroup {
-    let g = groups.get(coachId);
-    if (!g) {
-      g = { coach: null, clients: [], onlineCount: 0 };
-      groups.set(coachId, g);
-    }
-    return g;
+  /** Admin only (admin_online_summary() checks). Every aggregate on the
+   * "Online now" page plus the coach list, in one call. */
+  async adminSummary(): Promise<OnlineSummary> {
+    const { data, error } = await this.db.rpc("admin_online_summary");
+    if (error) throw error;
+    const json = data as SummaryJson;
+    return {
+      coachTotal: json.coach_total,
+      clientTotal: json.client_total,
+      activeToday: json.active_today,
+      active7d: json.active_7d,
+      neverCount: json.never_count,
+      coaches: json.coaches.map((c) => ({
+        id: c.id,
+        name: c.name,
+        lastSeenAt: c.last_seen_at,
+        clientTotal: c.client_total,
+        clientUserIds: c.client_user_ids,
+      })),
+    };
   }
 
-  for (const row of rows) {
-    if (row.role === "coach") {
-      const g = groupFor(row.userId);
-      g.coach = { id: row.userId, name: row.name, online: row.online, lastSeenAt: row.lastSeenAt };
-      continue;
-    }
-    const g = groupFor(row.coachId);
-    g.clients.push(row);
-    if (row.online) g.onlineCount++;
+  /** Admin only. One coach's active, non-archived clients. */
+  async adminCoachClients(coachId: string): Promise<CoachClientRow[]> {
+    const { data, error } = await this.db.rpc("admin_coach_clients", { p_coach_id: coachId });
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      clientId: r.client_id,
+      userId: r.user_id,
+      name: r.name,
+      lastSeenAt: r.last_seen_at,
+      canInvite: r.can_invite,
+    }));
   }
-
-  return [...groups.values()];
 }

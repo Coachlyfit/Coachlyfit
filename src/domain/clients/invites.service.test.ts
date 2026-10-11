@@ -111,6 +111,17 @@ describe("InvitesService", () => {
     expect(token).toMatch(/^[\w-]{20,}$/);
   });
 
+  it("adminCreateInvite sends only the hash and no coach id -- the RPC resolves the coach", async () => {
+    const { db, calls } = fakeSupabase({ id: "unused" }, { data: "coach-slug", error: null });
+
+    const { token, slug } = await new InvitesService(db).adminCreateInvite("client-9");
+
+    expect(slug).toBe("coach-slug");
+    expect(calls).toEqual([
+      { table: "rpc:admin_create_invite", payload: { p_client_id: "client-9", p_token_hash: hashInviteToken(token) } },
+    ]);
+  });
+
   it("createInvites keeps going past a per-row failure (e.g. the client-cap trigger)", async () => {
     // 2nd client's insert().select().single() resolves { error } (Bob) —
     // the 1st and 3rd (Alice, Carol) succeed.

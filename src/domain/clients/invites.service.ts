@@ -2,6 +2,7 @@ import { randomBytes, createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { RelationshipsService } from "@/domain/relationships/relationships.service";
+import { getRootDomain } from "@/lib/tenant/portal-slug";
 
 function generateToken() {
   return randomBytes(24).toString("base64url");
@@ -9,6 +10,13 @@ function generateToken() {
 
 export function hashInviteToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+// Branded on the coach's own portal subdomain (same domain shown for the
+// login portal in PortalCard) so a client sees the coach's identity, not the
+// bare platform domain, when opening the invite.
+export function joinUrl(locale: string, token: string, slug: string) {
+  return `https://${slug}.${getRootDomain()}/${locale}/join/${token}`;
 }
 
 export type CreateInviteInput = {
@@ -69,6 +77,19 @@ export class InvitesService {
     });
     if (error) throw error;
     return { token };
+  }
+
+  /** Admin-side regenerateInvite(): admin_create_invite() checks the caller
+   * is an admin and the client has no account yet, resolves the coach
+   * itself, and writes the audit row. Returns the coach's slug for joinUrl(). */
+  async adminCreateInvite(clientId: string) {
+    const token = generateToken();
+    const { data: slug, error } = await this.db.rpc("admin_create_invite", {
+      p_client_id: clientId,
+      p_token_hash: hashInviteToken(token),
+    });
+    if (error) throw error;
+    return { token, slug };
   }
 
   /** Onboarding's paste-import: one createInvite per row, sequential like

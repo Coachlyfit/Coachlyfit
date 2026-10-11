@@ -16,15 +16,17 @@ import { CoachesKanban } from "./coaches-kanban";
 import { CoachesList } from "./coaches-list";
 import type { CoachView, CoachesViewMode } from "./types";
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 10;
 
-const FILTERS = ["attention", "all", "trial", "starter", "pro", "elite"] as const;
+const FILTERS = ["attention", "all", "trial", "pastDue", "cancelled", "starter", "pro", "elite"] as const;
 type Filter = (typeof FILTERS)[number];
 
 const FILTER_LABEL = {
   attention: "atRisk",
   all: "all",
   trial: "trialing",
+  pastDue: "pastDue",
+  cancelled: "cancelled",
   starter: "starter",
   pro: "pro",
   elite: "elite",
@@ -33,7 +35,7 @@ const FILTER_LABEL = {
 function matches(coach: CoachView, filter: Filter): boolean {
   if (filter === "all") return true;
   if (filter === "attention") return coach.attention;
-  if (filter === "trial") return coach.stage === "trial";
+  if (filter === "trial" || filter === "pastDue" || filter === "cancelled") return coach.stage === filter;
   // A cancelled coach still has a tier on file but isn't on the plan any more.
   return coach.tier === filter && coach.stage !== "cancelled";
 }

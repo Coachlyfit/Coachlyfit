@@ -34,6 +34,26 @@ describe("nextStatus", () => {
     expect(nextStatus(sub, NOW)).toBe("canceled");
   });
 
+  it("cancels at the deadline with no grace when the coach asked to cancel", () => {
+    const sub = {
+      status: "active" as const,
+      trial_ends_at: null,
+      current_period_end: "2026-07-31T00:00:00Z",
+      cancel_at_period_end: true,
+    };
+    expect(nextStatus(sub, NOW)).toBe("canceled");
+  });
+
+  it("leaves a cancel-at-period-end subscription alone until the period ends", () => {
+    const sub = {
+      status: "active" as const,
+      trial_ends_at: null,
+      current_period_end: "2026-08-10T00:00:00Z",
+      cancel_at_period_end: true,
+    };
+    expect(nextStatus(sub, NOW)).toBeNull();
+  });
+
   it("never revives a canceled subscription", () => {
     const sub = { status: "canceled" as const, trial_ends_at: null, current_period_end: "2020-01-01T00:00:00Z" };
     expect(nextStatus(sub, NOW)).toBeNull();

@@ -6,7 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { recordPaymentSchema } from "./schemas";
+import {
+  coachNoteSchema,
+  recordPaymentSchema,
+  resolveRequestSchema,
+  updateSubscriptionSchema,
+  type UpdateSubscriptionInput,
+} from "./schemas";
 import { userEmailSchema } from "./settings/schemas";
 
 type ActionResult = { error: string } | void;
@@ -186,4 +192,92 @@ export async function deleteUserAction(locale: string, userId: string, confirmEm
   await logUserAction(supabase, userId, "delete", { role: profile?.role ?? null }, data.user.email ?? null, profile?.full_name ?? null);
 
   revalidatePath(`/${locale}/admin/settings`);
+}
+
+// Subscription management. Each RPC re-checks private.is_admin() and writes
+// its own admin_audit_log row in the same transaction; requireAdmin() here
+// only fails fast with a usable message.
+
+function subscriptionErrorCode(code: string | undefined): string {
+  if (code === "42501") return "forbidden";
+  if (code === "P0002") return "not_found";
+  if (code === "22023" || code === "23514" || code === "23503") return "invalid_input";
+  return "update_failed";
+}
+
+function revalidateCoach(locale: string, coachId?: string) {
+  revalidatePath(`/${locale}/admin`);
+  revalidatePath(`/${locale}/admin/requests`);
+  if (coachId) revalidatePath(`/${locale}/admin/coaches/${coachId}`);
+}
+
+export async function updateSubscriptionAction(locale: string, input: UpdateSubscriptionInput): Promise<ActionResult> {
+  const parsed = updateSubscriptionSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const { error: rpcError } = await supabase.rpc("admin_update_subscription", {
+    p_coach_id: parsed.data.coachId,
+    p_tier_id: parsed.data.tierId,
+    p_status: parsed.data.status,
+    p_period_end: parsed.data.periodEnd || undefined,
+    p_cancel_at_period_end: parsed.data.cancelAtPeriodEnd,
+  });
+  if (rpcError) return { error: subscriptionErrorCode(rpcError.code) };
+
+  revalidateCoach(locale, parsed.data.coachId);
+}
+
+export async function resolveSubscriptionRequestAction(
+  locale: string,
+  input: { requestId: string; approve: boolean; response: string }
+): Promise<ActionResult> {
+  const parsed = resolveRequestSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const { error: rpcError } = await supabase.rpc("admin_resolve_subscription_request", {
+    p_request_id: parsed.data.requestId,
+    p_approve: parsed.data.approve,
+    p_response: parsed.data.response || undefined,
+  });
+  if (rpcError) return { error: rpcError.code === "22023" ? "already_resolved" : subscriptionErrorCode(rpcError.code) };
+
+  revalidatePath(`/${locale}/admin`, "layout");
+}
+
+export async function addCoachNoteAction(locale: string, input: { coachId: string; note: string }): Promise<ActionResult> {
+  const parsed = coachNoteSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const { error: rpcError } = await supabase.rpc("admin_add_coach_note", {
+    p_coach_id: parsed.data.coachId,
+    p_note: parsed.data.note,
+  });
+  if (rpcError) return { error: subscriptionErrorCode(rpcError.code) };
+
+  revalidateCoach(locale, parsed.data.coachId);
+}
+
+/** Account suspension (profiles.suspended_at): the coach's own login is
+ * bounced to /suspended. Per profile, so team members' logins are not
+ * affected. admin_set_suspended() logs it. */
+export async function setCoachSuspendedAction(locale: string, coachId: string, suspended: boolean): Promise<ActionResult> {
+  const { supabase, error } = await requireAdmin();
+  if (error || !supabase) return { error: error ?? "forbidden" };
+
+  const { error: rpcError } = await supabase.rpc("admin_set_suspended", {
+    p_user_id: coachId,
+    p_suspended: suspended,
+  });
+  if (rpcError) return { error: subscriptionErrorCode(rpcError.code) };
+
+  revalidateCoach(locale, coachId);
 }
