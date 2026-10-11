@@ -2181,19 +2181,67 @@
   "admin": {
     "title": "Admin",
     "online": {
-      "title": "Online users",
-      "online": "Online now",
-      "offline": "Offline",
-      "total": "Total users",
-      "search": "Search by name",
-      "unassigned": "Unassigned",
-      "never": "Never",
-      "empty": "No clients here.",
-      "noResults": "No matches for your search.",
+      "title": "Online now",
+      "live": "Live",
+      "connecting": "Connecting…",
+      "cards": {
+        "label": "Summary",
+        "online": "Online now",
+        "onlineSplit": "<num>{coaches}</num> coaches · <num>{clients}</num> clients",
+        "today": "Active today",
+        "todayOf": "of <num>{total}</num> users",
+        "week": "Active last 7 days",
+        "weekPct": "<num>{pct}%</num> of users",
+        "never": "Never logged in",
+        "neverNote": "Need another invite"
+      },
+      "coaches": {
+        "title": "Coaches",
+        "search": "Search coaches",
+        "onlineLabel": "online",
+        "noResults": "No coaches match your search."
+      },
+      "seen": {
+        "online": "Online now",
+        "never": "Never logged in",
+        "daysAgo": "<num>{value}</num> days ago"
+      },
+      "panel": {
+        "clients": "{count, plural, =0 {No clients} one {<num>{value}</num> client} other {<num>{value}</num> clients}}",
+        "loadError": "Couldn't load this coach's clients.",
+        "retry": "Try again"
+      },
+      "filters": {
+        "label": "Status",
+        "all": "All",
+        "online": "Online",
+        "inactive": "Inactive",
+        "never": "Never"
+      },
+      "status": {
+        "online": "Online now",
+        "offline": "Offline",
+        "inactive": "Inactive",
+        "never": "Never logged in"
+      },
       "table": {
-        "name": "Name",
+        "client": "Client",
         "status": "Status",
-        "lastSeen": "Last seen"
+        "lastSeen": "Last seen",
+        "actions": "Actions"
+      },
+      "invite": {
+        "action": "New invite link",
+        "pending": "Creating…",
+        "title": "Share this link",
+        "body": "Anyone with this link can join as this client. It works once and is not sent automatically.",
+        "copy": "Copy link",
+        "error": "Couldn't create the invite link. Please try again."
+      },
+      "empty": {
+        "noCoaches": "No coaches yet.",
+        "noClients": "This coach has no clients.",
+        "filter": "No clients with this status."
       }
     },
     "impersonation": {
@@ -2459,7 +2507,8 @@
           "role_change": "Role changed",
           "suspend": "Suspended",
           "unsuspend": "Unsuspended",
-          "delete": "Deleted"
+          "delete": "Deleted",
+          "invite_link_created": "Invite link created"
         },
         "fields": {
           "full_name": "Name",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PresenceService, groupByCoach, type OnlineUserRow } from "./presence.service";
+import { PresenceService } from "./presence.service";
 
 // Same fake-DB pattern as invites.service.test.ts: no real Postgres, just
 // asserting the rpc name and args the service sends.
@@ -66,60 +66,34 @@ describe("PresenceService", () => {
     const result = await new PresenceService(db).list();
     expect(result).toEqual({ rows: [], total: 0, online: 0 });
   });
-});
 
-function row(overrides: Partial<OnlineUserRow>): OnlineUserRow {
-  return {
-    userId: "u",
-    name: "n",
-    avatarUrl: null,
-    role: "client",
-    coachId: null,
-    coachName: null,
-    lastSeenAt: null,
-    online: false,
-    ...overrides,
-  };
-}
+  it("adminSummary() maps the aggregate json to camelCase", async () => {
+    const { db, calls } = fakeSupabase({
+      data: {
+        coach_total: 1,
+        client_total: 2,
+        active_today: 1,
+        active_7d: 2,
+        never_count: 1,
+        coaches: [{ id: "c1", name: "Coach", last_seen_at: null, client_total: 2, client_user_ids: ["u1"] }],
+      },
+      error: null,
+    });
 
-describe("groupByCoach", () => {
-  it("groups clients under their coach's header row", () => {
-    const groups = groupByCoach([
-      row({ userId: "coach-1", role: "coach", name: "Coach A", online: true, lastSeenAt: "t" }),
-      row({ userId: "client-1", coachId: "coach-1", coachName: "Coach A", online: true }),
-      row({ userId: "client-2", coachId: "coach-1", coachName: "Coach A", online: false }),
-    ]);
-
-    expect(groups).toHaveLength(1);
-    expect(groups[0].coach).toMatchObject({ id: "coach-1", name: "Coach A", online: true });
-    expect(groups[0].clients.map((c) => c.userId)).toEqual(["client-1", "client-2"]);
-    expect(groups[0].onlineCount).toBe(1);
+    const summary = await new PresenceService(db).adminSummary();
+    expect(calls[0].fn).toBe("admin_online_summary");
+    expect(summary).toMatchObject({ coachTotal: 1, clientTotal: 2, activeToday: 1, active7d: 2, neverCount: 1 });
+    expect(summary.coaches[0]).toEqual({ id: "c1", name: "Coach", lastSeenAt: null, clientTotal: 2, clientUserIds: ["u1"] });
   });
 
-  it("puts clients with no coach_id in an Unassigned (coach: null) group", () => {
-    const groups = groupByCoach([row({ userId: "orphan", coachId: null, online: true })]);
+  it("adminCoachClients() asks for one coach and keeps account-less clients (userId null)", async () => {
+    const { db, calls } = fakeSupabase({
+      data: [{ client_id: "cl1", user_id: null, name: "Invited", last_seen_at: null, can_invite: true }],
+      error: null,
+    });
 
-    expect(groups).toHaveLength(1);
-    expect(groups[0].coach).toBeNull();
-    expect(groups[0].onlineCount).toBe(1);
-  });
-
-  it("still produces a group for a coach with zero clients", () => {
-    const groups = groupByCoach([row({ userId: "coach-2", role: "coach", name: "Coach B" })]);
-
-    expect(groups).toHaveLength(1);
-    expect(groups[0].coach).toMatchObject({ id: "coach-2" });
-    expect(groups[0].clients).toEqual([]);
-  });
-
-  it("works when the coach row arrives after its clients in the input order", () => {
-    const groups = groupByCoach([
-      row({ userId: "client-1", coachId: "coach-1" }),
-      row({ userId: "coach-1", role: "coach", name: "Coach A" }),
-    ]);
-
-    expect(groups).toHaveLength(1);
-    expect(groups[0].coach).toMatchObject({ id: "coach-1", name: "Coach A" });
-    expect(groups[0].clients).toHaveLength(1);
+    const rows = await new PresenceService(db).adminCoachClients("c1");
+    expect(calls[0]).toEqual({ fn: "admin_coach_clients", args: { p_coach_id: "c1" } });
+    expect(rows).toEqual([{ clientId: "cl1", userId: null, name: "Invited", lastSeenAt: null, canInvite: true }]);
   });
 });

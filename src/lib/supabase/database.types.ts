@@ -3936,6 +3936,20 @@ export type Database = {
         Args: { p_action: string; p_user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      admin_coach_clients: {
+        Args: { p_coach_id: string }
+        Returns: {
+          can_invite: boolean
+          client_id: string
+          last_seen_at: string
+          name: string
+          user_id: string
+        }[]
+      }
+      admin_create_invite: {
+        Args: { p_client_id: string; p_token_hash: string }
+        Returns: string
+      }
       admin_list_coaches: {
         Args: never
         Returns: {
@@ -3978,6 +3992,7 @@ export type Database = {
         Returns: undefined
       }
       admin_metrics: { Args: never; Returns: Json }
+      admin_online_summary: { Args: never; Returns: Json }
       admin_promote_exercise: { Args: { p_id: string }; Returns: undefined }
       admin_promote_food: { Args: { p_id: string }; Returns: undefined }
       admin_set_role: {

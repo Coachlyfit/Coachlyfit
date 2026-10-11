@@ -2181,19 +2181,67 @@
   "admin": {
     "title": "الإدارة",
     "online": {
-      "title": "المستخدمون المتصلون",
-      "online": "متصل الآن",
-      "offline": "غير متصل",
-      "total": "إجمالي المستخدمين",
-      "search": "ابحث بالاسم",
-      "unassigned": "بدون كابتن",
-      "never": "أبدًا",
-      "empty": "مفيش عملاء هنا.",
-      "noResults": "مفيش نتايج لبحثك.",
+      "title": "متصل الآن",
+      "live": "تحديث مباشر",
+      "connecting": "جارٍ الاتصال…",
+      "cards": {
+        "label": "ملخص",
+        "online": "متصل الآن",
+        "onlineSplit": "<num>{coaches}</num> مدرب · <num>{clients}</num> عميل",
+        "today": "نشط اليوم",
+        "todayOf": "من <num>{total}</num> مستخدم",
+        "week": "نشط آخر 7 أيام",
+        "weekPct": "<num>{pct}%</num> من المستخدمين",
+        "never": "لم يدخلوا أبداً",
+        "neverNote": "محتاجين دعوة تانية"
+      },
+      "coaches": {
+        "title": "المدربون",
+        "search": "بحث عن مدرب",
+        "onlineLabel": "متصل",
+        "noResults": "مفيش مدربين بالاسم ده."
+      },
+      "seen": {
+        "online": "متصل الآن",
+        "never": "لم يدخل أبداً",
+        "daysAgo": "{count, plural, few {منذ <num>{value}</num> أيام} other {منذ <num>{value}</num> يوم}}"
+      },
+      "panel": {
+        "clients": "{count, plural, =0 {لا يوجد عملاء} one {عميل واحد} two {عميلان} few {<num>{value}</num> عملاء} other {<num>{value}</num> عميل}}",
+        "loadError": "تعذّر تحميل عملاء المدرب ده.",
+        "retry": "حاول تاني"
+      },
+      "filters": {
+        "label": "الحالة",
+        "all": "الكل",
+        "online": "متصل",
+        "inactive": "غير نشط",
+        "never": "لم يدخل"
+      },
+      "status": {
+        "online": "متصل الآن",
+        "offline": "غير متصل",
+        "inactive": "غير نشط",
+        "never": "لم يدخل أبداً"
+      },
       "table": {
-        "name": "الاسم",
+        "client": "العميل",
         "status": "الحالة",
-        "lastSeen": "آخر ظهور"
+        "lastSeen": "آخر ظهور",
+        "actions": "إجراءات"
+      },
+      "invite": {
+        "action": "رابط دعوة جديد",
+        "pending": "جارٍ الإنشاء…",
+        "title": "شارك الرابط ده",
+        "body": "أي حد معاه الرابط ده يقدر ينضم كالعميل ده. بيشتغل مرة واحدة ومش بيتبعت تلقائي.",
+        "copy": "انسخ الرابط",
+        "error": "تعذّر إنشاء رابط الدعوة. حاول تاني."
+      },
+      "empty": {
+        "noCoaches": "لا يوجد مدربون بعد.",
+        "noClients": "لا يوجد عملاء لهذا المدرب.",
+        "filter": "لا يوجد عملاء في الحالة دي."
       }
     },
     "impersonation": {
@@ -2459,7 +2507,8 @@
           "role_change": "تغيير الدور",
           "suspend": "إيقاف",
           "unsuspend": "إلغاء الإيقاف",
-          "delete": "حذف"
+          "delete": "حذف",
+          "invite_link_created": "إنشاء رابط دعوة"
         },
         "fields": {
           "full_name": "الاسم",

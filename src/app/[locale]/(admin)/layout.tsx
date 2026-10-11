@@ -30,7 +30,7 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-dvh bg-background text-foreground">
-      <PresenceHeartbeat />
+      <PresenceHeartbeat realtime={false} />
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar locale={locale} fullName={profile.full_name} />

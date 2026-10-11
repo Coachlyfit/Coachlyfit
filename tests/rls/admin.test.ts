@@ -93,6 +93,60 @@ describe("admin RPC surface", () => {
     expect(row).toMatchObject({ owner_name: "Coach coach", price_egp_monthly: expect.any(Number) });
   });
 
+  it("serves the Online now page to an admin: summary, one coach's clients, and an invite link for an account-less client", async () => {
+    const { data: client } = await coach.client
+      .from("clients")
+      .insert({ coach_id: coach.userId, display_name: "Invited Only" })
+      .select("id")
+      .single();
+
+    const summary = await adminUser.client.rpc("admin_online_summary");
+    expect(summary.error).toBeNull();
+    expect(summary.data).toMatchObject({
+      coach_total: expect.any(Number),
+      active_today: expect.any(Number),
+      active_7d: expect.any(Number),
+      never_count: expect.any(Number),
+      coaches: expect.any(Array),
+    });
+
+    const clients = await adminUser.client.rpc("admin_coach_clients", { p_coach_id: coach.userId });
+    expect(clients.error).toBeNull();
+    expect(clients.data?.find((c) => c.client_id === client!.id)).toMatchObject({
+      user_id: null,
+      last_seen_at: null,
+      can_invite: true,
+    });
+
+    const invite = await adminUser.client.rpc("admin_create_invite", {
+      p_client_id: client!.id,
+      p_token_hash: "a".repeat(64),
+    });
+    expect(invite.error).toBeNull();
+    expect(typeof invite.data).toBe("string"); // the coach's slug
+
+    const { data: logged } = await admin
+      .from("admin_audit_log")
+      .select("action")
+      .eq("target_user_id", coach.userId)
+      .eq("action", "invite_link_created");
+    expect(logged).toHaveLength(1);
+  });
+
+  it("rejects a non-admin calling the Online now RPCs", async () => {
+    const summary = await coach.client.rpc("admin_online_summary");
+    expect(summary.error?.code).toBe("42501");
+
+    const clients = await coach.client.rpc("admin_coach_clients", { p_coach_id: coach.userId });
+    expect(clients.error?.code).toBe("42501");
+
+    const invite = await coach.client.rpc("admin_create_invite", {
+      p_client_id: coach.userId,
+      p_token_hash: "a".repeat(64),
+    });
+    expect(invite.error?.code).toBe("42501");
+  });
+
   it("stamps status_changed_at when a subscription's status changes", async () => {
     await admin.from("subscriptions").update({ status: "past_due" }).eq("coach_id", coach.userId);
     const { data: sub } = await admin

@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
-import { getRootDomain } from "@/lib/tenant/portal-slug";
-import { InvitesService } from "@/domain/clients/invites.service";
+import { InvitesService, joinUrl } from "@/domain/clients/invites.service";
 import { AlreadyYourClientError } from "@/domain/relationships/relationships.service";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
@@ -21,13 +20,6 @@ import {
 type ActionResult = { error: string } | { joinUrl: string };
 type CreateInviteActionResult = ActionResult | { linked: true };
 type VoidActionResult = { error: string } | void;
-
-// Branded on the coach's own portal subdomain (same domain shown for the
-// login portal in PortalCard) so a client sees the coach's identity, not the
-// bare platform domain, when opening the invite.
-function joinUrl(locale: string, token: string, slug: string) {
-  return `https://${slug}.${getRootDomain()}/${locale}/join/${token}`;
-}
 
 export async function createClientInviteAction(
   locale: string,
