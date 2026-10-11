@@ -3777,6 +3777,7 @@ export type Database = {
           display_name: string | null
           last_body: string | null
           last_message_at: string | null
+          last_read_at: string | null
           last_sender_role: string | null
           status: Database["public"]["Enums"]["client_status"] | null
           unread_count: number | null
