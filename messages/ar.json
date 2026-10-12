@@ -2588,7 +2588,7 @@
         "invalid_input": "راجع العنوان ونص الرسالة والمستلمين.",
         "not_authenticated": "سجّل الدخول مرة أخرى للمتابعة.",
         "forbidden": "إرسال الرسائل متاح للمشرف فقط.",
-        "email_not_configured": "إرسال البريد غير مُعدّ (RESEND_API_KEY غير موجود).",
+        "email_not_configured": "إرسال البريد غير مُعدّ (BREVO_API_KEY أو BREVO_SENDER_EMAIL غير موجود).",
         "no_admin_email": "حسابك لا يحتوي على بريد إلكتروني.",
         "no_recipients": "لا يوجد مدربون مطابقون لهذا الاختيار.",
         "send_failed": "تعذّر إرسال الرسالة. حاول مرة أخرى."

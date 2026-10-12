@@ -2588,7 +2588,7 @@
         "invalid_input": "Check the subject, message and recipients.",
         "not_authenticated": "Sign in again to continue.",
         "forbidden": "Only an admin can send emails.",
-        "email_not_configured": "Email sending is not set up (missing RESEND_API_KEY).",
+        "email_not_configured": "Email sending is not set up (missing BREVO_API_KEY or BREVO_SENDER_EMAIL).",
         "no_admin_email": "Your account has no email address.",
         "no_recipients": "No coaches match this selection.",
         "send_failed": "The email could not be sent. Try again."
