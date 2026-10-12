@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { PlatformSettingsService } from "@/domain/platform/settings.service";
 import { platformSettingsSchemas, isSettingKey } from "@/domain/platform/settings.schema";
-import { tierSchema, userProfileSchema, userRoleSchema } from "./schemas";
+import { tiersSchema, userProfileSchema, userRoleSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
 
@@ -25,33 +25,24 @@ export async function updateSettingAction(locale: string, key: string, value: un
   revalidatePath(`/${locale}`, "layout");
 }
 
-export async function updateTierAction(locale: string, tierId: string, formData: FormData): Promise<ActionResult> {
-  const parsed = tierSchema.safeParse({
-    name_ar: formData.get("name_ar"),
-    name_en: formData.get("name_en"),
-    price_egp_monthly: formData.get("price_egp_monthly"),
-    max_clients: formData.get("max_clients"),
-    is_active: formData.get("is_active") === "true",
-    forms_builder: formData.get("forms_builder") === "true",
-    custom_library: formData.get("custom_library") === "true",
-    priority_support: formData.get("priority_support") === "true",
-    white_label: formData.get("white_label") === "true",
-    custom_branding: formData.get("custom_branding") === "true",
-  });
+/** Saves every plan at once: admin_update_tiers() is a single transaction, so
+ * the comparison table never ends up half-saved. */
+export async function updateTiersAction(locale: string, tiers: unknown): Promise<ActionResult> {
+  const parsed = tiersSchema.safeParse(tiers);
   if (!parsed.success) return { error: "invalid_input" };
 
   const { supabase, error } = await requireAdmin();
   if (error || !supabase) return { error: error ?? "forbidden" };
 
-  const { forms_builder, custom_library, priority_support, white_label, custom_branding, ...rest } = parsed.data;
-  const { error: dbError } = await supabase
-    .from("subscription_tiers")
-    .update({
-      ...rest,
-      features: { forms_builder, custom_library, priority_support, white_label, custom_branding },
-    })
-    .eq("id", tierId);
-  if (dbError) return { error: "update_failed" };
+  const { error: rpcError } = await supabase.rpc("admin_update_tiers", {
+    p_tiers: parsed.data.map(
+      ({ forms_builder, custom_library, priority_support, white_label, custom_branding, ...rest }) => ({
+        ...rest,
+        features: { forms_builder, custom_library, priority_support, white_label, custom_branding },
+      })
+    ),
+  });
+  if (rpcError) return { error: rpcErrorCode(rpcError.code) };
 
   revalidatePath(`/${locale}/admin/settings`);
   revalidatePath(`/${locale}`);
