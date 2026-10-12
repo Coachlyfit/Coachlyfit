@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -761,6 +761,8 @@ export type Database = {
           address: string | null
           brand_accent: string | null
           brand_primary: string | null
+          brand_sidebar: string | null
+          brand_sidebar_text: string | null
           business_name: string
           contact_email: string | null
           contact_phone: string | null
@@ -779,6 +781,8 @@ export type Database = {
           address?: string | null
           brand_accent?: string | null
           brand_primary?: string | null
+          brand_sidebar?: string | null
+          brand_sidebar_text?: string | null
           business_name: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -797,6 +801,8 @@ export type Database = {
           address?: string | null
           brand_accent?: string | null
           brand_primary?: string | null
+          brand_sidebar?: string | null
+          brand_sidebar_text?: string | null
           business_name?: string
           contact_email?: string | null
           contact_phone?: string | null
@@ -1132,6 +1138,88 @@ export type Database = {
             columns: ["source_template_id"]
             isOneToOne: false
             referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_campaign_recipients: {
+        Row: {
+          campaign_id: string
+          coach_id: string
+          email: string
+          error: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          campaign_id: string
+          coach_id: string
+          email: string
+          error?: string | null
+          sent_at?: string | null
+          status: string
+        }
+        Update: {
+          campaign_id?: string
+          coach_id?: string
+          email?: string
+          error?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_campaigns: {
+        Row: {
+          body: string
+          created_at: string
+          direction: string
+          failed_count: number
+          id: string
+          recipient_count: number
+          recipient_filter: string
+          sent_by: string | null
+          sent_count: number
+          subject: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          direction: string
+          failed_count?: number
+          id?: string
+          recipient_count: number
+          recipient_filter: string
+          sent_by?: string | null
+          sent_count?: number
+          subject: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          direction?: string
+          failed_count?: number
+          id?: string
+          recipient_count?: number
+          recipient_filter?: string
+          sent_by?: string | null
+          sent_count?: number
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4017,6 +4105,16 @@ export type Database = {
       admin_create_invite: {
         Args: { p_client_id: string; p_token_hash: string }
         Returns: string
+      }
+      admin_email_recipients: {
+        Args: never
+        Returns: {
+          business_name: string
+          coach_id: string
+          email: string
+          owner_name: string
+          status: string
+        }[]
       }
       admin_list_coaches: {
         Args: never
