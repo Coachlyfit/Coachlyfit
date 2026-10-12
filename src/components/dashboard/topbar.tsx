@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { LogOut, User, Languages, SunMoon } from "lucide-react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { InstallAppButton } from "@/components/install-app-button";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { BrandLogo } from "@/components/brand/coach-brand";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -73,6 +74,7 @@ export function Topbar({
       <div className="flex items-center gap-1 ms-auto sm:gap-2 md:ms-0">
         <CommandPalette items={navItems} />
         <NotificationBell locale={locale as AppLocale} />
+        <InstallAppButton />
         <LocaleSwitcher className="hidden sm:inline-flex" />
         <ThemeToggle className="hidden sm:inline-flex" />
         <DropdownMenu>
