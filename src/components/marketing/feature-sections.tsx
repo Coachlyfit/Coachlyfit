@@ -1,18 +1,19 @@
 import { useTranslations } from "next-intl";
 import { CoachlyLockup } from "@/components/brand/coachly-lockup";
+import { cn } from "@/lib/utils";
+import type { SectionContent } from "@/domain/marketing/sections.schema";
 
 /**
  * The three "here's what it actually looks like" sections — forms, progress,
  * invoices — each pairing a text column with a stylised mock of the real
  * screen. The mocks are markup rather than screenshots so they stay sharp,
- * theme-aware and translated; every string comes from
- * `marketing.featureSections.*`.
+ * theme-aware and translated. The text column is CMS content; the mock
+ * strings come from `marketing.featureSections.*Mock`.
  *
  * All three mocks live here rather than in six files: each is ~40 lines used
  * exactly once, and splitting them would spread one idea across a directory.
  */
 const EYEBROW = "font-mono text-[11px] font-medium uppercase tracking-[0.13em] text-primary";
-const BULLETS = ["a", "b", "c"] as const;
 
 const FORM_FIELDS = ["a", "b", "c", "d", "e"] as const;
 // Which mock fields render the "required" chip filled — matches the design's
@@ -38,23 +39,23 @@ function sparkline(values: number[]) {
   return { line, area: `${line} L400 120 L0 120 Z` };
 }
 
-function TextColumn({ section }: { section: "forms" | "progress" | "invoices" }) {
-  const t = useTranslations(`marketing.featureSections.${section}`);
+type FeatureRow = SectionContent<"features">["rows"][number];
 
+function TextColumn({ row }: { row: FeatureRow }) {
   return (
     <div>
-      <div className={EYEBROW}>{t("eyebrow")}</div>
+      {row.eyebrow && <div className={EYEBROW}>{row.eyebrow}</div>}
       <h2 className="mt-4 text-balance text-2xl font-semibold leading-tight tracking-[-0.025em] md:text-4xl">
-        {t("title")}
+        {row.title}
       </h2>
-      <p className="mt-4 max-w-[46ch] text-pretty leading-relaxed text-muted-foreground">{t("body")}</p>
+      <p className="mt-4 max-w-[46ch] text-pretty leading-relaxed text-muted-foreground">{row.body}</p>
       <ul className="mt-6 flex flex-col gap-3">
-        {BULLETS.map((key) => (
-          <li key={key} className="flex items-start gap-3">
+        {row.bullets.map((bullet, i) => (
+          <li key={i} className="flex items-start gap-3">
             <span className="text-primary" aria-hidden="true">
               —
             </span>
-            <span className="text-[14.5px] leading-relaxed">{t(`bullets.${key}`)}</span>
+            <span className="text-[14.5px] leading-relaxed">{bullet.text}</span>
           </li>
         ))}
       </ul>
@@ -63,9 +64,9 @@ function TextColumn({ section }: { section: "forms" | "progress" | "invoices" })
 }
 
 /** Shared frame for the three mocks: a tinted panel holding a white card. */
-function MockPanel({ children, className }: { children: React.ReactNode; className?: string }) {
+function MockPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`rounded-2xl bg-muted p-5 ring-1 ring-foreground/10 sm:p-7 ${className ?? ""}`} aria-hidden="true">
+    <div className="rounded-2xl bg-muted p-5 ring-1 ring-foreground/10 sm:p-7" aria-hidden="true">
       {children}
     </div>
   );
@@ -121,7 +122,7 @@ function ProgressMock() {
   const { line, area } = sparkline(WEIGHTS);
 
   return (
-    <MockPanel className="lg:order-1">
+    <MockPanel>
       <div className="rounded-xl bg-card p-5 ring-1 ring-foreground/10">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex size-9.5 shrink-0 items-center justify-center rounded-full bg-tint-1 text-[15px] font-semibold text-white">
@@ -200,27 +201,29 @@ function InvoiceMock() {
 
 const ROW = "mx-auto grid max-w-[1200px] items-center gap-10 px-4 lg:grid-cols-2 lg:gap-16";
 
-export function FeatureSections() {
+// The mocks are drawn for the three seeded rows, in this order. A fourth row
+// starts the cycle again rather than rendering without a picture.
+const MOCKS = [FormsMock, ProgressMock, InvoiceMock];
+
+export function FeatureSections({ content }: { content: SectionContent<"features"> }) {
   return (
     <div className="flex flex-col gap-20 py-20 sm:gap-24 sm:py-24">
-      <section id="features" className={ROW}>
-        <TextColumn section="forms" />
-        <FormsMock />
-      </section>
-
-      {/* Middle row flips on desktop only — on mobile every row stays
-          text-then-mock so the reading order never inverts. */}
-      <section className={ROW}>
-        <div className="lg:order-2">
-          <TextColumn section="progress" />
-        </div>
-        <ProgressMock />
-      </section>
-
-      <section className={ROW}>
-        <TextColumn section="invoices" />
-        <InvoiceMock />
-      </section>
+      {content.rows.map((row, i) => {
+        const Mock = MOCKS[i % MOCKS.length];
+        // Every other row flips on desktop only — on mobile every row stays
+        // text-then-mock so the reading order never inverts.
+        const flipped = i % 2 === 1;
+        return (
+          <section key={i} id={i === 0 ? "features" : undefined} className={ROW}>
+            <div className={cn(flipped && "lg:order-2")}>
+              <TextColumn row={row} />
+            </div>
+            <div className={cn(flipped && "lg:order-1")}>
+              <Mock />
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

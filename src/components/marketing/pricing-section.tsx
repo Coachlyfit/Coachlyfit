@@ -1,10 +1,18 @@
-import { getTranslations, getLocale } from "next-intl/server";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/server";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
+import type { Tables } from "@/lib/supabase/database.types";
+import type { SectionContent } from "@/domain/marketing/sections.schema";
+
+export const PRICING_TIER_COLUMNS = "id, key, name_ar, name_en, price_egp_monthly, max_clients, features";
+
+export type PricingTier = Pick<
+  Tables<"subscription_tiers">,
+  "id" | "key" | "name_ar" | "name_en" | "price_egp_monthly" | "max_clients" | "features"
+>;
 
 // No cap is null. Rows seeded before 20261015000001 still carry the old
 // 999999 sentinel, so that reads as "unlimited" too.
@@ -21,24 +29,22 @@ const FEATURE_ORDER = [
   "custom_branding",
 ] as const;
 
-export async function PricingSection() {
-  const t = await getTranslations("marketing.pricing");
-  const locale = (await getLocale()) as AppLocale;
-  const db = await createClient();
-  const { data: tiers } = await db
-    .from("subscription_tiers")
-    .select("id, key, name_ar, name_en, price_egp_monthly, max_clients, features")
-    .eq("is_active", true)
-    .order("price_egp_monthly", { ascending: true });
+/** Takes the tiers as a prop rather than reading them: the same component
+ * renders on the public page (server) and in the CMS preview (client). The
+ * heading, subtitle and button label are CMS content; the per-tier labels
+ * describe plan data and stay in the message files. */
+export function PricingSection({ content, tiers }: { content: SectionContent<"pricing">; tiers: PricingTier[] }) {
+  const t = useTranslations("marketing.pricing");
+  const locale = useLocale() as AppLocale;
 
   return (
     <section id="pricing" className="mx-auto max-w-[1200px] px-4 py-20 sm:py-22">
       <div className="mb-11 flex flex-col items-center gap-3 text-center">
-        <h2 className="text-balance text-2xl font-semibold tracking-[-0.025em] md:text-[38px]">{t("title")}</h2>
-        <p className="max-w-2xl text-pretty text-muted-foreground">{t("subtitle")}</p>
+        <h2 className="text-balance text-2xl font-semibold tracking-[-0.025em] md:text-[38px]">{content.title}</h2>
+        <p className="max-w-2xl text-pretty text-muted-foreground">{content.subtitle}</p>
       </div>
       <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {(tiers ?? []).map((tier) => {
+        {tiers.map((tier) => {
           const isPopular = tier.key === "pro";
           const flags = tier.features as Record<string, boolean> | null;
           const featureList = FEATURE_ORDER.filter((key) => flags?.[key]);
@@ -99,7 +105,7 @@ export async function PricingSection() {
                   "mt-auto h-11.5 w-full"
                 )}
               >
-                {t("cta")}
+                {content.cta}
               </Link>
             </div>
           );

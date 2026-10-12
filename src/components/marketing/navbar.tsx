@@ -15,7 +15,6 @@ const ANCHORS = ["features", "pricing", "coaches", "faq"] as const;
 
 export function Navbar() {
   const t = useTranslations("marketing.nav");
-  const tHero = useTranslations("marketing.hero");
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/[.88] backdrop-blur-[14px]">
@@ -39,7 +38,7 @@ export function Navbar() {
             {t("login")}
           </Link>
           <Link href="/signup" className={cn(buttonVariants({ size: "sm" }), "hidden sm:inline-flex")}>
-            {tHero("cta")}
+            {t("cta")}
           </Link>
         </div>
       </div>
