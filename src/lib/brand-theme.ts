@@ -11,10 +11,20 @@
 //              client's coach-decision card). Defaults to primary, which is
 //              how the stock palette derives its own tint.
 //
+//   sidebar / sidebarText -> the coach nav's ground and its text. The nav is
+//              one fixed ground in both modes, so both get the same pair. The
+//              text is nudged (and, for mid-tone grounds, the ground too) until
+//              the dimmed inactive items still read.
+//
 // Output is only ever built from normalized #rrggbb strings, so it's safe to
 // inline in a <style> tag.
 
-export type BrandColors = { primary: string | null; accent: string | null };
+export type BrandColors = {
+  primary: string | null;
+  accent: string | null;
+  sidebar?: string | null;
+  sidebarText?: string | null;
+};
 
 const WHITE = "#ffffff";
 const BLACK = "#000000";
@@ -25,6 +35,9 @@ const DARK_GROUND = "#020617";
 const LIGHT_PAGE = "#f8fafc";
 const DARK_CARD = "#0f172a";
 const AA = 4.5;
+// Stock nav pieces, for when the coach sets only one of the two sidebar slots.
+const SIDEBAR_TEXT = "#e2e8f0";
+const SIDEBAR_RAIL = "#fb923c";
 
 const HEX = /^#?([0-9a-f]{6})$/i;
 
@@ -76,9 +89,45 @@ function bestText(fill: string, options: string[]): string {
   return options.reduce((best, c) => (contrast(fill, c) > contrast(fill, best) ? c : best));
 }
 
+/** Whether light text is the readable choice on `ground` (picks the nav's
+ * lockup asset). */
+export function isDarkGround(ground: string): boolean {
+  return contrast(ground, WHITE) >= contrast(ground, DARK_CARD);
+}
+
+/** The nav's ground + text. Inactive items render the text at 70% opacity
+ * (sidebar.tsx), so that dimmed color is what has to clear AA: first the text
+ * steps toward white / navy, then a mid-tone ground steps away from it. */
+function sidebarVars(ground: string, text: string, rail: string): Record<string, string> {
+  const pole = isDarkGround(ground) ? WHITE : DARK_CARD;
+  const away = pole === WHITE ? BLACK : WHITE;
+  const reads = (g: string, fg: string) => contrast(mix(g, fg, 0.7), g) >= AA;
+  let fg = pole;
+  for (let step = 0; step <= 20; step++) {
+    const candidate = mix(text, pole, step / 20);
+    if (reads(ground, candidate)) {
+      fg = candidate;
+      break;
+    }
+  }
+  for (let step = 1; step <= 20 && !reads(ground, fg); step++) ground = mix(ground, away, step / 20);
+  const fill = mix(ground, fg, 0.12);
+  return {
+    "--sidebar": ground,
+    "--sidebar-foreground": fg,
+    "--sidebar-accent": fill,
+    "--sidebar-accent-foreground": fg,
+    "--sidebar-border": fill,
+    // The active rail is a graphic, not text: 3:1.
+    "--sidebar-ring": shadeFor(rail, fg, ground, 3),
+  };
+}
+
 export function brandTokens(colors: BrandColors) {
   const primary = normalizeHex(colors.primary);
   const accent = normalizeHex(colors.accent) ?? primary;
+  const sidebar = normalizeHex(colors.sidebar);
+  const sidebarText = normalizeHex(colors.sidebarText);
   const light: Record<string, string> = {};
   const dark: Record<string, string> = {};
 
@@ -113,6 +162,13 @@ export function brandTokens(colors: BrandColors) {
     light["--accent-tint-foreground"] = shadeFor(accent, BLACK, tintLight);
     dark["--accent-tint"] = tintDark;
     dark["--accent-tint-foreground"] = shadeFor(accent, WHITE, tintDark);
+  }
+
+  if (sidebar || sidebarText) {
+    const text = sidebarText ?? SIDEBAR_TEXT;
+    const rail = primary ?? SIDEBAR_RAIL;
+    Object.assign(light, sidebarVars(sidebar ?? DARK_CARD, text, rail));
+    Object.assign(dark, sidebarVars(sidebar ?? DARK_GROUND, text, rail));
   }
 
   return { light, dark };

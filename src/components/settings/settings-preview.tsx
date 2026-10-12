@@ -36,6 +36,7 @@ export function SettingsPreview({
   profileControl,
   portalControl,
   brandControl,
+  brandingEnabled,
   logoUrl,
   packages,
   packageDraft,
@@ -46,6 +47,8 @@ export function SettingsPreview({
   profileControl: Control<BusinessProfileFormInput>;
   portalControl: Control<PortalFormInput>;
   brandControl: Control<BrandFormInput>;
+  /** The sign-in page only shows the logo on plans with custom branding. */
+  brandingEnabled: boolean;
   logoUrl: string | null;
   packages: Package[];
   packageDraft: PackageDraft | null;
@@ -75,7 +78,11 @@ export function SettingsPreview({
       ) : tab === "packages" ? (
         <PackagesPreview packages={packages} draft={packageDraft} />
       ) : tab === "portal" ? (
-        <LoginPreview profileControl={profileControl} portalControl={portalControl} />
+        <LoginPreview
+          profileControl={profileControl}
+          portalControl={portalControl}
+          logoUrl={brandingEnabled ? logoUrl : null}
+        />
       ) : (
         <InvoicePreview
           control={profileControl}
@@ -204,9 +211,11 @@ function PackagesPreview({ packages, draft }: { packages: Package[]; draft: Pack
 function LoginPreview({
   profileControl,
   portalControl,
+  logoUrl,
 }: {
   profileControl: Control<BusinessProfileFormInput>;
   portalControl: Control<PortalFormInput>;
+  logoUrl: string | null;
 }) {
   const t = useTranslations("settings.preview");
   const locale = useLocale();
@@ -221,7 +230,7 @@ function LoginPreview({
         </p>
         {/* inert: the real login UI, on display only -- not focusable, not submittable. */}
         <div inert className="flex flex-1 flex-col justify-center px-3 py-6">
-          <PortalAuthFrame businessName={businessName?.trim() || t("placeholders.businessName")}>
+          <PortalAuthFrame businessName={businessName?.trim() || t("placeholders.businessName")} logoUrl={logoUrl}>
             <LoginCard locale={locale} />
           </PortalAuthFrame>
         </div>
@@ -242,12 +251,18 @@ function BrandPreview({
   logoUrl: string | null;
 }) {
   const t = useTranslations("settings.preview.brand");
+  const tNav = useTranslations("nav");
   const values = useWatch({ control });
   const businessName = useWatch({ control: profileControl, name: "business_name" });
-  // Empty slots preview as the stock orange explicitly, so a pending reset
-  // isn't masked by the saved brand already applied to the page.
+  // Empty slots preview as the stock orange / navy explicitly, so a pending
+  // reset isn't masked by the saved brand already applied to the page.
   const css = brandCss(
-    { primary: values.brand_primary || "#c2410c", accent: values.brand_accent || null },
+    {
+      primary: values.brand_primary || "#c2410c",
+      accent: values.brand_accent || null,
+      sidebar: values.brand_sidebar || "#0f172a",
+      sidebarText: values.brand_sidebar_text || null,
+    },
     "[data-brand-preview]"
   );
 
@@ -268,6 +283,14 @@ function BrandPreview({
           <span className="truncate text-sm font-semibold">
             <bdi>{businessName?.trim() || t("businessName")}</bdi>
           </span>
+        </div>
+        {/* The coach's own sidebar, in miniature: one active row, one idle. */}
+        <div className="flex flex-col gap-0.5 rounded-xl bg-sidebar p-2 text-sm font-medium text-sidebar-foreground">
+          <span className="relative rounded-md bg-sidebar-accent px-3 py-2">
+            <span aria-hidden="true" className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-sidebar-ring" />
+            {tNav("dashboard")}
+          </span>
+          <span className="rounded-md px-3 py-2 text-sidebar-foreground/70">{tNav("clients")}</span>
         </div>
         <div className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
           <Badge variant="info" className="self-start">

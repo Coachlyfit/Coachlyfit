@@ -9,11 +9,22 @@ export function BrandStyle({ css }: { css: string }) {
 
 /** The coach's logo in place of the Coachlyfit mark. Sits on a white chip so
  * any logo reads on the navy sidebar and in dark mode alike. */
-export function BrandLogo({ src, name, className }: { src: string; name: string; className?: string }) {
+export function BrandLogo({
+  src,
+  name,
+  className,
+  imgClassName,
+}: {
+  src: string;
+  name: string;
+  className?: string;
+  /** Sizes the image itself, e.g. the larger logo on the sign-in page. */
+  imgClassName?: string;
+}) {
   return (
     <span className={cn("inline-flex shrink-0 items-center rounded-md bg-white p-1 ring-1 ring-black/5", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element -- public storage URL, arbitrary aspect ratio */}
-      <img src={src} alt={name} className="h-6 w-auto max-w-32 object-contain" />
+      <img src={src} alt={name} className={cn("h-6 w-auto max-w-32 object-contain", imgClassName)} />
     </span>
   );
 }

@@ -11,7 +11,13 @@ import { cn } from "@/lib/utils";
 import type { BrandFormInput } from "@/app/[locale]/(coach)/settings/brand-schema";
 
 // What each slot falls back to when left empty -- the stock palette.
-const DEFAULTS = { brand_primary: "#c2410c", brand_accent: "#c2410c" } as const;
+const DEFAULTS = {
+  brand_primary: "#c2410c",
+  brand_accent: "#c2410c",
+  brand_sidebar: "#0f172a",
+  brand_sidebar_text: "#e2e8f0",
+} as const;
+const FIELDS = ["brand_primary", "brand_accent", "brand_sidebar", "brand_sidebar_text"] as const;
 const PRESETS = ["#c2410c", "#2563eb", "#0d9488", "#7c3aed", "#db2777", "#0f766e", "#b45309", "#334155"];
 
 /** Brand tab: primary + accent pickers. The logo itself is the identity
@@ -36,7 +42,7 @@ export function BrandFields({ form, enabled }: { form: UseFormReturn<BrandFormIn
 
   return (
     <>
-      {(["brand_primary", "brand_accent"] as const).map((name) => (
+      {FIELDS.map((name) => (
         <Controller
           key={name}
           control={form.control}
@@ -105,8 +111,7 @@ export function BrandFields({ form, enabled }: { form: UseFormReturn<BrandFormIn
           size="sm"
           className="h-11 md:h-10"
           onClick={() => {
-            form.setValue("brand_primary", "", { shouldDirty: true });
-            form.setValue("brand_accent", "", { shouldDirty: true });
+            for (const name of FIELDS) form.setValue(name, "", { shouldDirty: true });
           }}
         >
           <RotateCcw className="size-4" />

@@ -57,7 +57,8 @@
     "online": "Online",
     "requests": "Requests",
     "invoices": "Invoices",
-    "finance": "Finance"
+    "finance": "Finance",
+    "emails": "Emails"
   },
   "palette": {
     "navigation": "Navigation",
@@ -746,6 +747,14 @@
       "brand_accent": {
         "label": "Accent color",
         "hint": "Highlights, badges and selected items. Leave empty to match the primary color."
+      },
+      "brand_sidebar": {
+        "label": "Sidebar color",
+        "hint": "The background of your side menu."
+      },
+      "brand_sidebar_text": {
+        "label": "Sidebar text color",
+        "hint": "Menu labels and icons. We adjust it if it would be hard to read on your sidebar color."
       },
       "presets": "Suggested colors",
       "invalidColor": "Use a 6-digit hex color, like #2563eb.",
@@ -2506,6 +2515,83 @@
       "table": {
         "body": "Feedback",
         "date": "Date"
+      }
+    },
+    "emails": {
+      "title": "Email coaches",
+      "testPrefix": "[Test]",
+      "send": "Send",
+      "sendTest": "Send test email to me",
+      "testSending": "Sending test…",
+      "testSent": "Test email sent to {email}.",
+      "sent": "Sent to {count, plural, one {# coach} other {# coaches}}.",
+      "sentWithFailures": "{sent} sent, {failed} failed. Open the history for details.",
+      "compose": {
+        "title": "Compose"
+      },
+      "recipients": {
+        "label": "Recipients",
+        "all": "All coaches",
+        "active": "Active subscribers only",
+        "selected": "Specific coaches",
+        "count": "{count, plural, =0 {No recipients} one {# recipient} other {# recipients}}"
+      },
+      "picker": {
+        "placeholder": "Choose coaches",
+        "selected": "{count, plural, one {# coach selected} other {# coaches selected}}",
+        "search": "Search coaches",
+        "empty": "No coaches match your search."
+      },
+      "subject": {
+        "label": "Subject",
+        "required": "Enter a subject."
+      },
+      "body": {
+        "label": "Message",
+        "required": "Enter a message.",
+        "hint": "Markdown: **bold**, *italic*, # heading, - list, [text](https://link). Write {variable} to insert each coach name."
+      },
+      "direction": {
+        "label": "Email language",
+        "rtl": "Arabic (RTL)",
+        "ltr": "English (LTR)"
+      },
+      "preview": {
+        "title": "Preview",
+        "width": "Preview width",
+        "desktop": "Desktop",
+        "mobile": "Mobile",
+        "frameTitle": "Email preview",
+        "sampleName": "Coach Ahmed",
+        "sampleNote": "Preview uses a sample coach: {name}.",
+        "subjectPlaceholder": "Subject",
+        "bodyPlaceholder": "Your message will appear here."
+      },
+      "confirm": {
+        "title": "Send to {count, plural, one {# coach} other {# coaches}}?",
+        "body": "Each coach gets a separate email. This cannot be undone.",
+        "action": "Send"
+      },
+      "history": {
+        "title": "Sent emails",
+        "empty": "No emails sent yet.",
+        "viewTitle": "Sent email",
+        "table": {
+          "subject": "Subject",
+          "date": "Date",
+          "recipients": "Recipients",
+          "sent": "Sent",
+          "failed": "Failed"
+        }
+      },
+      "errors": {
+        "invalid_input": "Check the subject, message and recipients.",
+        "not_authenticated": "Sign in again to continue.",
+        "forbidden": "Only an admin can send emails.",
+        "email_not_configured": "Email sending is not set up (missing RESEND_API_KEY).",
+        "no_admin_email": "Your account has no email address.",
+        "no_recipients": "No coaches match this selection.",
+        "send_failed": "The email could not be sent. Try again."
       }
     },
     "settings": {

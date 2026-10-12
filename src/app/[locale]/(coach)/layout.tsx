@@ -82,7 +82,7 @@ export default async function CoachLayout({
        * them -- that's the admin's activity, not the coach's. */}
       {!impersonating && <PresenceHeartbeat />}
       <InboxRealtime />
-      <Sidebar brandLogo={brandLogo} />
+      <Sidebar brandLogo={brandLogo} darkGround={branding?.sidebarDark ?? true} />
       <div className="flex min-w-0 flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
         {settings.announcement.enabled && (
