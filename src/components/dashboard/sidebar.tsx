@@ -12,10 +12,13 @@ import { NAV_ITEMS, type NavItem } from "./nav-items";
 export function Sidebar({
   items = NAV_ITEMS,
   brandLogo,
+  darkGround = true,
 }: {
   items?: NavItem[];
   /** Studio coaches' own logo (see lib/branding.ts); null keeps the lockup. */
   brandLogo?: { src: string; name: string } | null;
+  /** False when a Studio coach picked a light sidebar color. */
+  darkGround?: boolean;
 }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
@@ -23,9 +26,13 @@ export function Sidebar({
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:flex lg:h-dvh">
       <div className="px-5 py-5">
-        {/* Sidebar ground is always dark (#0F172A light mode / #020617 dark
-            mode) regardless of app theme, so the lockup asset is forced. */}
-        {brandLogo ? <BrandLogo {...brandLogo} /> : <CoachlyLockup height={26} onDarkGround />}
+        {/* Sidebar ground is the same in both app themes (stock navy, or a
+            Studio coach's own color), so the lockup asset is forced. */}
+        {brandLogo ? (
+          <BrandLogo {...brandLogo} />
+        ) : (
+          <CoachlyLockup height={26} onDarkGround={darkGround} onLightGround={!darkGround} />
+        )}
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
         {items.map((item) => {

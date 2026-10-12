@@ -136,6 +136,8 @@ export async function updateBrandingAction(locale: string, input: unknown): Prom
     .update({
       brand_primary: parsed.data.brand_primary || null,
       brand_accent: parsed.data.brand_accent || null,
+      brand_sidebar: parsed.data.brand_sidebar || null,
+      brand_sidebar_text: parsed.data.brand_sidebar_text || null,
     })
     .eq("id", auth.coachId);
   if (error) return { error: error.hint === "upgrade_required" ? "upgrade_required" : "update_failed" };

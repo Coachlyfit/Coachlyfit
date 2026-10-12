@@ -12,6 +12,8 @@ const brandColor = z
 export const brandSchema = z.object({
   brand_primary: brandColor,
   brand_accent: brandColor,
+  brand_sidebar: brandColor,
+  brand_sidebar_text: brandColor,
 });
 
 export type BrandFormInput = z.input<typeof brandSchema>;

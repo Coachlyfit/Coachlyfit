@@ -38,9 +38,17 @@ export interface CoachlyLockupProps {
    * need the light-on-dark lockup).
    */
   onDarkGround?: boolean;
+  /** The opposite force: a ground that is light in both modes (a Studio
+   * coach's light sidebar color). */
+  onLightGround?: boolean;
 }
 
-export function CoachlyLockup({ height = 32, className, onDarkGround = false }: CoachlyLockupProps) {
+export function CoachlyLockup({
+  height = 32,
+  className,
+  onDarkGround = false,
+  onLightGround = false,
+}: CoachlyLockupProps) {
   const locale = useLocale();
 
   if (height < 22) {
@@ -52,9 +60,10 @@ export function CoachlyLockup({ height = 32, className, onDarkGround = false }: 
   const lightSrc = isArabic ? "/brand/lockup-arabic.svg" : "/brand/lockup-latin.svg";
   const darkSrc = isArabic ? "/brand/lockup-arabic-dark.svg" : "/brand/lockup-latin-dark.svg";
 
-  if (onDarkGround) {
+  if (onDarkGround || onLightGround) {
+    const src = onDarkGround ? darkSrc : lightSrc;
     // eslint-disable-next-line @next/next/no-img-element -- decorative brand asset, not content needing next/image optimization
-    return <img src={darkSrc} alt="coachlyfit" width={width} height={height} className={className} />;
+    return <img src={src} alt="coachlyfit" width={width} height={height} className={className} />;
   }
 
   return (

@@ -282,6 +282,7 @@ export function SettingsShell({
           profileControl={profileForm.control}
           portalControl={portalForm.control}
           brandControl={brandForm.control}
+          brandingEnabled={brandingEnabled}
           logoUrl={logoUrl}
           packages={packages}
           packageDraft={packageDraft}

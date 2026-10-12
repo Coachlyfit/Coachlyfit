@@ -23,7 +23,7 @@ export default async function SettingsPage() {
     supabase
       .from("coaches")
       .select(
-        "business_name, default_checkin_template_id, slug, logo_path, address, tax_number, contact_phone, contact_email, default_currency, default_tax_rate, brand_primary, brand_accent"
+        "business_name, default_checkin_template_id, slug, logo_path, address, tax_number, contact_phone, contact_email, default_currency, default_tax_rate, brand_primary, brand_accent, brand_sidebar, brand_sidebar_text"
       )
       .eq("id", coachId)
       .single(),
@@ -63,7 +63,12 @@ export default async function SettingsPage() {
           logo_path: coach.logo_path,
         }}
         portal={{ slug: coach.slug, default_checkin_template_id: coach.default_checkin_template_id }}
-        brand={{ brand_primary: coach.brand_primary ?? "", brand_accent: coach.brand_accent ?? "" }}
+        brand={{
+          brand_primary: coach.brand_primary ?? "",
+          brand_accent: coach.brand_accent ?? "",
+          brand_sidebar: coach.brand_sidebar ?? "",
+          brand_sidebar_text: coach.brand_sidebar_text ?? "",
+        }}
         brandingEnabled={branding !== null}
         checkinTemplates={checkinTemplates ?? []}
         packages={packages}

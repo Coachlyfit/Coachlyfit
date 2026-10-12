@@ -4,19 +4,26 @@ import { LaunchMark } from "@/components/brand/launch-mark";
 import { PortalAuthFrame } from "@/components/auth/portal-auth-frame";
 import { resolvePortalSlug } from "@/lib/tenant/resolve-portal-slug";
 import { createClient } from "@/lib/supabase/server";
+import { COACH_LOGOS_BUCKET } from "@/domain/billing/invoices.service";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const slug = await resolvePortalSlug();
   let businessName: string | null = null;
+  let logoUrl: string | null = null;
   if (slug) {
     const supabase = await createClient();
     const { data } = await supabase.rpc("get_portal_branding", { p_slug: slug });
-    businessName = (data as { business_name?: string } | null)?.business_name ?? null;
+    const row = data as { business_name?: string; logo_path?: string | null } | null;
+    businessName = row?.business_name ?? null;
+    // logo_path only comes back for coaches whose plan has custom branding.
+    if (row?.logo_path) {
+      logoUrl = supabase.storage.from(COACH_LOGOS_BUCKET).getPublicUrl(row.logo_path).data.publicUrl;
+    }
   }
 
   if (businessName) {
     return (
-      <PortalAuthFrame businessName={businessName} className="min-h-dvh justify-center px-4 py-12">
+      <PortalAuthFrame businessName={businessName} logoUrl={logoUrl} className="min-h-dvh justify-center px-4 py-12">
         {children}
       </PortalAuthFrame>
     );
