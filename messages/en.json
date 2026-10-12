@@ -14,6 +14,7 @@
     "light": "Light",
     "dark": "Dark",
     "more": "More",
+    "installApp": "Install app",
     "signOut": "Sign out",
     "errorBoundary": {
       "title": "Something went wrong",

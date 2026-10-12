@@ -3,18 +3,25 @@ import { routing } from "@/i18n/routing";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
+// One manifest for both locales, so it follows the Arabic-first default
+// (routing.defaultLocale). start_url "/" lets proxy.ts redirect each install
+// to the user's saved locale, so English users still land on /en.
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "Coachlyfit",
     short_name: "Coachlyfit",
-    description: "Coach your clients your way.",
+    description: "درّب عملاءك بطريقتك — Coach your clients your way.",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#f8fafc",
     theme_color: "#0F172A",
     icons: [
       { src: "/brand/app-icon.svg", sizes: "any", type: "image/svg+xml" },
-      { src: "/brand/favicon.png", sizes: "48x48", type: "image/png" },
+      { src: "/brand/app-icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/brand/app-icon-512.png", sizes: "512x512", type: "image/png" },
+      { src: "/brand/app-icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     screenshots: [
       {
@@ -25,7 +32,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
     ],
     categories: ["business", "productivity", "health"],
-    lang: "en",
-    dir: "ltr",
+    lang: routing.defaultLocale,
+    dir: "rtl",
   };
 }

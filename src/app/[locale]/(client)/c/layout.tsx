@@ -12,6 +12,7 @@ import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { subscriptionDisplayStatus, type ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { InstallAppButton } from "@/components/install-app-button";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { Button } from "@/components/ui/button";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
@@ -81,6 +82,7 @@ export default async function ClientLayout({
           <CoachlyMark size={24} className="text-foreground" />
         )}
         <div className="ms-auto flex items-center gap-2">
+          <InstallAppButton />
           <LocaleSwitcher />
           <ThemeToggle />
           <form action={signOutAction.bind(null, locale)}>
