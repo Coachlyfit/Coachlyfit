@@ -19,12 +19,30 @@
     "errorBoundary": {
       "title": "Something went wrong",
       "description": "An unexpected error occurred. Try again, or go back.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "page": {
+        "metaTitle": "Something went wrong",
+        "title": "Something went wrong on our end",
+        "description": "It's not you. Your data is safe — try again in a moment.",
+        "retry": "Try again",
+        "retrying": "Retrying…",
+        "home": "Back to home",
+        "supportTitle": "Still happening?",
+        "supportBody": "Send this error code to support so we can find the problem faster.",
+        "codeLabel": "Error code",
+        "copy": "Copy",
+        "copied": "Copied",
+        "contactSupport": "Contact support"
+      }
     },
     "notFound": {
-      "title": "Page not found",
+      "title": "This exercise isn't in the program",
       "description": "The page you're looking for doesn't exist or was moved.",
-      "backHome": "Back to home"
+      "backHome": "Back to home",
+      "metaTitle": "Page not found",
+      "back": "Previous page",
+      "quickLinks": "Quick links",
+      "orGoTo": "Or jump straight to"
     },
     "trash": {
       "trigger": "Trash",
@@ -2595,7 +2613,7 @@
       }
     },
     "settings": {
-      "title": "Settings",
+      "title": "Platform settings",
       "saved": "Saved.",
       "save": "Save",
       "tabs": {
@@ -2606,31 +2624,46 @@
         "audit": "Audit log"
       },
       "general": {
-        "brandingTitle": "Branding",
-        "appNameAr": "App name (Arabic)",
-        "appNameEn": "App name (English)",
+        "brandingTitle": "Identity",
+        "appNameAr": "Arabic name",
+        "appNameEn": "English name",
         "supportEmail": "Support email",
         "invalidEmail": "Enter a valid email.",
         "announcementTitle": "Announcement banner",
         "announcementEnabled": "Show banner",
-        "announcementTextAr": "Banner text (Arabic)",
-        "announcementTextEn": "Banner text (English)"
+        "announcementTextAr": "Arabic text",
+        "announcementTextEn": "English text",
+        "brandingHint": "The platform name in the interface and emails.",
+        "supportEmailHint": "Shown on the error page and in invite emails.",
+        "announcementHint": "A message shown at the top of every page.",
+        "shown": "Shown",
+        "hidden": "Hidden",
+        "preview": "Banner preview",
+        "previewPlaceholder": "Write the announcement text",
+        "previewCaption": "Preview — how it looks at the top of the page"
       },
       "platform": {
-        "togglesTitle": "Platform toggles",
+        "togglesTitle": "Signups and trial",
         "maintenanceMode": "Maintenance mode",
-        "maintenanceModeHint": "Blocks coaches and clients from the app. Admins are unaffected.",
+        "maintenanceModeHint": "Blocks every coach and client and shows them a maintenance page. Admins are unaffected.",
         "signupsEnabled": "Signups open",
-        "signupsEnabledHint": "Turn off to hide new signups.",
+        "signupsEnabledHint": "New coaches can sign up from the landing page.",
         "billingTitle": "Trial length",
-        "trialDays": "Trial days"
+        "trialHint": "Applies to new coaches only.",
+        "days": "{count, plural, one {day} other {days}}",
+        "decrease": "Decrease",
+        "increase": "Increase",
+        "dangerZone": "Danger zone",
+        "enableMaintenance": "Turn on maintenance",
+        "disableMaintenance": "Turn off maintenance",
+        "confirmTitle": "Turn on maintenance mode?",
+        "confirmBody": "Every coach and client ({count, plural, one {{value} user} other {{value} users}}) will be signed out and see the maintenance page until you turn it off."
       },
       "plans": {
-        "saved": "Plan saved.",
-        "save": "Save",
-        "nameAr": "Name (Arabic)",
-        "nameEn": "Name (English)",
-        "price": "Price (EGP/month)",
+        "saved": "Plans saved.",
+        "nameAr": "Arabic name",
+        "nameEn": "English name",
+        "price": "Monthly price",
         "maxClients": "Max clients",
         "isActive": "Active",
         "features": {
@@ -2639,15 +2672,29 @@
           "priority_support": "Priority support",
           "white_label": "White label",
           "custom_branding": "Custom branding"
-        }
+        },
+        "title": "Plans",
+        "empty": "No plans yet.",
+        "plan": "Plan",
+        "name": "Name",
+        "currency": "EGP",
+        "coaches": "<num>{value}</num> {count, plural, one {coach} other {coaches}}",
+        "unlimited": "Unlimited",
+        "noLimit": "No limit",
+        "featuresGroup": "Features",
+        "available": "Included",
+        "unavailable": "Not included",
+        "availableForSignup": "Open for signup",
+        "inactive": "Paused",
+        "priceNote": "Price changes apply to new subscriptions and upcoming renewals only.",
+        "revert": "Revert",
+        "saveAll": "Save all plans",
+        "summary": "{on} of {total} features"
       },
       "audit": {
         "empty": "No admin actions recorded yet.",
-        "when": "When",
         "admin": "Admin",
         "action": "Action",
-        "target": "User",
-        "details": "Details",
         "actions": {
           "profile_update": "Profile edited",
           "email_change": "Email changed",
@@ -2671,6 +2718,28 @@
           "phone": "Phone",
           "email": "Email",
           "role": "Role"
+        },
+        "title": "Audit log",
+        "allActions": "All actions",
+        "allAdmins": "All admins",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "noResults": "No matching actions.",
+        "clearFilters": "Clear filters",
+        "sentence": {
+          "profile_update": "<b>{admin}</b> edited <b>{target}</b>'s profile",
+          "email_change": "<b>{admin}</b> changed <b>{target}</b>'s email",
+          "password_reset": "<b>{admin}</b> sent a password reset to <b>{target}</b>",
+          "role_change": "<b>{admin}</b> changed <b>{target}</b>'s role",
+          "suspend": "<b>{admin}</b> suspended <b>{target}</b>",
+          "unsuspend": "<b>{admin}</b> unsuspended <b>{target}</b>",
+          "delete": "<b>{admin}</b> deleted <b>{target}</b>",
+          "invite_link_created": "<b>{admin}</b> created an invite link for <b>{target}</b>",
+          "subscription_update": "<b>{admin}</b> changed <b>{target}</b>'s subscription",
+          "note": "<b>{admin}</b> added a note on <b>{target}</b>",
+          "request_approve": "<b>{admin}</b> approved <b>{target}</b>'s request",
+          "request_reject": "<b>{admin}</b> rejected <b>{target}</b>'s request",
+          "other": "<b>{admin}</b> · {action} · <b>{target}</b>"
         }
       },
       "users": {
@@ -2685,7 +2754,6 @@
         "roleClient": "Client",
         "you": "You",
         "actions": "Actions",
-        "edit": "Edit user",
         "editTitle": "Edit user",
         "save": "Save",
         "saved": "User updated.",
@@ -2699,7 +2767,25 @@
         "deleteWarningCoach": "This permanently deletes the coach and ALL their clients, programs, messages, invoices and payments. It can't be undone.",
         "deleteConfirmLabel": "Type {email} to confirm",
         "deleteConfirm": "Delete permanently",
-        "deleted": "User deleted."
+        "deleted": "User deleted.",
+        "title": "Users",
+        "empty": "No users yet.",
+        "all": "All",
+        "admins": "Admins",
+        "coaches": "Coaches",
+        "clients": "Clients",
+        "user": "User",
+        "status": "Status",
+        "active": "Active",
+        "suspend": "Suspend",
+        "unsuspend": "Unsuspend",
+        "more": "More",
+        "editShort": "Edit",
+        "ownRoleHint": "You can't change your own role.",
+        "suspendTitle": "Suspend {name}?",
+        "suspendBody": "They won't be able to sign in until you unsuspend them.",
+        "noResults": "No matching users.",
+        "showAll": "Show all"
       },
       "errors": {
         "invalid_input": "Please check the form and try again.",
@@ -2712,7 +2798,10 @@
         "reset_failed": "Couldn't send the reset email. Try again.",
         "confirm_mismatch": "The email you typed doesn't match.",
         "delete_failed": "Couldn't delete this user. Try again."
-      }
+      },
+      "subtitle": "Affects every coach and client.",
+      "maintenanceOn": "Maintenance mode is on",
+      "tabsLabel": "Sections"
     }
   },
   "notifications": {
@@ -2928,7 +3017,8 @@
         "vodafone_cash": "Vodafone Cash",
         "cash": "Cash"
       }
-    }
+    },
+    "clientLimitUnlimited": "{count} clients · no limit"
   },
   "review": {
     "title": "Check-in review",

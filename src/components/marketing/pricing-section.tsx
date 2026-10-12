@@ -6,8 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 
-// Elite's client cap is a very large sentinel (999999), not a real limit —
-// shown as "unlimited" rather than the raw number.
+// No cap is null. Rows seeded before 20261015000001 still carry the old
+// 999999 sentinel, so that reads as "unlimited" too.
 const UNLIMITED_THRESHOLD = 100000;
 
 // Display order for feature flags — `features` is stored as a flags object
@@ -72,7 +72,7 @@ export async function PricingSection() {
               </p>
 
               <p className="mt-2 text-[13px] text-muted-foreground">
-                {tier.max_clients >= UNLIMITED_THRESHOLD
+                {tier.max_clients == null || tier.max_clients >= UNLIMITED_THRESHOLD
                   ? t("unlimitedClients")
                   : t("clientLimit", { max: formatNumber(tier.max_clients, locale) })}
               </p>

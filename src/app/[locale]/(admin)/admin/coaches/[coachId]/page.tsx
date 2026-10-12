@@ -20,7 +20,7 @@ import { TRIAL_ENDING_SOON_DAYS as DAYS_SOON } from "@/domain/billing/coach-stag
 import { ImpersonateButton } from "./impersonate-button";
 import { CoachNoteForm, ManageSubscriptionDialog, SuspendButton } from "./subscription-controls";
 import { RequestsList } from "../../requests/requests-list";
-import { changes, noteOf, show } from "../../settings/audit-tab";
+import { changes, noteOf, show } from "@/domain/platform/audit";
 
 function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);

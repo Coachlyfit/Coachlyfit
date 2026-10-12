@@ -19,12 +19,30 @@
     "errorBoundary": {
       "title": "حدث خطأ ما",
       "description": "حدث خطأ غير متوقع. حاول مرة أخرى، أو ارجع للخلف.",
-      "retry": "حاول مرة أخرى"
+      "retry": "حاول مرة أخرى",
+      "page": {
+        "metaTitle": "حصلت مشكلة",
+        "title": "حصلت مشكلة عندنا",
+        "description": "مش ذنبك. بياناتك في أمان، جرّب تاني بعد لحظة.",
+        "retry": "حاول تاني",
+        "retrying": "بنحاول…",
+        "home": "الرجوع للرئيسية",
+        "supportTitle": "المشكلة مستمرة؟",
+        "supportBody": "ابعت رمز الخطأ ده للدعم عشان نوصل للمشكلة أسرع.",
+        "codeLabel": "رمز الخطأ",
+        "copy": "نسخ",
+        "copied": "اتنسخ",
+        "contactSupport": "تواصل مع الدعم"
+      }
     },
     "notFound": {
-      "title": "الصفحة غير موجودة",
-      "description": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
-      "backHome": "العودة للرئيسية"
+      "title": "التمرين ده مش في البرنامج",
+      "description": "الصفحة اللي بتدور عليها مش موجودة، أو اتنقلت لمكان تاني.",
+      "backHome": "العودة للرئيسية",
+      "metaTitle": "الصفحة مش موجودة",
+      "back": "الصفحة السابقة",
+      "quickLinks": "روابط سريعة",
+      "orGoTo": "أو روح على طول لـ"
     },
     "trash": {
       "trigger": "المحذوفات",
@@ -2595,7 +2613,7 @@
       }
     },
     "settings": {
-      "title": "الإعدادات",
+      "title": "إعدادات المنصة",
       "saved": "تم الحفظ.",
       "save": "حفظ",
       "tabs": {
@@ -2607,30 +2625,45 @@
       },
       "general": {
         "brandingTitle": "الهوية",
-        "appNameAr": "اسم التطبيق (عربي)",
-        "appNameEn": "اسم التطبيق (إنجليزي)",
+        "appNameAr": "الاسم بالعربي",
+        "appNameEn": "الاسم بالإنجليزي",
         "supportEmail": "بريد الدعم",
         "invalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا.",
         "announcementTitle": "شريط الإعلانات",
         "announcementEnabled": "إظهار الشريط",
-        "announcementTextAr": "نص الإعلان (عربي)",
-        "announcementTextEn": "نص الإعلان (إنجليزي)"
+        "announcementTextAr": "النص بالعربي",
+        "announcementTextEn": "النص بالإنجليزي",
+        "brandingHint": "اسم المنصة في الواجهة والإيميلات.",
+        "supportEmailHint": "يظهر في صفحة الخطأ وإيميلات الدعوة.",
+        "announcementHint": "رسالة تظهر أعلى كل الصفحات.",
+        "shown": "ظاهر",
+        "hidden": "مخفي",
+        "preview": "معاينة الشريط",
+        "previewPlaceholder": "اكتب نص الإعلان",
+        "previewCaption": "معاينة — هكذا يظهر أعلى الصفحة"
       },
       "platform": {
-        "togglesTitle": "إعدادات المنصة",
+        "togglesTitle": "التسجيل والتجربة",
         "maintenanceMode": "وضع الصيانة",
-        "maintenanceModeHint": "يمنع المدربين والعملاء من الدخول. المدراء غير متأثرين.",
+        "maintenanceModeHint": "يمنع كل المدربين والعملاء من الدخول ويعرض لهم صفحة صيانة. المدراء غير متأثرين.",
         "signupsEnabled": "التسجيل مفتوح",
-        "signupsEnabledHint": "أوقفه لإخفاء التسجيل الجديد.",
+        "signupsEnabledHint": "مدربين جدد يقدروا يسجلوا من صفحة الهبوط.",
         "billingTitle": "مدة الفترة التجريبية",
-        "trialDays": "عدد أيام التجربة"
+        "trialHint": "تُطبَّق على المدربين الجدد فقط.",
+        "days": "يوم",
+        "decrease": "إنقاص",
+        "increase": "زيادة",
+        "dangerZone": "منطقة حساسة",
+        "enableMaintenance": "تفعيل الصيانة",
+        "disableMaintenance": "إيقاف الصيانة",
+        "confirmTitle": "تفعيل وضع الصيانة؟",
+        "confirmBody": "كل المدربين والعملاء ({value} مستخدم) هيتم إخراجهم وهيشوفوا صفحة الصيانة لحد ما توقفه."
       },
       "plans": {
-        "saved": "تم حفظ الباقة.",
-        "save": "حفظ",
-        "nameAr": "الاسم (عربي)",
-        "nameEn": "الاسم (إنجليزي)",
-        "price": "السعر (جنيه/شهر)",
+        "saved": "تم حفظ الباقات.",
+        "nameAr": "الاسم بالعربي",
+        "nameEn": "الاسم بالإنجليزي",
+        "price": "السعر الشهري",
         "maxClients": "أقصى عدد عملاء",
         "isActive": "فعّالة",
         "features": {
@@ -2639,15 +2672,29 @@
           "priority_support": "دعم أولوية",
           "white_label": "علامة بيضاء",
           "custom_branding": "هوية مخصصة"
-        }
+        },
+        "title": "الباقات",
+        "empty": "لا توجد باقات بعد.",
+        "plan": "الباقة",
+        "name": "الاسم",
+        "currency": "ج.م",
+        "coaches": "<num>{value}</num> مدرب",
+        "unlimited": "غير محدود",
+        "noLimit": "بلا حد",
+        "featuresGroup": "المميزات",
+        "available": "متاح",
+        "unavailable": "غير متاح",
+        "availableForSignup": "متاحة للاشتراك",
+        "inactive": "موقوفة",
+        "priceNote": "تغيير السعر يُطبَّق على الاشتراكات الجديدة والتجديدات القادمة فقط.",
+        "revert": "تراجع",
+        "saveAll": "حفظ كل الباقات",
+        "summary": "{on} من {total} مميزات"
       },
       "audit": {
         "empty": "لا توجد إجراءات مسجلة بعد.",
-        "when": "التوقيت",
         "admin": "المدير",
         "action": "الإجراء",
-        "target": "المستخدم",
-        "details": "التفاصيل",
         "actions": {
           "profile_update": "تعديل البيانات",
           "email_change": "تغيير البريد",
@@ -2671,6 +2718,28 @@
           "phone": "الهاتف",
           "email": "البريد الإلكتروني",
           "role": "الدور"
+        },
+        "title": "سجل الإجراءات",
+        "allActions": "كل الإجراءات",
+        "allAdmins": "كل المدراء",
+        "today": "النهارده",
+        "yesterday": "أمس",
+        "noResults": "لا توجد إجراءات مطابقة.",
+        "clearFilters": "مسح الفلاتر",
+        "sentence": {
+          "profile_update": "<b>{admin}</b> عدّل بيانات <b>{target}</b>",
+          "email_change": "<b>{admin}</b> غيّر بريد <b>{target}</b>",
+          "password_reset": "<b>{admin}</b> أرسل إعادة تعيين كلمة المرور لـ <b>{target}</b>",
+          "role_change": "<b>{admin}</b> غيّر دور <b>{target}</b>",
+          "suspend": "<b>{admin}</b> أوقف <b>{target}</b>",
+          "unsuspend": "<b>{admin}</b> ألغى إيقاف <b>{target}</b>",
+          "delete": "<b>{admin}</b> حذف <b>{target}</b>",
+          "invite_link_created": "<b>{admin}</b> أنشأ رابط دعوة لـ <b>{target}</b>",
+          "subscription_update": "<b>{admin}</b> عدّل اشتراك <b>{target}</b>",
+          "note": "<b>{admin}</b> أضاف ملاحظة على <b>{target}</b>",
+          "request_approve": "<b>{admin}</b> وافق على طلب <b>{target}</b>",
+          "request_reject": "<b>{admin}</b> رفض طلب <b>{target}</b>",
+          "other": "<b>{admin}</b> · {action} · <b>{target}</b>"
         }
       },
       "users": {
@@ -2685,7 +2754,6 @@
         "roleClient": "عميل",
         "you": "أنت",
         "actions": "الإجراءات",
-        "edit": "تعديل المستخدم",
         "editTitle": "تعديل المستخدم",
         "save": "حفظ",
         "saved": "تم تحديث المستخدم.",
@@ -2699,7 +2767,25 @@
         "deleteWarningCoach": "سيتم حذف المدرب وكل عملائه وبرامجه ورسائله وفواتيره ومدفوعاته نهائيًا. لا يمكن التراجع عن ذلك.",
         "deleteConfirmLabel": "اكتب {email} للتأكيد",
         "deleteConfirm": "حذف نهائي",
-        "deleted": "تم حذف المستخدم."
+        "deleted": "تم حذف المستخدم.",
+        "title": "المستخدمون",
+        "empty": "لا يوجد مستخدمون بعد.",
+        "all": "الكل",
+        "admins": "مدراء",
+        "coaches": "مدربين",
+        "clients": "عملاء",
+        "user": "المستخدم",
+        "status": "الحالة",
+        "active": "نشط",
+        "suspend": "إيقاف",
+        "unsuspend": "إلغاء الإيقاف",
+        "more": "المزيد",
+        "editShort": "تعديل",
+        "ownRoleHint": "لا يمكنك تغيير دورك.",
+        "suspendTitle": "إيقاف {name}؟",
+        "suspendBody": "لن يتمكن من الدخول حتى تلغي الإيقاف.",
+        "noResults": "لا يوجد مستخدمون مطابقون.",
+        "showAll": "عرض الكل"
       },
       "errors": {
         "invalid_input": "برجاء مراجعة النموذج والمحاولة مرة أخرى.",
@@ -2712,7 +2798,10 @@
         "reset_failed": "تعذر إرسال رسالة إعادة التعيين. حاول مرة أخرى.",
         "confirm_mismatch": "البريد الذي كتبته غير مطابق.",
         "delete_failed": "تعذر حذف هذا المستخدم. حاول مرة أخرى."
-      }
+      },
+      "subtitle": "تؤثر على كل المدربين والعملاء.",
+      "maintenanceOn": "وضع الصيانة مفعّل",
+      "tabsLabel": "الأقسام"
     }
   },
   "notifications": {
@@ -2928,7 +3017,8 @@
         "vodafone_cash": "فودافون كاش",
         "cash": "نقدًا"
       }
-    }
+    },
+    "clientLimitUnlimited": "{count} عميل · بلا حد أقصى"
   },
   "review": {
     "title": "مراجعة المتابعات",

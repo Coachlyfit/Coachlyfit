@@ -3459,7 +3459,7 @@ export type Database = {
           id: string
           is_active: boolean
           key: string
-          max_clients: number
+          max_clients: number | null
           name_ar: string
           name_en: string
           price_egp_monthly: number
@@ -3470,7 +3470,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           key: string
-          max_clients: number
+          max_clients?: number | null
           name_ar: string
           name_en: string
           price_egp_monthly: number
@@ -3481,7 +3481,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           key?: string
-          max_clients?: number
+          max_clients?: number | null
           name_ar?: string
           name_en?: string
           price_egp_monthly?: number
@@ -4189,6 +4189,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_update_tiers: { Args: { p_tiers: Json }; Returns: undefined }
       admin_update_user_profile: {
         Args: { p_full_name: string; p_phone: string; p_user_id: string }
         Returns: undefined

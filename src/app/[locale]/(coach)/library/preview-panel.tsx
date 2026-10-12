@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Copy, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -67,14 +68,21 @@ function PanelActions({
   );
 }
 
+/** Coach handlers, or — for the admin library — a ready-made actions node
+ * and the label for coach-owned rows. */
+type PreviewProps = (Actions | { actions: ReactNode }) & { locale: AppLocale; className?: string; coachBadge?: string };
+
+function panelActions(props: PreviewProps, owned: boolean, cloned: boolean) {
+  return "actions" in props ? props.actions : <PanelActions owned={owned} cloned={cloned} {...props} />;
+}
+
 const PANEL = "overflow-hidden rounded-xl border bg-card";
 
 export function ExercisePreview({
   exercise,
-  locale,
-  className,
-  ...actions
-}: Actions & { exercise: Exercise; locale: AppLocale; className?: string }) {
+  ...props
+}: PreviewProps & { exercise: Exercise }) {
+  const { locale, className, coachBadge } = props;
   const t = useTranslations("library");
   const tGroups = useTranslations("library.muscleGroups");
   const tSource = useTranslations("library.source");
@@ -98,7 +106,7 @@ export function ExercisePreview({
           <dd className="font-medium">{equipmentLabel(exercise.equipment) ?? "—"}</dd>
           <dt className="text-muted-foreground">{t("columns.source")}</dt>
           <dd className="font-medium">
-            {exercise.coach_id ? t("mineBadge.exercises") : tSource("global")}
+            {exercise.coach_id ? (coachBadge ?? t("mineBadge.exercises")) : tSource("global")}
             {basedOn && <span className="block font-normal text-muted-foreground">{t("basedOn", { name: basedOn })}</span>}
           </dd>
         </dl>
@@ -112,7 +120,7 @@ export function ExercisePreview({
             {t("watchVideo")}
           </a>
         )}
-        <PanelActions owned={!!exercise.coach_id} cloned={!!exercise.my_clone_id} {...actions} />
+        {panelActions(props, !!exercise.coach_id, !!exercise.my_clone_id)}
       </div>
     </aside>
   );
@@ -120,10 +128,9 @@ export function ExercisePreview({
 
 export function FoodPreview({
   food,
-  locale,
-  className,
-  ...actions
-}: Actions & { food: Food; locale: AppLocale; className?: string }) {
+  ...props
+}: PreviewProps & { food: Food }) {
+  const { locale, className, coachBadge } = props;
   const t = useTranslations("library");
   const tColumns = useTranslations("library.columns");
   const tCategories = useTranslations("library.foodCategories");
@@ -137,7 +144,7 @@ export function FoodPreview({
           <Badge variant="secondary" className="rounded-md">
             {tCategories(food.category)}
           </Badge>
-          {food.coach_id && <Badge variant="warning">{t("mineBadge.foods")}</Badge>}
+          {food.coach_id && <Badge variant="warning">{coachBadge ?? t("mineBadge.foods")}</Badge>}
         </div>
         <h2 className="text-xl font-semibold">{pickLocale(food, locale)}</h2>
         <span className="text-sm text-muted-foreground">
@@ -168,7 +175,7 @@ export function FoodPreview({
           </div>
         ))}
       </div>
-      <PanelActions owned={!!food.coach_id} cloned={!!food.my_clone_id} {...actions} />
+      {panelActions(props, !!food.coach_id, !!food.my_clone_id)}
     </aside>
   );
 }

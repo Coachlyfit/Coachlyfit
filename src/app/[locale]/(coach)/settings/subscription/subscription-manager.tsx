@@ -19,7 +19,7 @@ import type { AppLocale } from "@/domain/locale";
 import { requestSubscriptionChangeAction, setCancelAtPeriodEndAction, withdrawRequestAction } from "./actions";
 import { subscriptionRequestSchema, type SubscriptionRequestInput } from "./schemas";
 
-export type TierOption = { id: string; name: string; price: number; maxClients: number };
+export type TierOption = { id: string; name: string; price: number; maxClients: number | null };
 
 export type RequestRow = {
   id: string;
@@ -31,7 +31,8 @@ export type RequestRow = {
   createdAt: string;
 };
 
-// The seeded top tier uses this as "no cap" (see 20260820000001).
+// No cap is null; the seeded top tier may still carry this old sentinel
+// (see 20260820000001).
 const UNLIMITED_CLIENTS = 999_999;
 
 const STATUS_VARIANT = { pending: "warning", approved: "success", rejected: "destructive" } as const;
@@ -172,7 +173,7 @@ export function PlansAndRequests({
                 </div>
                 <p className="text-sm text-muted-foreground">{t("priceMonthly", { price: tier.price })}</p>
                 <p className="text-sm text-muted-foreground">
-                  {tier.maxClients >= UNLIMITED_CLIENTS
+                  {tier.maxClients == null || tier.maxClients >= UNLIMITED_CLIENTS
                     ? t("plans.unlimited")
                     : t("plans.clients", { max: formatNumber(tier.maxClients, locale) })}
                 </p>

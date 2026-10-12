@@ -124,7 +124,9 @@ export default async function SubscriptionPage({
           {tier && <p className="text-sm text-muted-foreground">{t("priceMonthly", { price: tier.price_egp_monthly })}</p>}
           {tier && (
             <p className="text-sm text-muted-foreground">
-              {t("clientLimit", { count: clientCount ?? 0, max: tier.max_clients })}
+              {tier.max_clients == null
+                ? t("clientLimitUnlimited", { count: clientCount ?? 0 })
+                : t("clientLimit", { count: clientCount ?? 0, max: tier.max_clients })}
             </p>
           )}
           {!subscription && <p className="text-sm text-muted-foreground">{t("noSubscription")}</p>}

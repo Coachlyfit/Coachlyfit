@@ -18,7 +18,7 @@ import type { CoachView } from "./types";
 
 const num = (chunks: React.ReactNode) => <span className="font-mono tabular-nums">{chunks}</span>;
 
-const PLAN_TINT: Record<string, string> = {
+export const PLAN_TINT: Record<string, string> = {
   starter: "bg-accent-tint text-accent-tint-foreground",
   pro: "bg-info-tint text-info-tint-foreground",
   elite: "bg-success-tint text-success-tint-foreground",

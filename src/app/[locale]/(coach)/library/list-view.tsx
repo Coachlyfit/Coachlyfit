@@ -45,11 +45,14 @@ export function ExerciseTable({
   locale,
   selectedId,
   onSelect,
+  coachBadge,
 }: {
   exercises: Exercise[];
   locale: AppLocale;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Admin view: label for coach-owned rows instead of the coach's "Mine". */
+  coachBadge?: string;
 }) {
   const t = useTranslations("library");
   const tGroups = useTranslations("library.muscleGroups");
@@ -80,7 +83,7 @@ export function ExerciseTable({
                   <button type="button" aria-pressed={selected} className={cn(NAME_BUTTON, "max-w-64")}>
                     {pickLocale(ex, locale)}
                   </button>
-                  {ex.coach_id && <Badge variant="warning">{t("mineBadge.exercises")}</Badge>}
+                  {ex.coach_id && <Badge variant="warning">{coachBadge ?? t("mineBadge.exercises")}</Badge>}
                 </div>
               </TableCell>
               <TableCell className="px-4 py-2">
@@ -108,11 +111,13 @@ export function FoodTable({
   locale,
   selectedId,
   onSelect,
+  coachBadge,
 }: {
   foods: Food[];
   locale: AppLocale;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  coachBadge?: string;
 }) {
   const t = useTranslations("library");
   const tCategories = useTranslations("library.foodCategories");
@@ -146,7 +151,7 @@ export function FoodTable({
                     </button>
                     <span className="text-muted-foreground">{tCategories(food.category)}</span>
                   </div>
-                  {food.coach_id && <Badge variant="warning">{t("mineBadge.foods")}</Badge>}
+                  {food.coach_id && <Badge variant="warning">{coachBadge ?? t("mineBadge.foods")}</Badge>}
                 </div>
               </TableCell>
               <TableCell className="px-4 py-3 font-mono tabular-nums">
