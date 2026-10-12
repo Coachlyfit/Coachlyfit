@@ -19,12 +19,30 @@
     "errorBoundary": {
       "title": "Something went wrong",
       "description": "An unexpected error occurred. Try again, or go back.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "page": {
+        "metaTitle": "Something went wrong",
+        "title": "Something went wrong on our end",
+        "description": "It's not you. Your data is safe — try again in a moment.",
+        "retry": "Try again",
+        "retrying": "Retrying…",
+        "home": "Back to home",
+        "supportTitle": "Still happening?",
+        "supportBody": "Send this error code to support so we can find the problem faster.",
+        "codeLabel": "Error code",
+        "copy": "Copy",
+        "copied": "Copied",
+        "contactSupport": "Contact support"
+      }
     },
     "notFound": {
-      "title": "Page not found",
+      "title": "This exercise isn't in the program",
       "description": "The page you're looking for doesn't exist or was moved.",
-      "backHome": "Back to home"
+      "backHome": "Back to home",
+      "metaTitle": "Page not found",
+      "back": "Previous page",
+      "quickLinks": "Quick links",
+      "orGoTo": "Or jump straight to"
     },
     "trash": {
       "trigger": "Trash",
