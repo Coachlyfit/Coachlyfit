@@ -34,7 +34,17 @@ export function trackRlsUser(userId: string) {
 }
 
 /** Creates an auth user fixture and an already-signed-in client for it.
- * Tracked for automatic deletion in this file's afterAll. */
+ * Tracked for automatic deletion in this file's afterAll.
+ *
+ * handle_new_user() no longer takes 'admin' from signup metadata, and only
+ * takes 'client' with a valid invite (20261017000001), so those two roles
+ * are set here with the service-role client instead: the user is created as
+ * a coach with team_invite (no coaches row), then the profile is updated.
+ *
+ * A coach fixture is moved to the plan with every feature. A new coach
+ * starts on the cheapest tier's trial, which since 20261018000001 can't add
+ * custom library entries or more than one form; suites that aren't about
+ * plan limits shouldn't trip over that. */
 export async function createRlsUser(
   tag: string,
   userMetadata: Record<string, unknown>
@@ -42,14 +52,28 @@ export async function createRlsUser(
   const email = `${tag}-${Date.now()}-${Math.random().toString(36).slice(2)}@example.test`;
   const password = "correct horse battery staple";
 
+  const role = userMetadata.role;
+  const setRole = role === "admin" || role === "client" ? role : null;
+
   const { data, error } = await rlsAdmin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
-    user_metadata: userMetadata,
+    user_metadata: setRole ? { ...userMetadata, role: "coach", team_invite: true } : userMetadata,
   });
   if (error || !data.user) throw error ?? new Error("createUser returned no user");
   createdUserIds.push(data.user.id);
+
+  if (setRole) {
+    const update = await rlsAdmin.from("profiles").update({ role: setRole }).eq("id", data.user.id);
+    if (update.error) throw update.error;
+  } else if (!userMetadata.team_invite) {
+    const { data: tier } = await rlsAdmin.from("subscription_tiers").select("id").eq("key", "elite").single();
+    if (tier) {
+      const upgrade = await rlsAdmin.from("subscriptions").update({ tier_id: tier.id }).eq("coach_id", data.user.id);
+      if (upgrade.error) throw upgrade.error;
+    }
+  }
 
   const client = createClient<Database>(URL, ANON_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },

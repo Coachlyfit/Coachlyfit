@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { getRootDomain, SLUG_PATTERN } from "@/lib/tenant/portal-slug";
 import type { PortalFormInput } from "@/app/[locale]/(coach)/settings/portal-schema";
+import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
 import { CheckinTemplatePicker } from "./checkin-template-picker";
 
 const noopSubscribe = () => () => {};
@@ -24,10 +25,14 @@ export function PortalFields({
   form,
   savedSlug,
   templates,
+  canEditSlug,
 }: {
   form: UseFormReturn<PortalFormInput>;
   savedSlug: string;
   templates: { id: string; name_ar: string; name_en: string }[];
+  /** Whether the plan includes white label. Without it the address the
+   * coach already has keeps working, it just can't be changed. */
+  canEditSlug: boolean;
 }) {
   const t = useTranslations("settings.portal");
   const tSettings = useTranslations("settings");
@@ -97,13 +102,16 @@ export function PortalFields({
             autoCorrect="off"
             spellCheck={false}
             aria-invalid={!!errors.slug}
+            readOnly={!canEditSlug}
             {...register("slug")}
           />
           <InputGroupAddon align="inline-end" className="font-mono text-xs font-normal md:text-sm">
             .{getRootDomain()}
           </InputGroupAddon>
         </InputGroup>
-        {errors.slug ? (
+        {!canEditSlug ? (
+          <UpgradePrompt feature="slug" />
+        ) : errors.slug ? (
           <p className="text-sm text-destructive">{t("slugFormat")}</p>
         ) : settled && checking ? (
           <p className="text-xs text-muted-foreground">{t("checking")}</p>

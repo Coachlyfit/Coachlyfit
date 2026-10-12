@@ -46,6 +46,7 @@ export function SettingsShell({
   portal,
   brand,
   brandingEnabled,
+  whiteLabelEnabled,
   checkinTemplates,
   packages,
   paymentMethods,
@@ -57,6 +58,8 @@ export function SettingsShell({
   brand: BrandFormInput;
   /** Whether the coach's plan includes custom branding (Studio). */
   brandingEnabled: boolean;
+  /** Whether the plan includes white label: a logo and a custom portal address. */
+  whiteLabelEnabled: boolean;
   checkinTemplates: Named[];
   packages: Package[];
   paymentMethods: Named[];
@@ -233,7 +236,7 @@ export function SettingsShell({
             <>
               <h2 className="text-xl font-semibold">{t("headings.identity")}</h2>
               <form id={FORM_ID} onSubmit={saveProfile} className="flex flex-col gap-4" noValidate>
-                <IdentityFields form={profileForm} coachId={coachId} logoUrl={logoUrl} />
+                <IdentityFields form={profileForm} coachId={coachId} logoUrl={logoUrl} canSetLogo={whiteLabelEnabled} />
               </form>
             </>
           )}
@@ -252,7 +255,12 @@ export function SettingsShell({
               <h2 className="text-xl font-semibold">{t("headings.portal")}</h2>
               <p className="text-sm text-muted-foreground">{t("portal.description")}</p>
               <form id={FORM_ID} onSubmit={savePortal} className="flex flex-col gap-4" noValidate>
-                <PortalFields form={portalForm} savedSlug={portal.slug} templates={checkinTemplates} />
+                <PortalFields
+                  form={portalForm}
+                  savedSlug={portal.slug}
+                  templates={checkinTemplates}
+                  canEditSlug={whiteLabelEnabled}
+                />
               </form>
               <CustomMetricsCard metrics={customMetrics} />
             </>

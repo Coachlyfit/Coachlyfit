@@ -691,7 +691,7 @@
       "metric_already_exists": "You already have a metric with a similar name.",
       "upload_failed": "Upload failed. Try again.",
       "invalid_file": "Use a PNG, JPG or WebP image under 2 MB.",
-      "upgrade_required": "Custom branding is part of the Studio plan."
+      "upgrade_required": "Your plan doesn't include this. Upgrade to use it."
     },
     "customMetrics": {
       "title": "Custom Metrics",
@@ -887,7 +887,8 @@
       "email_taken": "An account with this email already exists.",
       "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
       "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
-      "already_your_client": "This person is already your client."
+      "already_your_client": "This person is already your client.",
+      "subscription_inactive": "Your subscription isn't active, so you can't add clients. Reactivate it from the Subscription page."
     },
     "billing": {
       "subscription": {
@@ -1621,7 +1622,8 @@
       "publish_label": "A question has no text. Write it, then publish.",
       "publish_options": "A choice is blank. Fill it in or remove it, then publish.",
       "save_failed": "Couldn't save your changes. Please try again.",
-      "rename_failed": "Couldn't rename the form. Please try again."
+      "rename_failed": "Couldn't rename the form. Please try again.",
+      "upgrade_required": "Your plan includes one form. Upgrade to create more."
     }
   },
   "programs": {
@@ -2125,7 +2127,8 @@
       "forbidden": "You don't have permission to do that.",
       "already_global": "This entry is already in the global library.",
       "already_cloned": "You already have your own version of this entry.",
-      "unknown": "Something went wrong. Please try again."
+      "unknown": "Something went wrong. Please try again.",
+      "upgrade_required": "Your plan doesn't include adding your own exercises and foods. Upgrade to add more."
     },
     "basedOn": "Based on: {name}",
     "clone": "Clone & Customize",
@@ -2814,7 +2817,11 @@
     "unknown": "You have a new notification.",
     "decision_outcome": "Outcome update: {status}",
     "client_left": "{name} moved to another coach. Their subscription was canceled.",
-    "off_plan_reported": "{name} reported an off-plan day ({date})."
+    "off_plan_reported": "{name} reported an off-plan day ({date}).",
+    "subscription_trial_ending": "Your trial ends on {date}. Pick a plan to keep going.",
+    "subscription_renewal_due": "Your subscription renews on {date}.",
+    "subscription_past_due": "Your payment is overdue. Renew to keep your account active.",
+    "subscription_canceled": "Your subscription was canceled. You can ask to reactivate it."
   },
   "progress": {
     "title": "Progress",
@@ -3018,7 +3025,19 @@
         "cash": "Cash"
       }
     },
-    "clientLimitUnlimited": "{count} clients · no limit"
+    "clientLimitUnlimited": "{count} clients · no limit",
+    "banner": {
+      "pastDue": "Your payment is overdue. Renew soon to keep your account active.",
+      "trialEnding": "{days, plural, =0 {Your trial ends today.} one {Your trial ends in # day.} other {Your trial ends in # days.}}",
+      "cta": "Manage subscription"
+    },
+    "upgrade": {
+      "forms_builder": "Your plan includes one form. Creating more needs a plan with the forms builder.",
+      "custom_library": "Your plan doesn't include adding your own exercises and foods. The ones you already have keep working.",
+      "logo": "Your plan doesn't include your own logo.",
+      "slug": "Your plan doesn't include a custom portal address. Your current one keeps working.",
+      "cta": "View plans"
+    }
   },
   "review": {
     "title": "Check-in review",

@@ -48,6 +48,9 @@ export async function updateSlugAction(locale: string, slug: string): Promise<Ac
   if ("error" in auth) return auth;
 
   const { error } = await auth.supabase.from("coaches").update({ slug: parsed.data }).eq("id", auth.coachId);
+  // A custom address needs white_label (coaches_guard_white_label,
+  // 20261018000001); saving the unchanged one doesn't trip it.
+  if (error?.hint === "upgrade_required") return { error: "upgrade_required" };
   if (error) return { error: error.code === "23505" ? "slug_taken" : "update_failed" };
 
   revalidatePath(`/${locale}/settings`);
@@ -114,7 +117,8 @@ export async function updateBusinessProfileAction(locale: string, input: unknown
       logo_path,
     })
     .eq("id", auth.coachId);
-  if (error) return { error: "update_failed" };
+  // Setting a new logo needs white_label; keeping or removing one doesn't.
+  if (error) return { error: error.hint === "upgrade_required" ? "upgrade_required" : "update_failed" };
 
   revalidatePath(`/${locale}/settings`);
 }

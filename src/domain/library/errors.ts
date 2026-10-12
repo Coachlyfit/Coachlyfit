@@ -3,6 +3,9 @@
  * failed delete says why instead of silently reporting success. */
 export function libraryErrorKey(error: unknown): string {
   const code = (error as { code?: string } | null)?.code;
+  // exercises/foods_require_feature (20261018000001): adding or cloning a
+  // custom entry on a plan without custom_library.
+  if ((error as { hint?: string } | null)?.hint === "upgrade_required") return "upgrade_required";
   // 23503 foreign_key_violation — program_items.exercise_id has no ON DELETE
   // clause (NO ACTION), so deleting an exercise used in a plan raises this.
   if (code === "23503") return "in_use";

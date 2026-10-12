@@ -22,11 +22,14 @@ export function FormsClient({
   kind,
   forms,
   clients,
+  canCreate,
 }: {
   locale: AppLocale;
   kind: KindFilter;
   forms: FormRow[];
   clients: ClientOption[];
+  /** Whether the plan includes the forms builder (new and duplicated forms). */
+  canCreate: boolean;
 }) {
   const t = useTranslations("forms.list");
   const tKinds = useTranslations("forms.kinds");
@@ -99,9 +102,9 @@ export function FormsClient({
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
           {shown.map((row) => (
-            <FormCard key={row.id} locale={locale} row={row} clients={clients} />
+            <FormCard key={row.id} locale={locale} row={row} clients={clients} canDuplicate={canCreate} />
           ))}
-          <Link
+          {canCreate && <Link
             href="/forms/new"
             className="flex min-h-55 flex-col items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed border-muted-foreground/40 p-4.5 text-center outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 max-md:hidden"
           >
@@ -110,7 +113,7 @@ export function FormsClient({
             </span>
             <span className="font-semibold">{t("newCardTitle")}</span>
             <span className="text-muted-foreground">{t("newCardHint")}</span>
-          </Link>
+          </Link>}
         </div>
       )}
     </div>

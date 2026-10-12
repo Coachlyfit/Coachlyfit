@@ -24,6 +24,10 @@ export default async function proxy(request: NextRequest) {
   if (slug) {
     request.headers.set("x-coach-slug", slug);
   }
+  // Layouts aren't given the URL. The coach layout needs it to leave the
+  // subscription page reachable for a coach whose subscription has lapsed.
+  // Always set, so a value sent by the client never reaches it.
+  request.headers.set("x-pathname", request.nextUrl.pathname);
 
   const response = intlMiddleware(request);
   return updateSession(request, response);

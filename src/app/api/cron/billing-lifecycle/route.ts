@@ -1,12 +1,39 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { nextStatus, type SubscriptionLike } from "@/domain/billing/lifecycle";
+import { dueReminder, groupTransitions, type NoticeKind, type SubscriptionLike } from "@/domain/billing/lifecycle";
 import { shouldTriggerCheckin } from "@/domain/programs/lifecycle";
 
 // Runs daily via Vercel Cron (see vercel.ts). Uses the admin (service_role)
 // client deliberately — this is a trusted internal job authenticated by
 // CRON_SECRET, not a user session, so it bypasses RLS by design rather
 // than needing an admin user policy for what is a system process.
+//
+// One failed write never stops the run: it is logged (error code and counts
+// only, no ids or emails), counted in `failed`, and the rest carries on. The
+// job is idempotent, so whatever failed is picked up by the next run.
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+/** true = queued now, false = already sent for this period, null = failed. */
+async function queueNotice(
+  supabase: AdminClient,
+  subscriptionId: string,
+  kind: NoticeKind,
+  periodEnd: string
+): Promise<boolean | null> {
+  // ponytail: queue_subscription_notice (20261017000003) isn't in the
+  // generated types until that migration is applied and the types are
+  // regenerated. Drop both casts then.
+  const { data, error } = await supabase.rpc(
+    "queue_subscription_notice" as never,
+    { p_subscription_id: subscriptionId, p_kind: kind, p_period_end: periodEnd } as never
+  );
+  if (error) {
+    console.error("subscription notice failed", { code: error.code, kind });
+    return null;
+  }
+  return data === true;
+}
+
 export async function GET(request: NextRequest) {
   const auth = request.headers.get("authorization");
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -21,12 +48,44 @@ export async function GET(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const now = new Date();
-  const transitions = (subscriptions ?? [])
-    .map((sub) => ({ id: sub.id, next: nextStatus(sub as SubscriptionLike, now) }))
-    .filter((t): t is { id: string; next: NonNullable<typeof t.next> } => t.next !== null);
+  const subs = (subscriptions ?? []) as (SubscriptionLike & { id: string })[];
+  let transitioned = 0;
+  let failed = 0;
+  let noticesQueued = 0;
 
-  for (const { id, next } of transitions) {
-    await supabase.from("subscriptions").update({ status: next }).eq("id", id);
+  // One update per target status rather than one per subscription.
+  for (const [next, group] of Object.entries(groupTransitions(subs, now))) {
+    const { error: updateError } = await supabase
+      .from("subscriptions")
+      .update({ status: next })
+      .in(
+        "id",
+        group.map((t) => t.sub.id)
+      );
+    if (updateError) {
+      console.error("subscription transition failed", { code: updateError.code, status: next, count: group.length });
+      failed += group.length;
+      continue;
+    }
+    transitioned += group.length;
+
+    // Only after the status really changed. Both targets ("past_due",
+    // "canceled") are notice kinds.
+    for (const { sub, periodEnd } of group) {
+      const queued = await queueNotice(supabase, sub.id, next as NoticeKind, periodEnd);
+      if (queued === null) failed++;
+      else if (queued) noticesQueued++;
+    }
+  }
+
+  // "Ends in 3 days" reminders. A subscription that just transitioned is
+  // past its deadline, so dueReminder() skips it by itself.
+  for (const sub of subs) {
+    const reminder = dueReminder(sub, now);
+    if (!reminder) continue;
+    const queued = await queueNotice(supabase, sub.id, reminder.kind, reminder.periodEnd);
+    if (queued === null) failed++;
+    else if (queued) noticesQueued++;
   }
 
   // After the transitions, so this month's row reflects today's statuses.
@@ -65,21 +124,36 @@ export async function GET(request: NextRequest) {
         .is("archived_at", null)
         .maybeSingle();
       if (template?.current_version_id) {
-        await supabase.from("form_assignments").insert({
+        const { error: assignError } = await supabase.from("form_assignments").insert({
           coach_id: template.coach_id,
           client_id: program.client_id!,
           template_version_id: template.current_version_id,
         });
+        if (assignError) {
+          // Not stamped below, so the next run retries this program.
+          console.error("check-in auto-assign failed", { code: assignError.code });
+          failed++;
+          continue;
+        }
         checkinsTriggered++;
       }
     }
 
-    await supabase.from("programs").update({ checkin_triggered_at: now.toISOString() }).eq("id", program.id);
+    const { error: stampError } = await supabase
+      .from("programs")
+      .update({ checkin_triggered_at: now.toISOString() })
+      .eq("id", program.id);
+    if (stampError) {
+      console.error("check-in stamp failed", { code: stampError.code });
+      failed++;
+    }
   }
 
   return NextResponse.json({
-    checked: subscriptions?.length ?? 0,
-    transitioned: transitions.length,
+    checked: subs.length,
+    transitioned,
+    failed,
+    noticesQueued,
     checkinsTriggered,
   });
 }
