@@ -14,6 +14,12 @@ import { createTemplateSchema, assignFormSchema, type CreateTemplateInput } from
 
 type ActionResult = { error: string } | void;
 
+/** form_templates_require_feature (20261018000001) refuses a new template on
+ * a plan without forms_builder. */
+function isUpgradeRequired(error: unknown): boolean {
+  return (error as { hint?: string } | null)?.hint === "upgrade_required";
+}
+
 export async function createTemplateAction(locale: string, input: CreateTemplateInput): Promise<ActionResult> {
   const parsed = createTemplateSchema.safeParse(input);
   if (!parsed.success) return { error: "invalid_input" };
@@ -32,8 +38,8 @@ export async function createTemplateAction(locale: string, input: CreateTemplate
       draft_schema: fields.length > 0 ? { version: 1, fields } : null,
     });
     templateId = template.id;
-  } catch {
-    return { error: "create_failed" };
+  } catch (error) {
+    return { error: isUpgradeRequired(error) ? "upgrade_required" : "create_failed" };
   }
   revalidatePath(`/${locale}/forms`);
   redirect(`/${locale}/forms/${templateId}`);
@@ -108,8 +114,8 @@ export async function duplicateTemplateAction(locale: string, templateId: string
 
   try {
     await new TemplatesService(supabase).duplicate(coachId, parsed.data);
-  } catch {
-    return { error: "duplicate_failed" };
+  } catch (error) {
+    return { error: isUpgradeRequired(error) ? "upgrade_required" : "duplicate_failed" };
   }
   revalidatePath(`/${locale}/forms`);
 }

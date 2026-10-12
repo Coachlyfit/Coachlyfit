@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { getFeatures } from "@/lib/features";
 import { LibraryService } from "@/domain/library/library.service";
 import {
   exerciseQuery,
@@ -32,11 +33,12 @@ export default async function LibraryPage({
   }
   const state = parseLibraryParams(search);
 
-  const [initialExercises, initialFoods, initialExerciseFacets, initialFoodFacets] = await Promise.all([
+  const [initialExercises, initialFoods, initialExerciseFacets, initialFoodFacets, features] = await Promise.all([
     state.tab === "exercises" ? library.searchExercises(exerciseQuery(state)) : null,
     state.tab === "foods" ? library.searchFoods(foodQuery(state)) : null,
     library.exerciseFacets({ query: state.q, source: state.source, equipment: state.equip }),
     library.foodFacets({ query: state.q, source: state.source }),
+    getFeatures(),
   ]);
 
   return (
@@ -49,6 +51,7 @@ export default async function LibraryPage({
         initialFoods={initialFoods}
         initialExerciseFacets={initialExerciseFacets}
         initialFoodFacets={initialFoodFacets}
+        canAddCustom={features.custom_library}
       />
     </div>
   );

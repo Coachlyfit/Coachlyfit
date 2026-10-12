@@ -41,6 +41,7 @@ import {
   restoreExerciseAction,
   listArchivedExercisesAction,
 } from "./actions";
+import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
 import { ExerciseDialog } from "./exercise-dialog";
 import { FoodDialog } from "./food-dialog";
 import { ExerciseCard } from "./exercise-card";
@@ -79,6 +80,7 @@ export function LibraryClient({
   initialFoods,
   initialExerciseFacets,
   initialFoodFacets,
+  canAddCustom,
 }: {
   locale: AppLocale;
   /** serializeLibraryParams() of the URL state the server rendered the
@@ -89,6 +91,10 @@ export function LibraryClient({
   initialFoods: FoodPage | null;
   initialExerciseFacets: Facets;
   initialFoodFacets: Facets;
+  /** Whether the plan includes a custom library. Without it the coach keeps
+   * and can edit the entries they already have; adding (or cloning a global
+   * one) is refused by the database and reported as upgrade_required. */
+  canAddCustom: boolean;
 }) {
   const t = useTranslations("library");
   const tEmpty = useTranslations("library.emptyStates");
@@ -302,7 +308,9 @@ export function LibraryClient({
               {tabCount(foodFacetsQuery.data)}
             </TabsTrigger>
           </TabsList>
-          {tab === "exercises" ? (
+          {!canAddCustom ? (
+            <UpgradePrompt feature="custom_library" />
+          ) : tab === "exercises" ? (
             <ExerciseDialog locale={locale} mode="create" onSaved={invalidate} />
           ) : (
             <FoodDialog locale={locale} mode="create" onSaved={invalidate} />

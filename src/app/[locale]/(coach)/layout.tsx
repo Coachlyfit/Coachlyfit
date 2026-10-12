@@ -1,16 +1,18 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { getAuthUser, getViewerProfile, getRequestCoachId } from "@/lib/auth/session";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { getBranding } from "@/lib/branding";
+import { coachAccess } from "@/domain/billing/access";
 import { BrandStyle } from "@/components/brand/coach-brand";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
 import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
+import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
 import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 import { InboxRealtime } from "@/components/messages/unread-messages-badge";
@@ -36,11 +38,14 @@ export default async function CoachLayout({
   // profile / platform settings / tenant coachId are independent of one
   // another -- none needs another's result -- so fetch them together
   // instead of one at a time.
-  const [profile, settings, coachId, branding] = await Promise.all([
+  const [profile, settings, coachId, branding, { data: subscription }] = await Promise.all([
     getViewerProfile(),
     getPlatformSettings(),
     getRequestCoachId(),
     getBranding(),
+    // No coach_id filter: the coach_read policy scopes this to the caller's
+    // tenant, which for a team member is the owner's subscription.
+    supabase.from("subscriptions").select("status, trial_ends_at").maybeSingle(),
   ]);
 
   if (profile?.role !== "coach") redirect(roleHome(locale, profile?.role));
@@ -73,6 +78,20 @@ export default async function CoachLayout({
   // shows/hides a banner, nothing more.
   const impersonating = (await cookies()).get("impersonating")?.value === "1";
 
+  // Lapsed subscription (canceled, or no row): everything but the
+  // subscription page redirects there, so the coach can ask to reactivate.
+  // UX only -- a layout doesn't re-run on client-side navigation, and the
+  // impersonating cookie that lets an admin through is forgeable. The
+  // boundary is in the database (20261017000002_coach_access_guard.sql),
+  // which blocks a lapsed coach's writes whatever this does. A null coachId
+  // (see above) has no tenant to check and is let through as before.
+  const access = coachAccess(subscription, new Date());
+  const locked = coachId !== null && !access.allowed && !impersonating;
+  if (locked) {
+    const pathname = (await headers()).get("x-pathname") ?? "";
+    if (!pathname.endsWith("/settings/subscription")) redirect(`/${locale}/settings/subscription`);
+  }
+
   const brandLogo = branding?.logoUrl ? { src: branding.logoUrl, name: branding.businessName } : null;
 
   return (
@@ -82,7 +101,8 @@ export default async function CoachLayout({
        * them -- that's the admin's activity, not the coach's. */}
       {!impersonating && <PresenceHeartbeat />}
       <InboxRealtime />
-      <Sidebar brandLogo={brandLogo} darkGround={branding?.sidebarDark ?? true} />
+      {/* Locked: no nav, the subscription page is the only place to be. */}
+      {!locked && <Sidebar brandLogo={brandLogo} darkGround={branding?.sidebarDark ?? true} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
         {settings.announcement.enabled && (
@@ -92,12 +112,13 @@ export default async function CoachLayout({
             text_en={settings.announcement.text_en}
           />
         )}
+        {access.banner && <SubscriptionBanner kind={access.banner} days={access.days} />}
         <Topbar locale={locale} fullName={profile.full_name} brandLogo={brandLogo} />
         <main className="min-w-0 flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] lg:p-6 lg:pb-6">
           {children}
         </main>
       </div>
-      <BottomNav locale={locale} />
+      {!locked && <BottomNav locale={locale} />}
       <FeedbackWidget />
     </div>
   );

@@ -50,7 +50,18 @@ function Stat({
   );
 }
 
-export function FormCard({ locale, row, clients }: { locale: AppLocale; row: FormRow; clients: ClientOption[] }) {
+export function FormCard({
+  locale,
+  row,
+  clients,
+  canDuplicate,
+}: {
+  locale: AppLocale;
+  row: FormRow;
+  clients: ClientOption[];
+  /** A duplicate is a new form, so it needs the forms builder on the plan. */
+  canDuplicate: boolean;
+}) {
   const t = useTranslations("forms.list");
   const tKinds = useTranslations("forms.kinds");
   const tErrors = useTranslations("forms.errors");
@@ -152,10 +163,12 @@ export function FormCard({ locale, row, clients }: { locale: AppLocale; row: For
             <MoreHorizontal className="size-4" aria-hidden="true" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => run(() => duplicateTemplateAction(locale, row.id), t("duplicated"))}>
-              <Copy className="size-4" />
-              {t("actions.duplicate")}
-            </DropdownMenuItem>
+            {canDuplicate && (
+              <DropdownMenuItem onClick={() => run(() => duplicateTemplateAction(locale, row.id), t("duplicated"))}>
+                <Copy className="size-4" />
+                {t("actions.duplicate")}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem variant="destructive" onClick={() => setConfirmDelete(true)}>
               <Trash2 className="size-4" />
               {t("actions.delete")}

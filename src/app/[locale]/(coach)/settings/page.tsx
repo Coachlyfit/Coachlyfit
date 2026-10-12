@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getBranding } from "@/lib/branding";
+import { getFeatures } from "@/lib/features";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { SettingsShell } from "@/components/settings/settings-shell";
@@ -19,7 +20,7 @@ export default async function SettingsPage() {
   if (!coachId) notFound();
 
   const billing = new ClientBillingService(supabase);
-  const [{ data: coach }, { data: checkinTemplates }, packages, paymentMethods, customMetrics, branding] = await Promise.all([
+  const [{ data: coach }, { data: checkinTemplates }, packages, paymentMethods, customMetrics, branding, features] = await Promise.all([
     supabase
       .from("coaches")
       .select(
@@ -42,6 +43,7 @@ export default async function SettingsPage() {
     new MetricDefinitionsService(supabase).list(coachId),
     // Non-null exactly when the plan includes custom branding.
     getBranding(),
+    getFeatures(),
   ]);
   if (!coach) notFound();
 
@@ -70,6 +72,7 @@ export default async function SettingsPage() {
           brand_sidebar_text: coach.brand_sidebar_text ?? "",
         }}
         brandingEnabled={branding !== null}
+        whiteLabelEnabled={features.white_label}
         checkinTemplates={checkinTemplates ?? []}
         packages={packages}
         paymentMethods={paymentMethods}

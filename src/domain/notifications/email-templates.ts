@@ -1,4 +1,5 @@
 import { pickLocale } from "@/domain/locale";
+import { formatDate } from "@/lib/format";
 
 /** Plain-HTML email bodies for each notification kind — no react-email
  * dependency, just template strings, since these are short bilingual
@@ -17,7 +18,11 @@ export type NotificationKind =
   | "coach_invite"
   | "client_left"
   | "nutrition_log_reminder"
-  | "off_plan_reported";
+  | "off_plan_reported"
+  | "subscription_trial_ending"
+  | "subscription_renewal_due"
+  | "subscription_past_due"
+  | "subscription_canceled";
 
 export type EmailLocale = "ar" | "en";
 
@@ -30,12 +35,23 @@ export function notificationNeedsPickedName(kind: string): boolean {
   return NAMED_KINDS.has(kind as NotificationKind);
 }
 
+/** The coach's own platform-subscription notices, queued by the
+ * billing-lifecycle cron (queue_subscription_notice). Account notices: they
+ * are emailed even with email notifications turned off. */
+export function isSubscriptionNotice(kind: string): boolean {
+  return kind.startsWith("subscription_");
+}
+
 /** The name interpolated into the copy: the bilingual name_ar/name_en pair
  * for promoted content, the client's display name for an off-plan report,
- * nothing otherwise. */
+ * the date the trial/period ends for a subscription notice, nothing
+ * otherwise. */
 export function notificationName(kind: string, payload: Record<string, unknown>, locale: EmailLocale): string | null {
   if (notificationNeedsPickedName(kind)) return pickLocale(payload, locale);
   if (kind === "off_plan_reported") return (payload.client_name as string | null) ?? null;
+  if (isSubscriptionNotice(kind) && typeof payload.period_end === "string") {
+    return formatDate(payload.period_end, locale);
+  }
   return null;
 }
 
@@ -46,10 +62,14 @@ export function notificationUrl(kind: string, payload: Record<string, unknown>, 
   if (kind === "off_plan_reported" && typeof payload.client_id === "string") {
     return `/${locale}/clients/${payload.client_id}?tab=nutrition`;
   }
+  if (isSubscriptionNotice(kind)) return `/${locale}/settings/subscription`;
   return "/";
 }
 
-const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string>; greeting: string; footer: string }> = {
+const COPY: Record<
+  EmailLocale,
+  { subjectByKind: Record<NotificationKind, string>; greeting: string; footer: string; accountFooter: string }
+> = {
   en: {
     subjectByKind: {
       exercise_promoted: "An exercise you added is now in the global library",
@@ -61,9 +81,14 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       client_left: "A client moved to another coach",
       nutrition_log_reminder: "Don't forget to log today's calories",
       off_plan_reported: "A client reported an off-plan day",
+      subscription_trial_ending: "Your Coachly Fit trial is ending soon",
+      subscription_renewal_due: "Your Coachly Fit subscription renews soon",
+      subscription_past_due: "Your Coachly Fit payment is overdue",
+      subscription_canceled: "Your Coachly Fit subscription was canceled",
     },
     greeting: "Hi",
     footer: "You're receiving this because you have email notifications turned on. You can turn them off in Settings.",
+    accountFooter: "This is a notice about your Coachly Fit subscription. It is sent regardless of your notification settings.",
   },
   ar: {
     subjectByKind: {
@@ -76,9 +101,14 @@ const COPY: Record<EmailLocale, { subjectByKind: Record<NotificationKind, string
       client_left: "انتقل أحد عملائك إلى كوتش آخر",
       nutrition_log_reminder: "لا تنسَ تسجيل سعرات اليوم",
       off_plan_reported: "أبلغ أحد عملائك عن يوم خارج الخطة",
+      subscription_trial_ending: "فترتك التجريبية في Coachly Fit تنتهي قريبًا",
+      subscription_renewal_due: "اشتراكك في Coachly Fit يتجدد قريبًا",
+      subscription_past_due: "دفعة اشتراكك في Coachly Fit متأخرة",
+      subscription_canceled: "تم إلغاء اشتراكك في Coachly Fit",
     },
     greeting: "مرحبًا",
     footer: "تصلك هذه الرسالة لأن إشعارات البريد الإلكتروني مفعّلة لديك. يمكنك إيقافها من الإعدادات.",
+    accountFooter: "هذا إشعار بخصوص اشتراكك في Coachly Fit، ويُرسل بغض النظر عن إعدادات الإشعارات.",
   },
 };
 
@@ -103,6 +133,14 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return "لم تسجّل سعراتك اليوم بعد. يستغرق الأمر أقل من دقيقة.";
       case "off_plan_reported":
         return `سجّل ${name ?? "أحد عملائك"} يومًا خارج الخطة. افتح ملفه لمعرفة التفاصيل.`;
+      case "subscription_trial_ending":
+        return `تنتهي فترتك التجريبية${name ? ` يوم ${name}` : " قريبًا"}. اختر باقة من صفحة الاشتراك للاستمرار بدون انقطاع.`;
+      case "subscription_renewal_due":
+        return `يتجدد اشتراكك${name ? ` يوم ${name}` : " قريبًا"}. جدّد قبل هذا الموعد للحفاظ على حسابك فعّالًا.`;
+      case "subscription_past_due":
+        return `انتهت فترة اشتراكك${name ? ` يوم ${name}` : ""} ولم نستلم دفعة التجديد. حسابك يعمل لفترة سماح قصيرة، وبعدها يتوقف.`;
+      case "subscription_canceled":
+        return "تم إلغاء اشتراكك وتوقفت إمكانية التعديل في حسابك. بياناتك محفوظة، ويمكنك طلب إعادة التفعيل من صفحة الاشتراك.";
     }
   }
   switch (kind) {
@@ -124,6 +162,14 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return "You haven't logged your calories today yet. It takes less than a minute.";
     case "off_plan_reported":
       return `${name ?? "A client"} marked a day as off-plan. Open their profile for details.`;
+    case "subscription_trial_ending":
+      return `Your trial ends ${name ? `on ${name}` : "soon"}. Pick a plan on the Subscription page to keep going without interruption.`;
+    case "subscription_renewal_due":
+      return `Your subscription renews ${name ? `on ${name}` : "soon"}. Renew before then to keep your account active.`;
+    case "subscription_past_due":
+      return `Your subscription period ended${name ? ` on ${name}` : ""} and we haven't received the renewal payment. Your account keeps working for a short grace period, then it stops.`;
+    case "subscription_canceled":
+      return "Your subscription was canceled and editing in your account is paused. Your data is kept, and you can ask to reactivate from the Subscription page.";
   }
 }
 
@@ -147,7 +193,7 @@ export function renderNotificationEmail(
     <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:12px;padding:24px;">
       <p style="font-size:15px;color:#0f172a;margin:0 0 12px;">${greeting}</p>
       <p style="font-size:15px;color:#0f172a;margin:0 0 20px;">${body}</p>
-      <p style="font-size:12px;color:#64748b;margin:0;">${copy.footer}</p>
+      <p style="font-size:12px;color:#64748b;margin:0;">${isSubscriptionNotice(kind) ? copy.accountFooter : copy.footer}</p>
     </div>
   </body>
 </html>`;

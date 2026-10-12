@@ -4,10 +4,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
+import { getFeatures } from "@/lib/features";
 import { TemplatesService } from "@/domain/forms/templates.service";
 import { FORM_KINDS, type FormKind } from "@/domain/forms/schema";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { PageTitle } from "@/components/dashboard/page-title";
+import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { FormsClient, type KindFilter } from "./forms-client";
@@ -26,10 +28,17 @@ export default async function FormsPage({
   const t = await getTranslations("forms");
   const supabase = await createClient();
 
-  const [templates, { data: clients }] = await Promise.all([
+  const [templates, { data: clients }, features] = await Promise.all([
     new TemplatesService(supabase).listOverview(),
     supabase.from("clients").select("id, display_name").eq("status", "active").order("display_name"),
+    getFeatures(),
   ]);
+  // Forms that already exist stay usable on any plan, and the first one is
+  // free (private.require_forms_builder); more need forms_builder.
+  // ponytail: archived forms count in the database but aren't listed here,
+  // so a coach who archived their only form sees the button and gets
+  // upgrade_required from the action instead.
+  const canCreate = features.forms_builder || templates.length === 0;
 
   return (
     <div className="flex flex-col gap-5 max-md:pb-16">
@@ -42,16 +51,20 @@ export default async function FormsPage({
         </div>
         {/* Pinned above the bottom nav on mobile (end-20 clears the feedback
             widget), inline from md up. */}
-        <Link
-          href="/forms/new"
-          className={cn(
-            buttonVariants(),
-            "max-md:fixed max-md:start-4 max-md:end-20 max-md:bottom-[calc(var(--bottom-nav-h)+0.75rem)] max-md:z-30 max-md:h-13 max-md:text-base max-md:shadow-lg"
-          )}
-        >
-          <Plus className="size-4" aria-hidden="true" />
-          {t("newTemplate")}
-        </Link>
+        {canCreate ? (
+          <Link
+            href="/forms/new"
+            className={cn(
+              buttonVariants(),
+              "max-md:fixed max-md:start-4 max-md:end-20 max-md:bottom-[calc(var(--bottom-nav-h)+0.75rem)] max-md:z-30 max-md:h-13 max-md:text-base max-md:shadow-lg"
+            )}
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            {t("newTemplate")}
+          </Link>
+        ) : (
+          <UpgradePrompt feature="forms_builder" />
+        )}
       </header>
 
       {templates.length === 0 ? (
@@ -64,6 +77,7 @@ export default async function FormsPage({
           kind={kind}
           forms={templates.map((row) => ({ ...row, name: pickLocale(row, locale) }))}
           clients={clients ?? []}
+          canCreate={canCreate}
         />
       )}
     </div>

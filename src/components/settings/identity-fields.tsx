@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { COACH_LOGOS_BUCKET } from "@/domain/billing/invoices.service";
+import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
 import type { BusinessProfileFormInput } from "@/app/[locale]/(coach)/settings/business-profile-schema";
 
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
@@ -25,10 +26,14 @@ export function IdentityFields({
   form,
   coachId,
   logoUrl,
+  canSetLogo,
 }: {
   form: UseFormReturn<BusinessProfileFormInput>;
   coachId: string;
   logoUrl: string | null;
+  /** Whether the plan includes white label. Without it an existing logo
+   * stays and can be removed, but a new one can't be set. */
+  canSetLogo: boolean;
 }) {
   const t = useTranslations("settings.businessProfile");
   const tErrors = useTranslations("settings.errors");
@@ -79,17 +84,21 @@ export function IdentityFields({
             {initial}
           </span>
         )}
-        <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-border px-3.5 text-sm font-medium hover:bg-muted md:h-10">
-          <Upload className="size-4" />
-          {uploading ? t("uploading") : t("uploadLogo")}
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="sr-only"
-            onChange={handleLogoChange}
-            disabled={uploading}
-          />
-        </label>
+        {canSetLogo ? (
+          <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-border px-3.5 text-sm font-medium hover:bg-muted md:h-10">
+            <Upload className="size-4" />
+            {uploading ? t("uploading") : t("uploadLogo")}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              onChange={handleLogoChange}
+              disabled={uploading}
+            />
+          </label>
+        ) : (
+          <UpgradePrompt feature="logo" />
+        )}
         {logoUrl && (
           <Button type="button" variant="ghost" size="sm" onClick={() => setValue("logo_path", null, { shouldDirty: true })}>
             {t("removeLogo")}

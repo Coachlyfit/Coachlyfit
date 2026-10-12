@@ -8,6 +8,7 @@ import { Bell, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { pickLocale, type AppLocale } from "@/domain/locale";
+import { formatDate } from "@/lib/format";
 import type { Notification } from "@/domain/notifications/notifications.service";
 import { Link } from "@/i18n/navigation";
 import { listNotificationsAction, markNotificationsReadAction } from "./notifications-actions";
@@ -21,6 +22,8 @@ import { usePushSubscription } from "./use-push-subscription";
 // invite (respond_to_coach_invite); coach_invite is client-only, like
 // coach_decision. off_plan_reported goes to the client's active coach
 // (notify_on_off_plan); nutrition_log_reminder is client-only, push-only.
+// subscription_* are the coach's own platform-subscription notices, queued
+// by the billing-lifecycle cron for the tenant owner.
 const KINDS = [
   "exercise_promoted",
   "food_promoted",
@@ -28,6 +31,10 @@ const KINDS = [
   "decision_outcome",
   "client_left",
   "off_plan_reported",
+  "subscription_trial_ending",
+  "subscription_renewal_due",
+  "subscription_past_due",
+  "subscription_canceled",
 ] as const;
 
 function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
@@ -75,6 +82,10 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
         date: (payload.log_date as string | null) ?? "",
       });
     }
+    if (notification.kind.startsWith("subscription_")) {
+      const periodEnd = payload.period_end as string | null;
+      return t(notification.kind, { date: periodEnd ? formatDate(periodEnd, locale) : "" });
+    }
     // payload is jsonb, so it arrives as an untyped object — pickLocale
     // reads the same name_ar/name_en pair the promote function wrote.
     return t(notification.kind, { name: pickLocale(payload, locale) });
@@ -94,6 +105,7 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
       const clientId = payload.client_id as string | null;
       return clientId ? `/clients/${clientId}?tab=nutrition` : null;
     }
+    if (notification.kind.startsWith("subscription_")) return "/settings/subscription";
     return null;
   }
 

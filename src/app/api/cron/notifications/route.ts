@@ -8,6 +8,7 @@ import {
   renderPushNotification,
   notificationName,
   notificationUrl,
+  isSubscriptionNotice,
   type NotificationKind,
 } from "@/domain/notifications/email-templates";
 
@@ -66,8 +67,10 @@ async function processEmailBatch(supabase: ReturnType<typeof createAdminClient>,
     const profile = notification?.profiles;
 
     // Profile deleted, or email notifications turned off since this row
-    // was queued — nothing to send, not a failure worth retrying.
-    if (!notification || !profile || !profile.email_notifications) {
+    // was queued — nothing to send, not a failure worth retrying. A
+    // subscription notice is an account notice and ignores that toggle
+    // (same exception as the queue trigger, 20261017000003).
+    if (!notification || !profile || !(profile.email_notifications || isSubscriptionNotice(notification.kind))) {
       await supabase.from("notification_deliveries").update({ status: "dead" }).eq("id", delivery.id);
       counts.skipped++;
       continue;

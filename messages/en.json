@@ -76,7 +76,8 @@
     "requests": "Requests",
     "invoices": "Invoices",
     "finance": "Finance",
-    "emails": "Emails"
+    "emails": "Emails",
+    "site": "Site"
   },
   "palette": {
     "navigation": "Navigation",
@@ -91,15 +92,8 @@
       "pricing": "Pricing",
       "coaches": "Coaches",
       "faq": "FAQ",
-      "login": "Log in"
-    },
-    "hero": {
-      "badge": "1,400+ coaches across Egypt and the Gulf",
-      "title": "Run your coaching like a business, not a WhatsApp group.",
-      "subtitle": "Forms, programs, check-ins and invoices in one place — in Arabic. And your client never has to create an account or install an app.",
-      "cta": "Start 14 days free",
-      "ctaSecondary": "See the dashboard",
-      "trialNote": "No card · cancel anytime · support in Arabic"
+      "login": "Log in",
+      "cta": "Start 14 days free"
     },
     "preview": {
       "alt": "A preview of the Coachlyfit dashboard",
@@ -159,79 +153,7 @@
         }
       }
     },
-    "stats": {
-      "items": {
-        "coaches": {
-          "value": "1,400+",
-          "label": "coaches on the platform"
-        },
-        "clients": {
-          "value": "38,000",
-          "label": "clients checking in monthly"
-        },
-        "countries": {
-          "value": "6",
-          "label": "countries across the region"
-        },
-        "speed": {
-          "value": "4 min",
-          "label": "from signup to first reply"
-        }
-      }
-    },
-    "problem": {
-      "eyebrow": "The problem",
-      "title": "Your work is split across three tools that don't talk to each other.",
-      "subtitle": "And the more clients you take on, the faster admin time grows compared to what you earn.",
-      "cards": {
-        "excel": {
-          "label": "EXCEL",
-          "title": "The program spreadsheet",
-          "body": "A copy per client, and every edit has to be made in ten places. Nobody opens it on a phone."
-        },
-        "whatsapp": {
-          "label": "WHATSAPP",
-          "title": "Photos, measurements, numbers",
-          "body": "Buried in a 300-message thread. Try comparing this week's photo to last month's — good luck."
-        },
-        "notes": {
-          "label": "NOTES",
-          "title": "Who paid and who didn't",
-          "body": "In a notebook, or in your head. You find the lapsed subscription two months after it expired."
-        }
-      }
-    },
     "featureSections": {
-      "forms": {
-        "eyebrow": "Forms",
-        "title": "Build the form once, send it to anyone.",
-        "body": "Drag in the fields you want — weight, an adherence scale, progress photos, any question at all. Your client opens a link on their phone, answers in two minutes, and the response lands with you straight away.",
-        "bullets": {
-          "a": "No account and no app for the client",
-          "b": "Progress photos line up side by side automatically",
-          "c": "Ready-made templates for intake, check-ins and diet"
-        }
-      },
-      "progress": {
-        "eyebrow": "Progress",
-        "title": "See who's on track and who needs you — without asking.",
-        "body": "Every answer becomes a point on the chart. The client who missed two weeks rises to the top on their own, and everyone else keeps moving without you chasing them.",
-        "bullets": {
-          "a": "Weight, measurements and photos on one timeline",
-          "b": "An alert when someone falls behind — before they drop off",
-          "c": "Private notes on every client, visible only to you"
-        }
-      },
-      "invoices": {
-        "eyebrow": "Invoices",
-        "title": "A proper invoice, and nobody slips through.",
-        "body": "Monthly subscriptions that renew themselves, with reminders sent over WhatsApp. In Egyptian pounds, Saudi riyals and dirhams.",
-        "bullets": {
-          "a": "PDF invoices with your name and logo on them",
-          "b": "InstaPay, Fawry and Visa",
-          "c": "A monthly income report your accountant can use"
-        }
-      },
       "formsMock": {
         "title": "Weekly check-in form",
         "addField": "+ Field",
@@ -300,52 +222,9 @@
         "currency": "EGP"
       }
     },
-    "arabicFirst": {
-      "eyebrow": "Arabic from the start",
-      "title": "Not a foreign tool that got translated.",
-      "subtitle": "Right-to-left layout, numbers and dates written correctly, and forms that read the way you actually speak. Your clients won't feel like they're filling in a translated document.",
-      "cards": {
-        "rtl": {
-          "title": "RTL",
-          "body": "A native Arabic layout, not one mirrored under protest"
-        },
-        "currency": {
-          "title": "EGP SAR AED",
-          "body": "Regional currencies and the ways people pay with them"
-        },
-        "whatsapp": {
-          "title": "WhatsApp",
-          "body": "Everything arrives on the channel your clients are already on"
-        },
-        "english": {
-          "title": "EN",
-          "body": "Full English whenever your client prefers it"
-        }
-      }
-    },
-    "coaches": {
-      "title": "Coaches who left the spreadsheets behind.",
-      "items": {
-        "a": {
-          "quote": "I used to lose a whole Saturday every week collecting client replies from WhatsApp. Now I open the dashboard in the morning and everything's already organized. I got a full day back.",
-          "initial": "M",
-          "name": "Coach Marwan Hassan",
-          "meta": "Cairo · 42 clients"
-        },
-        "b": {
-          "quote": "The big thing is my clients don't need to install an app. They open the link and reply. I've tried apps before and half the clients never even signed up.",
-          "initial": "D",
-          "name": "Coach Dina Sabry",
-          "meta": "Jeddah · 28 clients"
-        }
-      }
-    },
     "pricing": {
-      "title": "Clear pricing, in EGP.",
-      "subtitle": "14 days free on any plan. No card required.",
       "perMonth": "EGP / month",
       "mostPopular": "Most popular",
-      "cta": "Start the trial",
       "clientLimit": "Up to {max} clients",
       "unlimitedClients": "Unlimited clients",
       "features": {
@@ -355,36 +234,6 @@
         "white_label": "Your logo on invoices",
         "custom_branding": "Your brand colors & logo in the app"
       }
-    },
-    "faq": {
-      "title": "Frequently asked questions",
-      "items": {
-        "a": {
-          "q": "Does my client need to install an app?",
-          "a": "No. They get a link over WhatsApp, open it in their browser, and answer. No account, no download — which is the single biggest reason our response rates are high."
-        },
-        "b": {
-          "q": "Can I move my clients over from a spreadsheet?",
-          "a": "Yes. Paste the list exactly as it is — missing details, mixed-up columns and all — and we'll match the columns and show you the result before anything is imported."
-        },
-        "c": {
-          "q": "How do I get paid?",
-          "a": "InstaPay, Fawry or Visa. Money goes straight to your account, and we don't take a cut of what your clients pay you."
-        },
-        "d": {
-          "q": "What if I have more clients than my plan allows?",
-          "a": "You can move up a plan at any time and the difference is prorated across the remaining days. If your studio is bigger than the top plan, talk to us."
-        },
-        "e": {
-          "q": "Where are client photos stored?",
-          "a": "Encrypted, and visible only to you. A client can ask for them to be deleted at any time, and they really are deleted within 24 hours."
-        }
-      }
-    },
-    "finalCta": {
-      "title": "Your first client replies within four minutes.",
-      "subtitle": "Paste in your client list, pick a form, hit send. No card required, no training.",
-      "cta": "Start 14 days free"
     },
     "footer": {
       "tagline": "Client management for coaches in Egypt and the region.",
@@ -691,7 +540,7 @@
       "metric_already_exists": "You already have a metric with a similar name.",
       "upload_failed": "Upload failed. Try again.",
       "invalid_file": "Use a PNG, JPG or WebP image under 2 MB.",
-      "upgrade_required": "Custom branding is part of the Studio plan."
+      "upgrade_required": "Your plan doesn't include this. Upgrade to use it."
     },
     "customMetrics": {
       "title": "Custom Metrics",
@@ -887,7 +736,8 @@
       "email_taken": "An account with this email already exists.",
       "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
       "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
-      "already_your_client": "This person is already your client."
+      "already_your_client": "This person is already your client.",
+      "subscription_inactive": "Your subscription isn't active, so you can't add clients. Reactivate it from the Subscription page."
     },
     "billing": {
       "subscription": {
@@ -1621,7 +1471,8 @@
       "publish_label": "A question has no text. Write it, then publish.",
       "publish_options": "A choice is blank. Fill it in or remove it, then publish.",
       "save_failed": "Couldn't save your changes. Please try again.",
-      "rename_failed": "Couldn't rename the form. Please try again."
+      "rename_failed": "Couldn't rename the form. Please try again.",
+      "upgrade_required": "Your plan includes one form. Upgrade to create more."
     }
   },
   "programs": {
@@ -2125,7 +1976,8 @@
       "forbidden": "You don't have permission to do that.",
       "already_global": "This entry is already in the global library.",
       "already_cloned": "You already have your own version of this entry.",
-      "unknown": "Something went wrong. Please try again."
+      "unknown": "Something went wrong. Please try again.",
+      "upgrade_required": "Your plan doesn't include adding your own exercises and foods. Upgrade to add more."
     },
     "basedOn": "Based on: {name}",
     "clone": "Clone & Customize",
@@ -2802,6 +2654,143 @@
       "subtitle": "Affects every coach and client.",
       "maintenanceOn": "Maintenance mode is on",
       "tabsLabel": "Sections"
+    },
+    "site": {
+      "title": "Coachly Fit · Site",
+      "back": "Back to admin",
+      "page": "Page",
+      "pages": {
+        "home": "Home page"
+      },
+      "language": "Preview language",
+      "languages": {
+        "ar": "Arabic",
+        "en": "English"
+      },
+      "device": "Preview device",
+      "devices": {
+        "desktop": "Desktop",
+        "mobile": "Mobile"
+      },
+      "status": {
+        "saving": "Saving…",
+        "saved": "Draft saved",
+        "error": "Draft not saved"
+      },
+      "publish": "Publish",
+      "publishTitle": "Publish this page?",
+      "publishDescription": "The draft replaces what visitors see on the site now. You can go back to an earlier version from Version history.",
+      "published": "Published. The site is up to date.",
+      "list": {
+        "title": "Sections",
+        "add": "Section",
+        "pickType": "Add a section",
+        "drag": "Reorder {name}",
+        "hidden": "Hidden"
+      },
+      "preview": {
+        "title": "Page preview",
+        "selected": "selected",
+        "hidden": "hidden"
+      },
+      "types": {
+        "hero": "Hero",
+        "app_preview": "Dashboard preview",
+        "stats": "Stats",
+        "pain_points": "Pain points",
+        "features": "Features",
+        "arabic_first": "Arabic first",
+        "testimonials": "Testimonials",
+        "how_it_works": "How it works",
+        "pricing": "Pricing",
+        "faq": "FAQ",
+        "final_cta": "Final call to action"
+      },
+      "fields": {
+        "badge": "Badge",
+        "title": "Title",
+        "subtitle": "Subtitle",
+        "cta": "Button label",
+        "ctaSecondary": "Second button label",
+        "trialNote": "Note under the buttons",
+        "eyebrow": "Eyebrow",
+        "body": "Text",
+        "label": "Label",
+        "value": "Figure",
+        "text": "Text",
+        "quote": "Quote",
+        "initial": "Initial",
+        "name": "Name",
+        "meta": "Place and clients",
+        "q": "Question",
+        "a": "Answer",
+        "items": "Items",
+        "cards": "Cards",
+        "rows": "Rows",
+        "bullets": "Bullet points",
+        "steps": "Steps"
+      },
+      "inspector": {
+        "title": "Section properties",
+        "close": "Close",
+        "noFields": "This section has no text to edit. You can move it, hide it or change its background.",
+        "missingTranslation": "Missing {language} translation",
+        "addItem": "Add",
+        "removeItem": "Remove item {number}",
+        "background": "Background",
+        "imagePosition": "Image position",
+        "image": "Image",
+        "uploadImage": "Upload image",
+        "replaceImage": "Replace image",
+        "removeImage": "Remove",
+        "uploading": "Uploading…",
+        "imageHint": "PNG, JPG, WebP or AVIF, up to 2 MB. Used for both languages.",
+        "visible": "Show this section on the site",
+        "delete": "Delete section",
+        "deleteTitle": "Delete “{name}”?",
+        "deleteDescription": "The section and its text in both languages are removed from the draft. The published site keeps it until you publish.",
+        "hint": "Click a section in the preview to edit it. Changes are saved as a draft until you press “Publish”."
+      },
+      "backgrounds": {
+        "navy": "Navy",
+        "white": "White",
+        "muted": "Grey"
+      },
+      "imagePositions": {
+        "side": "Beside the text",
+        "below": "Below the text"
+      },
+      "history": {
+        "title": "Version history",
+        "description": "Every publish is kept. Restoring one replaces the draft, not the live site.",
+        "empty": "Nothing has been published yet.",
+        "system": "Initial version",
+        "live": "live",
+        "restore": "Restore to draft",
+        "restoreTitle": "Restore this version to the draft?",
+        "restoreDescription": "The current draft is replaced by this version. The live site does not change until you publish.",
+        "restored": "Version restored to the draft."
+      },
+      "issues": {
+        "no_visible_sections": "Nothing to publish: every section is hidden.",
+        "invalid_content": "“{section}” has content that can't be published. Open it and check its fields.",
+        "missing_translation": "“{section}” is missing its {language} text for a field."
+      },
+      "errors": {
+        "generic": "Something went wrong. Try again.",
+        "forbidden": "Only an admin can do this.",
+        "not_authenticated": "Your session has ended. Sign in again.",
+        "invalid_input": "That change couldn't be saved: a field is too long or the wrong shape.",
+        "save_failed": "The draft couldn't be saved.",
+        "add_failed": "The section couldn't be added.",
+        "delete_failed": "The section couldn't be deleted.",
+        "reorder_failed": "The new order couldn't be saved.",
+        "publish_failed": "Publishing failed. The site was not changed.",
+        "load_failed": "Couldn't load the page.",
+        "restore_failed": "The version couldn't be restored.",
+        "upload_failed": "The image couldn't be uploaded.",
+        "file_too_large": "The image is larger than 2 MB."
+      }
     }
   },
   "notifications": {
@@ -2814,7 +2803,11 @@
     "unknown": "You have a new notification.",
     "decision_outcome": "Outcome update: {status}",
     "client_left": "{name} moved to another coach. Their subscription was canceled.",
-    "off_plan_reported": "{name} reported an off-plan day ({date})."
+    "off_plan_reported": "{name} reported an off-plan day ({date}).",
+    "subscription_trial_ending": "Your trial ends on {date}. Pick a plan to keep going.",
+    "subscription_renewal_due": "Your subscription renews on {date}.",
+    "subscription_past_due": "Your payment is overdue. Renew to keep your account active.",
+    "subscription_canceled": "Your subscription was canceled. You can ask to reactivate it."
   },
   "progress": {
     "title": "Progress",
@@ -3018,7 +3011,19 @@
         "cash": "Cash"
       }
     },
-    "clientLimitUnlimited": "{count} clients · no limit"
+    "clientLimitUnlimited": "{count} clients · no limit",
+    "banner": {
+      "pastDue": "Your payment is overdue. Renew soon to keep your account active.",
+      "trialEnding": "{days, plural, =0 {Your trial ends today.} one {Your trial ends in # day.} other {Your trial ends in # days.}}",
+      "cta": "Manage subscription"
+    },
+    "upgrade": {
+      "forms_builder": "Your plan includes one form. Creating more needs a plan with the forms builder.",
+      "custom_library": "Your plan doesn't include adding your own exercises and foods. The ones you already have keep working.",
+      "logo": "Your plan doesn't include your own logo.",
+      "slug": "Your plan doesn't include a custom portal address. Your current one keeps working.",
+      "cta": "View plans"
+    }
   },
   "review": {
     "title": "Check-in review",

@@ -21,6 +21,14 @@ type ActionResult = { error: string } | { joinUrl: string };
 type CreateInviteActionResult = ActionResult | { linked: true };
 type VoidActionResult = { error: string } | void;
 
+/** private.enforce_client_cap raises for two reasons: the seat cap, or a
+ * lapsed subscription (hint: subscription_inactive). */
+function capError(error: unknown): string {
+  return (error as { hint?: string } | null)?.hint === "subscription_inactive"
+    ? "subscription_inactive"
+    : "client_limit_reached";
+}
+
 export async function createClientInviteAction(
   locale: string,
   formData: FormData
@@ -52,7 +60,7 @@ export async function createClientInviteAction(
     if (error instanceof AlreadyYourClientError) return { error: "already_your_client" };
     // Most likely the client-cap trigger (private.enforce_client_cap) —
     // the tier limit is enforced in the DB, not just the UI.
-    return { error: "client_limit_reached" };
+    return { error: capError(error) };
   }
 }
 
@@ -281,10 +289,10 @@ export async function setClientArchivedAction(
   try {
     const ok = await new ClientsService(supabase).setArchived(clientId, archived);
     if (!ok) return { error: "not_found_or_forbidden" };
-  } catch {
+  } catch (error) {
     // Restoring past the seat cap trips clients_enforce_cap_on_restore
     // (same DB-level guard createClientInviteAction relies on).
-    return { error: "client_limit_reached" };
+    return { error: capError(error) };
   }
   revalidatePath(`/${locale}/clients`);
   revalidatePath(`/${locale}/clients/${clientId}`);

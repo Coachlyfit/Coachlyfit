@@ -1999,6 +1999,118 @@ export type Database = {
           },
         ]
       }
+      marketing_page_versions: {
+        Row: {
+          id: string
+          page_id: string
+          published_at: string
+          published_by: string | null
+          snapshot: Json
+        }
+        Insert: {
+          id?: string
+          page_id: string
+          published_at?: string
+          published_by?: string | null
+          snapshot: Json
+        }
+        Update: {
+          id?: string
+          page_id?: string
+          published_at?: string
+          published_by?: string | null
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_page_versions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_page_versions_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_pages: {
+        Row: {
+          id: string
+          slug: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          slug: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          slug?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_pages_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_sections: {
+        Row: {
+          content_ar: Json
+          content_en: Json
+          id: string
+          is_visible: boolean
+          page_id: string
+          position: number
+          settings: Json
+          type: Database["public"]["Enums"]["marketing_section_type"]
+          updated_at: string
+        }
+        Insert: {
+          content_ar?: Json
+          content_en?: Json
+          id?: string
+          is_visible?: boolean
+          page_id: string
+          position: number
+          settings?: Json
+          type: Database["public"]["Enums"]["marketing_section_type"]
+          updated_at?: string
+        }
+        Update: {
+          content_ar?: Json
+          content_en?: Json
+          id?: string
+          is_visible?: boolean
+          page_id?: string
+          position?: number
+          settings?: Json
+          type?: Database["public"]["Enums"]["marketing_section_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_sections_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_items: {
         Row: {
           client_id: string | null
@@ -4412,12 +4524,20 @@ export type Database = {
         }
         Returns: string
       }
+      reorder_marketing_sections: {
+        Args: { p_ids: string[]; p_page_id: string }
+        Returns: undefined
+      }
       respond_to_coach_invite: {
         Args: {
           p_accept: boolean
           p_relationship_id: string
           p_share_history?: boolean
         }
+        Returns: undefined
+      }
+      restore_marketing_version: {
+        Args: { p_version_id: string }
         Returns: undefined
       }
       review_checkin: {
@@ -4465,6 +4585,18 @@ export type Database = {
     Enums: {
       client_status: "invited" | "active" | "archived"
       coaching_relationship_status: "pending" | "active" | "ended"
+      marketing_section_type:
+        | "hero"
+        | "app_preview"
+        | "stats"
+        | "pain_points"
+        | "features"
+        | "arabic_first"
+        | "testimonials"
+        | "how_it_works"
+        | "pricing"
+        | "faq"
+        | "final_cta"
       user_role: "admin" | "coach" | "client"
     }
     CompositeTypes: {
@@ -4595,6 +4727,19 @@ export const Constants = {
     Enums: {
       client_status: ["invited", "active", "archived"],
       coaching_relationship_status: ["pending", "active", "ended"],
+      marketing_section_type: [
+        "hero",
+        "app_preview",
+        "stats",
+        "pain_points",
+        "features",
+        "arabic_first",
+        "testimonials",
+        "how_it_works",
+        "pricing",
+        "faq",
+        "final_cta",
+      ],
       user_role: ["admin", "coach", "client"],
     },
   },
