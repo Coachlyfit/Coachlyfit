@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { getPlatformSettings } from "@/lib/platform-settings";
+import { ConsentLine } from "@/components/legal/consent-line";
 import { SignupForm } from "./signup-form";
 import { OtpForm } from "./otp-form";
 
@@ -70,6 +71,7 @@ export default async function SignupPage({
             <SignupForm locale={locale} />
           </TabsContent>
         </Tabs>
+        <ConsentLine messageKey="auth.signup.consent" />
         <p className="text-center text-sm text-muted-foreground">
           {t("haveAccount")}{" "}
           <Link href="/login" className="font-medium text-foreground underline underline-offset-4">

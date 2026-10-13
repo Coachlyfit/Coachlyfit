@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { LEGAL_VERSION } from "@/content/legal/constants";
 import { joinSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
@@ -27,7 +28,7 @@ export async function acceptTeamInviteSignupAction(
     email,
     password,
     options: {
-      data: { role: "coach", team_invite: true, full_name: fullName, locale },
+      data: { role: "coach", team_invite: true, full_name: fullName, locale, terms_version: LEGAL_VERSION },
       emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/dashboard&team_invite_token=${token}`,
     },
   });

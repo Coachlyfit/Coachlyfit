@@ -1,5 +1,14 @@
 import { useTranslations } from "next-intl";
 import { CoachlyLockup } from "@/components/brand/coachly-lockup";
+import { Link } from "@/i18n/navigation";
+
+const LEGAL_LINKS = [
+  ["terms", "terms"],
+  ["privacy", "privacy"],
+  ["cookies", "cookies"],
+  ["acceptable-use", "acceptableUse"],
+  ["billing", "billing"],
+] as const;
 
 /**
  * Always dark regardless of theme — `dark` on the wrapper so nested borders
@@ -11,17 +20,19 @@ const COLUMNS = {
   contact: ["whatsapp", "email", "instagram"],
 } as const;
 
-// Product links are same-page anchors; contact links are external. The rest
-// are not built yet, so they render as plain text rather than 404ing.
+// Product links are home-page anchors (so they also work from /legal/*);
+// contact links are external. The rest are not built yet, so they render as
+// plain text rather than 404ing.
 const HREFS: Record<string, string> = {
-  features: "#features",
-  pricing: "#pricing",
+  features: "/#features",
+  pricing: "/#pricing",
   whatsapp: "https://wa.me/201113284111",
   instagram: "https://www.instagram.com/coachlyfit",
 };
 
 export function Footer({ supportEmail }: { supportEmail: string }) {
   const t = useTranslations("marketing.footer");
+  const tLegal = useTranslations("legal.nav");
   const year = new Date().getFullYear();
 
   return (
@@ -46,7 +57,11 @@ export function Footer({ supportEmail }: { supportEmail: string }) {
                   // Only anchors and contact links are real destinations today.
                   // The rest render as plain text rather than dead links to
                   // pages that don't exist yet.
-                  return href ? (
+                  return href?.startsWith("/") ? (
+                    <Link key={link} href={href} className="text-[13px] text-muted-foreground hover:text-foreground">
+                      {label}
+                    </Link>
+                  ) : href ? (
                     <a
                       key={link}
                       href={href}
@@ -70,10 +85,17 @@ export function Footer({ supportEmail }: { supportEmail: string }) {
           <div className="font-mono text-[11.5px] text-muted-foreground">
             {t("rights", { year })} · {t("location")}
           </div>
-          <div className="flex gap-5 sm:ms-auto">
-            <span className="text-[12.5px] text-muted-foreground">{t("privacy")}</span>
-            <span className="text-[12.5px] text-muted-foreground">{t("terms")}</span>
-          </div>
+          <nav aria-label={tLegal("title")} className="flex flex-wrap gap-x-5 gap-y-2 sm:ms-auto">
+            {LEGAL_LINKS.map(([slug, key]) => (
+              <Link
+                key={slug}
+                href={`/legal/${slug}`}
+                className="text-[12.5px] text-muted-foreground hover:text-foreground"
+              >
+                {tLegal(key)}
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>

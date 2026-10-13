@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hashInviteToken } from "@/domain/clients/invites.service";
+import { LEGAL_VERSION } from "@/content/legal/constants";
 import { joinSchema } from "./schemas";
 
 type ActionResult = { error: string } | void;
@@ -32,7 +33,13 @@ export async function acceptInviteSignupAction(
       // supabase/migrations/20260922000001_link_client_invite_on_signup.sql.
       // The raw invite_token in emailRedirectTo below is now belt-and-braces
       // (a fallback for pre-migration users), not load-bearing.
-      data: { role: "client", full_name: fullName, locale, invite_token_hash: hashInviteToken(token) },
+      data: {
+        role: "client",
+        full_name: fullName,
+        locale,
+        invite_token_hash: hashInviteToken(token),
+        terms_version: LEGAL_VERSION,
+      },
       emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/c&invite_token=${token}`,
     },
   });

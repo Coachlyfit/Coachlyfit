@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { getPlatformSettings } from "@/lib/platform-settings";
+import { LEGAL_VERSION } from "@/content/legal/constants";
 import {
   loginSchema,
   signupCoachSchema,
@@ -76,7 +77,7 @@ export async function signUpCoachAction(
     email,
     password,
     options: {
-      data: { role: "coach", full_name: fullName, business_name: businessName, locale },
+      data: { role: "coach", full_name: fullName, business_name: businessName, locale, terms_version: LEGAL_VERSION },
       emailRedirectTo: `${appUrl}/auth/confirm?next=/${locale}/dashboard`,
     },
   });
@@ -112,7 +113,7 @@ export async function sendOtpAction(locale: string, formData: FormData): Promise
     phone: toE164(parsed.data.phone),
     options: {
       channel: "whatsapp",
-      data: { role: "coach", locale: parsed.data.locale },
+      data: { role: "coach", locale: parsed.data.locale, terms_version: LEGAL_VERSION },
     },
   });
   if (error) return { error: "otp_send_failed" };

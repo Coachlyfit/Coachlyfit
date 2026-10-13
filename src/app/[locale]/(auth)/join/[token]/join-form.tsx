@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConsentLine } from "@/components/legal/consent-line";
 import { joinSchema, type JoinInput } from "./schemas";
 import { acceptInviteSignupAction } from "./actions";
 
@@ -79,6 +80,7 @@ export function JoinForm({
           {tErrors(formError)}
         </p>
       )}
+      <ConsentLine messageKey="join.form.consent" />
       <Button type="submit" disabled={pending} className="w-full min-w-24">
         {pending ? tCommon("pending") : t("submit")}
       </Button>
