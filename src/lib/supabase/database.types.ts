@@ -3811,6 +3811,56 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          admin_unread: boolean
+          category: string
+          closed_at: string | null
+          coach_id: string
+          coach_unread: boolean
+          created_at: string
+          id: string
+          last_message_at: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          admin_unread?: boolean
+          category: string
+          closed_at?: string | null
+          coach_id: string
+          coach_unread?: boolean
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          admin_unread?: boolean
+          category?: string
+          closed_at?: string | null
+          coach_id?: string
+          coach_unread?: boolean
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_comments: {
         Row: {
           author_id: string | null
@@ -3991,6 +4041,54 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_messages: {
+        Row: {
+          attachment_paths: string[]
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          is_internal: boolean
+          sender_role: string
+          ticket_id: string
+        }
+        Insert: {
+          attachment_paths?: string[]
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          sender_role: string
+          ticket_id: string
+        }
+        Update: {
+          attachment_paths?: string[]
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          sender_role?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
             referencedColumns: ["id"]
           },
         ]
@@ -4601,6 +4699,17 @@ export type Database = {
         Returns: undefined
       }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
+      create_support_ticket: {
+        Args: {
+          p_attachment_paths?: string[]
+          p_body: string
+          p_category: string
+          p_id: string
+          p_message_id: string
+          p_subject: string
+        }
+        Returns: string
+      }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
       get_my_branding: { Args: never; Returns: Json }
       get_my_features: { Args: never; Returns: Json }
@@ -4903,6 +5012,11 @@ export type Database = {
         Returns: undefined
       }
       snapshot_mrr: { Args: never; Returns: undefined }
+      support_mark_read: { Args: { p_ticket_id: string }; Returns: undefined }
+      support_reopen_ticket: {
+        Args: { p_ticket_id: string }
+        Returns: undefined
+      }
       task_productivity: {
         Args: { p_from: string; p_to: string }
         Returns: {

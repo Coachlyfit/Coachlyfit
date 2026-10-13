@@ -25,6 +25,12 @@ import { usePushSubscription } from "./use-push-subscription";
 // subscription_* are the coach's own platform-subscription notices, queued
 // by the billing-lifecycle cron for the tenant owner. task_assigned goes to
 // the assignee and task_completed to the tenant owner (notify_on_task).
+// support_ticket_created / _coach_reply / _ticket_reopened go to admins and
+// support_admin_reply / _status_changed to the ticket's coach
+// (notify_on_ticket_message, notify_on_ticket_status).
+const ADMIN_SUPPORT_KINDS = ["support_ticket_created", "support_coach_reply", "support_ticket_reopened"] as const;
+const COACH_SUPPORT_KINDS = ["support_admin_reply", "support_status_changed"] as const;
+
 const KINDS = [
   "exercise_promoted",
   "food_promoted",
@@ -38,15 +44,22 @@ const KINDS = [
   "subscription_canceled",
   "task_assigned",
   "task_completed",
+  ...ADMIN_SUPPORT_KINDS,
+  ...COACH_SUPPORT_KINDS,
 ] as const;
 
 function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
   return (KINDS as readonly string[]).includes(kind);
 }
 
+function isAdminSupportKind(kind: string): kind is (typeof ADMIN_SUPPORT_KINDS)[number] {
+  return (ADMIN_SUPPORT_KINDS as readonly string[]).includes(kind);
+}
+
 export function NotificationBell({ locale }: { locale: AppLocale }) {
   const t = useTranslations("notifications");
   const tOutcome = useTranslations("ledger.outcome");
+  const tTicketStatus = useTranslations("support.status");
   const tPush = useTranslations("common.push");
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -94,6 +107,22 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
         title: (payload.title as string | null) ?? "",
       });
     }
+    if (isAdminSupportKind(notification.kind)) {
+      return t(notification.kind, {
+        name: (payload.name as string | null) ?? t("someone"),
+        subject: (payload.subject as string | null) ?? "",
+      });
+    }
+    if (notification.kind === "support_admin_reply") {
+      return t("support_admin_reply", { subject: (payload.subject as string | null) ?? "" });
+    }
+    if (notification.kind === "support_status_changed") {
+      const status = payload.status as string;
+      return t("support_status_changed", {
+        subject: (payload.subject as string | null) ?? "",
+        status: tTicketStatus.has(status) ? tTicketStatus(status) : status,
+      });
+    }
     if (notification.kind.startsWith("subscription_")) {
       const periodEnd = payload.period_end as string | null;
       return t(notification.kind, { date: periodEnd ? formatDate(periodEnd, locale) : "" });
@@ -119,6 +148,11 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     }
     if (notification.kind.startsWith("subscription_")) return "/settings/subscription";
     if (notification.kind === "task_assigned" || notification.kind === "task_completed") return "/tasks";
+    if (notification.kind.startsWith("support_")) {
+      const ticketId = payload.ticket_id as string | null;
+      if (!ticketId) return null;
+      return isAdminSupportKind(notification.kind) ? `/admin/support/${ticketId}` : `/support/${ticketId}`;
+    }
     return null;
   }
 

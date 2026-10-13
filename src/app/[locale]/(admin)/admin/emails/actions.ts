@@ -165,7 +165,7 @@ export async function sendCampaignAction(
 export async function sendLeadEmailsAction(
   locale: string,
   input: unknown
-): Promise<{ error: string } | { sent: number; failed: number; skipped: number }> {
+): Promise<{ error: string } | { sent: number; failed: number; skipped: number; reason: string | null }> {
   const parsed = leadSendSchema.safeParse(input);
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -186,6 +186,8 @@ export async function sendLeadEmailsAction(
   let sent = 0;
   let failed = 0;
   let skipped = 0;
+  // Brevo's own words for the first failure, shown to the admin as-is.
+  let reason: string | null = null;
 
   for (const [index, leadId] of leadIds.entries()) {
     if (index > 0) await new Promise((resolve) => setTimeout(resolve, LEAD_PAUSE_MS));
@@ -223,8 +225,10 @@ export async function sendLeadEmailsAction(
       },
     });
     const sendError = result.error ?? null;
-    if (sendError) failed++;
-    else sent++;
+    if (sendError) {
+      failed++;
+      reason ??= sendError;
+    } else sent++;
 
     try {
       await service.recordSend({
@@ -243,5 +247,5 @@ export async function sendLeadEmailsAction(
 
   revalidatePath(`/${locale}/admin/emails`);
   revalidatePath(`/${locale}/admin/leads`);
-  return { sent, failed, skipped };
+  return { sent, failed, skipped, reason };
 }

@@ -91,9 +91,14 @@ export default async function CoachLayout({
   const locked = coachId !== null && !access.allowed && !impersonating;
   if (locked) {
     const pathname = (await headers()).get("x-pathname") ?? "";
-    if (!pathname.endsWith("/settings/subscription")) redirect(`/${locale}/settings/subscription`);
+    // Support stays reachable: a billing problem is exactly when a locked
+    // coach needs to write to us. The subscription page links to it.
+    const inSupport = pathname === `/${locale}/support` || pathname.startsWith(`/${locale}/support/`);
+    if (!pathname.endsWith("/settings/subscription") && !inSupport) redirect(`/${locale}/settings/subscription`);
   }
 
+  // Owner-only nav items (support) are left out for a team member.
+  const isOwner = coachId === user.id;
   const brandLogo = branding?.logoUrl ? { src: branding.logoUrl, name: branding.businessName } : null;
 
   return (
@@ -104,7 +109,14 @@ export default async function CoachLayout({
       {!impersonating && <PresenceHeartbeat />}
       <InboxRealtime />
       {/* Locked: no nav, the subscription page is the only place to be. */}
-      {!locked && <Sidebar features={features} brandLogo={brandLogo} darkGround={branding?.sidebarDark ?? true} />}
+      {!locked && (
+        <Sidebar
+          features={features}
+          isOwner={isOwner}
+          brandLogo={brandLogo}
+          darkGround={branding?.sidebarDark ?? true}
+        />
+      )}
       <div className="flex min-w-0 flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
         {settings.announcement.enabled && (
@@ -115,12 +127,18 @@ export default async function CoachLayout({
           />
         )}
         {access.banner && <SubscriptionBanner kind={access.banner} days={access.days} />}
-        <Topbar locale={locale} fullName={profile.full_name} brandLogo={brandLogo} navFeatures={features} />
+        <Topbar
+          locale={locale}
+          fullName={profile.full_name}
+          brandLogo={brandLogo}
+          navFeatures={features}
+          isOwner={isOwner}
+        />
         <main className="min-w-0 flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] lg:p-6 lg:pb-6">
           {children}
         </main>
       </div>
-      {!locked && <BottomNav locale={locale} features={features} />}
+      {!locked && <BottomNav locale={locale} features={features} isOwner={isOwner} />}
       <FeedbackWidget />
     </div>
   );

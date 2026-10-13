@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LifeBuoy } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ export default async function SubscriptionPage({
   const t = await getTranslations("billing");
   const tMethods = await getTranslations("billing.history.methods");
   const tFinance = await getTranslations("finance");
+  const tSupport = await getTranslations("support");
   const supabase = await createClient();
 
   const [
@@ -88,6 +89,17 @@ export default async function SubscriptionPage({
         <ArrowRight className="size-4 rotate-180 rtl:rotate-0" aria-hidden="true" />
         {tFinance("subscription.back")}
       </Link>
+      {/* The one way to support while the account is locked: the nav is
+          hidden then, and the (coach) layout lets /support through. */}
+      {isOwner && (
+        <Link
+          href="/support"
+          className="flex min-h-11 w-fit items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+        >
+          <LifeBuoy className="size-4" aria-hidden="true" />
+          {tSupport("contactSupport")}
+        </Link>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>

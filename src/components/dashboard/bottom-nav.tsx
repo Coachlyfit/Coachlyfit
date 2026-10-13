@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/sign-out-action";
 import { UnreadMessagesBadge, UnreadMessagesDot } from "@/components/messages/unread-messages-badge";
+import { SupportUnreadBadge, SupportUnreadDot } from "@/components/support/support-unread-badge";
 import { NAV_ITEMS, ADMIN_NAV_ITEMS, visibleNavItems, type NavFeatures } from "./nav-items";
 
 // Bottom tab bar for <1024px (below the sidebar's lg breakpoint). Capped at 5
@@ -30,13 +31,16 @@ export function BottomNav({
   locale,
   admin = false,
   features,
+  isOwner,
 }: {
   locale: string;
   admin?: boolean;
   /** The tenant's plan flags; items gated on a missing one are left out. */
   features?: NavFeatures;
+  /** False for a team member, who doesn't get the owner-only items. */
+  isOwner?: boolean;
 }) {
-  const items = visibleNavItems(admin ? ADMIN_NAV_ITEMS : NAV_ITEMS, features);
+  const items = visibleNavItems(admin ? ADMIN_NAV_ITEMS : NAV_ITEMS, features, isOwner);
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const pathname = usePathname();
@@ -63,7 +67,10 @@ export function BottomNav({
               active ? "text-primary" : "text-muted-foreground"
             )}
           >
-            <Icon className="size-5 shrink-0" aria-hidden="true" />
+            <span className="relative">
+              <Icon className="size-5 shrink-0" aria-hidden="true" />
+              {item.badge === "supportUnread" && <SupportUnreadDot className="absolute -end-1.5 -top-0.5" />}
+            </span>
             <span className="max-w-full truncate px-1">{t(item.labelKey)}</span>
           </Link>
         );
@@ -79,9 +86,14 @@ export function BottomNav({
         >
           <span className="relative">
             <MoreHorizontal className="size-5" aria-hidden="true" />
-            {/* The messages item lives behind this tab, so its unread state surfaces here. */}
-            {overflow.some((item) => item.badge === "unreadMessages") && (
+            {/* The messages item lives behind this tab, so its unread state surfaces here.
+                Support's does too, when there is no messages item to carry the dot. */}
+            {overflow.some((item) => item.badge === "unreadMessages") ? (
               <UnreadMessagesDot className="absolute -end-1.5 -top-0.5" />
+            ) : (
+              overflow.some((item) => item.badge === "supportUnread") && (
+                <SupportUnreadDot className="absolute -end-1.5 -top-0.5" />
+              )
             )}
           </span>
           {tCommon("more")}
@@ -103,6 +115,7 @@ export function BottomNav({
                   <Icon className="size-4" aria-hidden="true" />
                   {t(item.labelKey)}
                   {item.badge === "unreadMessages" && <UnreadMessagesBadge className="ms-auto" />}
+                  {item.badge === "supportUnread" && <SupportUnreadBadge className="ms-auto" />}
                 </Link>
               );
             })}

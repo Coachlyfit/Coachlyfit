@@ -80,3 +80,35 @@ describe("task notices", () => {
     expect(html).toContain("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
   });
 });
+
+describe("support notices", () => {
+  const kinds = [
+    "support_ticket_created",
+    "support_coach_reply",
+    "support_ticket_reopened",
+    "support_admin_reply",
+    "support_status_changed",
+  ] as const;
+
+  it.each(kinds)("%s renders the ticket subject in both languages", (kind) => {
+    const subject = notificationName(kind, { subject: "Export <b>broken</b>" }, "en");
+    expect(subject).toBe("Export <b>broken</b>");
+
+    const en = renderNotificationEmail("en", kind, "Sara", subject);
+    expect(en.subject).toBeTruthy();
+    expect(en.html).toContain("Export &lt;b&gt;broken&lt;/b&gt;");
+
+    const ar = renderNotificationEmail("ar", kind, null, subject);
+    expect(ar.html).toContain('dir="rtl"');
+    expect(ar.subject).not.toBe(en.subject);
+  });
+
+  it("links admins to the inbox and the coach to their own ticket", () => {
+    const payload = { ticket_id: "t-1" };
+    expect(notificationUrl("support_ticket_created", payload, "ar")).toBe("/ar/admin/support/t-1");
+    expect(notificationUrl("support_coach_reply", payload, "en")).toBe("/en/admin/support/t-1");
+    expect(notificationUrl("support_ticket_reopened", payload, "en")).toBe("/en/admin/support/t-1");
+    expect(notificationUrl("support_admin_reply", payload, "en")).toBe("/en/support/t-1");
+    expect(notificationUrl("support_status_changed", payload, "ar")).toBe("/ar/support/t-1");
+  });
+});
