@@ -54,6 +54,21 @@ describe("renderCampaignEmail", () => {
     expect(html).not.toContain("<b>Sara</b>");
   });
 
+  it("keeps the team footer unless an unsubscribe URL is given", () => {
+    const coach = renderCampaignEmail({ ...base, direction: "ltr", coachName: "Sara" }).html;
+    expect(coach).toContain("Sent by the Coachly Fit team.");
+    expect(coach).not.toContain("Unsubscribe");
+
+    const unsubscribeUrl = "https://app.example.com/en/unsubscribe?token=abc&x=1";
+    const english = renderCampaignEmail({ ...base, direction: "ltr", coachName: "Sara", unsubscribeUrl }).html;
+    expect(english).not.toContain("Sent by the Coachly Fit team.");
+    expect(english).toContain('<a href="https://app.example.com/en/unsubscribe?token=abc&amp;x=1"');
+    expect(english).toContain(">Unsubscribe</a>.");
+
+    const arabic = renderCampaignEmail({ ...base, direction: "rtl", coachName: "سارة", unsubscribeUrl }).html;
+    expect(arabic).toContain(">إلغاء الاشتراك</a>.");
+  });
+
   it("builds an absolute logo URL from the app URL", () => {
     const { html } = renderCampaignEmail({ ...base, direction: "ltr", coachName: "Sara" });
     expect(html).toContain('src="https://app.example.com/brand/app-icon-192.png"');

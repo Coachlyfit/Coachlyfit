@@ -1999,6 +1999,110 @@ export type Database = {
           },
         ]
       }
+      lead_email_sends: {
+        Row: {
+          brevo_message_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          lead_id: string
+          sent_by: string | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          brevo_message_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id: string
+          sent_by?: string | null
+          status: string
+          subject: string
+        }
+        Update: {
+          brevo_message_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string
+          sent_by?: string | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_email_sends_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_email_sends_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          full_name: string | null
+          id: string
+          last_contacted_at: string | null
+          locale: string
+          notes: string | null
+          source: string | null
+          status: string
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          locale?: string
+          notes?: string | null
+          source?: string | null
+          status?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          locale?: string
+          notes?: string | null
+          source?: string | null
+          status?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_page_versions: {
         Row: {
           id: string
@@ -2344,31 +2448,49 @@ export type Database = {
       }
       messages: {
         Row: {
+          audio_deleted_at: string | null
+          audio_duration_sec: number | null
+          audio_mime: string | null
+          audio_path: string | null
+          audio_size_bytes: number | null
           body: string
           client_id: string
           coach_id: string
           created_at: string
           id: string
+          kind: string
           read_at: string | null
           relationship_id: string | null
           sender_role: string
         }
         Insert: {
+          audio_deleted_at?: string | null
+          audio_duration_sec?: number | null
+          audio_mime?: string | null
+          audio_path?: string | null
+          audio_size_bytes?: number | null
           body: string
           client_id: string
           coach_id: string
           created_at?: string
           id?: string
+          kind?: string
           read_at?: string | null
           relationship_id?: string | null
           sender_role: string
         }
         Update: {
+          audio_deleted_at?: string | null
+          audio_duration_sec?: number | null
+          audio_mime?: string | null
+          audio_path?: string | null
+          audio_size_bytes?: number | null
           body?: string
           client_id?: string
           coach_id?: string
           created_at?: string
           id?: string
+          kind?: string
           read_at?: string | null
           relationship_id?: string | null
           sender_role?: string
@@ -2755,6 +2877,8 @@ export type Database = {
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           suspended_at: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -2767,6 +2891,8 @@ export type Database = {
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           suspended_at?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -2779,6 +2905,8 @@ export type Database = {
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           suspended_at?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
         }
         Relationships: []
       }
@@ -4232,6 +4360,7 @@ export type Database = {
           coach_id: string | null
           display_name: string | null
           last_body: string | null
+          last_kind: string | null
           last_message_at: string | null
           last_read_at: string | null
           last_sender_role: string | null
@@ -4520,6 +4649,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      lead_unsubscribe: {
+        Args: { p_confirm?: boolean; p_token: string }
+        Returns: string
+      }
       library_exercise_facets: {
         Args: { p_equipment?: string; p_query?: string; p_source?: string }
         Returns: {
@@ -4770,7 +4903,23 @@ export type Database = {
         Returns: undefined
       }
       snapshot_mrr: { Args: never; Returns: undefined }
+      task_productivity: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          assigned: number
+          assignee_id: string
+          avg_completion_seconds: number
+          completed: number
+          completed_on_time: number
+          completed_with_due: number
+          overdue: number
+        }[]
+      }
       touch_last_seen: { Args: never; Returns: undefined }
+      voice_notes_to_delete: {
+        Args: { p_before: string; p_limit: number; p_orphan_before: string }
+        Returns: string[]
+      }
     }
     Enums: {
       client_status: "invited" | "active" | "archived"

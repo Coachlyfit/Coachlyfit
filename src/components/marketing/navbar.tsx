@@ -8,7 +8,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { CoachlyLockup } from "@/components/brand/coachly-lockup";
 import { cn } from "@/lib/utils";
 
-// Every nav link is a same-page anchor, so there's no drawer below md — the
+// Every nav link is a home-page anchor (a Link, so it also works from
+// /legal/*), so there's no drawer below md — the
 // links collapse and the CTA, which is the only one that matters on a phone,
 // stays visible.
 const ANCHORS = ["features", "pricing", "coaches", "faq"] as const;
@@ -25,9 +26,9 @@ export function Navbar() {
 
         <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
           {ANCHORS.map((key) => (
-            <a key={key} href={`#${key}`} className="text-muted-foreground hover:text-foreground">
+            <Link key={key} href={`/#${key}`} className="text-muted-foreground hover:text-foreground">
               {t(key)}
-            </a>
+            </Link>
           ))}
         </nav>
 

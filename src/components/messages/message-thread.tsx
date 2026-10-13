@@ -39,7 +39,7 @@ export function MessageThread({
   const containerRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
 
-  const { renderable, isLoading, send, retry, hasOlder, isLoadingOlder, loadOlder } = useMessageThread(
+  const { renderable, isLoading, send, sendVoice, retry, hasOlder, isLoadingOlder, loadOlder } = useMessageThread(
     clientId,
     viewerRole,
   );
@@ -118,6 +118,10 @@ export function MessageThread({
         <MessageComposer
           quickReplies={quickReplies}
           onSend={handleSend}
+          onSendVoice={(recording) => {
+            notifyOwnMessage();
+            sendVoice(recording);
+          }}
           onTyping={notifyTyping}
           onStopTyping={notifyStopped}
         />

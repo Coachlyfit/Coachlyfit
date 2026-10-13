@@ -13,6 +13,10 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/cron/voice-notes-cleanup",
+      "schedule": "15 4 * * *"
+    },
+    {
       "path": "/api/cron/ledger-outcomes",
       "schedule": "30 3 * * *"
     },

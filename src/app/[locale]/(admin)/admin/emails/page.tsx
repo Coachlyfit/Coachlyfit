@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AppLocale } from "@/domain/locale";
 import { CampaignsService } from "@/domain/emails/campaigns.service";
+import { LeadsService } from "@/domain/leads/leads.service";
 import { EmailsClient } from "./emails-client";
 import { HistoryList } from "./history-list";
 
@@ -16,9 +17,18 @@ export default async function AdminEmailsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("admin.emails");
-  const service = new CampaignsService(await createClient());
+  const supabase = await createClient();
+  const service = new CampaignsService(supabase);
 
-  const [recipients, history] = await Promise.all([service.listRecipients(), service.listHistory()]);
+  const [recipients, history, allLeads] = await Promise.all([
+    service.listRecipients(),
+    service.listHistory(),
+    new LeadsService(supabase).list(),
+  ]);
+  // The send action checks this again for every lead right before its email.
+  const leads = allLeads
+    .filter((lead) => !lead.unsubscribed_at)
+    .map((lead) => ({ id: lead.id, name: lead.full_name, email: lead.email }));
   const coaches = recipients.map((recipient) => ({
     coachId: recipient.coachId,
     name: recipient.businessName,
@@ -30,7 +40,7 @@ export default async function AdminEmailsPage({
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-      <EmailsClient locale={locale} coaches={coaches} appUrl={appUrl} />
+      <EmailsClient locale={locale} coaches={coaches} leads={leads} appUrl={appUrl} />
       <HistoryList locale={locale} campaigns={history} appUrl={appUrl} />
     </div>
   );

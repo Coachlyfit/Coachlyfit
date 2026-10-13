@@ -78,7 +78,8 @@
     "finance": "Finance",
     "tasks": "Tasks",
     "emails": "Emails",
-    "site": "Site"
+    "site": "Site",
+    "leads": "Leads"
   },
   "palette": {
     "navigation": "Navigation",
@@ -262,9 +263,7 @@
         }
       },
       "location": "Cairo, Egypt",
-      "rights": "© {year} Coachlyfit",
-      "privacy": "Privacy",
-      "terms": "Terms"
+      "rights": "© {year} Coachlyfit"
     }
   },
   "auth": {
@@ -298,6 +297,7 @@
     "signup": {
       "title": "Start your free trial",
       "subtitle": "14 days free, no card required.",
+      "consent": "By creating an account you agree to the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>. You must be 18 or older.",
       "fullName": "Full name",
       "businessName": "Business name",
       "email": "Email",
@@ -907,7 +907,8 @@
       "fullName": "Full name",
       "email": "Email",
       "password": "Password",
-      "submit": "Create account"
+      "submit": "Create account",
+      "consent": "By creating an account you agree to the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>, and confirm you are 18 or older or have a parent's or guardian's consent."
     },
     "team": {
       "heading": "You've been invited to join a coaching team"
@@ -1157,6 +1158,22 @@
     "placeholder": "Type a message…",
     "send": "Send",
     "retry": "Retry",
+    "voice": {
+      "record": "Record voice note",
+      "stop": "Stop recording",
+      "cancel": "Discard recording",
+      "send": "Send voice note",
+      "play": "Play voice note",
+      "pause": "Pause",
+      "seek": "Playback position",
+      "recording": "Recording…",
+      "limitReached": "Reached the 2-minute limit.",
+      "tooShort": "That was too short to send.",
+      "permissionDenied": "Microphone access is blocked. Allow it in your browser settings.",
+      "expired": "Voice note expired",
+      "loadFailed": "Couldn't load the voice note. Tap play to retry.",
+      "preview": "Voice note"
+    },
     "typing": "Typing…",
     "online": "Online now",
     "offline": "Offline",
@@ -1170,7 +1187,8 @@
     "errors": {
       "invalid_input": "Please check the message and try again.",
       "no_recipients": "You don't have any active clients yet.",
-      "send_failed": "Message failed to send."
+      "send_failed": "Message failed to send.",
+      "too_large": "The voice note is too large."
     },
     "search": "Search by client name or message",
     "filter": {
@@ -2417,7 +2435,9 @@
         "all": "All coaches",
         "active": "Active subscribers only",
         "selected": "Specific coaches",
-        "count": "{count, plural, =0 {No recipients} one {# recipient} other {# recipients}}"
+        "count": "{count, plural, =0 {No recipients} one {# recipient} other {# recipients}}",
+        "leads": "Leads",
+        "tooManyLeads": "A single send goes to at most {max} leads. Pick fewer."
       },
       "picker": {
         "placeholder": "Choose coaches",
@@ -2453,7 +2473,9 @@
       "confirm": {
         "title": "Send to {count, plural, one {# coach} other {# coaches}}?",
         "body": "Each coach gets a separate email. This cannot be undone.",
-        "action": "Send"
+        "action": "Send",
+        "titleLeads": "Send to {count, plural, one {# lead} other {# leads}}?",
+        "bodyLeads": "Each lead gets a separate email with an unsubscribe link. This cannot be undone."
       },
       "history": {
         "title": "Sent emails",
@@ -2474,7 +2496,92 @@
         "email_not_configured": "Email sending is not set up (missing BREVO_API_KEY or BREVO_SENDER_EMAIL).",
         "no_admin_email": "Your account has no email address.",
         "no_recipients": "No coaches match this selection.",
-        "send_failed": "The email could not be sent. Try again."
+        "send_failed": "The email could not be sent. Try again.",
+        "outreach_not_configured": "Outreach email is not set up (missing BREVO_API_KEY, BREVO_OUTREACH_SENDER_EMAIL or NEXT_PUBLIC_APP_URL).",
+        "too_many_leads": "A single send goes to at most 50 leads. Pick fewer and send again."
+      },
+      "leadsSent": "{sent} sent, {failed} failed, {skipped} skipped (unsubscribed or removed).",
+      "leadPicker": {
+        "placeholder": "Choose leads",
+        "selected": "{count, plural, one {# lead selected} other {# leads selected}}",
+        "search": "Search leads",
+        "empty": "No leads match your search.",
+        "selectAll": "Select all",
+        "clear": "Clear"
+      }
+    },
+    "leads": {
+      "title": "Leads",
+      "add": "Add lead",
+      "import": "Import",
+      "searchPlaceholder": "Search by name or email",
+      "filterAll": "All",
+      "empty": "No leads yet.",
+      "emptyDescription": "Add the coaches you want to reach out to, or import a list.",
+      "noResults": "No leads match this search or status.",
+      "showAll": "Show all",
+      "edit": "Edit",
+      "delete": "Delete",
+      "more": "More actions",
+      "never": "Never",
+      "deleted": "Lead deleted.",
+      "deleteTitle": "Delete {name}?",
+      "deleteBody": "The lead and the log of emails sent to them are removed. This cannot be undone.",
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "replied": "Replied",
+        "signed_up": "Signed up",
+        "unsubscribed": "Unsubscribed"
+      },
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "source": "Source",
+        "status": "Status",
+        "lastContacted": "Last contacted",
+        "createdAt": "Added",
+        "actions": "Actions"
+      },
+      "form": {
+        "addTitle": "Add lead",
+        "editTitle": "Edit lead",
+        "email": "Email",
+        "emailInvalid": "Enter a valid email address.",
+        "name": "Name",
+        "source": "Source",
+        "locale": "Language",
+        "localeAr": "Arabic",
+        "localeEn": "English",
+        "notes": "Notes",
+        "save": "Save",
+        "cancel": "Cancel",
+        "saved": "Lead saved."
+      },
+      "importDialog": {
+        "title": "Import leads",
+        "description": "Paste rows or choose a CSV file with the columns {columns}. Name and source are optional.",
+        "paste": "Paste rows",
+        "file": "Or choose a CSV file",
+        "email": "Email",
+        "name": "Name",
+        "source": "Source",
+        "state": "Row status",
+        "rowOk": "Ready",
+        "rowInvalid": "Invalid email",
+        "rowDuplicate": "Repeated",
+        "previewCount": "{ok} ready to import, {skipped} will be skipped.",
+        "import": "{count, plural, =0 {Import} one {Import # lead} other {Import # leads}}",
+        "result": "{added} added, {skipped} skipped (invalid, repeated or already a lead).",
+        "cancel": "Cancel",
+        "close": "Close"
+      },
+      "errors": {
+        "invalid_input": "Check the details and try again.",
+        "not_authenticated": "Sign in again to continue.",
+        "forbidden": "Only an admin can manage leads.",
+        "duplicate_email": "This email is already a lead.",
+        "save_failed": "The change could not be saved. Try again."
       }
     },
     "settings": {
@@ -3937,5 +4044,34 @@
       "days": "{count} d",
       "onTimeHint": "Of completed tasks that had a due date"
     }
+  },
+  "unsubscribe": {
+    "active": {
+      "title": "Unsubscribe from these emails?",
+      "body": "You will not receive any more outreach emails from Coachly Fit at this address.",
+      "confirm": "Confirm unsubscribe"
+    },
+    "unsubscribed": {
+      "title": "You are unsubscribed",
+      "body": "You will not receive any more emails from us. You can close this page."
+    },
+    "invalid": {
+      "title": "This link is not valid",
+      "body": "The unsubscribe link is incomplete or has expired. Open the link from the latest email you received, or reply to it and we will remove you."
+    }
+  },
+  "legal": {
+    "nav": {
+      "title": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy",
+      "acceptableUse": "Acceptable Use",
+      "billing": "Billing & Refunds"
+    },
+    "lastUpdated": "Last updated: {date}",
+    "onThisPage": "On this page",
+    "contactTitle": "Questions about this policy?",
+    "contactBody": "Email us at <link>{email}</link>"
   }
 }

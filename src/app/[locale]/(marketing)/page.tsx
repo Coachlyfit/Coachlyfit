@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { hasLocale } from "next-intl";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
@@ -5,8 +6,21 @@ import { MarketingService } from "@/domain/marketing/marketing.service";
 import type { Section } from "@/domain/marketing/sections.schema";
 import { SectionView } from "@/components/marketing/section-view";
 import { PRICING_TIER_COLUMNS } from "@/components/marketing/pricing-section";
+import { SITE_URL as siteUrl, buildAlternates } from "@/lib/seo";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+// "/" redirects to the default locale, so structured data points at the
+// final URL instead.
+const homeUrl = `${siteUrl}/${routing.defaultLocale}`;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const appLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
+  return { alternates: buildAlternates(appLocale) };
+}
 
 type FaqItem = { q: string; a: string };
 
@@ -23,7 +37,7 @@ function jsonLd(locale: AppLocale, faq: FaqItem[]) {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
         name: "Coachlyfit",
-        url: siteUrl,
+        url: homeUrl,
         logo: `${siteUrl}/brand/app-icon.svg`,
         description,
         sameAs: [],
@@ -31,7 +45,7 @@ function jsonLd(locale: AppLocale, faq: FaqItem[]) {
       {
         "@type": "WebSite",
         "@id": `${siteUrl}/#website`,
-        url: siteUrl,
+        url: homeUrl,
         name: "Coachlyfit",
         publisher: { "@id": `${siteUrl}/#organization` },
         inLanguage: locale,

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConsentLine } from "@/components/legal/consent-line";
 import { joinSchema, type JoinInput } from "./schemas";
 import { acceptTeamInviteSignupAction } from "./actions";
 
@@ -71,6 +72,7 @@ export function TeamJoinForm({ locale, token }: { locale: string; token: string 
           {tErrors(formError)}
         </p>
       )}
+      <ConsentLine messageKey="auth.signup.consent" />
       <Button type="submit" disabled={pending} className="w-full min-w-24">
         {pending ? tCommon("pending") : t("submit")}
       </Button>

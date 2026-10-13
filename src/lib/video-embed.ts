@@ -7,21 +7,21 @@ export function toEmbedUrl(url: string): string | null {
 
     if (u.hostname.includes("youtu.be")) {
       const id = u.pathname.slice(1);
-      return id ? `https://www.youtube.com/embed/${id}` : null;
+      return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
     }
     if (u.hostname.includes("youtube.com")) {
       if (u.pathname === "/watch") {
         const id = u.searchParams.get("v");
-        return id ? `https://www.youtube.com/embed/${id}` : null;
+        return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
       }
       if (u.pathname.startsWith("/shorts/") || u.pathname.startsWith("/embed/")) {
         const id = u.pathname.split("/").pop();
-        return id ? `https://www.youtube.com/embed/${id}` : null;
+        return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
       }
     }
     if (u.hostname.includes("vimeo.com")) {
       const id = u.pathname.split("/").filter(Boolean).pop();
-      return id ? `https://player.vimeo.com/video/${id}` : null;
+      return id ? `https://player.vimeo.com/video/${id}?dnt=1` : null;
     }
 
     return null;

@@ -1,18 +1,34 @@
 import type { Database } from "@/lib/supabase/database.types";
+import type { VoiceMime } from "@/domain/messages/voice-notes";
 import { getMessageStatus, type MessageStatus } from "./message-status";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
+
+export type VoiceRecording = { blob: Blob; mime: VoiceMime; durationSec: number };
 
 export type PendingMessage = {
   tempId: string;
   body: string;
   createdAt: string;
   status: "sending" | "failed";
+  /** Set for a voice note; body is then empty. */
+  voice?: VoiceRecording;
+};
+
+export type RenderableVoice = {
+  /** Null while the note is still only on this device. */
+  messageId: string | null;
+  durationSec: number;
+  /** The file is past retention and gone; only the row is left. */
+  expired: boolean;
+  /** The sender's own recording, playable before (and without) a download. */
+  localBlob?: Blob;
 };
 
 export type RenderableMessage = {
   key: string;
   body: string;
+  voice?: RenderableVoice;
   createdAt: string;
   senderRole: "coach" | "client";
   isOwn: boolean;
@@ -36,6 +52,13 @@ export function toRenderableMessages(
   const fromServer: RenderableMessage[] = messages.map((message) => ({
     key: message.id,
     body: message.body,
+    ...(message.kind === "voice" && {
+      voice: {
+        messageId: message.id,
+        durationSec: message.audio_duration_sec ?? 0,
+        expired: message.audio_deleted_at != null,
+      },
+    }),
     createdAt: message.created_at,
     senderRole: message.sender_role as "coach" | "client",
     isOwn: message.sender_role === viewerRole,
@@ -45,6 +68,9 @@ export function toRenderableMessages(
   const fromPending: RenderableMessage[] = pending.map((p) => ({
     key: p.tempId,
     body: p.body,
+    ...(p.voice && {
+      voice: { messageId: null, durationSec: p.voice.durationSec, expired: false, localBlob: p.voice.blob },
+    }),
     createdAt: p.createdAt,
     senderRole: viewerRole,
     isOwn: true,

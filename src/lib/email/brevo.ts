@@ -7,7 +7,7 @@ import "server-only";
 const ENDPOINT = "https://api.brevo.com/v3/smtp/email";
 
 export type BrevoConfig = { apiKey: string; sender: { email: string; name: string } };
-export type BrevoMessage = { to: string; subject: string; html: string };
+export type BrevoMessage = { to: string; subject: string; html: string; headers?: Record<string, string> };
 
 /** Null when the API key or the sender address is missing. The sender must be
  * one verified in Brevo (Senders, domains, IPs). */
@@ -18,7 +18,17 @@ export function brevoConfig(): BrevoConfig | null {
   return { apiKey, sender: { email, name: process.env.BREVO_SENDER_NAME ?? "Coachly Fit" } };
 }
 
-type PostResult = { ok: true } | { ok: false; rejected: boolean; message: string };
+/** The sender for outreach to leads (people with no account): a personal
+ * address, kept apart from the one coach emails come from. Null when the API
+ * key or BREVO_OUTREACH_SENDER_EMAIL is missing. */
+export function brevoOutreachConfig(): BrevoConfig | null {
+  const apiKey = process.env.BREVO_API_KEY;
+  const email = process.env.BREVO_OUTREACH_SENDER_EMAIL;
+  if (!apiKey || !email) return null;
+  return { apiKey, sender: { email, name: process.env.BREVO_OUTREACH_SENDER_NAME ?? "Coachly Fit" } };
+}
+
+type PostResult = { ok: true; messageId: string | null } | { ok: false; rejected: boolean; message: string };
 
 /** `rejected` means Brevo answered with a 4xx: the request was refused and
  * nothing was sent. A network error or 5xx leaves that unknown. */
@@ -29,7 +39,10 @@ async function post(config: BrevoConfig, payload: Record<string, unknown>): Prom
       headers: { "api-key": config.apiKey, "content-type": "application/json", accept: "application/json" },
       body: JSON.stringify({ sender: config.sender, ...payload }),
     });
-    if (response.ok) return { ok: true };
+    if (response.ok) {
+      const accepted = (await response.json().catch(() => null)) as { messageId?: string } | null;
+      return { ok: true, messageId: accepted?.messageId ?? null };
+    }
     const detail = (await response.json().catch(() => null)) as { message?: string } | null;
     return {
       ok: false,
@@ -41,14 +54,25 @@ async function post(config: BrevoConfig, payload: Record<string, unknown>): Prom
   }
 }
 
-/** Sends one email. Returns the error message, or null when Brevo accepted it. */
-export async function sendBrevoEmail(config: BrevoConfig, message: BrevoMessage): Promise<string | null> {
+/** Sends one email and reports Brevo's message id, for sends that are logged
+ * one by one. */
+export async function sendBrevoMessage(
+  config: BrevoConfig,
+  message: BrevoMessage
+): Promise<{ messageId: string | null; error?: never } | { error: string }> {
   const result = await post(config, {
     to: [{ email: message.to }],
     subject: message.subject,
     htmlContent: message.html,
+    ...(message.headers ? { headers: message.headers } : {}),
   });
-  return result.ok ? null : result.message;
+  return result.ok ? { messageId: result.messageId } : { error: result.message };
+}
+
+/** Sends one email. Returns the error message, or null when Brevo accepted it. */
+export async function sendBrevoEmail(config: BrevoConfig, message: BrevoMessage): Promise<string | null> {
+  const result = await sendBrevoMessage(config, message);
+  return result.error ?? null;
 }
 
 /** Sends several emails in one call. Each one is its own message version with

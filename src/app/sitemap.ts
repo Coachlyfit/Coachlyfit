@@ -1,19 +1,29 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
+import { LEGAL_SLUGS, LEGAL_VERSION } from "@/content/legal/constants";
+import { SITE_URL } from "@/lib/seo";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-const publicPages = ["", "/login", "/signup", "/forgot-password"];
-
+// Indexable pages only. Auth pages are noindex (see (auth)/layout.tsx) and
+// "/" redirects to the default locale, so neither belongs here.
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
+  const languages = (path: string) =>
+    Object.fromEntries(routing.locales.map((l) => [l, `${SITE_URL}/${l}${path}`]));
 
-  return routing.locales.flatMap((locale) =>
-    publicPages.map((page) => ({
-      url: `${siteUrl}/${locale}${page}`,
+  return routing.locales.flatMap((locale) => [
+    {
+      url: `${SITE_URL}/${locale}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
-      priority: page === "" ? 1 : 0.7,
-    }))
-  );
+      priority: 1,
+      alternates: { languages: languages("") },
+    },
+    ...LEGAL_SLUGS.map((slug) => ({
+      url: `${SITE_URL}/${locale}/legal/${slug}`,
+      lastModified: new Date(LEGAL_VERSION),
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+      alternates: { languages: languages(`/legal/${slug}`) },
+    })),
+  ]);
 }
