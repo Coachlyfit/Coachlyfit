@@ -5,11 +5,24 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { PresenceService } from "@/domain/presence/presence.service";
 import { MessagesService, type ThreadPage } from "./messages.service";
+import {
+  VOICE_NOTE_MAX_BYTES,
+  VOICE_NOTE_MAX_SECONDS,
+  VOICE_NOTE_MIN_SECONDS,
+  normalizeVoiceMime,
+  sniffVoiceMime,
+} from "./voice-notes";
 
 const sendSchema = z.object({
   clientId: z.string().uuid(),
   body: z.string().trim().min(1).max(2000),
   id: z.string().uuid().optional(),
+});
+
+const sendVoiceSchema = z.object({
+  clientId: z.string().uuid(),
+  id: z.string().uuid(),
+  durationSec: z.coerce.number().int().min(VOICE_NOTE_MIN_SECONDS).max(VOICE_NOTE_MAX_SECONDS),
 });
 
 const broadcastSchema = z.object({
@@ -91,6 +104,63 @@ export async function sendMessageAction(
     });
   } catch {
     return { error: "send_failed" };
+  }
+}
+
+/** FormData rather than plain arguments because it carries the recording.
+ * Everything about the file is checked here again: the recorder's own limits
+ * are a convenience, not a guarantee. */
+export async function sendVoiceMessageAction(formData: FormData): Promise<{ error: string } | void> {
+  const file = formData.get("file");
+  const parsed = sendVoiceSchema.safeParse({
+    clientId: formData.get("clientId"),
+    id: formData.get("id"),
+    durationSec: formData.get("durationSec"),
+  });
+  if (!parsed.success || !(file instanceof Blob)) return { error: "invalid_input" };
+  if (file.size < 1 || file.size > VOICE_NOTE_MAX_BYTES) return { error: "too_large" };
+
+  // The declared type has to be one we accept, and the bytes have to be it.
+  const mime = normalizeVoiceMime(file.type);
+  const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  if (!mime || sniffVoiceMime(head) !== mime) return { error: "unsupported_format" };
+
+  const supabase = await createClient();
+  const ctx = await callerContext(supabase, parsed.data.clientId);
+  if (!ctx) return { error: "not_authenticated" };
+
+  const { data: relationship } = await supabase
+    .from("coaching_relationships")
+    .select("id")
+    .eq("client_id", ctx.clientId)
+    .eq("coach_id", ctx.coachId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (!relationship) return { error: "send_failed" };
+
+  try {
+    await new MessagesService(supabase).sendVoice(ctx.coachId, ctx.clientId, relationship.id, {
+      id: parsed.data.id,
+      sender_role: ctx.role,
+      file,
+      mime,
+      durationSec: parsed.data.durationSec,
+    });
+  } catch {
+    return { error: "send_failed" };
+  }
+}
+
+/** Signed on demand (when the listener presses play), never embedded in the
+ * thread: the URL is short-lived and only for someone RLS lets read the note. */
+export async function getVoiceNoteUrlAction(messageId: string): Promise<{ url: string } | { error: "unavailable" }> {
+  if (!z.string().uuid().safeParse(messageId).success) return { error: "unavailable" };
+  const supabase = await createClient();
+  try {
+    const url = await new MessagesService(supabase).signVoiceUrl(messageId);
+    return url ? { url } : { error: "unavailable" };
+  } catch {
+    return { error: "unavailable" };
   }
 }
 

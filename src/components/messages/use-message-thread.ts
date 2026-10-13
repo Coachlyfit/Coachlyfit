@@ -3,8 +3,13 @@ import { useInfiniteQuery, useQueryClient, type InfiniteData } from "@tanstack/r
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ThreadPage } from "@/domain/messages/messages.service";
-import { listThreadPageAction, markThreadReadAction, sendMessageAction } from "@/domain/messages/messages-actions";
-import { toRenderableMessages, type PendingMessage } from "@/lib/messages/group-messages";
+import {
+  listThreadPageAction,
+  markThreadReadAction,
+  sendMessageAction,
+  sendVoiceMessageAction,
+} from "@/domain/messages/messages-actions";
+import { toRenderableMessages, type PendingMessage, type VoiceRecording } from "@/lib/messages/group-messages";
 import { INBOX_QUERY_KEY } from "./use-inbox-threads";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
@@ -124,10 +129,19 @@ export function useMessageThread(clientId: string, viewerRole: ViewerRole) {
   }, [clientId, queryClient, queryKey]);
 
   const deliver = useCallback(
-    async (id: string, body: string) => {
+    async (id: string, body: string, voice?: VoiceRecording) => {
       let failed = false;
       try {
-        failed = !!(await sendMessageAction(clientId, body, id))?.error;
+        if (voice) {
+          const form = new FormData();
+          form.set("clientId", clientId);
+          form.set("id", id);
+          form.set("durationSec", String(voice.durationSec));
+          form.set("file", voice.blob);
+          failed = !!(await sendVoiceMessageAction(form))?.error;
+        } else {
+          failed = !!(await sendMessageAction(clientId, body, id))?.error;
+        }
       } catch {
         // Offline / dropped request: the action never reached the server.
         failed = true;
@@ -146,6 +160,17 @@ export function useMessageThread(clientId: string, viewerRole: ViewerRole) {
     [deliver],
   );
 
+  // The recording stays in memory with its pending entry, so a failed send
+  // can be retried without recording again.
+  const sendVoice = useCallback(
+    (voice: VoiceRecording) => {
+      const id = crypto.randomUUID();
+      setPending((p) => [...p, { tempId: id, body: "", createdAt: new Date().toISOString(), status: "sending", voice }]);
+      void deliver(id, "", voice);
+    },
+    [deliver],
+  );
+
   // Re-sends under the same id, so a first attempt that did reach the
   // database (only its response was lost) can't produce a second message.
   const retry = useCallback(
@@ -153,7 +178,7 @@ export function useMessageThread(clientId: string, viewerRole: ViewerRole) {
       const target = visiblePending.find((p) => p.tempId === tempId);
       if (!target) return;
       setPending((p) => p.map((m) => (m.tempId === tempId ? { ...m, status: "sending" } : m)));
-      void deliver(tempId, target.body);
+      void deliver(tempId, target.body, target.voice);
     },
     [deliver, visiblePending],
   );
@@ -164,6 +189,7 @@ export function useMessageThread(clientId: string, viewerRole: ViewerRole) {
     renderable,
     isLoading,
     send,
+    sendVoice,
     retry,
     hasOlder: hasNextPage,
     isLoadingOlder: isFetchingNextPage,

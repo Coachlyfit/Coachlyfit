@@ -1,13 +1,18 @@
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Send } from "lucide-react";
+import { Mic, Send } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import type { VoiceRecording } from "@/lib/messages/group-messages";
+import { useVoiceRecorder } from "./use-voice-recorder";
+import { VoiceRecorderBar } from "./voice-recorder-bar";
 
 const MAX_TEXTAREA_HEIGHT_PX = 144; // ~6 lines
 
 export function MessageComposer({
   quickReplies,
   onSend,
+  onSendVoice,
   onTyping,
   onStopTyping,
 }: {
@@ -15,12 +20,17 @@ export function MessageComposer({
    * draft (it is never sent without the sender seeing it first). */
   quickReplies?: string[];
   onSend: (body: string) => void;
+  onSendVoice: (recording: VoiceRecording) => void;
   onTyping: () => void;
   onStopTyping: () => void;
 }) {
   const t = useTranslations("inbox");
   const [draft, setDraft] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recorder = useVoiceRecorder((notice) => {
+    if (notice === "limitReached") toast.message(t("voice.limitReached"));
+    else toast.error(notice === "tooLarge" ? t("errors.too_large") : t(`voice.${notice}`));
+  });
 
   function resize(el: HTMLTextAreaElement) {
     el.style.height = "auto";
@@ -44,6 +54,12 @@ export function MessageComposer({
     el.value = text;
     resize(el);
     el.focus();
+  }
+
+  function handleSendVoice() {
+    if (!recorder.recording) return;
+    onSendVoice(recorder.recording);
+    recorder.cancel();
   }
 
   function handleSend() {
@@ -74,6 +90,15 @@ export function MessageComposer({
           ))}
         </div>
       )}
+      {recorder.state !== "idle" ? (
+        <VoiceRecorderBar
+          recording={recorder.recording}
+          elapsedSec={recorder.elapsedSec}
+          onStop={recorder.stop}
+          onCancel={recorder.cancel}
+          onSend={handleSendVoice}
+        />
+      ) : (
       <div className="flex items-end gap-2">
         <textarea
           ref={textareaRef}
@@ -93,16 +118,29 @@ export function MessageComposer({
           // page when the field takes focus.
           className="max-h-36 min-h-11 flex-1 resize-none rounded-xl border border-border bg-card px-3.5 py-2.5 text-base leading-relaxed outline-none focus-visible:ring-1 focus-visible:ring-ring lg:text-sm"
         />
-        <Button
-          size="icon"
-          className="size-11 shrink-0 rounded-xl"
-          disabled={!draft.trim()}
-          onClick={handleSend}
-          aria-label={t("send")}
-        >
-          <Send className="size-4 rtl:-scale-x-100" aria-hidden="true" />
-        </Button>
+        {/* An empty draft has nothing to send, so that slot offers the mic. */}
+        {!draft.trim() && recorder.supported ? (
+          <Button
+            size="icon"
+            className="size-11 shrink-0 rounded-xl"
+            onClick={recorder.start}
+            aria-label={t("voice.record")}
+          >
+            <Mic className="size-4" aria-hidden="true" />
+          </Button>
+        ) : (
+          <Button
+            size="icon"
+            className="size-11 shrink-0 rounded-xl"
+            disabled={!draft.trim()}
+            onClick={handleSend}
+            aria-label={t("send")}
+          >
+            <Send className="size-4 rtl:-scale-x-100" aria-hidden="true" />
+          </Button>
+        )}
       </div>
+      )}
     </div>
   );
 }

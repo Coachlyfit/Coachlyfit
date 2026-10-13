@@ -122,6 +122,7 @@ function ConversationRow({
 }) {
   const t = useTranslations("inbox");
   const unread = thread.unread_count > 0;
+  const preview = thread.last_is_voice ? t("voice.preview") : thread.last_body;
 
   return (
     // A link, not a button: opening a conversation is a navigation (the
@@ -173,11 +174,11 @@ function ConversationRow({
         </span>
         <span className="flex items-center justify-between gap-2">
           <span className={cn("truncate text-sm", unread ? "font-semibold" : "text-muted-foreground")}>
-            {!thread.last_body
+            {!preview
               ? t("noMessages")
               : thread.last_sender_role === "coach"
-                ? `${t("you")} ${thread.last_body}`
-                : thread.last_body}
+                ? `${t("you")} ${preview}`
+                : preview}
           </span>
           {unread && (
             <span

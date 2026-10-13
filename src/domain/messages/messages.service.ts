@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { subscriptionDisplayStatus, type ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
+import { VOICE_MIME_EXT, VOICE_NOTES_BUCKET, type VoiceMime } from "./voice-notes";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 // last_read_at was added to the view in 20261008000002. Optional so this
@@ -20,6 +21,8 @@ export type InboxThread = {
   display_name: string;
   status: InboxThreadRow["status"];
   last_body: string | null;
+  /** A voice note has an empty body; the list shows a label instead. */
+  last_is_voice: boolean;
   last_sender_role: "coach" | "client" | null;
   last_message_at: string | null;
   unread_count: number;
@@ -35,12 +38,23 @@ export type SendMessageInput = {
   body: string;
 };
 
+export type SendVoiceInput = {
+  /** Required, unlike a text message's: the file is stored under it. */
+  id: string;
+  sender_role: "coach" | "client";
+  file: Blob;
+  mime: VoiceMime;
+  durationSec: number;
+};
+
 export type ThreadPage = { messages: Message[]; hasMore: boolean };
 
 export type BroadcastAudience = "all" | "subscribed";
 
 export const THREAD_PAGE_SIZE = 30;
 const UNIQUE_VIOLATION = "23505";
+const STORAGE_ALREADY_EXISTS = "409";
+const VOICE_URL_TTL_SECONDS = 300;
 
 /** One thread per client — coach and client both read/write their own
  * thread (RLS: coach_rw + client_rw, both full-CRUD, unlike the checkins
@@ -64,6 +78,7 @@ export class MessagesService {
       display_name: row.display_name as string,
       status: row.status,
       last_body: row.last_body,
+      last_is_voice: row.last_kind === "voice",
       last_sender_role: row.last_sender_role as "coach" | "client" | null,
       last_message_at: row.last_message_at,
       unread_count: row.unread_count ?? 0,
@@ -96,6 +111,48 @@ export class MessagesService {
     // A retry of a send whose first attempt did land (the response was lost,
     // not the insert) hits the primary key -- that message is already sent.
     if (error && !(input.id && error.code === UNIQUE_VIOLATION)) throw error;
+  }
+
+  /** File first, row second, so the other side never receives a voice note
+   * whose file isn't there yet. Both steps are safe to repeat under the same
+   * id: a retry finds the file (or the row) already in place and carries on.
+   * A file whose row never lands is removed by the voice-notes-cleanup cron. */
+  async sendVoice(coachId: string, clientId: string, relationshipId: string, input: SendVoiceInput): Promise<void> {
+    const path = `${relationshipId}/${input.id}.${VOICE_MIME_EXT[input.mime]}`;
+    const { error: uploadError } = await this.db.storage
+      .from(VOICE_NOTES_BUCKET)
+      .upload(path, input.file, { contentType: input.mime, upsert: false });
+    if (uploadError && (uploadError as { statusCode?: string }).statusCode !== STORAGE_ALREADY_EXISTS) throw uploadError;
+
+    const { error } = await this.db.from("messages").insert({
+      id: input.id,
+      coach_id: coachId,
+      client_id: clientId,
+      sender_role: input.sender_role,
+      kind: "voice",
+      body: "",
+      audio_path: path,
+      audio_mime: input.mime,
+      audio_duration_sec: input.durationSec,
+      audio_size_bytes: input.file.size,
+    });
+    if (error && error.code !== UNIQUE_VIOLATION) throw error;
+  }
+
+  /** A short-lived playback URL, or null when the note is gone (expired, or
+   * not the caller's to read). Both lookups run as the caller: RLS on
+   * messages and on the bucket decide, not this method. */
+  async signVoiceUrl(messageId: string, expiresInSeconds = VOICE_URL_TTL_SECONDS): Promise<string | null> {
+    const { data: message, error } = await this.db
+      .from("messages")
+      .select("audio_path, audio_deleted_at")
+      .eq("id", messageId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!message?.audio_path || message.audio_deleted_at) return null;
+
+    const { data } = await this.db.storage.from(VOICE_NOTES_BUCKET).createSignedUrl(message.audio_path, expiresInSeconds);
+    return data?.signedUrl ?? null;
   }
 
   /** Who a broadcast can reach. Only actively coached clients can be

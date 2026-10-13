@@ -59,6 +59,102 @@ function fakeSupabase(rows: unknown[] = [], insertError: { code: string } | null
   return { db: db as never, inserts, updates, threadQueries };
 }
 
+// Voice notes touch storage as well as the table, which fakeSupabase above
+// doesn't model.
+function fakeVoiceSupabase(opts: {
+  uploadError?: { statusCode: string } | null;
+  insertError?: { code: string } | null;
+  message?: { audio_path: string | null; audio_deleted_at: string | null } | null;
+} = {}) {
+  const calls: { op: string; args: unknown[] }[] = [];
+  const db = {
+    from: () => ({
+      insert: async (payload: unknown) => {
+        calls.push({ op: "insert", args: [payload] });
+        return { error: opts.insertError ?? null };
+      },
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: opts.message ?? null, error: null }) }),
+      }),
+    }),
+    storage: {
+      from: (bucket: string) => ({
+        upload: async (path: string, _file: Blob, options: unknown) => {
+          calls.push({ op: "upload", args: [bucket, path, options] });
+          return { error: opts.uploadError ?? null };
+        },
+        createSignedUrl: async (path: string, expiresIn: number) => {
+          calls.push({ op: "sign", args: [bucket, path, expiresIn] });
+          return { data: { signedUrl: `signed:${path}` }, error: null };
+        },
+      }),
+    },
+  };
+  return { db: db as never, calls };
+}
+
+const voiceInput = {
+  id: "m-1",
+  sender_role: "client" as const,
+  file: new Blob(["12345"]),
+  mime: "audio/webm" as const,
+  durationSec: 7,
+};
+
+describe("MessagesService voice notes", () => {
+  it("sendVoice uploads under relationship/message id, then inserts the row that points at it", async () => {
+    const { db, calls } = fakeVoiceSupabase();
+    await new MessagesService(db).sendVoice("coach-1", "client-1", "rel-1", voiceInput);
+
+    expect(calls).toEqual([
+      { op: "upload", args: ["voice-notes", "rel-1/m-1.webm", { contentType: "audio/webm", upsert: false }] },
+      {
+        op: "insert",
+        args: [
+          {
+            id: "m-1",
+            coach_id: "coach-1",
+            client_id: "client-1",
+            sender_role: "client",
+            kind: "voice",
+            body: "",
+            audio_path: "rel-1/m-1.webm",
+            audio_mime: "audio/webm",
+            audio_duration_sec: 7,
+            audio_size_bytes: 5,
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("sendVoice treats a retry as done: file already there, row already there", async () => {
+    const { db, calls } = fakeVoiceSupabase({ uploadError: { statusCode: "409" }, insertError: { code: "23505" } });
+    await expect(new MessagesService(db).sendVoice("coach-1", "client-1", "rel-1", voiceInput)).resolves.toBeUndefined();
+    expect(calls.map((c) => c.op)).toEqual(["upload", "insert"]);
+  });
+
+  it("sendVoice never inserts a row when the upload was refused", async () => {
+    const { db, calls } = fakeVoiceSupabase({ uploadError: { statusCode: "403" } });
+    await expect(new MessagesService(db).sendVoice("coach-1", "client-1", "rel-1", voiceInput)).rejects.toEqual({
+      statusCode: "403",
+    });
+    expect(calls.map((c) => c.op)).toEqual(["upload"]);
+  });
+
+  it("signVoiceUrl signs a live note briefly, and nothing for an expired or unreadable one", async () => {
+    const live = fakeVoiceSupabase({ message: { audio_path: "rel-1/m-1.webm", audio_deleted_at: null } });
+    expect(await new MessagesService(live.db).signVoiceUrl("m-1")).toBe("signed:rel-1/m-1.webm");
+    expect(live.calls).toEqual([{ op: "sign", args: ["voice-notes", "rel-1/m-1.webm", 300] }]);
+
+    const expired = fakeVoiceSupabase({ message: { audio_path: "rel-1/m-1.webm", audio_deleted_at: "2026-10-01T00:00:00Z" } });
+    expect(await new MessagesService(expired.db).signVoiceUrl("m-1")).toBeNull();
+    expect(expired.calls).toEqual([]);
+
+    expect(await new MessagesService(fakeVoiceSupabase().db).signVoiceUrl("m-1")).toBeNull();
+  });
+});
+
 describe("MessagesService", () => {
   it("send inserts with the caller-resolved coach_id/client_id, never a caller-supplied one", async () => {
     const { db, inserts } = fakeSupabase();

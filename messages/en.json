@@ -1157,6 +1157,22 @@
     "placeholder": "Type a message…",
     "send": "Send",
     "retry": "Retry",
+    "voice": {
+      "record": "Record voice note",
+      "stop": "Stop recording",
+      "cancel": "Discard recording",
+      "send": "Send voice note",
+      "play": "Play voice note",
+      "pause": "Pause",
+      "seek": "Playback position",
+      "recording": "Recording…",
+      "limitReached": "Reached the 2-minute limit.",
+      "tooShort": "That was too short to send.",
+      "permissionDenied": "Microphone access is blocked. Allow it in your browser settings.",
+      "expired": "Voice note expired",
+      "loadFailed": "Couldn't load the voice note. Tap play to retry.",
+      "preview": "Voice note"
+    },
     "typing": "Typing…",
     "online": "Online now",
     "offline": "Offline",
@@ -1170,7 +1186,8 @@
     "errors": {
       "invalid_input": "Please check the message and try again.",
       "no_recipients": "You don't have any active clients yet.",
-      "send_failed": "Message failed to send."
+      "send_failed": "Message failed to send.",
+      "too_large": "The voice note is too large."
     },
     "search": "Search by client name or message",
     "filter": {

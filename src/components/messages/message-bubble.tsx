@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import type { RenderableMessage } from "@/lib/messages/group-messages";
 import { cn } from "@/lib/utils";
+import { VoicePlayer } from "./voice-player";
 
 export function MessageBubble({
   message,
@@ -30,7 +31,11 @@ export function MessageBubble({
             : "rounded-es-sm bg-card ring-1 ring-foreground/10 ring-inset",
         )}
       >
-        <p dir="auto" className="text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">{message.body}</p>
+        {message.voice ? (
+          <VoicePlayer voice={message.voice} onDark={message.isOwn} />
+        ) : (
+          <p dir="auto" className="text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">{message.body}</p>
+        )}
         <div
           className={cn(
             "flex items-center gap-1 self-end text-[11px]",
