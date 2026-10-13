@@ -18,11 +18,14 @@ export function EmailPreview({
   body,
   direction,
   appUrl,
+  outreach = false,
 }: {
   subject: string;
   body: string;
   direction: EmailDirection;
   appUrl: string;
+  /** Preview an email to leads: shows the outreach footer. */
+  outreach?: boolean;
 }) {
   const t = useTranslations("admin.emails.preview");
   const [width, setWidth] = useState<Width>("desktop");
@@ -33,6 +36,8 @@ export function EmailPreview({
     direction,
     coachName: t("sampleName"),
     appUrl,
+    // The real link carries the lead's token; the iframe is sandboxed anyway.
+    ...(outreach ? { unsubscribeUrl: "#" } : {}),
   });
   // Typing re-creates the iframe document; deferring keeps the textarea responsive.
   const html = useDeferredValue(rendered.html);

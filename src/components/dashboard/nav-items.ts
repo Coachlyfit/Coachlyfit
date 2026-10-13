@@ -14,13 +14,14 @@ import {
   Mail,
   Globe,
   ListTodo,
+  UserPlus,
   type LucideIcon,
 } from "lucide-react";
 import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "site" | "tasks";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge. */
   badge?: "unreadMessages";
@@ -67,6 +68,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin/library", labelKey: "library", icon: Dumbbell },
   { href: "/admin/feedback", labelKey: "feedback", icon: MessageSquareText },
   { href: "/admin/emails", labelKey: "emails", icon: Mail },
+  { href: "/admin/leads", labelKey: "leads", icon: UserPlus },
   { href: "/admin/site", labelKey: "site", icon: Globe },
   { href: "/admin/settings", labelKey: "settings", icon: Settings },
 ];

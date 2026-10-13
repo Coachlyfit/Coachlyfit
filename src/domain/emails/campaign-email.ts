@@ -23,6 +23,15 @@ const FOOTER: Record<EmailDirection, string> = {
   ltr: "Sent by the Coachly Fit team.",
 };
 
+/** Footer of an outreach email to a lead: why they got it and how to stop. */
+const OUTREACH_FOOTER: Record<EmailDirection, { text: string; link: string }> = {
+  rtl: { text: "تصلك هذه الرسالة لأنني أعرفك أو أعجبني عملك كمدرب. إذا لا ترغب في رسائل أخرى،", link: "إلغاء الاشتراك" },
+  ltr: { text: "You're receiving this because I know you or admire your work as a coach. Don't want more emails?", link: "Unsubscribe" },
+};
+
+/** Stands in for {{coach_name}} when a lead has no name on file. */
+export const NEUTRAL_NAME: Record<EmailDirection, string> = { rtl: "كوتش", ltr: "Coach" };
+
 /** Inline markdown on text that is ALREADY escaped: links, bold, italic.
  * A link whose URL is not http(s) or mailto keeps its text and loses the URL. */
 function inline(escaped: string): string {
@@ -91,11 +100,18 @@ export function renderCampaignEmail(opts: {
   /** Origin for the logo URL. Empty in the in-app preview, where a relative
    * URL resolves against the page. */
   appUrl: string;
+  /** Set for outreach to a lead: the footer becomes the outreach one, with
+   * this link. Left out for coach emails. */
+  unsubscribeUrl?: string;
 }): { subject: string; html: string } {
   const lang = opts.direction === "rtl" ? "ar" : "en";
   const subject = fillVariables(opts.subject, opts.coachName);
   const body = fillVariables(renderMarkdown(opts.body), escapeHtml(opts.coachName));
   const logoUrl = `${opts.appUrl.replace(/\/$/, "")}/brand/app-icon-192.png`;
+  const outreach = OUTREACH_FOOTER[opts.direction];
+  const footer = opts.unsubscribeUrl
+    ? `${outreach.text} <a href="${escapeHtml(opts.unsubscribeUrl)}" style="color:#64748b;text-decoration:underline;">${outreach.link}</a>.`
+    : FOOTER[opts.direction];
 
   const html = `<!doctype html>
 <html dir="${opts.direction}" lang="${lang}">
@@ -126,7 +142,7 @@ ${body}
               </td>
             </tr>
             <tr>
-              <td style="padding:16px 24px;background:#f8fafc;font-family:${FONT_STACK};font-size:12px;color:#64748b;text-align:start;">${FOOTER[opts.direction]}</td>
+              <td style="padding:16px 24px;background:#f8fafc;font-family:${FONT_STACK};font-size:12px;color:#64748b;text-align:start;">${footer}</td>
             </tr>
           </table>
         </td>

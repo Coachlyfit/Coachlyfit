@@ -1999,6 +1999,110 @@ export type Database = {
           },
         ]
       }
+      lead_email_sends: {
+        Row: {
+          brevo_message_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          lead_id: string
+          sent_by: string | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          brevo_message_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id: string
+          sent_by?: string | null
+          status: string
+          subject: string
+        }
+        Update: {
+          brevo_message_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string
+          sent_by?: string | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_email_sends_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_email_sends_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          full_name: string | null
+          id: string
+          last_contacted_at: string | null
+          locale: string
+          notes: string | null
+          source: string | null
+          status: string
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          locale?: string
+          notes?: string | null
+          source?: string | null
+          status?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          locale?: string
+          notes?: string | null
+          source?: string | null
+          status?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_page_versions: {
         Row: {
           id: string
@@ -4538,6 +4642,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      lead_unsubscribe: {
+        Args: { p_confirm?: boolean; p_token: string }
+        Returns: string
       }
       library_exercise_facets: {
         Args: { p_equipment?: string; p_query?: string; p_source?: string }
