@@ -26,7 +26,15 @@ type ClientResult = { id: string; display_name: string };
 // `items` mirrors Sidebar's `items` prop (defaults to NAV_ITEMS, AdminSidebar
 // passes ADMIN_NAV_ITEMS) -- Topbar is shared by (coach) and (admin), so the
 // palette's nav list has to be swappable the same way the sidebar's is.
-export function CommandPalette({ items = NAV_ITEMS, features }: { items?: NavItem[]; features?: NavFeatures }) {
+export function CommandPalette({
+  items = NAV_ITEMS,
+  features,
+  isOwner,
+}: {
+  items?: NavItem[];
+  features?: NavFeatures;
+  isOwner?: boolean;
+}) {
   const t = useTranslations("palette");
   const tNav = useTranslations("nav");
   const router = useRouter();
@@ -96,7 +104,7 @@ export function CommandPalette({ items = NAV_ITEMS, features }: { items?: NavIte
           <CommandList>
             <CommandEmpty>{t("empty")}</CommandEmpty>
             <CommandGroup heading={t("navigation")}>
-              {visibleNavItems(items, features).map((item) => {
+              {visibleNavItems(items, features, isOwner).map((item) => {
                 const Icon = item.icon;
                 return (
                   <CommandItem

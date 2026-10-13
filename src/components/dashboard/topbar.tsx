@@ -32,6 +32,7 @@ export function Topbar({
   fullName,
   navItems,
   navFeatures,
+  isOwner,
   brandLogo,
 }: {
   locale: string;
@@ -44,6 +45,8 @@ export function Topbar({
   navItems?: NavItem[];
   /** The tenant's plan flags, forwarded to CommandPalette with navItems. */
   navFeatures?: NavFeatures;
+  /** False for a team member; forwarded to CommandPalette the same way. */
+  isOwner?: boolean;
 }) {
   const tCommon = useTranslations("common");
   const title = usePageTitleStore((s) => s.title);
@@ -75,7 +78,7 @@ export function Topbar({
         {fullName}
       </span>
       <div className="flex items-center gap-1 ms-auto sm:gap-2 md:ms-0">
-        <CommandPalette items={navItems} features={navFeatures} />
+        <CommandPalette items={navItems} features={navFeatures} isOwner={isOwner} />
         <NotificationBell locale={locale as AppLocale} />
         <InstallAppButton />
         <LocaleSwitcher className="hidden sm:inline-flex" />

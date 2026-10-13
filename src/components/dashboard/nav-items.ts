@@ -15,26 +15,33 @@ import {
   Globe,
   ListTodo,
   UserPlus,
+  LifeBuoy,
   type LucideIcon,
 } from "lucide-react";
 import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support";
   icon: LucideIcon;
-  /** Live count shown next to the label -- see UnreadMessagesBadge. */
-  badge?: "unreadMessages";
+  /** Live count shown next to the label -- see UnreadMessagesBadge and
+   * SupportUnreadBadge. */
+  badge?: "unreadMessages" | "supportUnread";
   /** Only shown when the tenant's plan includes this feature. */
   feature?: PlanFeature;
+  /** Only shown to the tenant owner, not to team members. */
+  ownerOnly?: boolean;
 };
 
 export type NavFeatures = Partial<Record<PlanFeature, boolean>>;
 
-/** Drops the items the plan doesn't include. Hiding only: the page behind a
- * gated item checks the plan itself, and the database refuses the data. */
-export function visibleNavItems(items: NavItem[], features?: NavFeatures): NavItem[] {
-  return items.filter((item) => !item.feature || features?.[item.feature] === true);
+/** Drops the items the plan doesn't include, and the owner-only ones for a
+ * team member. Hiding only: the page behind a gated item checks for itself,
+ * and the database refuses the data. */
+export function visibleNavItems(items: NavItem[], features?: NavFeatures, isOwner = true): NavItem[] {
+  return items.filter(
+    (item) => (!item.feature || features?.[item.feature] === true) && (!item.ownerOnly || isOwner),
+  );
 }
 
 // No standalone "progress" page: a coach views a client's check-ins and
@@ -56,6 +63,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/finance", labelKey: "finance", icon: Wallet },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/messages", labelKey: "inbox", icon: MessageCircle, badge: "unreadMessages" },
+  { href: "/support", labelKey: "support", icon: LifeBuoy, badge: "supportUnread", ownerOnly: true },
 ];
 
 // Separate list, not an append to NAV_ITEMS: an admin is not a coach with
@@ -64,6 +72,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin", labelKey: "admin", icon: LayoutDashboard },
   { href: "/admin/requests", labelKey: "requests", icon: Inbox },
+  { href: "/admin/support", labelKey: "support", icon: LifeBuoy, badge: "supportUnread" },
   { href: "/admin/online", labelKey: "online", icon: Radio },
   { href: "/admin/library", labelKey: "library", icon: Dumbbell },
   { href: "/admin/feedback", labelKey: "feedback", icon: MessageSquareText },

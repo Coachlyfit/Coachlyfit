@@ -24,7 +24,12 @@ export type NotificationKind =
   | "subscription_past_due"
   | "subscription_canceled"
   | "task_assigned"
-  | "task_completed";
+  | "task_completed"
+  | "support_ticket_created"
+  | "support_coach_reply"
+  | "support_ticket_reopened"
+  | "support_admin_reply"
+  | "support_status_changed";
 
 export type EmailLocale = "ar" | "en";
 
@@ -50,10 +55,18 @@ function isTaskNotice(kind: string): boolean {
   return kind === "task_assigned" || kind === "task_completed";
 }
 
+/** Support ticket notices (notify_on_ticket_message / _status). These three
+ * go to admins; the other two go to the ticket's coach. */
+const ADMIN_SUPPORT_KINDS = new Set(["support_ticket_created", "support_coach_reply", "support_ticket_reopened"]);
+function isSupportNotice(kind: string): boolean {
+  return kind.startsWith("support_");
+}
+
 /** The name interpolated into the copy: the bilingual name_ar/name_en pair
  * for promoted content, the client's display name for an off-plan report,
  * the date the trial/period ends for a subscription notice, the task's
- * title for a task notice, nothing otherwise. */
+ * title for a task notice, the ticket's subject for a support notice,
+ * nothing otherwise. */
 export function notificationName(kind: string, payload: Record<string, unknown>, locale: EmailLocale): string | null {
   if (notificationNeedsPickedName(kind)) return pickLocale(payload, locale);
   if (kind === "off_plan_reported") return (payload.client_name as string | null) ?? null;
@@ -61,6 +74,7 @@ export function notificationName(kind: string, payload: Record<string, unknown>,
     return formatDate(payload.period_end, locale);
   }
   if (isTaskNotice(kind)) return (payload.title as string | null) ?? null;
+  if (isSupportNotice(kind)) return (payload.subject as string | null) ?? null;
   return null;
 }
 
@@ -73,6 +87,10 @@ export function notificationUrl(kind: string, payload: Record<string, unknown>, 
   }
   if (isSubscriptionNotice(kind)) return `/${locale}/settings/subscription`;
   if (isTaskNotice(kind)) return `/${locale}/tasks`;
+  if (isSupportNotice(kind) && typeof payload.ticket_id === "string") {
+    const base = ADMIN_SUPPORT_KINDS.has(kind) ? "admin/support" : "support";
+    return `/${locale}/${base}/${payload.ticket_id}`;
+  }
   return "/";
 }
 
@@ -97,6 +115,11 @@ const COPY: Record<
       subscription_canceled: "Your Coachly Fit subscription was canceled",
       task_assigned: "A task was assigned to you",
       task_completed: "A task was completed",
+      support_ticket_created: "New support ticket",
+      support_coach_reply: "A coach replied on a support ticket",
+      support_ticket_reopened: "A support ticket was reopened",
+      support_admin_reply: "Support replied on your ticket",
+      support_status_changed: "Your support ticket was updated",
     },
     greeting: "Hi",
     footer: "You're receiving this because you have email notifications turned on. You can turn them off in Settings.",
@@ -119,6 +142,11 @@ const COPY: Record<
       subscription_canceled: "تم إلغاء اشتراكك في Coachly Fit",
       task_assigned: "تم تعيين مهمة لك",
       task_completed: "تم إنجاز مهمة",
+      support_ticket_created: "تذكرة دعم جديدة",
+      support_coach_reply: "رد كوتش على تذكرة دعم",
+      support_ticket_reopened: "تمت إعادة فتح تذكرة دعم",
+      support_admin_reply: "فريق الدعم رد على تذكرتك",
+      support_status_changed: "تم تحديث تذكرة الدعم الخاصة بك",
     },
     greeting: "مرحبًا",
     footer: "تصلك هذه الرسالة لأن إشعارات البريد الإلكتروني مفعّلة لديك. يمكنك إيقافها من الإعدادات.",
@@ -159,6 +187,16 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return `تم تعيين مهمة لك${name ? `: "${name}"` : ""}. افتح صفحة المهام لمعرفة التفاصيل.`;
       case "task_completed":
         return `أنجز أحد أعضاء فريقك مهمة${name ? `: "${name}"` : ""}.`;
+      case "support_ticket_created":
+        return `فتح أحد الكوتشات تذكرة دعم جديدة${name ? `: "${name}"` : ""}. افتح التطبيق للاطلاع عليها.`;
+      case "support_coach_reply":
+        return `رد أحد الكوتشات على تذكرة دعم${name ? `: "${name}"` : ""}. افتح التطبيق للاطلاع عليها.`;
+      case "support_ticket_reopened":
+        return `أعاد أحد الكوتشات فتح تذكرة دعم${name ? `: "${name}"` : ""}. افتح التطبيق للاطلاع عليها.`;
+      case "support_admin_reply":
+        return `رد فريق الدعم على تذكرتك${name ? `: "${name}"` : ""}. افتح التطبيق للاطلاع على الرد.`;
+      case "support_status_changed":
+        return `تغيّرت حالة تذكرتك${name ? `: "${name}"` : ""}. افتح التطبيق للاطلاع عليها.`;
     }
   }
   switch (kind) {
@@ -192,6 +230,16 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return `A task was assigned to you${name ? `: "${name}"` : ""}. Open Tasks for the details.`;
     case "task_completed":
       return `A team member completed a task${name ? `: "${name}"` : ""}.`;
+    case "support_ticket_created":
+      return `A coach opened a new support ticket${name ? `: "${name}"` : ""}. Open the app to read it.`;
+    case "support_coach_reply":
+      return `A coach replied on a support ticket${name ? `: "${name}"` : ""}. Open the app to read it.`;
+    case "support_ticket_reopened":
+      return `A coach reopened a support ticket${name ? `: "${name}"` : ""}. Open the app to read it.`;
+    case "support_admin_reply":
+      return `Support replied on your ticket${name ? `: "${name}"` : ""}. Open the app to read the reply.`;
+    case "support_status_changed":
+      return `The status of your ticket changed${name ? `: "${name}"` : ""}. Open the app to see it.`;
   }
 }
 

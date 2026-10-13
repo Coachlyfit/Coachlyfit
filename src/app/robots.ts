@@ -23,6 +23,7 @@ const PRIVATE_SEGMENTS = [
   "review",
   "settings",
   "tasks",
+  "support",
 ];
 
 export default function robots(): MetadataRoute.Robots {

@@ -79,7 +79,8 @@
     "tasks": "المهام",
     "emails": "البريد",
     "site": "الموقع",
-    "leads": "العملاء المحتملون"
+    "leads": "العملاء المحتملون",
+    "support": "الدعم"
   },
   "palette": {
     "navigation": "التنقل",
@@ -2913,6 +2914,28 @@
         "upload_failed": "تعذّر رفع الصورة.",
         "file_too_large": "الصورة أكبر من ٢ ميجابايت."
       }
+    },
+    "support": {
+      "title": "صندوق الدعم",
+      "searchPlaceholder": "ابحث بالموضوع أو اسم الكوتش",
+      "filterAll": "الكل",
+      "filterCategory": "التصنيف",
+      "allCategories": "كل التصنيفات",
+      "filterCoach": "الكوتش",
+      "allCoaches": "كل الكوتشات",
+      "coach": "الكوتش",
+      "unknownCoach": "كوتش غير معروف",
+      "empty": "لا توجد تذاكر بعد.",
+      "noResults": "لا توجد تذاكر مطابقة لهذه الفلاتر.",
+      "showAll": "عرض الكل",
+      "waitingOnCoach": "في انتظار الكوتش",
+      "statusLabel": "الحالة",
+      "statusUpdated": "تم تحديث الحالة.",
+      "internalNote": "ملاحظة داخلية",
+      "internalToggle": "ملاحظة داخلية (لن يراها الكوتش)",
+      "notePlaceholder": "اكتب ملاحظة للفريق…",
+      "addNote": "إضافة ملاحظة",
+      "noteAdded": "تمت إضافة الملاحظة."
     }
   },
   "notifications": {
@@ -2932,7 +2955,12 @@
     "subscription_canceled": "تم إلغاء اشتراكك. تقدر تطلب إعادة تفعيله.",
     "task_assigned": "مهمة جديدة متعيّنة ليك: {title}",
     "task_completed": "{name} خلّص: {title}",
-    "someone": "حد من الفريق"
+    "someone": "حد من الفريق",
+    "support_ticket_created": "تذكرة دعم جديدة من {name}: {subject}",
+    "support_coach_reply": "{name} رد على: {subject}",
+    "support_ticket_reopened": "{name} أعاد فتح: {subject}",
+    "support_admin_reply": "فريق الدعم رد على تذكرتك: {subject}",
+    "support_status_changed": "تذكرتك \"{subject}\" حالتها الآن: {status}"
   },
   "progress": {
     "title": "التقدّم",
@@ -4073,5 +4101,78 @@
     "onThisPage": "في هذه الصفحة",
     "contactTitle": "عندك سؤال عن هذه السياسة؟",
     "contactBody": "راسلنا على <link>{email}</link>"
+  },
+  "support": {
+    "title": "الدعم",
+    "subtitle": "تواصل مع فريق Coachly Fit وتابع طلباتك.",
+    "new": "تذكرة جديدة",
+    "emptyTitle": "لا توجد تذاكر بعد",
+    "empty": "عندك مشكلة أو سؤال؟ افتح تذكرة وسنرد عليك.",
+    "unread": "رد جديد",
+    "unreadCount": "{count, plural, one {تذكرة واحدة غير مقروءة} two {تذكرتان غير مقروءتين} few {# تذاكر غير مقروءة} other {# تذكرة غير مقروءة}}",
+    "back": "رجوع إلى التذاكر",
+    "you": "أنت",
+    "team": "فريق الدعم",
+    "contactSupport": "تواصل مع الدعم",
+    "table": {
+      "subject": "الموضوع",
+      "category": "التصنيف",
+      "status": "الحالة",
+      "updated": "آخر تحديث"
+    },
+    "category": {
+      "technical": "مشكلة تقنية",
+      "billing": "الفوترة",
+      "feature_request": "طلب ميزة",
+      "other": "أخرى"
+    },
+    "status": {
+      "open": "مفتوحة",
+      "in_progress": "قيد المعالجة",
+      "waiting_on_coach": "في انتظار ردك",
+      "closed": "مغلقة"
+    },
+    "form": {
+      "title": "تذكرة جديدة",
+      "subject": "الموضوع",
+      "subjectPlaceholder": "ملخص قصير للمشكلة",
+      "subjectInvalid": "اكتب موضوعًا من 3 إلى 150 حرفًا.",
+      "category": "التصنيف",
+      "description": "الوصف",
+      "descriptionPlaceholder": "ماذا حدث؟ وماذا كنت تتوقع؟",
+      "descriptionRequired": "اكتب وصف المشكلة.",
+      "attachments": "صور (اختياري)",
+      "attachmentsHint": "حتى {max} صور، {size} ميجابايت لكل صورة. JPG أو PNG أو WebP.",
+      "addImage": "إضافة صورة",
+      "removeImage": "حذف الصورة",
+      "uploading": "جارٍ الرفع…",
+      "submit": "إرسال التذكرة",
+      "cancel": "إلغاء",
+      "created": "تم إرسال التذكرة. سنرد عليك هنا."
+    },
+    "thread": {
+      "replyPlaceholder": "اكتب ردك…",
+      "send": "إرسال",
+      "sent": "تم إرسال الرد.",
+      "attachmentAlt": "مرفق {index}",
+      "closedNotice": "هذه التذكرة مغلقة.",
+      "reopen": "إعادة فتح التذكرة",
+      "reopened": "تمت إعادة فتح التذكرة.",
+      "reopenExpired": "أُغلقت هذه التذكرة منذ أكثر من {days} يومًا. افتح تذكرة جديدة."
+    },
+    "errors": {
+      "invalid_input": "راجع الحقول وحاول مرة أخرى.",
+      "not_authenticated": "سجّل الدخول مرة أخرى للمتابعة.",
+      "forbidden": "ليس لديك صلاحية على هذه التذكرة.",
+      "ticket_closed": "هذه التذكرة مغلقة.",
+      "invalid_attachment": "تعذّر إرفاق إحدى الصور. احذفها وحاول مرة أخرى.",
+      "too_many_open": "لديك تذاكر مفتوحة كثيرة. انتظر الرد على إحداها أولًا.",
+      "reopen_not_allowed": "لا يمكن إعادة فتح هذه التذكرة. افتح تذكرة جديدة.",
+      "file_too_large": "يجب ألا يزيد حجم الصورة عن {size} ميجابايت.",
+      "invalid_file": "صور JPG أو PNG أو WebP فقط.",
+      "too_many_files": "يمكنك إرفاق {max} صور كحد أقصى.",
+      "upload_failed": "فشل الرفع. حاول مرة أخرى.",
+      "send_failed": "تعذّر الإرسال. حاول مرة أخرى."
+    }
   }
 }

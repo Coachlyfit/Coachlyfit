@@ -7,17 +7,21 @@ import { cn } from "@/lib/utils";
 import { CoachlyLockup } from "@/components/brand/coachly-lockup";
 import { BrandLogo } from "@/components/brand/coach-brand";
 import { UnreadMessagesBadge } from "@/components/messages/unread-messages-badge";
+import { SupportUnreadBadge } from "@/components/support/support-unread-badge";
 import { NAV_ITEMS, visibleNavItems, type NavFeatures, type NavItem } from "./nav-items";
 
 export function Sidebar({
   items = NAV_ITEMS,
   features,
+  isOwner,
   brandLogo,
   darkGround = true,
 }: {
   items?: NavItem[];
   /** The tenant's plan flags; items gated on a missing one are left out. */
   features?: NavFeatures;
+  /** False for a team member, who doesn't get the owner-only items. */
+  isOwner?: boolean;
   /** Studio coaches' own logo (see lib/branding.ts); null keeps the lockup. */
   brandLogo?: { src: string; name: string } | null;
   /** False when a Studio coach picked a light sidebar color. */
@@ -38,7 +42,7 @@ export function Sidebar({
         )}
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3">
-        {visibleNavItems(items, features).map((item) => {
+        {visibleNavItems(items, features, isOwner).map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
@@ -66,6 +70,7 @@ export function Sidebar({
               <Icon className="size-4 shrink-0" aria-hidden="true" />
               <span className="truncate">{t(item.labelKey)}</span>
               {item.badge === "unreadMessages" && <UnreadMessagesBadge className="ms-auto" />}
+              {item.badge === "supportUnread" && <SupportUnreadBadge className="ms-auto" />}
             </Link>
           );
         })}

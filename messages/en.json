@@ -79,7 +79,8 @@
     "tasks": "Tasks",
     "emails": "Emails",
     "site": "Site",
-    "leads": "Leads"
+    "leads": "Leads",
+    "support": "Support"
   },
   "palette": {
     "navigation": "Navigation",
@@ -2913,6 +2914,28 @@
         "upload_failed": "The image couldn't be uploaded.",
         "file_too_large": "The image is larger than 2 MB."
       }
+    },
+    "support": {
+      "title": "Support inbox",
+      "searchPlaceholder": "Search by subject or coach",
+      "filterAll": "All",
+      "filterCategory": "Category",
+      "allCategories": "All categories",
+      "filterCoach": "Coach",
+      "allCoaches": "All coaches",
+      "coach": "Coach",
+      "unknownCoach": "Unknown coach",
+      "empty": "No tickets yet.",
+      "noResults": "No tickets match these filters.",
+      "showAll": "Show all",
+      "waitingOnCoach": "Waiting on coach",
+      "statusLabel": "Status",
+      "statusUpdated": "Status updated.",
+      "internalNote": "Internal note",
+      "internalToggle": "Internal note (the coach won't see it)",
+      "notePlaceholder": "Write a note for the team…",
+      "addNote": "Add note",
+      "noteAdded": "Note added."
     }
   },
   "notifications": {
@@ -2932,7 +2955,12 @@
     "subscription_canceled": "Your subscription was canceled. You can ask to reactivate it.",
     "task_assigned": "New task assigned to you: {title}",
     "task_completed": "{name} completed: {title}",
-    "someone": "A team member"
+    "someone": "A team member",
+    "support_ticket_created": "New support ticket from {name}: {subject}",
+    "support_coach_reply": "{name} replied on: {subject}",
+    "support_ticket_reopened": "{name} reopened: {subject}",
+    "support_admin_reply": "Support replied on your ticket: {subject}",
+    "support_status_changed": "Your ticket \"{subject}\" is now: {status}"
   },
   "progress": {
     "title": "Progress",
@@ -4073,5 +4101,78 @@
     "onThisPage": "On this page",
     "contactTitle": "Questions about this policy?",
     "contactBody": "Email us at <link>{email}</link>"
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Contact the Coachly Fit team and follow your requests.",
+    "new": "New ticket",
+    "emptyTitle": "No tickets yet",
+    "empty": "Have a problem or a question? Open a ticket and we'll get back to you.",
+    "unread": "New reply",
+    "unreadCount": "{count, plural, one {# unread ticket} other {# unread tickets}}",
+    "back": "Back to tickets",
+    "you": "You",
+    "team": "Support team",
+    "contactSupport": "Contact support",
+    "table": {
+      "subject": "Subject",
+      "category": "Category",
+      "status": "Status",
+      "updated": "Last update"
+    },
+    "category": {
+      "technical": "Technical issue",
+      "billing": "Billing",
+      "feature_request": "Feature request",
+      "other": "Other"
+    },
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "waiting_on_coach": "Waiting for your reply",
+      "closed": "Closed"
+    },
+    "form": {
+      "title": "New ticket",
+      "subject": "Subject",
+      "subjectPlaceholder": "Short summary of the issue",
+      "subjectInvalid": "Write a subject of 3 to 150 characters.",
+      "category": "Category",
+      "description": "Description",
+      "descriptionPlaceholder": "What happened, and what did you expect?",
+      "descriptionRequired": "Describe the issue.",
+      "attachments": "Images (optional)",
+      "attachmentsHint": "Up to {max} images, {size} MB each. JPG, PNG or WebP.",
+      "addImage": "Add image",
+      "removeImage": "Remove image",
+      "uploading": "Uploading…",
+      "submit": "Send ticket",
+      "cancel": "Cancel",
+      "created": "Ticket sent. We'll reply here."
+    },
+    "thread": {
+      "replyPlaceholder": "Write a reply…",
+      "send": "Send",
+      "sent": "Reply sent.",
+      "attachmentAlt": "Attachment {index}",
+      "closedNotice": "This ticket is closed.",
+      "reopen": "Reopen ticket",
+      "reopened": "Ticket reopened.",
+      "reopenExpired": "This ticket was closed more than {days} days ago. Open a new ticket instead."
+    },
+    "errors": {
+      "invalid_input": "Check the fields and try again.",
+      "not_authenticated": "Sign in again to continue.",
+      "forbidden": "You don't have access to this ticket.",
+      "ticket_closed": "This ticket is closed.",
+      "invalid_attachment": "One of the images couldn't be attached. Remove it and try again.",
+      "too_many_open": "You have too many open tickets. Wait for a reply on one of them first.",
+      "reopen_not_allowed": "This ticket can't be reopened. Open a new one.",
+      "file_too_large": "Each image must be {size} MB or less.",
+      "invalid_file": "Only JPG, PNG or WebP images.",
+      "too_many_files": "You can attach up to {max} images.",
+      "upload_failed": "Upload failed. Try again.",
+      "send_failed": "Couldn't send. Try again."
+    }
   }
 }
