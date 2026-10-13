@@ -25,12 +25,17 @@ type Tier = {
   name_en: string;
   price_egp_monthly: number;
   max_clients: number | null;
+  max_team_members: number | null;
   is_active: boolean;
   features: unknown;
 };
 
+type LimitKey = "max_clients" | "max_team_members";
+
 // Shown when "no limit" is unticked on a plan that had no cap to go back to.
-const DEFAULT_CAP = 10;
+const DEFAULT_CAP: Record<LimitKey, number> = { max_clients: 10, max_team_members: 3 };
+// A plan can have no team seats, but never no clients.
+const LIMIT_MIN: Record<LimitKey, number> = { max_clients: 1, max_team_members: 0 };
 
 function toDraft(tier: Tier): TierInput {
   const features = (tier.features ?? {}) as Record<string, boolean>;
@@ -40,12 +45,14 @@ function toDraft(tier: Tier): TierInput {
     name_en: tier.name_en,
     price_egp_monthly: tier.price_egp_monthly,
     max_clients: tier.max_clients,
+    max_team_members: tier.max_team_members,
     is_active: tier.is_active,
     forms_builder: !!features.forms_builder,
     custom_library: !!features.custom_library,
     priority_support: !!features.priority_support,
     white_label: !!features.white_label,
     custom_branding: !!features.custom_branding,
+    task_management: !!features.task_management,
   };
 }
 
@@ -102,12 +109,12 @@ export function PlansTab({
 
   // Each control is rendered twice (table from md up, accordion below), so
   // they are controlled by `draft` rather than registered refs.
-  const number = (i: number, key: "price_egp_monthly" | "max_clients", label: string, className?: string) => (
+  const number = (i: number, key: "price_egp_monthly" | LimitKey, label: string, className?: string) => (
     <Input
       type="number"
       inputMode="numeric"
       dir="ltr"
-      min={key === "max_clients" ? 1 : 0}
+      min={key === "price_egp_monthly" ? 0 : LIMIT_MIN[key]}
       aria-label={label}
       aria-invalid={invalid.has(`${i}.${key}`)}
       value={Number.isNaN(draft[i][key]) ? "" : (draft[i][key] ?? "")}
@@ -135,19 +142,19 @@ export function PlansTab({
     </span>
   );
 
-  const maxClients = (i: number) => {
-    const unlimited = draft[i].max_clients === null;
+  const limit = (i: number, key: LimitKey, label: string) => {
+    const unlimited = draft[i][key] === null;
     return (
       <span className="flex items-center gap-2">
         {unlimited ? (
           <span className={cn(FIELD, "flex items-center rounded-lg bg-muted px-3 font-medium")}>{t("unlimited")}</span>
         ) : (
-          number(i, "max_clients", t("maxClients"), "w-24")
+          number(i, key, label, "w-24")
         )}
         <label className="flex min-h-11 cursor-pointer items-center gap-1.5 text-[0.8125rem] text-muted-foreground">
           <Checkbox
             checked={unlimited}
-            onCheckedChange={(checked) => set(i, "max_clients", checked ? null : (saved[i]?.max_clients ?? DEFAULT_CAP))}
+            onCheckedChange={(checked) => set(i, key, checked ? null : (saved[i]?.[key] ?? DEFAULT_CAP[key]))}
             className="size-4.5"
           />
           {t("noLimit")}
@@ -207,7 +214,8 @@ export function PlansTab({
       ),
     ],
     [t("price"), price],
-    [t("maxClients"), maxClients],
+    [t("maxClients"), (i) => limit(i, "max_clients", t("maxClients"))],
+    [t("maxTeamMembers"), (i) => limit(i, "max_team_members", t("maxTeamMembers"))],
   ];
 
   return (

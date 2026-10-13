@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/command";
 import { useRouter } from "@/i18n/navigation";
 import { searchClientsForPaletteAction } from "@/app/[locale]/(coach)/palette-search-action";
-import { NAV_ITEMS, type NavItem } from "./nav-items";
+import { NAV_ITEMS, visibleNavItems, type NavFeatures, type NavItem } from "./nav-items";
 
 type ClientResult = { id: string; display_name: string };
 
@@ -26,7 +26,7 @@ type ClientResult = { id: string; display_name: string };
 // `items` mirrors Sidebar's `items` prop (defaults to NAV_ITEMS, AdminSidebar
 // passes ADMIN_NAV_ITEMS) -- Topbar is shared by (coach) and (admin), so the
 // palette's nav list has to be swappable the same way the sidebar's is.
-export function CommandPalette({ items = NAV_ITEMS }: { items?: NavItem[] }) {
+export function CommandPalette({ items = NAV_ITEMS, features }: { items?: NavItem[]; features?: NavFeatures }) {
   const t = useTranslations("palette");
   const tNav = useTranslations("nav");
   const router = useRouter();
@@ -96,7 +96,7 @@ export function CommandPalette({ items = NAV_ITEMS }: { items?: NavItem[] }) {
           <CommandList>
             <CommandEmpty>{t("empty")}</CommandEmpty>
             <CommandGroup heading={t("navigation")}>
-              {items.map((item) => {
+              {visibleNavItems(items, features).map((item) => {
                 const Icon = item.icon;
                 return (
                   <CommandItem

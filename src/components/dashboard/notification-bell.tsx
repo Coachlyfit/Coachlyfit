@@ -23,7 +23,8 @@ import { usePushSubscription } from "./use-push-subscription";
 // coach_decision. off_plan_reported goes to the client's active coach
 // (notify_on_off_plan); nutrition_log_reminder is client-only, push-only.
 // subscription_* are the coach's own platform-subscription notices, queued
-// by the billing-lifecycle cron for the tenant owner.
+// by the billing-lifecycle cron for the tenant owner. task_assigned goes to
+// the assignee and task_completed to the tenant owner (notify_on_task).
 const KINDS = [
   "exercise_promoted",
   "food_promoted",
@@ -35,6 +36,8 @@ const KINDS = [
   "subscription_renewal_due",
   "subscription_past_due",
   "subscription_canceled",
+  "task_assigned",
+  "task_completed",
 ] as const;
 
 function isKnownKind(kind: string): kind is (typeof KINDS)[number] {
@@ -82,6 +85,15 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
         date: (payload.log_date as string | null) ?? "",
       });
     }
+    if (notification.kind === "task_assigned") {
+      return t("task_assigned", { title: (payload.title as string | null) ?? "" });
+    }
+    if (notification.kind === "task_completed") {
+      return t("task_completed", {
+        name: (payload.name as string | null) ?? t("someone"),
+        title: (payload.title as string | null) ?? "",
+      });
+    }
     if (notification.kind.startsWith("subscription_")) {
       const periodEnd = payload.period_end as string | null;
       return t(notification.kind, { date: periodEnd ? formatDate(periodEnd, locale) : "" });
@@ -106,6 +118,7 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
       return clientId ? `/clients/${clientId}?tab=nutrition` : null;
     }
     if (notification.kind.startsWith("subscription_")) return "/settings/subscription";
+    if (notification.kind === "task_assigned" || notification.kind === "task_completed") return "/tasks";
     return null;
   }
 

@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Coachly",
+    "appName": "CoachlyFit",
     "pickDate": "Pick a date",
     "loading": "Loading...",
     "save": "Save",
@@ -76,6 +76,7 @@
     "requests": "Requests",
     "invoices": "Invoices",
     "finance": "Finance",
+    "tasks": "Tasks",
     "emails": "Emails",
     "site": "Site"
   },
@@ -227,12 +228,15 @@
       "mostPopular": "Most popular",
       "clientLimit": "Up to {max} clients",
       "unlimitedClients": "Unlimited clients",
+      "teamLimit": "Up to {max} team members",
+      "unlimitedTeam": "Unlimited team members",
       "features": {
         "forms_builder": "Custom forms builder",
         "custom_library": "Your own exercise & food library",
         "priority_support": "Priority support",
         "white_label": "Your logo on invoices",
-        "custom_branding": "Your brand colors & logo in the app"
+        "custom_branding": "Your brand colors & logo in the app",
+        "task_management": "Assign tasks to your team"
       }
     },
     "footer": {
@@ -540,7 +544,10 @@
       "metric_already_exists": "You already have a metric with a similar name.",
       "upload_failed": "Upload failed. Try again.",
       "invalid_file": "Use a PNG, JPG or WebP image under 2 MB.",
-      "upgrade_required": "Your plan doesn't include this. Upgrade to use it."
+      "upgrade_required": "Your plan doesn't include this. Upgrade to use it.",
+      "team_limit_reached": "You've reached your plan's team member limit.",
+      "subscription_inactive": "Your subscription isn't active, so you can't invite team members. Reactivate it from the Subscription page.",
+      "owner_only": "Only the account owner can do this."
     },
     "customMetrics": {
       "title": "Custom Metrics",
@@ -568,7 +575,12 @@
       "copied": "Copied",
       "done": "Done",
       "confirmDeleteTitle": "Remove this team member?",
-      "delete": "Remove"
+      "delete": "Remove",
+      "usage": "<num>{used}</num> / <num>{max}</num> team members",
+      "usageUnlimited": "<num>{used}</num> team members · no limit",
+      "overLimit": "Your team is larger than your plan allows. Everyone keeps their access, but you can't invite anyone new until the team is smaller or you upgrade.",
+      "statusExpired": "Expired",
+      "ownerOnly": "Only the account owner can invite or remove team members."
     },
     "portal": {
       "title": "Portal link",
@@ -737,7 +749,8 @@
       "invalid_invite": "This invite is no longer valid. Ask your coach for a new link.",
       "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
       "already_your_client": "This person is already your client.",
-      "subscription_inactive": "Your subscription isn't active, so you can't add clients. Reactivate it from the Subscription page."
+      "subscription_inactive": "Your subscription isn't active, so you can't add clients. Reactivate it from the Subscription page.",
+      "team_full": "This team is full. Ask the account owner to free a seat or upgrade their plan."
     },
     "billing": {
       "subscription": {
@@ -2517,13 +2530,15 @@
         "nameEn": "English name",
         "price": "Monthly price",
         "maxClients": "Max clients",
+        "maxTeamMembers": "Max team members",
         "isActive": "Active",
         "features": {
           "forms_builder": "Forms builder",
           "custom_library": "Custom library",
           "priority_support": "Priority support",
           "white_label": "White label",
-          "custom_branding": "Custom branding"
+          "custom_branding": "Custom branding",
+          "task_management": "Task management"
         },
         "title": "Plans",
         "empty": "No plans yet.",
@@ -2807,7 +2822,10 @@
     "subscription_trial_ending": "Your trial ends on {date}. Pick a plan to keep going.",
     "subscription_renewal_due": "Your subscription renews on {date}.",
     "subscription_past_due": "Your payment is overdue. Renew to keep your account active.",
-    "subscription_canceled": "Your subscription was canceled. You can ask to reactivate it."
+    "subscription_canceled": "Your subscription was canceled. You can ask to reactivate it.",
+    "task_assigned": "New task assigned to you: {title}",
+    "task_completed": "{name} completed: {title}",
+    "someone": "A team member"
   },
   "progress": {
     "title": "Progress",
@@ -2953,6 +2971,9 @@
       "current": "Current",
       "clients": "Up to {max} clients",
       "unlimited": "Unlimited clients",
+      "team": "Up to {max} team members",
+      "teamUnlimited": "Unlimited team members",
+      "teamNone": "No team members",
       "upgrade": "Request upgrade",
       "downgrade": "Request downgrade",
       "choose": "Request this plan"
@@ -3022,6 +3043,8 @@
       "custom_library": "Your plan doesn't include adding your own exercises and foods. The ones you already have keep working.",
       "logo": "Your plan doesn't include your own logo.",
       "slug": "Your plan doesn't include a custom portal address. Your current one keeps working.",
+      "team_members": "Your plan has no free team seats. Members you already have keep their access.",
+      "task_management": "Your plan doesn't include task management.",
       "cta": "View plans"
     }
   },
@@ -3797,6 +3820,122 @@
       "none": "No active plan right now",
       "manage": "Manage subscription",
       "back": "Finance"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "myTitle": "My tasks",
+    "new": "New task",
+    "emptyTitle": "No tasks yet",
+    "empty": "Create a task and assign it to yourself or a team member.",
+    "emptyMember": "Nothing is assigned to you right now.",
+    "noResults": "No tasks match these filters",
+    "noResultsHint": "Try a different filter, or clear them to see everything.",
+    "unassigned": "Unassigned",
+    "formerMember": "Former member",
+    "overdue": "Overdue",
+    "boardEmpty": "No tasks",
+    "status": {
+      "todo": "To do",
+      "in_progress": "In progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "table": {
+      "title": "Task",
+      "assignee": "Assignee",
+      "priority": "Priority",
+      "due": "Due",
+      "status": "Status",
+      "client": "Client"
+    },
+    "toolbar": {
+      "all": "All statuses",
+      "status": "Status",
+      "assignee": "Assignee",
+      "allAssignees": "Everyone",
+      "priority": "Priority",
+      "allPriorities": "All priorities",
+      "due": "Due date",
+      "due_all": "Any due date",
+      "due_overdue": "Overdue",
+      "due_today": "Due today",
+      "due_week": "Due in 7 days",
+      "due_none": "No due date",
+      "view": "View",
+      "viewList": "List",
+      "viewBoard": "Board",
+      "clear": "Clear filters"
+    },
+    "dialog": {
+      "createTitle": "New task",
+      "editTitle": "Edit task",
+      "titleLabel": "Title",
+      "titleRequired": "Give the task a title.",
+      "descriptionLabel": "Description",
+      "assigneeLabel": "Assignee",
+      "priorityLabel": "Priority",
+      "dueLabel": "Due date",
+      "clientLabel": "Related client",
+      "noClient": "No client",
+      "submit": "Create task"
+    },
+    "detail": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "comments": "Comments",
+      "noComments": "No comments yet.",
+      "commentPlaceholder": "Write a comment",
+      "addComment": "Comment",
+      "confirmDeleteTitle": "Delete this task?",
+      "confirmDeleteBody": "The task and its comments are removed for everyone. This can't be undone."
+    },
+    "toast": {
+      "created": "Task created.",
+      "updated": "Task saved.",
+      "deleted": "Task deleted."
+    },
+    "errors": {
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "not_found_or_forbidden": "Couldn't find that task, or you can't change it.",
+      "upgrade_required": "Your plan doesn't include task management.",
+      "invalid_assignee": "That person is no longer on your team. Pick someone else.",
+      "invalid_client": "That client isn't available. Pick another one.",
+      "unknown": "Something went wrong. Try again."
+    },
+    "productivity": {
+      "title": "Productivity",
+      "back": "Tasks",
+      "rangeLabel": "Period",
+      "range_7d": "7 days",
+      "range_30d": "30 days",
+      "range_90d": "90 days",
+      "range_custom": "Custom",
+      "from": "From",
+      "to": "To",
+      "explain": "Counts tasks assigned in this period. Cancelled tasks are left out.",
+      "teamOverview": "Team overview",
+      "member": "Team member",
+      "assigned": "Assigned",
+      "completed": "Completed",
+      "completionRate": "Completion rate",
+      "onTime": "On time",
+      "onTimeRate": "On-time rate",
+      "overdue": "Overdue",
+      "avgTime": "Avg. time to complete",
+      "noData": "No tasks were assigned in this period",
+      "noDataHint": "Pick a longer period, or assign some tasks first.",
+      "viewTasks": "View tasks",
+      "allMembers": "Back to the team",
+      "hours": "{count} h",
+      "days": "{count} d",
+      "onTimeHint": "Of completed tasks that had a due date"
     }
   }
 }

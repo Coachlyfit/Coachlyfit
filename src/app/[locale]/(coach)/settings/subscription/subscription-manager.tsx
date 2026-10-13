@@ -19,7 +19,14 @@ import type { AppLocale } from "@/domain/locale";
 import { requestSubscriptionChangeAction, setCancelAtPeriodEndAction, withdrawRequestAction } from "./actions";
 import { subscriptionRequestSchema, type SubscriptionRequestInput } from "./schemas";
 
-export type TierOption = { id: string; name: string; price: number; maxClients: number | null };
+export type TierOption = {
+  id: string;
+  name: string;
+  price: number;
+  maxClients: number | null;
+  /** null = no cap, 0 = the plan has no team seats. */
+  maxTeamMembers: number | null;
+};
 
 export type RequestRow = {
   id: string;
@@ -176,6 +183,13 @@ export function PlansAndRequests({
                   {tier.maxClients == null || tier.maxClients >= UNLIMITED_CLIENTS
                     ? t("plans.unlimited")
                     : t("plans.clients", { max: formatNumber(tier.maxClients, locale) })}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {tier.maxTeamMembers == null
+                    ? t("plans.teamUnlimited")
+                    : tier.maxTeamMembers === 0
+                      ? t("plans.teamNone")
+                      : t("plans.team", { max: formatNumber(tier.maxTeamMembers, locale) })}
                 </p>
                 {!current && isOwner && (
                   <Button

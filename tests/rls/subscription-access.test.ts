@@ -217,10 +217,9 @@ describe("plan features", () => {
   });
 
   it("get_my_features reports the caller's plan", async () => {
-    // ponytail: not in the generated types until the migration is applied.
-    const mine = await starter.client.rpc("get_my_features" as never);
+    const mine = await starter.client.rpc("get_my_features");
     expect((mine.data as unknown as Record<string, boolean>).forms_builder).not.toBe(true);
-    const theirs = await studio.client.rpc("get_my_features" as never);
+    const theirs = await studio.client.rpc("get_my_features");
     expect((theirs.data as unknown as Record<string, boolean>).forms_builder).toBe(true);
   });
 });
@@ -231,12 +230,11 @@ describe("subscription notices", () => {
     const { data: sub } = await admin.from("subscriptions").select("id").eq("coach_id", coach.userId).single();
     const args = { p_subscription_id: sub!.id, p_kind: "past_due", p_period_end: "2026-08-01T00:00:00Z" };
 
-    // ponytail: not in the generated types until the migration is applied.
-    const asCoach = await coach.client.rpc("queue_subscription_notice" as never, args as never);
+    const asCoach = await coach.client.rpc("queue_subscription_notice", args);
     expect(asCoach.error).not.toBeNull();
 
-    expect((await admin.rpc("queue_subscription_notice" as never, args as never)).data).toBe(true);
-    expect((await admin.rpc("queue_subscription_notice" as never, args as never)).data).toBe(false);
+    expect((await admin.rpc("queue_subscription_notice", args)).data).toBe(true);
+    expect((await admin.rpc("queue_subscription_notice", args)).data).toBe(false);
 
     const { data: notices } = await admin
       .from("notifications")
@@ -247,7 +245,7 @@ describe("subscription notices", () => {
 
     // A new period makes the same kind due again.
     const next = { ...args, p_period_end: "2026-09-01T00:00:00Z" };
-    expect((await admin.rpc("queue_subscription_notice" as never, next as never)).data).toBe(true);
+    expect((await admin.rpc("queue_subscription_notice", next)).data).toBe(true);
   });
 
   it("emails a subscription notice even with email notifications turned off", async () => {
