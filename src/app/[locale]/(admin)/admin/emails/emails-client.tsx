@@ -95,8 +95,9 @@ export function EmailsClient({
           showError(result.error);
           return;
         }
-        const summary = t("leadsSent", result);
-        if (result.failed > 0 || result.skipped > 0) toast.warning(summary);
+        const { reason, ...counts } = result;
+        const summary = t("leadsSent", counts);
+        if (counts.failed > 0 || counts.skipped > 0) toast.warning(summary, { description: reason ?? undefined });
         else toast.success(summary);
         reset();
         return;

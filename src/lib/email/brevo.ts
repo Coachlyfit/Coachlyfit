@@ -23,7 +23,7 @@ export function brevoConfig(): BrevoConfig | null {
  * key or BREVO_OUTREACH_SENDER_EMAIL is missing. */
 export function brevoOutreachConfig(): BrevoConfig | null {
   const apiKey = process.env.BREVO_API_KEY;
-  const email = process.env.BREVO_OUTREACH_SENDER_EMAIL;
+  const email = process.env.BREVO_OUTREACH_SENDER_EMAIL?.trim();
   if (!apiKey || !email) return null;
   return { apiKey, sender: { email, name: process.env.BREVO_OUTREACH_SENDER_NAME ?? "Coachly Fit" } };
 }
