@@ -9,8 +9,6 @@ import { ConsentLine } from "@/components/legal/consent-line";
 import { SignupForm } from "./signup-form";
 import { OtpForm } from "./otp-form";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
 export async function generateMetadata({
   params,
 }: {
@@ -23,8 +21,6 @@ export async function generateMetadata({
     description: isAr
       ? "ابدأ تجربتك المجانية مع Coachlyfit — نماذج، برامج، متابعات وفواتير."
       : "Start your free trial with Coachlyfit — forms, programs, check-ins and invoices.",
-    robots: { index: true, follow: true },
-    alternates: { canonical: `${siteUrl}/${locale}/signup` },
   };
 }
 

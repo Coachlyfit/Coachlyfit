@@ -8,9 +8,8 @@ import { fontMono, fontSans } from "@/lib/fonts";
 import { Providers } from "@/components/providers/providers";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { getPlatformSettings } from "@/lib/platform-settings";
+import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
-
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 const titleSuffixByLocale: Record<AppLocale, string> = {
   en: "— Coach your clients your way",
@@ -62,7 +61,7 @@ export async function generateMetadata({
   const description = descriptionByLocale[appLocale];
 
   return {
-    metadataBase: new URL(siteUrl),
+    metadataBase: new URL(SITE_URL),
     title: { default: title, template: `%s · ${appName}` },
     description,
     keywords: keywordsByLocale[appLocale],
@@ -92,10 +91,9 @@ export async function generateMetadata({
       ],
     },
     manifest: "/manifest.webmanifest",
-    alternates: {
-      canonical: `/${appLocale}`,
-      languages: Object.fromEntries(routing.locales.map((l) => [l, `/${l}`])),
-    },
+    // No `alternates` here: every page under this layout would inherit the
+    // home page as its canonical. Public pages set their own via
+    // buildAlternates() (src/lib/seo.ts).
     openGraph: {
       type: "website",
       title,

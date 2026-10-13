@@ -5,8 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { LegalDocument } from "@/components/legal/legal-document";
 import { LEGAL_SLUGS, getLegalDoc, isLegalSlug } from "@/content/legal";
-
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+import { buildAlternates } from "@/lib/seo";
 
 // No `dynamicParams = false` here: it applies to the shared [locale] segment
 // and 404s every other page. LegalPage calls notFound() for unknown slugs.
@@ -22,20 +21,18 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   if (!hasLocale(routing.locales, locale) || !isLegalSlug(slug)) return {};
   const doc = getLegalDoc(slug, locale);
+  const alternates = buildAlternates(locale, `/legal/${slug}`);
 
   return {
     title: doc.title,
     description: doc.description,
     robots: { index: true, follow: true },
-    alternates: {
-      canonical: `${siteUrl}/${locale}/legal/${slug}`,
-      languages: Object.fromEntries(routing.locales.map((l) => [l, `${siteUrl}/${l}/legal/${slug}`])),
-    },
+    alternates,
     openGraph: {
       type: "article",
       title: doc.title,
       description: doc.description,
-      url: `${siteUrl}/${locale}/legal/${slug}`,
+      url: alternates.canonical,
     },
   };
 }

@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
-
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+import { SITE_URL } from "@/lib/seo";
 
 // One manifest for both locales, so it follows the Arabic-first default
 // (routing.defaultLocale). start_url "/" lets proxy.ts redirect each install
@@ -25,7 +24,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     screenshots: [
       {
-        src: `${siteUrl}/opengraph-image`,
+        src: `${SITE_URL}/opengraph-image`,
         sizes: "1200x630",
         type: "image/png",
         form_factor: "wide",

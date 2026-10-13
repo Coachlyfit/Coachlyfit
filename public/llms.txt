@@ -6,7 +6,7 @@ Coachlyfit lets a personal trainer or fitness coach run their entire client busi
 
 ## Product
 
-- [Homepage](https://coachlyfit.app): overview, features, pricing
+- [Homepage](https://coachlyfit.app/ar): overview, features, pricing
 - [Sign up](https://coachlyfit.app/en/signup)
 - [Log in](https://coachlyfit.app/en/login)
 

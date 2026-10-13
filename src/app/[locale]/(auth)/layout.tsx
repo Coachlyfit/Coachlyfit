@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { CoachlyLockup } from "@/components/brand/coachly-lockup";
 import { LaunchMark } from "@/components/brand/launch-mark";
@@ -5,6 +6,10 @@ import { PortalAuthFrame } from "@/components/auth/portal-auth-frame";
 import { resolvePortalSlug } from "@/lib/tenant/resolve-portal-slug";
 import { createClient } from "@/lib/supabase/server";
 import { COACH_LOGOS_BUCKET } from "@/domain/billing/invoices.service";
+
+// The whole auth group stays out of the index. It is deliberately not
+// disallowed in robots.ts, so crawlers can fetch the page and see this.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const slug = await resolvePortalSlug();
