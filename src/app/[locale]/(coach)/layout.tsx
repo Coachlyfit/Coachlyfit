@@ -5,6 +5,7 @@ import { roleHome } from "@/lib/auth/role-home";
 import { getAuthUser, getViewerProfile, getRequestCoachId } from "@/lib/auth/session";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { getBranding } from "@/lib/branding";
+import { getFeatures } from "@/lib/features";
 import { coachAccess } from "@/domain/billing/access";
 import { BrandStyle } from "@/components/brand/coach-brand";
 import { Sidebar } from "@/components/dashboard/sidebar";
@@ -38,11 +39,12 @@ export default async function CoachLayout({
   // profile / platform settings / tenant coachId are independent of one
   // another -- none needs another's result -- so fetch them together
   // instead of one at a time.
-  const [profile, settings, coachId, branding, { data: subscription }] = await Promise.all([
+  const [profile, settings, coachId, branding, features, { data: subscription }] = await Promise.all([
     getViewerProfile(),
     getPlatformSettings(),
     getRequestCoachId(),
     getBranding(),
+    getFeatures(),
     // No coach_id filter: the coach_read policy scopes this to the caller's
     // tenant, which for a team member is the owner's subscription.
     supabase.from("subscriptions").select("status, trial_ends_at").maybeSingle(),
@@ -102,7 +104,7 @@ export default async function CoachLayout({
       {!impersonating && <PresenceHeartbeat />}
       <InboxRealtime />
       {/* Locked: no nav, the subscription page is the only place to be. */}
-      {!locked && <Sidebar brandLogo={brandLogo} darkGround={branding?.sidebarDark ?? true} />}
+      {!locked && <Sidebar features={features} brandLogo={brandLogo} darkGround={branding?.sidebarDark ?? true} />}
       <div className="flex min-w-0 flex-1 flex-col">
         {impersonating && <ImpersonationBanner locale={locale} fullName={profile.full_name ?? ""} />}
         {settings.announcement.enabled && (
@@ -113,12 +115,12 @@ export default async function CoachLayout({
           />
         )}
         {access.banner && <SubscriptionBanner kind={access.banner} days={access.days} />}
-        <Topbar locale={locale} fullName={profile.full_name} brandLogo={brandLogo} />
+        <Topbar locale={locale} fullName={profile.full_name} brandLogo={brandLogo} navFeatures={features} />
         <main className="min-w-0 flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] lg:p-6 lg:pb-6">
           {children}
         </main>
       </div>
-      {!locked && <BottomNav locale={locale} />}
+      {!locked && <BottomNav locale={locale} features={features} />}
       <FeedbackWidget />
     </div>
   );

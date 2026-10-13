@@ -3503,6 +3503,35 @@ export type Database = {
           },
         ]
       }
+      subscription_notices: {
+        Row: {
+          kind: string
+          period_end: string
+          sent_at: string
+          subscription_id: string
+        }
+        Insert: {
+          kind: string
+          period_end: string
+          sent_at?: string
+          subscription_id: string
+        }
+        Update: {
+          kind?: string
+          period_end?: string
+          sent_at?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_notices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_requests: {
         Row: {
           admin_response: string | null
@@ -3572,6 +3601,7 @@ export type Database = {
           is_active: boolean
           key: string
           max_clients: number | null
+          max_team_members: number | null
           name_ar: string
           name_en: string
           price_egp_monthly: number
@@ -3583,6 +3613,7 @@ export type Database = {
           is_active?: boolean
           key: string
           max_clients?: number | null
+          max_team_members?: number | null
           name_ar: string
           name_en: string
           price_egp_monthly: number
@@ -3594,6 +3625,7 @@ export type Database = {
           is_active?: boolean
           key?: string
           max_clients?: number | null
+          max_team_members?: number | null
           name_ar?: string
           name_en?: string
           price_egp_monthly?: number
@@ -3647,6 +3679,139 @@ export type Database = {
             columns: ["tier_id"]
             isOneToOne: false
             referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_comments: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_at: string | null
+          assignee_id: string | null
+          client_id: string | null
+          coach_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assignee_id?: string | null
+          client_id?: string | null
+          coach_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assignee_id?: string | null
+          client_id?: string | null
+          coach_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "tasks_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4309,7 +4474,24 @@ export type Database = {
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
       get_my_branding: { Args: never; Returns: Json }
+      get_my_features: { Args: never; Returns: Json }
+      get_my_team_seats: {
+        Args: never
+        Returns: {
+          accepted: number
+          max_members: number
+          used: number
+        }[]
+      }
       get_portal_branding: { Args: { p_slug: string }; Returns: Json }
+      get_team_directory: {
+        Args: never
+        Returns: {
+          display_name: string
+          is_owner: boolean
+          profile_id: string
+        }[]
+      }
       issue_invoice: {
         Args: { p_invoice_id: string }
         Returns: {
@@ -4478,6 +4660,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      queue_subscription_notice: {
+        Args: {
+          p_kind: string
+          p_period_end: string
+          p_subscription_id: string
+        }
+        Returns: boolean
       }
       record_invoice_payment: {
         Args: {

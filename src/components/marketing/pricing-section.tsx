@@ -7,11 +7,11 @@ import { formatNumber } from "@/lib/format";
 import type { Tables } from "@/lib/supabase/database.types";
 import type { SectionContent } from "@/domain/marketing/sections.schema";
 
-export const PRICING_TIER_COLUMNS = "id, key, name_ar, name_en, price_egp_monthly, max_clients, features";
+export const PRICING_TIER_COLUMNS = "id, key, name_ar, name_en, price_egp_monthly, max_clients, max_team_members, features";
 
 export type PricingTier = Pick<
   Tables<"subscription_tiers">,
-  "id" | "key" | "name_ar" | "name_en" | "price_egp_monthly" | "max_clients" | "features"
+  "id" | "key" | "name_ar" | "name_en" | "price_egp_monthly" | "max_clients" | "max_team_members" | "features"
 >;
 
 // No cap is null. Rows seeded before 20261015000001 still carry the old
@@ -27,6 +27,7 @@ const FEATURE_ORDER = [
   "priority_support",
   "white_label",
   "custom_branding",
+  "task_management",
 ] as const;
 
 /** Takes the tiers as a prop rather than reading them: the same component
@@ -82,6 +83,14 @@ export function PricingSection({ content, tiers }: { content: SectionContent<"pr
                   ? t("unlimitedClients")
                   : t("clientLimit", { max: formatNumber(tier.max_clients, locale) })}
               </p>
+              {/* 0 = no team seats on this plan: say nothing rather than advertise a zero. */}
+              {tier.max_team_members !== 0 && (
+                <p className="mt-1 text-[13px] text-muted-foreground">
+                  {tier.max_team_members == null
+                    ? t("unlimitedTeam")
+                    : t("teamLimit", { max: formatNumber(tier.max_team_members, locale) })}
+                </p>
+              )}
 
               <div className="my-6 h-px bg-border" />
 

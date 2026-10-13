@@ -62,3 +62,21 @@ describe("subscription notices", () => {
     expect(notificationUrl("subscription_past_due", payload, "ar")).toBe("/ar/settings/subscription");
   });
 });
+
+describe("task notices", () => {
+  it("carry the task title and link to the tasks page", () => {
+    const payload = { task_id: "t1", title: "Call new leads" };
+    expect(notificationName("task_assigned", payload, "en")).toBe("Call new leads");
+    expect(notificationUrl("task_completed", payload, "ar")).toBe("/ar/tasks");
+    expect(renderNotificationEmail("en", "task_assigned", "Sara", "Call new leads").html).toContain(
+      'A task was assigned to you: "Call new leads".'
+    );
+  });
+
+  it("escape a title before it goes into the email body", () => {
+    const { html } = renderNotificationEmail("en", "task_assigned", "<b>Sara</b>", '<img src=x onerror="alert(1)">');
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain("<b>Sara</b>");
+    expect(html).toContain("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
+  });
+});

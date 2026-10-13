@@ -68,7 +68,8 @@ export async function GET(request: NextRequest) {
           p_token: teamInviteToken,
         });
         if (acceptError) {
-          redirect(`/ar/join-team/${teamInviteToken}?error=invalid_invite`);
+          const code = acceptError.hint === "team_limit_reached" ? "team_full" : "invalid_invite";
+          redirect(`/ar/join-team/${teamInviteToken}?error=${code}`);
         }
       }
       const cookieStore = await cookies();

@@ -52,7 +52,7 @@ export default async function SubscriptionPage({
     supabase.from("payments").select("*").order("created_at", { ascending: false }),
     supabase
       .from("subscription_tiers")
-      .select("id, name_ar, name_en, price_egp_monthly, max_clients")
+      .select("id, name_ar, name_en, price_egp_monthly, max_clients, max_team_members")
       .order("price_egp_monthly"),
     supabase
       .from("subscription_requests")
@@ -165,6 +165,7 @@ export default async function SubscriptionPage({
           name: pickLocale(row, locale),
           price: row.price_egp_monthly,
           maxClients: row.max_clients,
+          maxTeamMembers: row.max_team_members,
         }))}
         currentTierId={canceled ? null : (subscription?.tier_id ?? null)}
         canceled={canceled}

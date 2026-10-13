@@ -13,16 +13,28 @@ import {
   Inbox,
   Mail,
   Globe,
+  ListTodo,
   type LucideIcon,
 } from "lucide-react";
+import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "site";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "site" | "tasks";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge. */
   badge?: "unreadMessages";
+  /** Only shown when the tenant's plan includes this feature. */
+  feature?: PlanFeature;
 };
+
+export type NavFeatures = Partial<Record<PlanFeature, boolean>>;
+
+/** Drops the items the plan doesn't include. Hiding only: the page behind a
+ * gated item checks the plan itself, and the database refuses the data. */
+export function visibleNavItems(items: NavItem[], features?: NavFeatures): NavItem[] {
+  return items.filter((item) => !item.feature || features?.[item.feature] === true);
+}
 
 // No standalone "progress" page: a coach views a client's check-ins and
 // charts on that client's own detail page (/clients/[clientId]), not
@@ -39,6 +51,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/forms", labelKey: "forms", icon: FileText },
   { href: "/library", labelKey: "library", icon: Dumbbell },
   { href: "/diets", labelKey: "diets", icon: Salad },
+  { href: "/tasks", labelKey: "tasks", icon: ListTodo, feature: "task_management" },
   { href: "/finance", labelKey: "finance", icon: Wallet },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/messages", labelKey: "inbox", icon: MessageCircle, badge: "unreadMessages" },

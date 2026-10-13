@@ -14,17 +14,32 @@ function hashToken(token: string) {
  * invite() is a single insert. See
  * supabase/migrations/20260824000001_team_members.sql for the accepting
  * side (accept_team_invite). */
+/** `max` null = the plan has no team cap. `used` counts accepted members
+ * plus invites that can still be accepted; `accepted` is members only. */
+export type TeamSeats = { max: number | null; used: number; accepted: number };
+
 export class TeamService {
   constructor(private db: SupabaseClient<Database>) {}
 
   async list(coachId: string) {
     const { data, error } = await this.db
       .from("team_members")
-      .select("id, email, accepted_at")
+      .select("id, email, accepted_at, expires_at")
       .eq("coach_id", coachId)
       .order("invited_at", { ascending: false });
     if (error) throw error;
     return data;
+  }
+
+  /** The tenant's seat numbers, to show usage and disable the invite button.
+   * Display only: private.enforce_team_cap() is the enforcement, so null (no
+   * tenant, or the RPC failed) just means "don't show a counter". */
+  async seats(): Promise<TeamSeats | null> {
+    const { data, error } = await this.db.rpc("get_my_team_seats");
+    // The generated type says number, but max_members is null for a plan with no cap.
+    const row = data?.[0] as { max_members: number | null; used: number; accepted: number } | undefined;
+    if (error || !row) return null;
+    return { max: row.max_members, used: row.used, accepted: row.accepted };
   }
 
   /** Returns the plaintext token once -- only its sha256 hash (matching

@@ -28,10 +28,13 @@ export default async function AccountSettingsPage({
   const coachId = await resolveCoachId(supabase);
   if (!user || !coachId) notFound();
 
-  const [{ data: profile }, teamMembers] = await Promise.all([
+  const team = new TeamService(supabase);
+  const [{ data: profile }, teamMembers, seats] = await Promise.all([
     supabase.from("profiles").select("email_notifications").eq("id", user.id).single(),
-    new TeamService(supabase).list(coachId),
+    team.list(coachId),
+    team.seats(),
   ]);
+  const now = new Date();
 
   return (
     <div className="flex flex-col gap-4">
@@ -58,7 +61,17 @@ export default async function AccountSettingsPage({
             </form>
           </CardContent>
         </Card>
-        <TeamCard members={teamMembers} />
+        <TeamCard
+          members={teamMembers.map((member) => ({
+            id: member.id,
+            email: member.email,
+            accepted_at: member.accepted_at,
+            // An invite past its expiry can't be accepted and holds no seat.
+            expired: !member.accepted_at && new Date(member.expires_at) <= now,
+          }))}
+          seats={seats}
+          isOwner={user.id === coachId}
+        />
       </div>
     </div>
   );

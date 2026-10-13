@@ -22,7 +22,9 @@ export type NotificationKind =
   | "subscription_trial_ending"
   | "subscription_renewal_due"
   | "subscription_past_due"
-  | "subscription_canceled";
+  | "subscription_canceled"
+  | "task_assigned"
+  | "task_completed";
 
 export type EmailLocale = "ar" | "en";
 
@@ -42,16 +44,23 @@ export function isSubscriptionNotice(kind: string): boolean {
   return kind.startsWith("subscription_");
 }
 
+/** A team task was assigned to the recipient, or finished for the owner
+ * (notify_on_task). */
+function isTaskNotice(kind: string): boolean {
+  return kind === "task_assigned" || kind === "task_completed";
+}
+
 /** The name interpolated into the copy: the bilingual name_ar/name_en pair
  * for promoted content, the client's display name for an off-plan report,
- * the date the trial/period ends for a subscription notice, nothing
- * otherwise. */
+ * the date the trial/period ends for a subscription notice, the task's
+ * title for a task notice, nothing otherwise. */
 export function notificationName(kind: string, payload: Record<string, unknown>, locale: EmailLocale): string | null {
   if (notificationNeedsPickedName(kind)) return pickLocale(payload, locale);
   if (kind === "off_plan_reported") return (payload.client_name as string | null) ?? null;
   if (isSubscriptionNotice(kind) && typeof payload.period_end === "string") {
     return formatDate(payload.period_end, locale);
   }
+  if (isTaskNotice(kind)) return (payload.title as string | null) ?? null;
   return null;
 }
 
@@ -63,6 +72,7 @@ export function notificationUrl(kind: string, payload: Record<string, unknown>, 
     return `/${locale}/clients/${payload.client_id}?tab=nutrition`;
   }
   if (isSubscriptionNotice(kind)) return `/${locale}/settings/subscription`;
+  if (isTaskNotice(kind)) return `/${locale}/tasks`;
   return "/";
 }
 
@@ -85,6 +95,8 @@ const COPY: Record<
       subscription_renewal_due: "Your Coachly Fit subscription renews soon",
       subscription_past_due: "Your Coachly Fit payment is overdue",
       subscription_canceled: "Your Coachly Fit subscription was canceled",
+      task_assigned: "A task was assigned to you",
+      task_completed: "A task was completed",
     },
     greeting: "Hi",
     footer: "You're receiving this because you have email notifications turned on. You can turn them off in Settings.",
@@ -105,6 +117,8 @@ const COPY: Record<
       subscription_renewal_due: "اشتراكك في Coachly Fit يتجدد قريبًا",
       subscription_past_due: "دفعة اشتراكك في Coachly Fit متأخرة",
       subscription_canceled: "تم إلغاء اشتراكك في Coachly Fit",
+      task_assigned: "تم تعيين مهمة لك",
+      task_completed: "تم إنجاز مهمة",
     },
     greeting: "مرحبًا",
     footer: "تصلك هذه الرسالة لأن إشعارات البريد الإلكتروني مفعّلة لديك. يمكنك إيقافها من الإعدادات.",
@@ -141,6 +155,10 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return `انتهت فترة اشتراكك${name ? ` يوم ${name}` : ""} ولم نستلم دفعة التجديد. حسابك يعمل لفترة سماح قصيرة، وبعدها يتوقف.`;
       case "subscription_canceled":
         return "تم إلغاء اشتراكك وتوقفت إمكانية التعديل في حسابك. بياناتك محفوظة، ويمكنك طلب إعادة التفعيل من صفحة الاشتراك.";
+      case "task_assigned":
+        return `تم تعيين مهمة لك${name ? `: "${name}"` : ""}. افتح صفحة المهام لمعرفة التفاصيل.`;
+      case "task_completed":
+        return `أنجز أحد أعضاء فريقك مهمة${name ? `: "${name}"` : ""}.`;
     }
   }
   switch (kind) {
@@ -170,7 +188,22 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return `Your subscription period ended${name ? ` on ${name}` : ""} and we haven't received the renewal payment. Your account keeps working for a short grace period, then it stops.`;
     case "subscription_canceled":
       return "Your subscription was canceled and editing in your account is paused. Your data is kept, and you can ask to reactivate from the Subscription page.";
+    case "task_assigned":
+      return `A task was assigned to you${name ? `: "${name}"` : ""}. Open Tasks for the details.`;
+    case "task_completed":
+      return `A team member completed a task${name ? `: "${name}"` : ""}.`;
   }
+}
+
+// name and recipientName are user-written (a task title, a client's or
+// coach's display name) and land in an HTML body.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /** name is pulled from the notification payload's name_ar/name_en (already
@@ -184,8 +217,8 @@ export function renderNotificationEmail(
 ): { subject: string; html: string } {
   const copy = COPY[locale];
   const dir = locale === "ar" ? "rtl" : "ltr";
-  const greeting = recipientName ? `${copy.greeting} ${recipientName},` : `${copy.greeting},`;
-  const body = bodyByKind(locale, kind, name);
+  const greeting = recipientName ? `${copy.greeting} ${escapeHtml(recipientName)},` : `${copy.greeting},`;
+  const body = bodyByKind(locale, kind, name === null ? null : escapeHtml(name));
 
   const html = `<!doctype html>
 <html dir="${dir}" lang="${locale}">

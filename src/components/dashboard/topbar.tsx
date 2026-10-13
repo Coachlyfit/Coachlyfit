@@ -25,12 +25,13 @@ import type { AppLocale } from "@/domain/locale";
 import { CommandPalette } from "./command-palette";
 import { NotificationBell } from "./notification-bell";
 import { usePageTitleStore } from "./page-title-store";
-import type { NavItem } from "./nav-items";
+import type { NavFeatures, NavItem } from "./nav-items";
 
 export function Topbar({
   locale,
   fullName,
   navItems,
+  navFeatures,
   brandLogo,
 }: {
   locale: string;
@@ -41,6 +42,8 @@ export function Topbar({
    *  (admin)/layout.tsx passes ADMIN_NAV_ITEMS since Topbar is shared by
    *  both role layouts. */
   navItems?: NavItem[];
+  /** The tenant's plan flags, forwarded to CommandPalette with navItems. */
+  navFeatures?: NavFeatures;
 }) {
   const tCommon = useTranslations("common");
   const title = usePageTitleStore((s) => s.title);
@@ -72,7 +75,7 @@ export function Topbar({
         {fullName}
       </span>
       <div className="flex items-center gap-1 ms-auto sm:gap-2 md:ms-0">
-        <CommandPalette items={navItems} />
+        <CommandPalette items={navItems} features={navFeatures} />
         <NotificationBell locale={locale as AppLocale} />
         <InstallAppButton />
         <LocaleSwitcher className="hidden sm:inline-flex" />

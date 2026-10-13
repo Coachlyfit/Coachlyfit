@@ -76,6 +76,7 @@
     "requests": "الطلبات",
     "invoices": "الفواتير",
     "finance": "المالية",
+    "tasks": "المهام",
     "emails": "البريد",
     "site": "الموقع"
   },
@@ -227,12 +228,15 @@
       "mostPopular": "الأكتر اختيارًا",
       "clientLimit": "حتى {max} عميل",
       "unlimitedClients": "عملاء بلا حدود",
+      "teamLimit": "لحد {max} أعضاء فريق",
+      "unlimitedTeam": "أعضاء فريق من غير حد",
       "features": {
         "forms_builder": "منشئ نماذج مخصص",
         "custom_library": "مكتبة تمارين وأطعمة خاصة بك",
         "priority_support": "دعم ذو أولوية",
         "white_label": "لوجوك على الفواتير",
-        "custom_branding": "ألوان علامتك ولوجوك جوه التطبيق"
+        "custom_branding": "ألوان علامتك واللوجو بتاعك جوه التطبيق",
+        "task_management": "وزّع مهام على فريقك"
       }
     },
     "footer": {
@@ -540,7 +544,10 @@
       "metric_already_exists": "لديك بالفعل مقياس بنفس الاسم تقريبًا.",
       "upload_failed": "فشل الرفع. حاول مرة أخرى.",
       "invalid_file": "استخدم صورة PNG أو JPG أو WebP أقل من 2 ميجابايت.",
-      "upgrade_required": "باقتك مفيهاش الميزة دي. رقّي الباقة عشان تستخدمها."
+      "upgrade_required": "باقتك مفيهاش الميزة دي. رقّي الباقة عشان تستخدمها.",
+      "team_limit_reached": "وصلت لأقصى عدد أعضاء فريق في باقتك.",
+      "subscription_inactive": "اشتراكك مش شغّال، فمش هتقدر تدعو أعضاء للفريق. فعّله من صفحة الاشتراك.",
+      "owner_only": "صاحب الحساب بس هو اللي يقدر يعمل ده."
     },
     "customMetrics": {
       "title": "مقاييس مخصصة",
@@ -568,7 +575,12 @@
       "copied": "اتنسخ",
       "done": "تمام",
       "confirmDeleteTitle": "تشيل عضو الفريق ده؟",
-      "delete": "شيل"
+      "delete": "شيل",
+      "usage": "<num>{used}</num> / <num>{max}</num> أعضاء فريق",
+      "usageUnlimited": "<num>{used}</num> أعضاء فريق · من غير حد",
+      "overLimit": "فريقك أكبر من اللي باقتك بتسمح بيه. كل الأعضاء مكملين، بس مش هتقدر تدعو حد جديد لحد ما العدد يقل أو ترقّي الباقة.",
+      "statusExpired": "منتهية",
+      "ownerOnly": "صاحب الحساب بس هو اللي يقدر يدعو أو يشيل أعضاء الفريق."
     },
     "portal": {
       "title": "رابط البورتال",
@@ -737,7 +749,8 @@
       "invalid_invite": "الدعوة دي مبقتش شغالة. اطلب من مدربك رابط جديد.",
       "not_found_or_forbidden": "مش لاقيه، أو مفيش صلاحية.",
       "already_your_client": "الشخص ده عميل عندك خلاص.",
-      "subscription_inactive": "اشتراكك مش فعّال، فمش هتقدر تضيف عملاء. فعّله تاني من صفحة الاشتراك."
+      "subscription_inactive": "اشتراكك مش فعّال، فمش هتقدر تضيف عملاء. فعّله تاني من صفحة الاشتراك.",
+      "team_full": "الفريق ده مكتمل. اطلب من صاحب الحساب يفضّي مكان أو يرقّي الباقة."
     },
     "billing": {
       "subscription": {
@@ -2517,13 +2530,15 @@
         "nameEn": "الاسم بالإنجليزي",
         "price": "السعر الشهري",
         "maxClients": "أقصى عدد عملاء",
+        "maxTeamMembers": "أقصى عدد أعضاء الفريق",
         "isActive": "فعّالة",
         "features": {
           "forms_builder": "منشئ النماذج",
           "custom_library": "مكتبة مخصصة",
           "priority_support": "دعم أولوية",
           "white_label": "علامة بيضاء",
-          "custom_branding": "هوية مخصصة"
+          "custom_branding": "هوية مخصصة",
+          "task_management": "إدارة المهام"
         },
         "title": "الباقات",
         "empty": "لا توجد باقات بعد.",
@@ -2807,7 +2822,10 @@
     "subscription_trial_ending": "فترتك التجريبية بتنتهي يوم {date}. اختار باقة عشان تكمّل.",
     "subscription_renewal_due": "اشتراكك بيتجدد يوم {date}.",
     "subscription_past_due": "دفعة اشتراكك متأخرة. جدّد عشان حسابك يفضل شغّال.",
-    "subscription_canceled": "تم إلغاء اشتراكك. تقدر تطلب إعادة تفعيله."
+    "subscription_canceled": "تم إلغاء اشتراكك. تقدر تطلب إعادة تفعيله.",
+    "task_assigned": "مهمة جديدة متعيّنة ليك: {title}",
+    "task_completed": "{name} خلّص: {title}",
+    "someone": "حد من الفريق"
   },
   "progress": {
     "title": "التقدّم",
@@ -2953,6 +2971,9 @@
       "current": "الحالية",
       "clients": "لحد {max} عميل",
       "unlimited": "عملاء بلا حد",
+      "team": "لحد {max} أعضاء فريق",
+      "teamUnlimited": "أعضاء فريق من غير حد",
+      "teamNone": "من غير أعضاء فريق",
       "upgrade": "اطلب ترقية",
       "downgrade": "اطلب باقة أقل",
       "choose": "اطلب الباقة دي"
@@ -3022,6 +3043,8 @@
       "custom_library": "باقتك مفيهاش إضافة تمارين وأطعمة خاصة بيك. اللي عندك شغّال زي ما هو.",
       "logo": "باقتك مفيهاش لوجو خاص بيك.",
       "slug": "باقتك مفيهاش رابط بوابة مخصص. رابطك الحالي شغّال زي ما هو.",
+      "team_members": "باقتك مفيهاش أماكن فاضية في الفريق. الأعضاء الحاليين مكملين زي ما هم.",
+      "task_management": "باقتك مفيهاش إدارة المهام.",
       "cta": "شوف الباقات"
     }
   },
@@ -3797,6 +3820,122 @@
       "none": "لا توجد باقة مفعّلة حالياً",
       "manage": "إدارة الاشتراك",
       "back": "المالية"
+    }
+  },
+  "tasks": {
+    "title": "المهام",
+    "myTitle": "مهامي",
+    "new": "مهمة جديدة",
+    "emptyTitle": "مفيش مهام لسه",
+    "empty": "اعمل مهمة وعيّنها لنفسك أو لحد من فريقك.",
+    "emptyMember": "مفيش مهام متعيّنة ليك دلوقتي.",
+    "noResults": "مفيش مهام مطابقة للفلاتر دي",
+    "noResultsHint": "جرّب فلتر تاني، أو امسح الفلاتر عشان تشوف الكل.",
+    "unassigned": "من غير مسؤول",
+    "formerMember": "عضو سابق",
+    "overdue": "متأخرة",
+    "boardEmpty": "مفيش مهام",
+    "status": {
+      "todo": "مطلوبة",
+      "in_progress": "شغّالة",
+      "done": "خلصت",
+      "cancelled": "ملغية"
+    },
+    "priority": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية"
+    },
+    "table": {
+      "title": "المهمة",
+      "assignee": "المسؤول",
+      "priority": "الأولوية",
+      "due": "الموعد",
+      "status": "الحالة",
+      "client": "العميل"
+    },
+    "toolbar": {
+      "all": "كل الحالات",
+      "status": "الحالة",
+      "assignee": "المسؤول",
+      "allAssignees": "الكل",
+      "priority": "الأولوية",
+      "allPriorities": "كل الأولويات",
+      "due": "الموعد",
+      "due_all": "أي موعد",
+      "due_overdue": "متأخرة",
+      "due_today": "موعدها النهارده",
+      "due_week": "خلال 7 أيام",
+      "due_none": "من غير موعد",
+      "view": "العرض",
+      "viewList": "قائمة",
+      "viewBoard": "لوحة",
+      "clear": "امسح الفلاتر"
+    },
+    "dialog": {
+      "createTitle": "مهمة جديدة",
+      "editTitle": "تعديل المهمة",
+      "titleLabel": "العنوان",
+      "titleRequired": "اكتب عنوان للمهمة.",
+      "descriptionLabel": "الوصف",
+      "assigneeLabel": "المسؤول",
+      "priorityLabel": "الأولوية",
+      "dueLabel": "الموعد",
+      "clientLabel": "عميل مرتبط",
+      "noClient": "من غير عميل",
+      "submit": "أنشئ المهمة"
+    },
+    "detail": {
+      "edit": "تعديل",
+      "delete": "حذف",
+      "comments": "التعليقات",
+      "noComments": "مفيش تعليقات لسه.",
+      "commentPlaceholder": "اكتب تعليق",
+      "addComment": "علّق",
+      "confirmDeleteTitle": "تحذف المهمة دي؟",
+      "confirmDeleteBody": "المهمة وتعليقاتها هتتحذف عند الكل. مينفعش ترجع فيها."
+    },
+    "toast": {
+      "created": "المهمة اتعملت.",
+      "updated": "المهمة اتحفظت.",
+      "deleted": "المهمة اتحذفت."
+    },
+    "errors": {
+      "invalid_input": "راجع البيانات وجرّب تاني.",
+      "not_authenticated": "سجّل دخولك تاني.",
+      "not_found_or_forbidden": "مش لاقيين المهمة دي، أو مينفعش تعدّلها.",
+      "upgrade_required": "باقتك مفيهاش إدارة المهام.",
+      "invalid_assignee": "الشخص ده مبقاش في فريقك. اختار حد تاني.",
+      "invalid_client": "العميل ده مش متاح. اختار عميل تاني.",
+      "unknown": "حصلت مشكلة. جرّب تاني."
+    },
+    "productivity": {
+      "title": "الإنتاجية",
+      "back": "المهام",
+      "rangeLabel": "الفترة",
+      "range_7d": "7 أيام",
+      "range_30d": "30 يوم",
+      "range_90d": "90 يوم",
+      "range_custom": "مخصص",
+      "from": "من",
+      "to": "إلى",
+      "explain": "بيحسب المهام اللي اتعيّنت في الفترة دي. المهام الملغية مش محسوبة.",
+      "teamOverview": "نظرة على الفريق",
+      "member": "عضو الفريق",
+      "assigned": "متعيّنة",
+      "completed": "خلصت",
+      "completionRate": "نسبة الإنجاز",
+      "onTime": "في موعدها",
+      "onTimeRate": "نسبة الالتزام بالموعد",
+      "overdue": "متأخرة",
+      "avgTime": "متوسط وقت الإنجاز",
+      "noData": "مفيش مهام اتعيّنت في الفترة دي",
+      "noDataHint": "اختار فترة أطول، أو عيّن مهام الأول.",
+      "viewTasks": "شوف المهام",
+      "allMembers": "رجوع للفريق",
+      "hours": "{count} س",
+      "days": "{count} ي",
+      "onTimeHint": "من المهام اللي خلصت وكان ليها موعد"
     }
   }
 }

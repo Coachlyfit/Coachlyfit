@@ -36,9 +36,9 @@ export async function updateTiersAction(locale: string, tiers: unknown): Promise
 
   const { error: rpcError } = await supabase.rpc("admin_update_tiers", {
     p_tiers: parsed.data.map(
-      ({ forms_builder, custom_library, priority_support, white_label, custom_branding, ...rest }) => ({
+      ({ forms_builder, custom_library, priority_support, white_label, custom_branding, task_management, ...rest }) => ({
         ...rest,
-        features: { forms_builder, custom_library, priority_support, white_label, custom_branding },
+        features: { forms_builder, custom_library, priority_support, white_label, custom_branding, task_management },
       })
     ),
   });

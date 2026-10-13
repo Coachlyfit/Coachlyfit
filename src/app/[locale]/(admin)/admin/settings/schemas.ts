@@ -11,6 +11,7 @@ export const FEATURE_KEYS = [
   "priority_support",
   "white_label",
   "custom_branding",
+  "task_management",
 ] as const;
 
 export const tierSchema = z.object({
@@ -20,12 +21,15 @@ export const tierSchema = z.object({
   price_egp_monthly: z.number().min(0),
   // null = no client cap (private.enforce_client_cap skips a null max).
   max_clients: z.number().int().min(1).nullable(),
+  // null = no team cap; 0 = no team seats (private.enforce_team_cap).
+  max_team_members: z.number().int().min(0).nullable(),
   is_active: z.boolean(),
   forms_builder: z.boolean(),
   custom_library: z.boolean(),
   priority_support: z.boolean(),
   white_label: z.boolean(),
   custom_branding: z.boolean(),
+  task_management: z.boolean(),
 });
 export type TierInput = z.infer<typeof tierSchema>;
 

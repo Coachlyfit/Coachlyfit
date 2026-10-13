@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/sign-out-action";
 import { UnreadMessagesBadge, UnreadMessagesDot } from "@/components/messages/unread-messages-badge";
-import { NAV_ITEMS, ADMIN_NAV_ITEMS } from "./nav-items";
+import { NAV_ITEMS, ADMIN_NAV_ITEMS, visibleNavItems, type NavFeatures } from "./nav-items";
 
 // Bottom tab bar for <1024px (below the sidebar's lg breakpoint). Capped at 5
 // items total (bottom-nav-limit): 4 primary destinations + one "more" sheet
@@ -26,8 +26,17 @@ import { NAV_ITEMS, ADMIN_NAV_ITEMS } from "./nav-items";
 // icon components, which aren't serializable across the Server->Client
 // boundary, so the (admin) Server Component layout can't pass ADMIN_NAV_ITEMS
 // down as a prop.
-export function BottomNav({ locale, admin = false }: { locale: string; admin?: boolean }) {
-  const items = admin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
+export function BottomNav({
+  locale,
+  admin = false,
+  features,
+}: {
+  locale: string;
+  admin?: boolean;
+  /** The tenant's plan flags; items gated on a missing one are left out. */
+  features?: NavFeatures;
+}) {
+  const items = visibleNavItems(admin ? ADMIN_NAV_ITEMS : NAV_ITEMS, features);
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const pathname = usePathname();

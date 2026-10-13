@@ -11,7 +11,7 @@ export function UpgradePrompt({
   feature,
   className,
 }: {
-  feature: "forms_builder" | "custom_library" | "logo" | "slug";
+  feature: "forms_builder" | "custom_library" | "logo" | "slug" | "team_members" | "task_management";
   className?: string;
 }) {
   const t = useTranslations("billing.upgrade");

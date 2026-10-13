@@ -45,7 +45,9 @@ export async function acceptTeamInviteSignupAction(
       p_token: token,
       p_ip: ip,
     });
-    if (acceptError) return { error: "invalid_invite" };
+    // team_limit_reached: the team filled up (or its plan shrank) after this
+    // invite was sent -- a different fix for the invitee than a dead link.
+    if (acceptError) return { error: acceptError.hint === "team_limit_reached" ? "team_full" : "invalid_invite" };
     redirect(`/${locale}/dashboard`);
   }
   redirect(`/${locale}/signup/check-email`);
