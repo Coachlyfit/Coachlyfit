@@ -80,6 +80,7 @@
     "emails": "Emails",
     "site": "Site",
     "leads": "Leads",
+    "guides": "Guides",
     "support": "Support"
   },
   "palette": {
@@ -4173,6 +4174,38 @@
       "too_many_files": "You can attach up to {max} images.",
       "upload_failed": "Upload failed. Try again.",
       "send_failed": "Couldn't send. Try again."
+    }
+  },
+  "guides": {
+    "title": "Video guides",
+    "subtitle": "Short walkthroughs of each part of Coachly Fit.",
+    "part": "Part {n} of {total}",
+    "duration": "{seconds} sec",
+    "items": {
+      "add-client": {
+        "title": "Invite your first client",
+        "description": "Create a client profile and share the invite link. No account or app download needed for them."
+      },
+      "check-in-forms": {
+        "title": "Check-in forms",
+        "description": "Build a check-in from suggested questions, then review answers and reply from one screen."
+      },
+      "exercise-library": {
+        "title": "Exercise library",
+        "description": "Search the built-in exercises or add your own with a video link."
+      },
+      "workout-programs": {
+        "title": "Workout programs",
+        "description": "Build a program day by day, save it as a template and assign it to any client."
+      },
+      "progress": {
+        "title": "Track progress",
+        "description": "See weight, adherence, mood, energy, measurements and photos on each client's profile."
+      },
+      "billing": {
+        "title": "Billing & payments",
+        "description": "Track invoices, send reminders, record payments and see your Coachly Fit subscription."
+      }
     }
   }
 }

@@ -16,13 +16,14 @@ import {
   ListTodo,
   UserPlus,
   LifeBuoy,
+  CirclePlay,
   type LucideIcon,
 } from "lucide-react";
 import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support" | "guides";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge and
    * SupportUnreadBadge. */
@@ -63,6 +64,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/finance", labelKey: "finance", icon: Wallet },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/messages", labelKey: "inbox", icon: MessageCircle, badge: "unreadMessages" },
+  { href: "/guides", labelKey: "guides", icon: CirclePlay },
   { href: "/support", labelKey: "support", icon: LifeBuoy, badge: "supportUnread", ownerOnly: true },
 ];
 
