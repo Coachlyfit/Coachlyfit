@@ -6,6 +6,9 @@ import { DietPlansService, type DietPlanTree } from "@/domain/nutrition/diet-pla
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { resolveDayPlan } from "@/domain/programs/day-plan";
 import { formatServing, itemMacros, mealMacros, planMacros } from "@/domain/nutrition/macros";
+import { itemMacroFood, recipeAsMacroFood } from "@/domain/recipes/recipe-nutrition";
+import { RecipesService } from "@/domain/recipes/recipes.service";
+import type { RecipeView } from "./recipe-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { DietDays, type DayView, type PlanView } from "./diet-days";
@@ -15,12 +18,43 @@ import { addDays } from "@/domain/nutrition/adherence";
 
 const DAYS_AHEAD = 7;
 
+type TreeItem = DietPlanTree["meals"][number]["meal_items"][number];
+
+/** Everything the recipe sheet shows, already localized. */
+function toRecipeView(recipe: NonNullable<TreeItem["recipes"]>, locale: AppLocale, imageUrls: Map<string, string>): RecipeView {
+  return {
+    id: recipe.id,
+    name: pickLocale(recipe, locale),
+    description: recipe.description,
+    imageUrl: recipe.image_path ? (imageUrls.get(recipe.image_path) ?? null) : null,
+    prepMinutes: recipe.prep_minutes,
+    cookMinutes: recipe.cook_minutes,
+    recipeServings: recipe.servings,
+    perServing: recipeAsMacroFood(recipe),
+    ingredients: recipe.recipe_ingredients.map((i) => ({
+      id: i.id,
+      name: pickLocale(i.foods, locale),
+      quantity: i.quantity,
+      unit: i.unit,
+      servingLabel: i.foods?.serving_label ?? null,
+      note: i.note,
+    })),
+    steps: recipe.steps,
+    videoUrl: recipe.video_url,
+  };
+}
+
 /** Flattens a tree into exactly what the client screen renders — localized
  * names, "150g"-style amounts, precomputed totals — so the interactive
  * part (diet-days.tsx) gets small serializable props, not the raw tree. */
-function toPlanView(tree: DietPlanTree, locale: AppLocale): PlanView {
+function toPlanView(
+  tree: DietPlanTree,
+  locale: AppLocale,
+  imageUrls: Map<string, string>,
+  servingsLabel: (count: number) => string
+): PlanView {
   const meals = tree.meals.map((meal) => {
-    const items = meal.meal_items.map((item) => ({ quantity: item.quantity, food: item.foods }));
+    const items = meal.meal_items.map((item) => ({ quantity: item.quantity, food: itemMacroFood(item) }));
     return {
       id: meal.id,
       label: meal.label_ar || meal.label_en ? pickLocale(meal, locale, "label") : null,
@@ -28,9 +62,11 @@ function toPlanView(tree: DietPlanTree, locale: AppLocale): PlanView {
       totals: mealMacros(items),
       items: meal.meal_items.map((item) => ({
         id: item.id,
-        name: pickLocale(item.foods, locale),
-        amount: formatServing(item.quantity, item.foods?.serving_label),
-        kcal: Math.round(itemMacros(item.quantity, item.foods).kcal),
+        name: pickLocale(item.foods ?? item.recipes, locale),
+        amount: item.recipes ? servingsLabel(item.quantity) : formatServing(item.quantity, item.foods?.serving_label),
+        kcal: Math.round(itemMacros(item.quantity, itemMacroFood(item)).kcal),
+        recipe: item.recipes ? toRecipeView(item.recipes, locale, imageUrls) : null,
+        quantity: item.quantity,
       })),
     };
   });
@@ -45,7 +81,7 @@ function toPlanView(tree: DietPlanTree, locale: AppLocale): PlanView {
       target_carb_g: tree.target_carb_g,
       target_fat_g: tree.target_fat_g,
     },
-    totals: planMacros(tree.meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: i.foods })))),
+    totals: planMacros(tree.meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) })))),
     meals,
   };
 }
@@ -61,6 +97,7 @@ export default async function ClientDietPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("client.diet");
+  const tRecipeItem = await getTranslations("recipes.item");
   const supabase = await createClient();
 
   const {
@@ -144,7 +181,16 @@ export default async function ClientDietPage({
     kind: d.kind,
     planId: d.planId && plans.has(d.planId) ? d.planId : null,
   }));
-  const planViews = Object.fromEntries([...plans.values()].map((tree) => [tree.id, toPlanView(tree, locale)]));
+  // Recipe photos are in a private bucket; the client's storage policy only
+  // signs ones from recipes in their own meal items.
+  const imagePaths = [...plans.values()].flatMap((tree) =>
+    tree.meals.flatMap((m) => m.meal_items.flatMap((i) => (i.recipes?.image_path ? [i.recipes.image_path] : [])))
+  );
+  const imageUrls = await new RecipesService(supabase).signImages(imagePaths).catch(() => new Map<string, string>());
+  const servingsLabel = (count: number) => tRecipeItem("servings", { count });
+  const planViews = Object.fromEntries(
+    [...plans.values()].map((tree) => [tree.id, toPlanView(tree, locale, imageUrls, servingsLabel)])
+  );
 
   return (
     <div className="flex flex-col gap-5">

@@ -53,9 +53,12 @@ import { GroupChips } from "./group-chips";
 import { ExerciseTable, FoodTable } from "./list-view";
 import { ExercisePreview, FoodPreview } from "./preview-panel";
 import { ViewSwitcher, type LibraryView } from "./view-switcher";
+import { NewRecipeButton, RecipeFilters, RecipesTab } from "./recipes-tab";
+import type { searchRecipesAction } from "./recipes/actions";
 
 type ExercisePage = Awaited<ReturnType<typeof searchExercisesAction>>;
 type FoodPage = Awaited<ReturnType<typeof searchFoodsAction>>;
+type RecipePage = Awaited<ReturnType<typeof searchRecipesAction>>;
 type Facets = Awaited<ReturnType<typeof exerciseFacetsAction>>;
 type Exercise = ExercisePage["rows"][number];
 type Food = FoodPage["rows"][number];
@@ -71,13 +74,14 @@ type Editing =
   | { kind: "food"; mode: "clone" | "edit"; item: Food };
 
 const SEARCH_DEBOUNCE_MS = 300;
-const NO_FILTERS = { q: "", source: "all", group: null, cat: null, equip: null } as const;
+const NO_FILTERS = { q: "", source: "all", group: null, cat: null, equip: null, tag: null } as const;
 
 export function LibraryClient({
   locale,
   initialKey,
   initialExercises,
   initialFoods,
+  initialRecipes,
   initialExerciseFacets,
   initialFoodFacets,
   canAddCustom,
@@ -89,6 +93,7 @@ export function LibraryClient({
   /** Null for the tab that wasn't active on the server. */
   initialExercises: ExercisePage | null;
   initialFoods: FoodPage | null;
+  initialRecipes: RecipePage | null;
   initialExerciseFacets: Facets;
   initialFoodFacets: Facets;
   /** Whether the plan includes a custom library. Without it the coach keeps
@@ -307,8 +312,14 @@ export function LibraryClient({
               {t("tabs.foods")}
               {tabCount(foodFacetsQuery.data)}
             </TabsTrigger>
+            <TabsTrigger value="recipes" className="px-3">
+              {t("tabs.recipes")}
+            </TabsTrigger>
           </TabsList>
-          {!canAddCustom ? (
+          {/* Recipes aren't plan-gated (yet): every coach can build them. */}
+          {tab === "recipes" ? (
+            <NewRecipeButton />
+          ) : !canAddCustom ? (
             <UpgradePrompt feature="custom_library" />
           ) : tab === "exercises" ? (
             <ExerciseDialog locale={locale} mode="create" onSaved={invalidate} />
@@ -332,6 +343,10 @@ export function LibraryClient({
               className="ps-9"
             />
           </div>
+          {tab === "recipes" ? (
+            <RecipeFilters params={params} onChange={update} />
+          ) : (
+            <>
           <SourceFilter
             value={params.source}
             onChange={(source) => update({ source })}
@@ -355,6 +370,8 @@ export function LibraryClient({
               renderRow={(item) => pickLocale(item, locale, "name")}
               onRestored={invalidate}
             />
+          )}
+            </>
           )}
         </div>
 
@@ -554,6 +571,17 @@ export function LibraryClient({
               total={foodsTotal}
               onPageChange={(page) => update({ page })}
               disabled={foodsQuery.isFetching}
+            />
+          )}
+        </TabsContent>
+        <TabsContent value="recipes">
+          {tab === "recipes" && (
+            <RecipesTab
+              locale={locale}
+              params={params}
+              initialRecipes={isInitial ? initialRecipes : null}
+              onPage={(page) => update({ page })}
+              onClearFilters={clearFilters}
             />
           )}
         </TabsContent>

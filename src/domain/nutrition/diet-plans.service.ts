@@ -1,11 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { planMacros } from "./macros";
+import { itemMacroFood } from "@/domain/recipes/recipe-nutrition";
 
 type DietPlan = Database["public"]["Tables"]["diet_plans"]["Row"];
 type Meal = Database["public"]["Tables"]["meals"]["Row"];
 type MealItem = Database["public"]["Tables"]["meal_items"]["Row"];
 type Food = Database["public"]["Tables"]["foods"]["Row"];
+type Recipe = Database["public"]["Tables"]["recipes"]["Row"];
 
 export type DietPlanScope = "all" | "assigned" | "templates";
 
@@ -41,16 +43,52 @@ export type SiblingVariant = Pick<DietPlan, "id" | "name_ar" | "name_en" | "targ
   days: { id: string; day_index: number; label_ar: string | null; label_en: string | null }[];
 };
 
-export type CreateMealItemInput = { food_id: string; quantity?: number; unit?: string };
-export type UpdateMealItemInput = Partial<CreateMealItemInput>;
+/** A meal item is a food or a recipe (meal_items_food_or_recipe), never both. */
+export type CreateMealItemInput =
+  | { food_id: string; recipe_id?: never; quantity?: number; unit?: string }
+  | { recipe_id: string; food_id?: never; quantity?: number; unit?: string };
+export type UpdateMealItemInput = { food_id?: string; quantity?: number; unit?: string };
+
+const TREE_FOOD_FIELDS = "id, name_ar, name_en, category, serving_label, kcal, protein_g, carb_g, fat_g";
+type TreeFood = Pick<Food, "id" | "name_ar" | "name_en" | "category" | "serving_label" | "kcal" | "protein_g" | "carb_g" | "fat_g">;
+
+/** Everything the builder and the client's recipe sheet render, fetched
+ * with the plan in one query: no per-recipe round trip. */
+const TREE_MEAL_ITEMS = `meal_items(*, foods(${TREE_FOOD_FIELDS}), recipes(id, name_ar, name_en, description, servings, prep_minutes, cook_minutes, steps, video_url, image_path, archived_at, recipe_ingredients(id, quantity, unit, position, note, foods(${TREE_FOOD_FIELDS}))))`;
+
+export type TreeRecipe = Pick<
+  Recipe,
+  | "id"
+  | "name_ar"
+  | "name_en"
+  | "description"
+  | "servings"
+  | "prep_minutes"
+  | "cook_minutes"
+  | "steps"
+  | "video_url"
+  | "image_path"
+  | "archived_at"
+> & {
+  recipe_ingredients: { id: string; quantity: number; unit: string; position: number; note: string | null; foods: TreeFood | null }[];
+};
 
 export type DietPlanTree = DietPlan & {
   meals: (Meal & {
-    meal_items: (MealItem & {
-      foods: Pick<Food, "id" | "name_ar" | "name_en" | "category" | "serving_label" | "kcal" | "protein_g" | "carb_g" | "fat_g">;
-    })[];
+    meal_items: (MealItem & { foods: TreeFood | null; recipes: TreeRecipe | null })[];
   })[];
 };
+
+/** Ingredient order isn't something PostgREST sorts reliably through a
+ * to-one embed, so it's done here, once, for every tree reader. */
+function sortRecipeIngredients(tree: DietPlanTree): DietPlanTree {
+  for (const meal of tree.meals) {
+    for (const item of meal.meal_items) {
+      item.recipes?.recipe_ingredients.sort((a, b) => a.position - b.position);
+    }
+  }
+  return tree;
+}
 
 /** `client_id is null` on a nullable-FK own filter — same idiom as
  * ProgramsService.applyScope / LibraryService's `applySource`. */
@@ -110,7 +148,9 @@ export class DietPlansService {
   async listOverview() {
     const { data, error } = await this.db
       .from("diet_plans")
-      .select("*, clients(display_name), meals(id, meal_items(quantity, foods(kcal, protein_g, carb_g, fat_g)))")
+      .select(
+        "*, clients(display_name), meals(id, meal_items(quantity, foods(kcal, protein_g, carb_g, fat_g), recipes(servings, recipe_ingredients(quantity, unit, foods(serving_label, kcal, protein_g, carb_g, fat_g)))))"
+      )
       .is("archived_at", null)
       .is("program_id", null)
       .order("created_at", { ascending: false });
@@ -119,7 +159,7 @@ export class DietPlansService {
       ...plan,
       mealCount: meals.length,
       plannedKcal: Math.round(
-        planMacros(meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: i.foods })))).kcal
+        planMacros(meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) })))).kcal
       ),
     }));
   }
@@ -160,7 +200,7 @@ export class DietPlansService {
   async getActiveTreeForClient(clientId: string): Promise<DietPlanTree | null> {
     const { data, error } = await this.db
       .from("diet_plans")
-      .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, serving_label, kcal, protein_g, carb_g, fat_g)))")
+      .select(`*, meals(*, ${TREE_MEAL_ITEMS})`)
       .eq("client_id", clientId)
       .is("archived_at", null)
       .is("program_id", null)
@@ -170,19 +210,19 @@ export class DietPlansService {
       .limit(1)
       .maybeSingle();
     if (error) throw error;
-    return data as DietPlanTree | null;
+    return data ? sortRecipeIngredients(data as DietPlanTree) : null;
   }
 
   async getTree(dietPlanId: string): Promise<DietPlanTree | null> {
     const { data, error } = await this.db
       .from("diet_plans")
-      .select("*, meals(*, meal_items(*, foods(id, name_ar, name_en, category, serving_label, kcal, protein_g, carb_g, fat_g)))")
+      .select(`*, meals(*, ${TREE_MEAL_ITEMS})`)
       .eq("id", dietPlanId)
       .order("order_index", { referencedTable: "meals" })
       .order("order_index", { referencedTable: "meals.meal_items" })
       .maybeSingle();
     if (error) throw error;
-    return data as DietPlanTree | null;
+    return data ? sortRecipeIngredients(data as DietPlanTree) : null;
   }
 
   async create(coachId: string, input: CreateDietPlanInput): Promise<DietPlan> {
@@ -340,6 +380,7 @@ export class DietPlansService {
             client_id: clientId,
             meal_id: clonedMeal.id,
             food_id: item.food_id,
+            recipe_id: item.recipe_id,
             quantity: item.quantity,
             unit: item.unit,
             order_index: item.order_index,
@@ -456,7 +497,7 @@ export class DietPlansService {
   async copyMeal(mealId: string, targetPlanId: string): Promise<Meal | null> {
     const { data: source, error: sourceError } = await this.db
       .from("meals")
-      .select("label_ar, label_en, time_of_day, meal_items(food_id, quantity, unit, order_index)")
+      .select("label_ar, label_en, time_of_day, meal_items(food_id, recipe_id, quantity, unit, order_index)")
       .eq("id", mealId)
       .maybeSingle();
     if (sourceError) throw sourceError;
@@ -476,6 +517,7 @@ export class DietPlansService {
           client_id: meal.client_id,
           meal_id: meal.id,
           food_id: item.food_id,
+          recipe_id: item.recipe_id,
           quantity: item.quantity,
           unit: item.unit,
           order_index: item.order_index,
@@ -567,7 +609,8 @@ export class DietPlansService {
         client_id: parent.client_id,
         meal_id: mealId,
         order_index: await this.nextIndex("meal_items", "meal_id", mealId),
-        food_id: input.food_id,
+        food_id: input.food_id ?? null,
+        recipe_id: input.recipe_id ?? null,
         quantity: input.quantity ?? 1,
         unit: input.unit ?? "serving",
       })

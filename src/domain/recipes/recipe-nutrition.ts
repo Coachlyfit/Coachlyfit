@@ -1,4 +1,4 @@
-import { GRAM_SERVING_RE, type MacroFood, type MacroTotals } from "@/domain/nutrition/macros";
+import { GRAM_SERVING_RE, formatServing, type MacroFood, type MacroTotals } from "@/domain/nutrition/macros";
 
 export const INGREDIENT_UNITS = ["serving", "g", "ml"] as const;
 export type IngredientUnit = (typeof INGREDIENT_UNITS)[number];
@@ -63,12 +63,43 @@ export function calculateRecipeNutrition(
   };
 }
 
+/** A recipe as PostgREST embeds it: ingredients carry their food under `foods`. */
+export type EmbeddedRecipe = {
+  servings: number;
+  recipe_ingredients: { quantity: number; unit: string; foods: IngredientFood | null }[];
+};
+
 /** A recipe as one "food" whose serving is one recipe serving, so a meal
  * item pointing at a recipe goes through itemMacros/mealMacros unchanged
  * (quantity = number of recipe servings). */
-export function recipeAsMacroFood(recipe: {
-  servings: number;
-  recipe_ingredients: NutritionIngredient[];
-}): MacroFood {
-  return calculateRecipeNutrition(recipe.recipe_ingredients, recipe.servings).perServing;
+export function recipeAsMacroFood(recipe: EmbeddedRecipe): MacroFood {
+  return calculateRecipeNutrition(
+    recipe.recipe_ingredients.map((i) => ({ quantity: i.quantity, unit: i.unit, food: i.foods })),
+    recipe.servings
+  ).perServing;
+}
+
+/** What a meal item's macros scale from: its food, or its recipe's
+ * per-serving macros. Every meal/day/plan total goes through this, so a
+ * recipe item counts the same everywhere a food item does. */
+export function itemMacroFood(item: {
+  foods: MacroFood | null;
+  recipes: EmbeddedRecipe | null;
+}): MacroFood | null {
+  if (item.foods) return item.foods;
+  return item.recipes ? recipeAsMacroFood(item.recipes) : null;
+}
+
+/** An ingredient amount as a person reads it, scaled by `scale` (assigned
+ * servings / recipe servings): "150g", "250ml", "2 × 1 egg". Rounded to one
+ * decimal here because this is display only. */
+export function formatIngredientAmount(
+  quantity: number,
+  unit: string,
+  servingLabel: string | null | undefined,
+  scale = 1
+): string {
+  const amount = Math.round(quantity * scale * 10) / 10;
+  if (unit === "g" || unit === "ml") return `${amount}${unit}`;
+  return formatServing(amount, servingLabel);
 }

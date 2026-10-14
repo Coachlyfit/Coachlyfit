@@ -26,6 +26,7 @@ export function FoodDialog({
   onOpenChange,
   onSaved,
   hideTrigger,
+  defaults,
 }: {
   locale: AppLocale;
   mode: Mode;
@@ -36,6 +37,9 @@ export function FoodDialog({
   /** Suppresses the built-in "create" trigger button for callers (e.g. the
    * diet plan's food picker) that open this dialog from their own button. */
   hideTrigger?: boolean;
+  /** Prefills a "create" form, e.g. the recipe form's inline "Create
+   * “{query}”" passes the typed name. Read once on mount: callers re-key. */
+  defaults?: Partial<Pick<CreateFoodFormInput, "name_ar" | "name_en">>;
 }) {
   const t = useTranslations("library.food");
   const tCommon = useTranslations("common");
@@ -57,8 +61,8 @@ export function FoodDialog({
   } = useForm<CreateFoodFormInput, unknown, CreateFoodInput>({
     resolver: zodResolver(createFoodSchema),
     defaultValues: {
-      name_ar: item?.name_ar ?? "",
-      name_en: item?.name_en ?? "",
+      name_ar: item?.name_ar ?? defaults?.name_ar ?? "",
+      name_en: item?.name_en ?? defaults?.name_en ?? "",
       serving_label: item?.serving_label ?? "",
       category: (item?.category as CreateFoodFormInput["category"]) ?? "other",
       kcal: item?.kcal ?? 0,

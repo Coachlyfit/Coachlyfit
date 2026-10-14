@@ -59,6 +59,13 @@ export const mealItemSchema = z.object({
   unit: z.string().min(1).max(30),
 });
 
+// A recipe in a meal: quantity is the number of recipe servings, unit is
+// always "serving" (set by the service).
+export const mealRecipeItemSchema = z.object({
+  recipe_id: z.string().uuid(),
+  quantity: z.coerce.number().min(0.1).max(100),
+});
+
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });
 
 // Names for the template a coach saves out of an assigned plan — same

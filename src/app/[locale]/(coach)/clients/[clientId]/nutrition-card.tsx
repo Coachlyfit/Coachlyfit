@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { getActiveDiet } from "./data";
 import { AssignPlanDialog } from "./assign-plan-dialog";
 import { SuggestTargetsDialog } from "./suggest-targets-dialog";
+import { itemMacroFood } from "@/domain/recipes/recipe-nutrition";
 
 export async function NutritionCard({ clientId, locale }: { clientId: string; locale: AppLocale }) {
   const t = await getTranslations("clients.profile.nutrition");
@@ -67,7 +68,7 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
   }
 
   const templates = await new DietPlansService(supabase).list("templates");
-  const totals = planMacros(diet.meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: i.foods }))));
+  const totals = planMacros(diet.meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) }))));
 
   return (
     <Card>

@@ -1870,7 +1870,8 @@
     "title": "مكتبة التمارين والأطعمة",
     "tabs": {
       "exercises": "التمارين",
-      "foods": "الأطعمة"
+      "foods": "الأطعمة",
+      "recipes": "الوصفات"
     },
     "search": "دوّر بالاسم...",
     "empty": "مفيش نتايج.",
@@ -2004,7 +2005,7 @@
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
       "not_authenticated": "سجّل الدخول تاني.",
-      "in_use": "العنصر ده مستخدم في خطة ومينفعش يتمسح.",
+      "in_use": "العنصر ده مستخدم في خطة أو وصفة ومينفعش يتمسح.",
       "not_found_or_forbidden": "مينفعش تعدّل العنصر ده.",
       "forbidden": "معندكش صلاحية تعمل كده.",
       "already_global": "العنصر ده موجود في المكتبة العامة خلاص.",
@@ -2077,7 +2078,8 @@
     },
     "searchPlaceholder": {
       "exercises": "دوّر على تمرين بالاسم",
-      "foods": "دوّر على طعام بالاسم"
+      "foods": "دوّر على طعام بالاسم",
+      "recipes": "دوّر على وصفة..."
     },
     "mineBadge": {
       "exercises": "تمريني",
@@ -4206,6 +4208,217 @@
         "title": "المالية والفواتير",
         "description": "تابع الفواتير، ابعت تذكير للمتأخر، سجّل الدفعات وشوف اشتراكك في كوتشلي فت."
       }
+    }
+  },
+  "recipes": {
+    "title": "الوصفات",
+    "new": "وصفة جديدة",
+    "newTitle": "وصفة جديدة",
+    "editTitle": "عدّل الوصفة",
+    "backToLibrary": "ارجع للمكتبة",
+    "searchPlaceholder": "دوّر على وصفة...",
+    "sort": {
+      "label": "الترتيب",
+      "newest": "الأحدث",
+      "name": "الاسم",
+      "kcal": "السعرات"
+    },
+    "tags": {
+      "label": "الوسم",
+      "all": "كل الوسوم"
+    },
+    "card": {
+      "usedIn": "{count, plural, zero {مش مستخدمة في خطط} one {مستخدمة في خطة واحدة} two {مستخدمة في خطتين} few {مستخدمة في # خطط} many {مستخدمة في # خطة} other {مستخدمة في # خطة}}",
+      "minutes": "{count} دقيقة",
+      "hasVideo": "فيها فيديو",
+      "perServing": "للحصة",
+      "edit": "عدّل",
+      "duplicate": "اعمل نسخة",
+      "delete": "امسح"
+    },
+    "empty": {
+      "none": "لسه مفيش وصفات",
+      "noneHint": "اعمل وصفة من الأطعمة اللي في مكتبتك، والماكروز بتتحسب لوحدها.",
+      "create": "اعمل أول وصفة",
+      "noResults": "مفيش وصفات بتطابق البحث أو الوسم.",
+      "noResultsHint": "جرّب كلمة تانية أو شيل الوسم.",
+      "clear": "امسح الفلاتر"
+    },
+    "delete": {
+      "title": "تمسح الوصفة دي؟",
+      "bodyUnused": "مينفعش ترجع فيها.",
+      "bodyUsed": "الوصفة دي مستخدمة في {count, plural, zero {# خطة} one {خطة واحدة} two {خطتين} few {# خطط} many {# خطة} other {# خطة}}، فهتتأرشف بدل ما تتمسح: هتختفي من مكتبتك ومن الاختيارات، والخطط دي هتفضل تعرضها.",
+      "confirm": "امسح",
+      "deleted": "الوصفة اتمسحت",
+      "archived": "الوصفة اتأرشفت. الخطط اللي بتستخدمها لسه بتعرضها."
+    },
+    "duplicated": "اتعملت نسخة من الوصفة",
+    "copyName": "{name} (نسخة)",
+    "saved": "الوصفة اتحفظت",
+    "loadFailed": "معرفناش نحمّل الوصفات.",
+    "retry": "جرّب تاني",
+    "form": {
+      "sections": {
+        "basics": "الأساسيات",
+        "ingredients": "المكونات",
+        "steps": "الخطوات",
+        "video": "فيديو (اختياري)"
+      },
+      "nameAr": "الاسم (عربي)",
+      "nameEn": "الاسم (إنجليزي)",
+      "description": "وصف قصير",
+      "descriptionPlaceholder": "إيه اللي يخلي الوصفة دي تستاهل؟",
+      "servings": "عدد الحصص",
+      "servingsDecrease": "قلّل الحصص",
+      "servingsIncrease": "زوّد الحصص",
+      "prepMinutes": "التحضير (دقيقة)",
+      "cookMinutes": "الطبخ (دقيقة)",
+      "tags": "الوسوم",
+      "tagsPlaceholder": "مثلًا فطار، وبعدين Enter",
+      "removeTag": "شيل الوسم {tag}",
+      "image": "الصورة",
+      "imageHint": "JPEG أو PNG أو WebP، لحد 5 ميجا.",
+      "imageChoose": "ضيف صورة",
+      "imageReplace": "غيّر",
+      "imageRemove": "شيل",
+      "imageUploading": "بيرفع…",
+      "imageAlt": "صورة الوصفة",
+      "addIngredient": "ضيف مكوّن",
+      "ingredientN": "المكوّن {n}",
+      "food": "الطعام",
+      "chooseFood": "اختار طعام",
+      "searchFoods": "دوّر على طعام...",
+      "searching": "بيدوّر...",
+      "noFoods": "مفيش أطعمة بتطابق.",
+      "createFood": "اعمل «{query}»…",
+      "createFoodPlain": "اعمل طعام جديد",
+      "quantity": "الكمية",
+      "unit": "الوحدة",
+      "units": {
+        "serving": "× {label}",
+        "g": "جم",
+        "ml": "مل"
+      },
+      "note": "ملاحظة",
+      "notePlaceholder": "مثلًا مقطّع",
+      "removeIngredient": "شيل المكوّن",
+      "dragIngredient": "اسحب عشان ترتّب المكوّن",
+      "duplicateWarning": "المكوّن ده موجود في الوصفة خلاص. نجمع الكميتين؟",
+      "merge": "اجمعهم",
+      "unitMismatch": "حصة الطعام ده مبقتش بالجرامات. غيّر الوحدة لحصص.",
+      "ingredientsHint": "اضغط Enter في الكمية عشان تضيف المكوّن اللي بعده.",
+      "addStep": "ضيف خطوة",
+      "stepN": "الخطوة {n}",
+      "stepPlaceholder": "اوصف الخطوة دي",
+      "removeStep": "شيل الخطوة",
+      "dragStep": "اسحب عشان ترتّب الخطوة",
+      "stepsHint": "Ctrl+Enter (أو ⌘+Enter على الماك) بيضيف الخطوة اللي بعدها.",
+      "videoUrl": "لينك الفيديو",
+      "videoHint": "يوتيوب أو إنستجرام أو تيك توك أو فيميو.",
+      "openVideo": "افتح على {platform}",
+      "videoPreview": "معاينة الفيديو",
+      "save": "احفظ الوصفة",
+      "saving": "بيحفظ…",
+      "cancel": "إلغاء",
+      "errorSummary": "{count, plural, zero {مفيش حقول محتاجة تعديل.} one {فيه حقل محتاج تعديل.} two {فيه حقلين محتاجين تعديل.} few {فيه # حقول محتاجة تعديل.} many {فيه # حقل محتاج تعديل.} other {فيه # حقل محتاج تعديل.}}",
+      "unsaved": "عندك تعديلات متحفظتش. تخرج برضه؟",
+      "usedConfirm": {
+        "title": "تعدّل الوصفة في كل الخطط؟",
+        "body": "الوصفة دي مستخدمة في {count, plural, zero {# خطة شغالة} one {خطة شغالة واحدة} two {خطتين شغالين} few {# خطط شغالة} many {# خطة شغالة} other {# خطة شغالة}}. التعديلات هتتطبق عليهم كلهم.",
+        "apply": "احفظ التعديلات",
+        "copy": "احفظها كنسخة جديدة"
+      }
+    },
+    "summary": {
+      "title": "القيم الغذائية",
+      "perServing": "للحصة",
+      "total": "الوصفة كلها",
+      "servings": "{count, plural, zero {# حصة} one {حصة واحدة} two {حصتين} few {# حصص} many {# حصة} other {# حصة}}",
+      "show": "اعرض القيم الغذائية",
+      "hide": "اخفي القيم الغذائية"
+    },
+    "platforms": {
+      "youtube": "يوتيوب",
+      "instagram": "إنستجرام",
+      "tiktok": "تيك توك",
+      "vimeo": "فيميو"
+    },
+    "picker": {
+      "foods": "أطعمة",
+      "recipes": "وصفات",
+      "search": "دوّر على وصفة...",
+      "none": "لسه مفيش وصفات.",
+      "noResults": "مفيش وصفات بتطابق.",
+      "create": "اعمل وصفة جديدة",
+      "servings": "الحصص",
+      "add": "ضيف",
+      "perServing": "{kcal} سعرة للحصة"
+    },
+    "item": {
+      "servings": "{count, plural, zero {# حصة} one {حصة واحدة} two {حصتين} few {# حصص} many {# حصة} other {# حصة}}",
+      "servingsOf": "عدد حصص {name}",
+      "showIngredients": "اعرض المكونات",
+      "hideIngredients": "اخفي المكونات",
+      "archived": "متأرشفة",
+      "view": "شوف الوصفة",
+      "recipe": "وصفة",
+      "remove": "شيل الوصفة"
+    },
+    "detail": {
+      "ingredients": "المكونات",
+      "steps": "الخطوات",
+      "noSteps": "مفيش خطوات للوصفة دي.",
+      "assigned": "في خطتك: {count, plural, zero {# حصة} one {حصة واحدة} two {حصتين} few {# حصص} many {# حصة} other {# حصة}}",
+      "perServing": "للحصة",
+      "cookingFor": "بتطبخ لـ",
+      "fewer": "قلّل الحصص",
+      "more": "زوّد الحصص",
+      "scaleHint": "بيغيّر الكميات اللي ظاهرة هنا بس، مش خطتك.",
+      "totalTime": "{count} دقيقة",
+      "prep": "تحضير {count} دقيقة",
+      "cook": "طبخ {count} دقيقة",
+      "watch": "شوف الفيديو",
+      "cookingMode": "خلّي الشاشة منوّرة",
+      "cookingModeHint": "الموبايل مش هيقفل وانت بتطبخ.",
+      "close": "اقفل"
+    },
+    "errors": {
+      "name_required": "اكتب اسم",
+      "name_too_short": "الاسم لازم يكون حرفين على الأقل",
+      "name_too_long": "الاسم ميزيدش عن 80 حرف",
+      "description_too_long": "الوصف ميزيدش عن 300 حرف",
+      "servings_invalid": "عدد الحصص لازم يكون رقم صحيح",
+      "servings_range": "عدد الحصص لازم يكون من 1 لـ 20",
+      "minutes_invalid": "الدقايق لازم تكون رقم صحيح",
+      "minutes_range": "الدقايق لازم تكون من 0 لـ 600",
+      "ingredients_required": "أضف مكوّنًا واحدًا على الأقل",
+      "ingredients_too_many": "الوصفة فيها 40 مكوّن بالكتير",
+      "ingredients_count": "الوصفة لازم يكون فيها من 1 لـ 40 مكوّن",
+      "ingredient_food_required": "اختار طعام للمكوّن ده",
+      "ingredient_food_unavailable": "الطعام ده مبقاش في مكتبتك. اختار طعام تاني.",
+      "ingredient_unit_invalid": "اختار وحدة تناسب حصة الطعام ده",
+      "ingredient_note_too_long": "الملاحظة متزيدش عن 60 حرف",
+      "quantity_required": "اكتب الكمية",
+      "quantity_invalid": "اكتب رقم، زي 150 أو 1.5",
+      "quantity_decimals": "استخدم رقمين بعد العلامة العشرية بالكتير",
+      "quantity_positive": "الكمية لازم تكون أكبر من صفر",
+      "quantity_too_large": "الكمية متزيدش عن 5000",
+      "step_too_short": "الخطوة لازم تكون 3 حروف على الأقل",
+      "step_too_long": "الخطوة متزيدش عن 500 حرف",
+      "steps_too_many": "الوصفة فيها 30 خطوة بالكتير",
+      "tag_too_long": "الوسم ميزيدش عن 24 حرف",
+      "tags_too_many": "استخدم 8 وسوم بالكتير",
+      "video_unsupported": "ندعم روابط يوتيوب وإنستغرام وتيك توك وفيميو فقط",
+      "image_type": "استخدم صورة JPEG أو PNG أو WebP",
+      "image_too_large": "الصورة لازم تكون 5 ميجا أو أقل",
+      "upload_failed": "الصورة مترفعتش. جرّب تاني.",
+      "invalid_input": "راجع البيانات وجرّب تاني.",
+      "not_authenticated": "سجّل الدخول تاني.",
+      "not_found_or_forbidden": "مينفعش تعدّل الوصفة دي.",
+      "forbidden": "معندكش صلاحية تعمل كده.",
+      "in_use": "الوصفة دي مستخدمة في خطة.",
+      "network": "شكلك مش متصل بالنت. تعديلاتك لسه موجودة، جرّب تاني.",
+      "unknown": "حصل خطأ. جرّب تاني."
     }
   }
 }

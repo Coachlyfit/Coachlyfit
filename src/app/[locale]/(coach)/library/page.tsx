@@ -5,12 +5,14 @@ import { LibraryService } from "@/domain/library/library.service";
 import {
   exerciseQuery,
   foodQuery,
+  recipeQuery,
   parseLibraryParams,
   serializeLibraryParams,
 } from "@/domain/library/library-params";
 import type { AppLocale } from "@/domain/locale";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { LibraryClient } from "./library-client";
+import { searchRecipesAction } from "./recipes/actions";
 
 export default async function LibraryPage({
   params,
@@ -33,9 +35,10 @@ export default async function LibraryPage({
   }
   const state = parseLibraryParams(search);
 
-  const [initialExercises, initialFoods, initialExerciseFacets, initialFoodFacets, features] = await Promise.all([
+  const [initialExercises, initialFoods, initialRecipes, initialExerciseFacets, initialFoodFacets, features] = await Promise.all([
     state.tab === "exercises" ? library.searchExercises(exerciseQuery(state)) : null,
     state.tab === "foods" ? library.searchFoods(foodQuery(state)) : null,
+    state.tab === "recipes" ? searchRecipesAction(recipeQuery(state, locale)) : null,
     library.exerciseFacets({ query: state.q, source: state.source, equipment: state.equip }),
     library.foodFacets({ query: state.q, source: state.source }),
     getFeatures(),
@@ -49,6 +52,7 @@ export default async function LibraryPage({
         initialKey={serializeLibraryParams(state)}
         initialExercises={initialExercises}
         initialFoods={initialFoods}
+        initialRecipes={initialRecipes}
         initialExerciseFacets={initialExerciseFacets}
         initialFoodFacets={initialFoodFacets}
         canAddCustom={features.custom_library}

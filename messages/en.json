@@ -1870,7 +1870,8 @@
     "title": "Exercise & Food Library",
     "tabs": {
       "exercises": "Exercises",
-      "foods": "Foods"
+      "foods": "Foods",
+      "recipes": "Recipes"
     },
     "search": "Search by name...",
     "empty": "No results.",
@@ -2004,7 +2005,7 @@
     "errors": {
       "invalid_input": "Please check the form and try again.",
       "not_authenticated": "Please log in again.",
-      "in_use": "This entry is used in a plan and can't be deleted.",
+      "in_use": "This entry is used in a plan or a recipe and can't be deleted.",
       "not_found_or_forbidden": "You can't change this entry.",
       "forbidden": "You don't have permission to do that.",
       "already_global": "This entry is already in the global library.",
@@ -2077,7 +2078,8 @@
     },
     "searchPlaceholder": {
       "exercises": "Search exercises by name",
-      "foods": "Search foods by name"
+      "foods": "Search foods by name",
+      "recipes": "Search recipes..."
     },
     "mineBadge": {
       "exercises": "My exercise",
@@ -4206,6 +4208,217 @@
         "title": "Billing & payments",
         "description": "Track invoices, send reminders, record payments and see your Coachly Fit subscription."
       }
+    }
+  },
+  "recipes": {
+    "title": "Recipes",
+    "new": "New recipe",
+    "newTitle": "New recipe",
+    "editTitle": "Edit recipe",
+    "backToLibrary": "Back to library",
+    "searchPlaceholder": "Search recipes...",
+    "sort": {
+      "label": "Sort",
+      "newest": "Newest",
+      "name": "Name",
+      "kcal": "Calories"
+    },
+    "tags": {
+      "label": "Tag",
+      "all": "All tags"
+    },
+    "card": {
+      "usedIn": "{count, plural, one {Used in # plan} other {Used in # plans}}",
+      "minutes": "{count} min",
+      "hasVideo": "Has a video",
+      "perServing": "per serving",
+      "edit": "Edit",
+      "duplicate": "Duplicate",
+      "delete": "Delete"
+    },
+    "empty": {
+      "none": "No recipes yet",
+      "noneHint": "Build a recipe from foods in your library, and its macros are worked out for you.",
+      "create": "Create your first recipe",
+      "noResults": "No recipes match your search or tag.",
+      "noResultsHint": "Try another word or clear the tag.",
+      "clear": "Clear filters"
+    },
+    "delete": {
+      "title": "Delete this recipe?",
+      "bodyUnused": "This can't be undone.",
+      "bodyUsed": "This recipe is used in {count, plural, one {# plan} other {# plans}}, so it will be archived instead: hidden from your library and pickers, while those plans keep showing it.",
+      "confirm": "Delete",
+      "deleted": "Recipe deleted",
+      "archived": "Recipe archived. Plans that use it still show it."
+    },
+    "duplicated": "Recipe duplicated",
+    "copyName": "{name} (copy)",
+    "saved": "Recipe saved",
+    "loadFailed": "Couldn't load recipes.",
+    "retry": "Try again",
+    "form": {
+      "sections": {
+        "basics": "Basics",
+        "ingredients": "Ingredients",
+        "steps": "Steps",
+        "video": "Video (optional)"
+      },
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "description": "Short description",
+      "descriptionPlaceholder": "What makes this recipe worth making?",
+      "servings": "Servings",
+      "servingsDecrease": "Fewer servings",
+      "servingsIncrease": "More servings",
+      "prepMinutes": "Prep (min)",
+      "cookMinutes": "Cook (min)",
+      "tags": "Tags",
+      "tagsPlaceholder": "e.g. breakfast, then Enter",
+      "removeTag": "Remove tag {tag}",
+      "image": "Photo",
+      "imageHint": "JPEG, PNG or WebP, up to 5 MB.",
+      "imageChoose": "Add photo",
+      "imageReplace": "Replace",
+      "imageRemove": "Remove",
+      "imageUploading": "Uploading…",
+      "imageAlt": "Recipe photo",
+      "addIngredient": "Add ingredient",
+      "ingredientN": "Ingredient {n}",
+      "food": "Food",
+      "chooseFood": "Choose a food",
+      "searchFoods": "Search foods...",
+      "searching": "Searching...",
+      "noFoods": "No foods match.",
+      "createFood": "Create “{query}”…",
+      "createFoodPlain": "Create a new food",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "units": {
+        "serving": "× {label}",
+        "g": "g",
+        "ml": "ml"
+      },
+      "note": "Note",
+      "notePlaceholder": "e.g. chopped",
+      "removeIngredient": "Remove ingredient",
+      "dragIngredient": "Drag to reorder ingredient",
+      "duplicateWarning": "This ingredient is already in the recipe. Merge the quantities?",
+      "merge": "Merge",
+      "unitMismatch": "This food's serving isn't in grams anymore. Switch the unit to servings.",
+      "ingredientsHint": "Press Enter in a quantity to add the next ingredient.",
+      "addStep": "Add step",
+      "stepN": "Step {n}",
+      "stepPlaceholder": "Describe this step",
+      "removeStep": "Remove step",
+      "dragStep": "Drag to reorder step",
+      "stepsHint": "Ctrl+Enter (⌘+Enter on Mac) adds the next step.",
+      "videoUrl": "Video link",
+      "videoHint": "YouTube, Instagram, TikTok or Vimeo.",
+      "openVideo": "Open on {platform}",
+      "videoPreview": "Video preview",
+      "save": "Save recipe",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "errorSummary": "{count, plural, one {# field needs your attention.} other {# fields need your attention.}}",
+      "unsaved": "You have unsaved changes. Leave anyway?",
+      "usedConfirm": {
+        "title": "Update this recipe everywhere?",
+        "body": "This recipe is used in {count, plural, one {# active plan} other {# active plans}}. Changes will apply to all of them.",
+        "apply": "Save changes",
+        "copy": "Save as a new copy"
+      }
+    },
+    "summary": {
+      "title": "Nutrition",
+      "perServing": "Per serving",
+      "total": "Whole recipe",
+      "servings": "{count, plural, one {# serving} other {# servings}}",
+      "show": "Show nutrition",
+      "hide": "Hide nutrition"
+    },
+    "platforms": {
+      "youtube": "YouTube",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "vimeo": "Vimeo"
+    },
+    "picker": {
+      "foods": "Foods",
+      "recipes": "Recipes",
+      "search": "Search recipes...",
+      "none": "No recipes yet.",
+      "noResults": "No recipes match.",
+      "create": "Create new recipe",
+      "servings": "Servings",
+      "add": "Add",
+      "perServing": "{kcal} kcal per serving"
+    },
+    "item": {
+      "servings": "{count, plural, one {# serving} other {# servings}}",
+      "servingsOf": "Servings of {name}",
+      "showIngredients": "Show ingredients",
+      "hideIngredients": "Hide ingredients",
+      "archived": "Archived",
+      "view": "View recipe",
+      "recipe": "Recipe",
+      "remove": "Remove recipe"
+    },
+    "detail": {
+      "ingredients": "Ingredients",
+      "steps": "Steps",
+      "noSteps": "No steps for this recipe.",
+      "assigned": "Your plan: {count, plural, one {# serving} other {# servings}}",
+      "perServing": "Per serving",
+      "cookingFor": "Cooking for",
+      "fewer": "Fewer servings",
+      "more": "More servings",
+      "scaleHint": "Only changes the amounts shown here, not your plan.",
+      "totalTime": "{count} min",
+      "prep": "Prep {count} min",
+      "cook": "Cook {count} min",
+      "watch": "Watch video",
+      "cookingMode": "Keep screen on",
+      "cookingModeHint": "Stops your phone from locking while you cook.",
+      "close": "Close"
+    },
+    "errors": {
+      "name_required": "Enter a name",
+      "name_too_short": "The name needs at least 2 characters",
+      "name_too_long": "The name can be 80 characters at most",
+      "description_too_long": "The description can be 300 characters at most",
+      "servings_invalid": "Servings must be a whole number",
+      "servings_range": "Servings must be between 1 and 20",
+      "minutes_invalid": "Minutes must be a whole number",
+      "minutes_range": "Minutes must be between 0 and 600",
+      "ingredients_required": "Add at least one ingredient",
+      "ingredients_too_many": "A recipe can have 40 ingredients at most",
+      "ingredients_count": "A recipe needs between 1 and 40 ingredients",
+      "ingredient_food_required": "Choose a food for this ingredient",
+      "ingredient_food_unavailable": "This food isn't in your library anymore. Choose another one.",
+      "ingredient_unit_invalid": "Pick a unit that fits this food's serving",
+      "ingredient_note_too_long": "The note can be 60 characters at most",
+      "quantity_required": "Enter a quantity",
+      "quantity_invalid": "Enter a number, like 150 or 1.5",
+      "quantity_decimals": "Use at most 2 decimal places",
+      "quantity_positive": "Quantity must be more than 0",
+      "quantity_too_large": "Quantity can be 5000 at most",
+      "step_too_short": "A step needs at least 3 characters",
+      "step_too_long": "A step can be 500 characters at most",
+      "steps_too_many": "A recipe can have 30 steps at most",
+      "tag_too_long": "A tag can be 24 characters at most",
+      "tags_too_many": "Use 8 tags at most",
+      "video_unsupported": "Only YouTube, Instagram, TikTok or Vimeo links are supported",
+      "image_type": "Use a JPEG, PNG or WebP photo",
+      "image_too_large": "The photo must be 5 MB or smaller",
+      "upload_failed": "The photo didn't upload. Try again.",
+      "invalid_input": "Please check the form and try again.",
+      "not_authenticated": "Please log in again.",
+      "not_found_or_forbidden": "You can't change this recipe.",
+      "forbidden": "You don't have permission to do that.",
+      "in_use": "This recipe is used in a plan.",
+      "network": "You seem to be offline. Your changes are still here; try again.",
+      "unknown": "Something went wrong. Please try again."
     }
   }
 }
