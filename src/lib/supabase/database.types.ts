@@ -5176,7 +5176,7 @@ export type Database = {
         }
       }
       save_recipe: {
-        Args: { p_id: string; p_ingredients: Json; p_recipe: Json }
+        Args: { p_id?: string; p_ingredients: Json; p_recipe: Json }
         Returns: string
       }
       set_my_subscription_cancel: {
