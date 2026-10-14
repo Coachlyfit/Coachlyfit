@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { getPlatformSettings } from "@/lib/platform-settings";
+import { redirectIfSignedIn } from "@/lib/auth/session";
 import { ConsentLine } from "@/components/legal/consent-line";
 import { SignupForm } from "./signup-form";
 
@@ -28,6 +29,7 @@ export default async function SignupPage({
   params: Promise<{ locale: AppLocale }>;
 }) {
   const { locale } = await params;
+  await redirectIfSignedIn(locale);
   const t = await getTranslations("auth.signup");
   const settings = await getPlatformSettings();
 

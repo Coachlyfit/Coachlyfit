@@ -2219,31 +2219,34 @@ export type Database = {
         Row: {
           client_id: string | null
           coach_id: string
-          food_id: string
+          food_id: string | null
           id: string
           meal_id: string
           order_index: number
           quantity: number
+          recipe_id: string | null
           unit: string
         }
         Insert: {
           client_id?: string | null
           coach_id: string
-          food_id: string
+          food_id?: string | null
           id?: string
           meal_id: string
           order_index?: number
           quantity?: number
+          recipe_id?: string | null
           unit?: string
         }
         Update: {
           client_id?: string | null
           coach_id?: string
-          food_id?: string
+          food_id?: string | null
           id?: string
           meal_id?: string
           order_index?: number
           quantity?: number
+          recipe_id?: string | null
           unit?: string
         }
         Relationships: [
@@ -2294,6 +2297,20 @@ export type Database = {
             columns: ["meal_id"]
             isOneToOne: false
             referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_items_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_items_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes_with_macros"
             referencedColumns: ["id"]
           },
         ]
@@ -3459,6 +3476,124 @@ export type Database = {
           },
         ]
       }
+      recipe_ingredients: {
+        Row: {
+          food_id: string
+          id: string
+          note: string | null
+          position: number
+          quantity: number
+          recipe_id: string
+          unit: string
+        }
+        Insert: {
+          food_id: string
+          id?: string
+          note?: string | null
+          position: number
+          quantity: number
+          recipe_id: string
+          unit?: string
+        }
+        Update: {
+          food_id?: string
+          id?: string
+          note?: string | null
+          position?: number
+          quantity?: number
+          recipe_id?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes_with_macros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          archived_at: string | null
+          coach_id: string
+          cook_minutes: number | null
+          created_at: string
+          description: string | null
+          id: string
+          image_path: string | null
+          name_ar: string
+          name_en: string
+          prep_minutes: number | null
+          servings: number
+          steps: string[]
+          tags: string[]
+          video_url: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          coach_id: string
+          cook_minutes?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          name_ar: string
+          name_en: string
+          prep_minutes?: number | null
+          servings?: number
+          steps?: string[]
+          tags?: string[]
+          video_url?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          coach_id?: string
+          cook_minutes?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string | null
+          name_ar?: string
+          name_en?: string
+          prep_minutes?: number | null
+          servings?: number
+          steps?: string[]
+          tags?: string[]
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rehab_phases: {
         Row: {
           client_id: string | null
@@ -4578,6 +4713,39 @@ export type Database = {
           },
         ]
       }
+      recipes_with_macros: {
+        Row: {
+          archived_at: string | null
+          carb_g: number | null
+          coach_id: string | null
+          cook_minutes: number | null
+          created_at: string | null
+          description: string | null
+          fat_g: number | null
+          id: string | null
+          image_path: string | null
+          kcal: number | null
+          name_ar: string | null
+          name_en: string | null
+          plan_count: number | null
+          prep_minutes: number | null
+          protein_g: number | null
+          servings: number | null
+          steps: string[] | null
+          tags: string[] | null
+          total_minutes: number | null
+          video_url: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_invite: {
@@ -5006,6 +5174,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      save_recipe: {
+        Args: { p_id?: string; p_ingredients: Json; p_recipe: Json }
+        Returns: string
       }
       set_my_subscription_cancel: {
         Args: { p_cancel: boolean }

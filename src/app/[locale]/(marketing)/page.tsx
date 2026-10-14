@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { hasLocale } from "next-intl";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { redirectIfSignedIn } from "@/lib/auth/session";
 import { MarketingService } from "@/domain/marketing/marketing.service";
 import type { Section } from "@/domain/marketing/sections.schema";
 import { SectionView } from "@/components/marketing/section-view";
@@ -106,6 +107,9 @@ export default async function MarketingHome({
 }) {
   const { locale } = await params;
   const appLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
+  // Signed-in visitors land on their dashboard; the landing page is for
+  // visitors with no session in this browser.
+  await redirectIfSignedIn(appLocale);
 
   // Only what an admin has published (see /admin/site); the draft is never
   // read here. Tiers are fetched alongside for the pricing section.

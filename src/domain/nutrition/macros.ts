@@ -91,9 +91,14 @@ export function targetDelta(
  * multiple of the food's own serving_label (see itemMacros), so a "100g"
  * food at 1.5 reads "150g"; anything not a plain gram/ml amount ("1 cup",
  * "1 slice") reads "1.5 × 1 cup". */
+/** A serving_label that is a plain gram/ml amount ("100g", "250 ml"). Also
+ * decides whether a recipe ingredient can be entered in g/ml
+ * (recipe-nutrition.ts), mirrored in SQL by private.serving_factor. */
+export const GRAM_SERVING_RE = /^(\d+(?:\.\d+)?)\s*(g|ml)$/i;
+
 export function formatServing(quantity: number, servingLabel: string | null | undefined): string {
   const label = (servingLabel ?? "").trim();
-  const m = /^(\d+(?:\.\d+)?)\s*(g|ml)$/i.exec(label);
+  const m = label.match(GRAM_SERVING_RE);
   if (m) return `${round1(quantity * Number(m[1]))}${m[2].toLowerCase()}`;
   if (!label) return `× ${quantity}`;
   return quantity === 1 ? label : `${quantity} × ${label}`;
