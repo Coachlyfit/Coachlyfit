@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirectIfSignedIn } from "@/lib/auth/session";
 import { LoginCard } from "./login-card";
 
 export async function generateMetadata({
@@ -22,6 +23,7 @@ export default async function LoginPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  await redirectIfSignedIn(locale);
 
   return <LoginCard locale={locale} />;
 }

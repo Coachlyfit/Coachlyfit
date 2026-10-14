@@ -1,7 +1,9 @@
 import { cache } from "react";
+import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "./resolve-coach-id";
+import { roleHome } from "./role-home";
 import type { Database } from "@/lib/supabase/database.types";
 
 /** Request-scoped (React.cache), auth-and-tenant helpers.
@@ -55,3 +57,14 @@ export const getRequestCoachId = cache(async () => {
   const supabase = await createClient();
   return resolveCoachId(supabase as SupabaseClient<Database>);
 });
+
+/** For public entry points (marketing home, /login, /signup): a visitor who
+ * already has a session in this browser goes straight to their home instead
+ * of being shown the landing page or asked to log in again. No session (or
+ * no profile row) -> returns and the public page renders as usual. */
+export async function redirectIfSignedIn(locale: string) {
+  const profile = await getViewerProfile();
+  if (!profile) return;
+  if (profile.suspended_at) redirect(`/${locale}/suspended`);
+  redirect(roleHome(locale, profile.role));
+}
