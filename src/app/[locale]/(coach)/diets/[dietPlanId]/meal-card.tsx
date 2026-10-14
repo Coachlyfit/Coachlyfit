@@ -5,13 +5,14 @@ import { useTranslations } from "next-intl";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Copy, GripVertical, Loader2, MoreHorizontal, Pencil, Plus, Trash2, ArrowLeftRight } from "lucide-react";
+import { Copy, GripVertical, Loader2, MoreHorizontal, Pencil, Plus, Trash2, ArrowLeftRight, ChefHat, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,9 +27,18 @@ import { MacroLine } from "@/components/nutrition/macro-summary";
 import { cn } from "@/lib/utils";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatServing, itemMacros, mealMacros } from "@/domain/nutrition/macros";
+import { formatIngredientAmount, itemMacroFood } from "@/domain/recipes/recipe-nutrition";
 import type { DietPlanTree } from "@/domain/nutrition/diet-plans.service";
-import { addMealItemAction, deleteMealItemAction, reorderMealItemsAction, setItemQuantityAction } from "../actions";
+import {
+  addMealItemAction,
+  addMealRecipeAction,
+  deleteMealItemAction,
+  reorderMealItemsAction,
+  setItemQuantityAction,
+} from "../actions";
 import { FoodPicker, type PickedFood } from "./food-picker";
+import { RecipePicker } from "./recipe-picker";
+import type { RecipeCardRow } from "../../library/recipes/actions";
 
 type Meal = DietPlanTree["meals"][number];
 type Item = Meal["meal_items"][number];
@@ -53,11 +63,13 @@ function applyChange(items: Item[], change: ItemChange): Item[] {
 
 const isTemp = (id: string) => id.startsWith("temp-");
 
-/** One food line. Quantity is edited in place: the number is a multiple of
- * the food's own serving (serving_label), which is what macros.ts scales
- * by — the second line spells out what that works out to ("150g"). Commits
- * on blur/Enter, Escape reverts. Keyed by id+quantity from the parent, so a
- * server-confirmed value resets the draft. */
+/** One food or recipe line. Quantity is edited in place: for a food it's a
+ * multiple of the food's own serving (serving_label), which is what
+ * macros.ts scales by — the second line spells out what that works out to
+ * ("150g"); for a recipe it's the number of recipe servings, and the
+ * ingredients can be expanded underneath. Commits on blur/Enter, Escape
+ * reverts. Keyed by id+quantity from the parent, so a server-confirmed
+ * value resets the draft. */
 function FoodRow({
   item,
   locale,
@@ -71,7 +83,10 @@ function FoodRow({
 }) {
   const t = useTranslations("diets.builder");
   const tMacros = useTranslations("diets.macros");
+  const tRecipe = useTranslations("recipes.item");
   const temp = isTemp(item.id);
+  const recipe = item.recipes;
+  const [expanded, setExpanded] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
     disabled: temp,
@@ -80,8 +95,10 @@ function FoodRow({
   const parsed = Number(draft);
   const valid = draft !== "" && Number.isFinite(parsed) && parsed >= 0.1 && parsed <= 100;
   const quantity = valid ? parsed : item.quantity;
-  const macros = itemMacros(quantity, item.foods);
+  const macros = itemMacros(quantity, itemMacroFood(item));
   const serving = item.foods?.serving_label ?? "";
+  const name = pickLocale(item.foods ?? recipe, locale);
+  const quantityLabel = recipe ? tRecipe("servingsOf", { name }) : t("servingsOf", { serving });
 
   function commit() {
     if (!valid) {
@@ -95,12 +112,9 @@ function FoodRow({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        "flex items-center gap-2 rounded-md px-1 py-1.5 hover:bg-muted/50",
-        isDragging && "opacity-50",
-        temp && "opacity-60"
-      )}
+      className={cn("rounded-md hover:bg-muted/50", isDragging && "opacity-50", temp && "opacity-60")}
     >
+    <div className="flex items-center gap-2 px-1 py-1.5">
       <button
         type="button"
         {...attributes}
@@ -111,24 +125,47 @@ function FoodRow({
         <GripVertical className="size-4" />
       </button>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium">{pickLocale(item.foods, locale)}</div>
+        <div className="flex items-center gap-1.5 text-sm font-medium">
+          {recipe && <ChefHat className="size-4 shrink-0 text-primary" aria-label={tRecipe("recipe")} />}
+          <span className="truncate">{name}</span>
+          {recipe?.archived_at && (
+            <Badge variant="outline" className="shrink-0">
+              {tRecipe("archived")}
+            </Badge>
+          )}
+        </div>
         <div className="truncate font-mono text-xs text-muted-foreground tabular-nums">
-          {formatServing(quantity, serving)} · {tMacros("p")} {Math.round(macros.protein_g)} · {tMacros("c")}{" "}
-          {Math.round(macros.carb_g)} · {tMacros("f")} {Math.round(macros.fat_g)}
+          {recipe ? tRecipe("servings", { count: quantity }) : formatServing(quantity, serving)} · {tMacros("p")}{" "}
+          {Math.round(macros.protein_g)} · {tMacros("c")} {Math.round(macros.carb_g)} · {tMacros("f")}{" "}
+          {Math.round(macros.fat_g)}
         </div>
       </div>
+      {recipe && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          aria-controls={`recipe-ingredients-${item.id}`}
+          aria-label={expanded ? tRecipe("hideIngredients") : tRecipe("showIngredients")}
+          className="shrink-0 text-muted-foreground"
+        >
+          <ChevronDown className={cn("size-4 transition-transform", expanded && "rotate-180")} />
+        </Button>
+      )}
       <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
         <span aria-hidden="true">×</span>
         <Input
           type="number"
           inputMode="decimal"
-          step="0.25"
+          step={recipe ? "0.5" : "0.25"}
           min={0.1}
           max={100}
           value={draft}
           disabled={temp}
-          aria-label={t("servingsOf", { serving })}
-          title={t("servingsOf", { serving })}
+          aria-label={quantityLabel}
+          title={quantityLabel}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => {
@@ -145,11 +182,32 @@ function FoodRow({
         size="icon-sm"
         disabled={temp}
         onClick={onRemove}
-        aria-label={t("removeFood")}
+        aria-label={recipe ? tRecipe("remove") : t("removeFood")}
         className="shrink-0 text-muted-foreground hover:text-destructive"
       >
         <Trash2 className="size-4" />
       </Button>
+    </div>
+    {recipe && expanded && (
+      <ul id={`recipe-ingredients-${item.id}`} className="flex flex-col gap-0.5 pb-2 ps-10 pe-2 text-xs text-muted-foreground">
+        {recipe.recipe_ingredients.map((ingredient) => (
+          <li key={ingredient.id} className="flex gap-2">
+            <span className="w-20 shrink-0 font-mono tabular-nums">
+              {formatIngredientAmount(
+                ingredient.quantity,
+                ingredient.unit,
+                ingredient.foods?.serving_label,
+                quantity / recipe.servings
+              )}
+            </span>
+            <span className="min-w-0 truncate">
+              {pickLocale(ingredient.foods, locale)}
+              {ingredient.note && <span className="ms-1">({ingredient.note})</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
     </div>
   );
 }
@@ -175,13 +233,14 @@ export function MealCard({
 }) {
   const t = useTranslations("diets.builder");
   const tErrors = useTranslations("diets.errors");
+  const tPicker = useTranslations("recipes.picker");
   const [items, applyOptimistic] = useOptimistic(meal.meal_items, applyChange);
   const [pending, startTransition] = useTransition();
   const [addOpen, setAddOpen] = useState(false);
   const [addedIds, setAddedIds] = useState<ReadonlySet<string>>(new Set());
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: meal.id });
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
-  const totals = mealMacros(items.map((i) => ({ quantity: i.quantity, food: i.foods })));
+  const totals = mealMacros(items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) })));
   const label = meal.label_ar || meal.label_en ? pickLocale(meal, locale, "label") : t("untitledMeal");
 
   function run(change: ItemChange, call: () => Promise<{ error: string } | void>) {
@@ -213,10 +272,21 @@ export function MealCard({
           unit,
           order_index: items.length,
           foods: { ...food, category: food.category ?? "" },
+          recipes: null,
         },
       },
       () => addMealItemAction(locale, dietPlanId, meal.id, formData)
     );
+  }
+
+  // Not optimistic: a recipe row needs its ingredients to show macros, and
+  // those arrive with the revalidated tree. The meal header shows pending.
+  function addRecipe(recipe: RecipeCardRow, servings: number) {
+    setAddedIds((prev) => new Set(prev).add(recipe.id));
+    startTransition(async () => {
+      const result = await addMealRecipeAction(locale, dietPlanId, meal.id, recipe.id, servings);
+      if (result?.error) toast.error(tErrors(result.error));
+    });
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
@@ -339,7 +409,23 @@ export function MealCard({
             {t("addFood")}
           </PopoverTrigger>
           <PopoverContent align="start" className="w-96">
-            <FoodPicker locale={locale} addedIds={addedIds} onSelect={addFood} />
+            <Tabs defaultValue="foods" className="gap-2">
+              <TabsList className="w-full">
+                <TabsTrigger value="foods" className="flex-1">
+                  {tPicker("foods")}
+                </TabsTrigger>
+                <TabsTrigger value="recipes" className="flex-1">
+                  <ChefHat className="size-4" aria-hidden="true" />
+                  {tPicker("recipes")}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="foods">
+                <FoodPicker locale={locale} addedIds={addedIds} onSelect={addFood} />
+              </TabsContent>
+              <TabsContent value="recipes">
+                <RecipePicker locale={locale} addedIds={addedIds} onSelect={addRecipe} />
+              </TabsContent>
+            </Tabs>
           </PopoverContent>
         </Popover>
       </div>

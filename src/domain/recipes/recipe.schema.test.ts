@@ -75,6 +75,8 @@ describe("recipeSchema", () => {
     const out = recipeSchema.parse({ ...valid, steps: [{ text: "  " }, { text: " Stir well " }, { text: "" }] });
     expect(out.steps).toEqual([{ text: "Stir well" }]);
     expect(firstError({ ...valid, steps: [{ text: "ab" }] }, "steps.0.text")).toBe("step_too_short");
+    // The error stays on the row the coach sees, even after a blank row.
+    expect(firstError({ ...valid, steps: [{ text: "" }, { text: "ab" }] }, "steps.1.text")).toBe("step_too_short");
     expect(firstError({ ...valid, steps: [{ text: "x".repeat(501) }] }, "steps.0.text")).toBe("step_too_long");
     const many = Array.from({ length: 31 }, () => ({ text: "Do it" }));
     expect(firstError({ ...valid, steps: many }, "steps")).toBe("steps_too_many");

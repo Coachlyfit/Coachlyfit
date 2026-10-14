@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   allowedUnits,
   calculateRecipeNutrition,
+  formatIngredientAmount,
   gramsPerServing,
+  itemMacroFood,
   recipeAsMacroFood,
   servingFactor,
 } from "./recipe-nutrition";
@@ -87,13 +89,30 @@ describe("calculateRecipeNutrition", () => {
   });
 });
 
-describe("recipeAsMacroFood", () => {
+describe("recipeAsMacroFood / itemMacroFood", () => {
+  const recipe = { servings: 2, recipe_ingredients: [{ quantity: 200, unit: "g", foods: chicken }] };
+
   it("plugs into mealMacros with quantity = recipe servings", () => {
-    const recipe = { servings: 2, recipe_ingredients: [{ quantity: 200, unit: "g", food: chicken }] };
     const totals = mealMacros([
       { quantity: 1.5, food: recipeAsMacroFood(recipe) },
       { quantity: 1, food: egg },
     ]);
     expect(totals.kcal).toBeCloseTo(165 * 1.5 + 78, 1);
+  });
+
+  it("picks the food, else the recipe, else nothing", () => {
+    expect(itemMacroFood({ foods: egg, recipes: null })).toBe(egg);
+    expect(itemMacroFood({ foods: null, recipes: recipe })?.kcal).toBeCloseTo(165);
+    expect(itemMacroFood({ foods: null, recipes: null })).toBeNull();
+  });
+});
+
+describe("formatIngredientAmount", () => {
+  it("shows g/ml directly and servings through formatServing, scaled", () => {
+    expect(formatIngredientAmount(150, "g", "100g")).toBe("150g");
+    expect(formatIngredientAmount(150, "g", "100g", 1.5)).toBe("225g");
+    expect(formatIngredientAmount(2, "serving", "1 egg")).toBe("2 × 1 egg");
+    expect(formatIngredientAmount(1, "serving", "100g", 0.5)).toBe("50g");
+    expect(formatIngredientAmount(100, "ml", "250ml", 1 / 3)).toBe("33.3ml");
   });
 });

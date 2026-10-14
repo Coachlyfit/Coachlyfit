@@ -2,10 +2,11 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
-import { planMacros, mealMacros, formatServing } from "@/domain/nutrition/macros";
+import { planMacros, mealMacros, formatServing, itemMacros } from "@/domain/nutrition/macros";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { PrintButton } from "@/components/print/print-button";
+import { itemMacroFood } from "@/domain/recipes/recipe-nutrition";
 
 export default async function PrintDietPlanPage({
   params,
@@ -17,6 +18,7 @@ export default async function PrintDietPlanPage({
   const tDiets = await getTranslations("diets");
   const tBuilder = await getTranslations("diets.builder");
   const tMacros = await getTranslations("diets.macros");
+  const tRecipeItem = await getTranslations("recipes.item");
   const supabase = await createClient();
 
   const tree = await new DietPlansService(supabase).getTree(dietPlanId);
@@ -28,7 +30,7 @@ export default async function PrintDietPlanPage({
     : null;
 
   const planTotals = planMacros(
-    tree.meals.map((meal) => meal.meal_items.map((item) => ({ quantity: item.quantity, food: item.foods })))
+    tree.meals.map((meal) => meal.meal_items.map((item) => ({ quantity: item.quantity, food: itemMacroFood(item) })))
   );
 
   return (
@@ -57,7 +59,7 @@ export default async function PrintDietPlanPage({
 
       <div className="flex flex-col gap-6">
         {tree.meals.map((meal) => {
-          const totals = mealMacros(meal.meal_items.map((item) => ({ quantity: item.quantity, food: item.foods })));
+          const totals = mealMacros(meal.meal_items.map((item) => ({ quantity: item.quantity, food: itemMacroFood(item) })));
           return (
             <section key={meal.id} className="break-inside-avoid">
               <div className="flex items-baseline justify-between">
@@ -87,11 +89,20 @@ export default async function PrintDietPlanPage({
                   <tbody>
                     {meal.meal_items.map((item) => (
                       <tr key={item.id} className="border-b border-gray-200">
-                        <td className="py-1.5">{pickLocale(item.foods, locale)}</td>
-                        <td className="py-1.5 tabular-nums">
-                          {formatServing(item.quantity, item.foods?.serving_label)}
+                        <td className="py-1.5">
+                          {pickLocale(item.foods ?? item.recipes, locale)}
+                          {item.recipes && (
+                            <span className="ms-1.5 text-xs text-gray-600">({tRecipeItem("recipe")})</span>
+                          )}
                         </td>
-                        <td className="py-1.5 tabular-nums">{Math.round((item.foods?.kcal ?? 0) * item.quantity)}</td>
+                        <td className="py-1.5 tabular-nums">
+                          {item.recipes
+                            ? tRecipeItem("servings", { count: item.quantity })
+                            : formatServing(item.quantity, item.foods?.serving_label)}
+                        </td>
+                        <td className="py-1.5 tabular-nums">
+                          {Math.round(itemMacros(item.quantity, itemMacroFood(item)).kcal)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

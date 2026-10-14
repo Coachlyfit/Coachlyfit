@@ -91,21 +91,21 @@ export const recipeSchema = z.object({
     .array(recipeIngredientSchema)
     .min(1, "ingredients_required")
     .max(40, "ingredients_too_many"),
-  // Objects, not strings: useFieldArray needs object rows. Blank rows are
-  // dropped silently before any rule runs.
-  steps: z.preprocess(
-    (v) =>
-      Array.isArray(v)
-        ? v
-            .map((s: unknown) => ({
-              text: typeof s === "object" && s && "text" in s && typeof s.text === "string" ? s.text.trim() : "",
-            }))
-            .filter((s) => s.text !== "")
-        : v,
-    z
-      .array(z.object({ text: z.string().min(3, "step_too_short").max(500, "step_too_long") }))
-      .max(30, "steps_too_many")
-  ),
+  // Objects, not strings: useFieldArray needs object rows. Each row is
+  // checked where it stands (a blank row passes), and blank rows are
+  // dropped only afterwards, so an error's index is the row the coach sees.
+  steps: z
+    .array(
+      z.object({
+        text: z
+          .string()
+          .trim()
+          .refine((text) => text === "" || text.length >= 3, "step_too_short")
+          .refine((text) => text.length <= 500, "step_too_long"),
+      })
+    )
+    .transform((steps) => steps.filter((step) => step.text !== ""))
+    .pipe(z.array(z.object({ text: z.string() })).max(30, "steps_too_many")),
   // Trimmed, blanks dropped, case-insensitive duplicates collapsed.
   tags: z.preprocess(
     (v) => {

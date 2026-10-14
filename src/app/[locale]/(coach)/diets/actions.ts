@@ -11,6 +11,7 @@ import {
   dietTargetsSchema,
   mealSchema,
   mealItemSchema,
+  mealRecipeItemSchema,
   reorderSchema,
   saveAsTemplateSchema,
 } from "./schemas";
@@ -279,6 +280,33 @@ export async function addMealItemAction(
 
   const added = await new DietPlansService(supabase).addItem(mealId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+export async function addMealRecipeAction(
+  locale: string,
+  dietPlanId: string,
+  mealId: string,
+  recipeId: string,
+  quantity: number
+): Promise<ActionResult> {
+  const parsed = mealRecipeItemSchema.safeParse({ recipe_id: recipeId, quantity });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  // The meal_items own_recipe_* policies refuse another coach's recipe; that
+  // surfaces as an error rather than a 0-row insert.
+  try {
+    const added = await new DietPlansService(supabase).addItem(mealId, { ...parsed.data, unit: "serving" });
+    if (!added) return { error: "not_found_or_forbidden" };
+  } catch {
+    return { error: "not_found_or_forbidden" };
+  }
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
 }
 

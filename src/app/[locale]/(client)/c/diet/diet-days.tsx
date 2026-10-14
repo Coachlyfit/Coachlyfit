@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Dumbbell, HeartPulse, Moon, StickyNote, Activity } from "lucide-react";
+import { Dumbbell, HeartPulse, Moon, StickyNote, Activity, ChefHat, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MacroLine, MacroSummary } from "@/components/nutrition/macro-summary";
 import { cn } from "@/lib/utils";
 import type { MacroTargets, MacroTotals } from "@/domain/nutrition/macros";
 import type { DayKind } from "@/domain/programs/day-plan";
+import { RecipeSheet, type RecipeView } from "./recipe-sheet";
 
 export type PlanView = {
   id: string;
@@ -21,7 +22,15 @@ export type PlanView = {
     label: string | null;
     time: string | null;
     totals: MacroTotals;
-    items: { id: string; name: string; amount: string; kcal: number }[];
+    items: {
+      id: string;
+      name: string;
+      amount: string;
+      kcal: number;
+      /** Set for a recipe item; `quantity` is then the servings assigned. */
+      recipe: RecipeView | null;
+      quantity: number;
+    }[];
   }[];
 };
 
@@ -56,7 +65,9 @@ function useNextMealIndex(meals: PlanView["meals"], enabled: boolean) {
 
 export function DietDays({ days, plans }: { days: DayView[]; plans: Record<string, PlanView> }) {
   const t = useTranslations("client.diet");
+  const tRecipe = useTranslations("recipes.item");
   const [selected, setSelected] = useState(0);
+  const [openRecipe, setOpenRecipe] = useState<{ recipe: RecipeView; servings: number } | null>(null);
   const day = days[selected];
   const plan = day.planId ? plans[day.planId] : null;
   const nextIndex = useNextMealIndex(plan?.meals ?? [], selected === 0);
@@ -141,17 +152,42 @@ export function DietDays({ days, plans }: { days: DayView[]; plans: Record<strin
                     <p className="text-sm text-muted-foreground">—</p>
                   ) : (
                     <ul className="flex flex-col divide-y divide-border">
-                      {meal.items.map((item) => (
-                        <li key={item.id} className="flex items-center gap-3 py-2 text-sm">
-                          <span className="w-20 shrink-0 break-words font-mono text-sm font-semibold tabular-nums">
-                            {item.amount}
-                          </span>
-                          <span className="min-w-0 flex-1">{item.name}</span>
-                          <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                            {t("kcal", { n: item.kcal })}
-                          </span>
-                        </li>
-                      ))}
+                      {meal.items.map((item) =>
+                        item.recipe ? (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              onClick={() => item.recipe && setOpenRecipe({ recipe: item.recipe, servings: item.quantity })}
+                              className="flex w-full items-center gap-3 rounded-md py-2 text-start text-sm hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                              <span className="w-20 shrink-0 break-words font-mono text-sm font-semibold tabular-nums">
+                                {item.amount}
+                              </span>
+                              <span className="flex min-w-0 flex-1 flex-col">
+                                <span className="flex items-center gap-1.5">
+                                  <ChefHat className="size-4 shrink-0 text-primary" aria-label={tRecipe("recipe")} />
+                                  <span className="min-w-0">{item.name}</span>
+                                </span>
+                                <span className="text-xs text-primary">{tRecipe("view")}</span>
+                              </span>
+                              <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+                                {t("kcal", { n: item.kcal })}
+                              </span>
+                              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
+                            </button>
+                          </li>
+                        ) : (
+                          <li key={item.id} className="flex items-center gap-3 py-2 text-sm">
+                            <span className="w-20 shrink-0 break-words font-mono text-sm font-semibold tabular-nums">
+                              {item.amount}
+                            </span>
+                            <span className="min-w-0 flex-1">{item.name}</span>
+                            <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+                              {t("kcal", { n: item.kcal })}
+                            </span>
+                          </li>
+                        )
+                      )}
                     </ul>
                   )}
                 </Card>
@@ -159,6 +195,16 @@ export function DietDays({ days, plans }: { days: DayView[]; plans: Record<strin
             );
           })}
         </ol>
+      )}
+
+      {openRecipe && (
+        <RecipeSheet
+          key={openRecipe.recipe.id}
+          recipe={openRecipe.recipe}
+          assignedServings={openRecipe.servings}
+          open
+          onOpenChange={(open) => !open && setOpenRecipe(null)}
+        />
       )}
     </div>
   );

@@ -14,6 +14,7 @@ import { planMacros, planWarnings, type MacroTargets } from "@/domain/nutrition/
 import type { DietPlanTree } from "@/domain/nutrition/diet-plans.service";
 import { dietTargetsSchema, type DietTargetsFormInput } from "../schemas";
 import { updateDietTargetsAction } from "../actions";
+import { itemMacroFood } from "@/domain/recipes/recipe-nutrition";
 
 const FIELDS = [
   ["target_kcal", "kcal", 10000],
@@ -47,7 +48,7 @@ export function DaySummary({
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const itemsByMeal = meals.map((meal) => meal.meal_items.map((item) => ({ quantity: item.quantity, food: item.foods })));
+  const itemsByMeal = meals.map((meal) => meal.meal_items.map((item) => ({ quantity: item.quantity, food: itemMacroFood(item) })));
   const totals = planMacros(itemsByMeal);
   const warnings = planWarnings(itemsByMeal, targets);
   const emptyMeals = warnings.filter((w) => w.code === "empty_meal").length;

@@ -1,7 +1,8 @@
 import { EQUIPMENT, FOOD_CATEGORIES, MUSCLE_GROUPS } from "./taxonomy";
 import type { LibraryQuery, LibrarySource } from "./library.service";
+import { RECIPE_SORTS, type RecipeQuery, type RecipeSort } from "@/domain/recipes/recipes.service";
 
-export const LIBRARY_TABS = ["exercises", "foods"] as const;
+export const LIBRARY_TABS = ["exercises", "foods", "recipes"] as const;
 export const LIBRARY_VIEWS = ["list", "card", "kanban"] as const;
 const SOURCES = ["all", "global", "mine"] as const satisfies readonly LibrarySource[];
 
@@ -10,7 +11,8 @@ export type LibraryView = (typeof LIBRARY_VIEWS)[number];
 
 /** Everything about the library page that survives a refresh. `group` is the
  * exercises tab's muscle group and `cat` the foods tab's category — separate
- * vocabularies, so each tab keeps its own. `page` belongs to the active tab. */
+ * vocabularies, so each tab keeps its own. `sort` and `tag` are the recipes
+ * tab's. `page` belongs to the active tab. */
 export type LibraryParams = {
   tab: LibraryTab;
   view: LibraryView;
@@ -19,6 +21,8 @@ export type LibraryParams = {
   group: string | null;
   cat: string | null;
   equip: string | null;
+  sort: RecipeSort;
+  tag: string | null;
   page: number;
 };
 
@@ -30,6 +34,8 @@ export const DEFAULT_LIBRARY_PARAMS: LibraryParams = {
   group: null,
   cat: null,
   equip: null,
+  sort: "newest",
+  tag: null,
   page: 1,
 };
 
@@ -51,6 +57,10 @@ export function parseLibraryParams(search: URLSearchParams): LibraryParams {
     group: oneOf(MUSCLE_GROUPS, search.get("group")),
     cat: oneOf(FOOD_CATEGORIES, search.get("cat")),
     equip: oneOf(EQUIPMENT, search.get("equip")),
+    sort: oneOf(RECIPE_SORTS, search.get("sort")) ?? DEFAULT_LIBRARY_PARAMS.sort,
+    // Tags are the coach's own words, so there's no whitelist; only the
+    // same length cap the DB puts on a tag.
+    tag: search.get("tag")?.trim().slice(0, 24) || null,
     page: Number.isInteger(page) && page > 1 ? page : 1,
   };
 }
@@ -95,5 +105,16 @@ export function foodQuery(params: LibraryParams): LibraryQuery {
     group: params.cat,
     page: params.page,
     pageSize: libraryPageSize(params.view),
+  };
+}
+
+export function recipeQuery(params: LibraryParams, locale: "ar" | "en"): RecipeQuery {
+  return {
+    query: params.q,
+    tag: params.tag,
+    sort: params.sort,
+    locale,
+    page: params.page,
+    pageSize: LIST_PAGE_SIZE,
   };
 }
