@@ -33,6 +33,12 @@ export function formatNumber(value: number, locale: AppLocale, options?: Intl.Nu
   });
 }
 
+/** The reverse direction, for input: an Arabic keyboard types Arabic-Indic
+ * (٠-٩) or Persian (۰-۹) digits, which Number() rejects. */
+export function toLatinDigits(value: string): string {
+  return value.replace(/[٠-٩۰-۹]/g, (d) => String(d.charCodeAt(0) & 0xf));
+}
+
 // Each entry: the minimum diff (in seconds) to qualify for this unit, the
 // unit's own size in seconds (the divisor), and the Intl unit to report.
 // Checked largest-first so a 3-day-old message reports "3 days" rather than
