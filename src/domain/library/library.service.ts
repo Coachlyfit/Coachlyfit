@@ -141,7 +141,7 @@ function applySource<
   return q.is("my_clone_id", null);
 }
 
-function normalizePaging(params: Pick<LibraryQuery, "page" | "pageSize">) {
+export function normalizePaging(params: Pick<LibraryQuery, "page" | "pageSize">) {
   const page = Math.max(1, Math.floor(params.page ?? 1));
   const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(params.pageSize ?? DEFAULT_PAGE_SIZE)));
   return { page, pageSize };
@@ -153,7 +153,7 @@ type PagedResult<T> = PromiseLike<{ data: T[] | null; count: number | null; erro
  * (PGRST103 — e.g. the coach was on page 5 and a row got deleted), retries
  * once at page 1 instead of surfacing an error for a page that no longer
  * exists. */
-async function runPaged<T>(
+export async function runPaged<T>(
   build: (page: number) => PagedResult<T>,
   page: number,
   pageSize: number

@@ -208,6 +208,7 @@ export function MealCard({
           client_id: meal.client_id,
           meal_id: meal.id,
           food_id: food.id,
+          recipe_id: null,
           quantity: 1,
           unit,
           order_index: items.length,
