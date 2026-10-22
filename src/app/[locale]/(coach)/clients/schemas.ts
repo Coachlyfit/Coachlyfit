@@ -51,3 +51,23 @@ export const updateClientSchema = z.object({
 });
 
 export type UpdateClientInput = z.infer<typeof updateClientSchema>;
+
+// Same bounds as the client's own signup (join/[token]/schemas.ts); 72 is
+// bcrypt's input limit.
+const clientPassword = z.string().min(8).max(72);
+
+// Activating a client with no account needs an email to log in with
+// (prefilled from the roster row). Confirming an existing unconfirmed signup
+// needs neither field — the password is then an optional override.
+export const activateClientSchema = z.object({
+  email: z.string().email().optional().or(z.literal("")),
+  password: clientPassword.optional().or(z.literal("")),
+});
+
+export type ActivateClientInput = z.infer<typeof activateClientSchema>;
+
+export const setClientPasswordSchema = z.object({
+  password: clientPassword,
+});
+
+export type SetClientPasswordInput = z.infer<typeof setClientPasswordSchema>;

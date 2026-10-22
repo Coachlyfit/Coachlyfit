@@ -752,7 +752,13 @@
       "not_found_or_forbidden": "Couldn't find that, or you don't have access.",
       "already_your_client": "This person is already your client.",
       "subscription_inactive": "Your subscription isn't active, so you can't add clients. Reactivate it from the Subscription page.",
-      "team_full": "This team is full. Ask the account owner to free a seat or upgrade their plan."
+      "team_full": "This team is full. Ask the account owner to free a seat or upgrade their plan.",
+      "owner_only": "Only the account owner can manage client logins.",
+      "already_active": "This client's account is already active.",
+      "email_required": "Add an email for this client first.",
+      "password_required": "Enter a password.",
+      "no_account": "This client doesn't have an account yet. Activate it first.",
+      "update_failed": "Couldn't update the account. Try again."
     },
     "billing": {
       "subscription": {
@@ -891,6 +897,34 @@
         "notes": "Notes",
         "decisions": "Decisions",
         "nutrition": "Nutrition"
+      },
+      "activateAccount": "Activate account",
+      "setPassword": "Set password",
+      "accountDialog": {
+        "activate": {
+          "title": "Activate account",
+          "submit": "Activate",
+          "body": {
+            "none": "Create a login for this client. They can sign in right away with this email and password.",
+            "unconfirmed": "This client signed up but never confirmed their email. Activating lets them sign in now."
+          }
+        },
+        "password": {
+          "title": "Set password",
+          "submit": "Save password",
+          "body": "Set a new password for this client. Their old password stops working."
+        },
+        "emailLabel": "Email",
+        "passwordLabel": "Password",
+        "passwordOptional": "New password (optional)",
+        "passwordHint": "At least 8 characters.",
+        "show": "Show password",
+        "hide": "Hide password",
+        "success": "Done. The client can sign in now.",
+        "shareHint": "Send these to your client privately.",
+        "copy": "Copy login details",
+        "copied": "Copied",
+        "close": "Close"
       }
     },
     "decisions": {

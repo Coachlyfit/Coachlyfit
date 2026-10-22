@@ -51,13 +51,16 @@ const eslintConfig = defineConfig([
     // action's safety today rests on "the caller's own RLS-scoped client
     // is what runs the query" — importing the admin client anywhere else
     // silently turns that into an IDOR. Only the cron route (trusted job,
-    // no user session) and admin/actions.ts (documented: only for the two
-    // Auth Admin API calls that have no RLS-respecting equivalent) may.
+    // no user session), admin/actions.ts (documented: only for the two
+    // Auth Admin API calls that have no RLS-respecting equivalent) and
+    // domain/clients/client-account.ts (coach-side client login Auth Admin
+    // calls; callers gate ownership first) may.
     files: ["src/**/*.{ts,tsx}"],
     ignores: [
       "src/lib/supabase/admin.ts",
       "src/app/api/cron/**",
       "src/app/\\[locale\\]/\\(admin\\)/admin/actions.ts",
+      "src/domain/clients/client-account.ts",
     ],
     rules: {
       "no-restricted-imports": [
@@ -68,7 +71,7 @@ const eslintConfig = defineConfig([
               name: "@/lib/supabase/admin",
               message:
                 "createAdminClient() bypasses RLS and must not be used in a normal request path. " +
-                "Only src/app/api/cron/** and admin/actions.ts (Auth Admin API calls) are allowed.",
+                "Only src/app/api/cron/**, admin/actions.ts and domain/clients/client-account.ts (Auth Admin API calls) are allowed.",
             },
           ],
         },

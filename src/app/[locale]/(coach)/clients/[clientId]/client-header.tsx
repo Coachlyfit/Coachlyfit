@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { MoreVertical, MessageCircle, Pencil, Archive, ArchiveRestore } from "lucide-react";
+import { MoreVertical, MessageCircle, Pencil, Archive, ArchiveRestore, KeyRound, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,8 @@ import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import { AddObservationDialog } from "./add-observation-dialog";
 import { EditClientDialog } from "./edit-client-dialog";
+import { ClientAccountDialog, type ClientAccountMode } from "./client-account-dialog";
+import type { ClientAccountState } from "@/domain/clients/client-account";
 import { setClientArchivedAction } from "../actions";
 import { RegenerateInviteButton } from "../regenerate-invite-button";
 
@@ -31,13 +33,22 @@ type Client = {
   created_at: string;
 };
 
-export function ClientHeader({ locale, client }: { locale: AppLocale; client: Client }) {
+export function ClientHeader({
+  locale,
+  client,
+  account,
+}: {
+  locale: AppLocale;
+  client: Client;
+  account: ClientAccountState;
+}) {
   const t = useTranslations("clients");
   const tProfile = useTranslations("clients.profile");
   const tErrors = useTranslations("clients.errors");
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [accountMode, setAccountMode] = useState<ClientAccountMode | null>(null);
   const [pending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -120,6 +131,18 @@ export function ClientHeader({ locale, client }: { locale: AppLocale; client: Cl
                   <Pencil className="size-4" />
                   {tProfile("edit")}
                 </DropdownMenuItem>
+                {!archived && account !== "ready" && (
+                  <DropdownMenuItem onClick={() => setAccountMode("activate")}>
+                    <UserCheck className="size-4" />
+                    {tProfile("activateAccount")}
+                  </DropdownMenuItem>
+                )}
+                {!archived && account !== "none" && (
+                  <DropdownMenuItem onClick={() => setAccountMode("password")}>
+                    <KeyRound className="size-4" />
+                    {tProfile("setPassword")}
+                  </DropdownMenuItem>
+                )}
                 {client.status === "invited" && (
                   <div className="px-1.5 py-1">
                     <RegenerateInviteButton locale={locale} clientId={client.id} />
@@ -144,6 +167,19 @@ export function ClientHeader({ locale, client }: { locale: AppLocale; client: Cl
       </Card>
 
       <EditClientDialog locale={locale} clientId={client.id} client={client} open={editOpen} onOpenChange={setEditOpen} />
+
+      {accountMode && (
+        <ClientAccountDialog
+          key={accountMode}
+          locale={locale}
+          clientId={client.id}
+          clientEmail={client.email}
+          account={account}
+          mode={accountMode}
+          open
+          onOpenChange={(open) => !open && setAccountMode(null)}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmArchive}
