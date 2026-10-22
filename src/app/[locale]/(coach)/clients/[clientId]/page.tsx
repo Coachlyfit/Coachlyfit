@@ -25,6 +25,7 @@ import { ObservationsSection } from "./observations-section";
 import { ObservationsSkeleton } from "./observations-skeleton";
 import { NutritionSection } from "./nutrition-section";
 import { parseMonth } from "@/domain/nutrition/adherence";
+import { getClientAccountState } from "@/domain/clients/client-account";
 
 const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "decisions", "billing", "notes"];
 
@@ -44,16 +45,18 @@ export default async function ClientDetailPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, display_name, email, phone, status, created_at")
+    .select("id, display_name, email, phone, status, created_at, profile_id")
     .eq("id", clientId)
     .maybeSingle();
   if (!client) notFound();
+  const { profile_id, ...headerClient } = client;
+  const account = await getClientAccountState(profile_id);
 
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={client.display_name} subtitle={tClients(`status.${client.status}`)} />
 
-      <ClientHeader locale={locale} client={client} />
+      <ClientHeader locale={locale} client={headerClient} account={account} />
 
       <Suspense fallback={<AttentionSkeleton />}>
         <AttentionStrip clientId={clientId} />
