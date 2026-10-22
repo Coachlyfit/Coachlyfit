@@ -55,12 +55,18 @@ export default async function ClientLayout({
   // must not reach forms it can't submit.
   if (!clientRow) redirect(`/${locale}/not-linked`);
 
+  // No subscription row yet (freshly invited, coach hasn't assigned a
+  // package) is "none", not "expired" — only block a real lapsed/frozen/
+  // canceled subscription. Mirrors subscriptionRosterStatus's "none".
   const billing = new ClientBillingService(supabase);
   const subscription = await billing.getActiveSubscription(clientRow.id);
-  const status = subscription
-    ? subscriptionDisplayStatus({ status: subscription.status as ClientSubscriptionStatus, end_date: subscription.end_date }, new Date())
-    : "expired";
-  if (status !== "active") redirect(`/${locale}/expired`);
+  if (subscription) {
+    const status = subscriptionDisplayStatus(
+      { status: subscription.status as ClientSubscriptionStatus, end_date: subscription.end_date },
+      new Date()
+    );
+    if (status !== "active") redirect(`/${locale}/expired`);
+  }
 
   if (settings.platform.maintenance_mode) redirect(`/${locale}/maintenance`);
 
