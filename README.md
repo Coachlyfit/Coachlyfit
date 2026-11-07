@@ -31,6 +31,19 @@ See [.env.example](.env.example):
 - `CRON_SECRET` — bearer token Vercel Cron sends to `src/app/api/cron` routes
 - `RESEND_API_KEY` — optional, for emailed invites (invite links work without it)
 
+### Cron jobs (free Vercel Hobby plan)
+
+Vercel Hobby only allows cron jobs that run **once per day**. The daily jobs
+(`billing-lifecycle`, `ledger-outcomes`, `trash-cleanup`, `voice-notes-cleanup`)
+stay in [vercel.json](vercel.json). The two sub-daily jobs
+(`notifications` every 5 min, `nutrition-reminders` every 15 min) are scheduled
+from Supabase instead, using pg_cron + pg_net — no plan upgrade needed.
+
+One-time setup per environment: open [supabase/snippets/hobby_cron_schedules.sql](supabase/snippets/hobby_cron_schedules.sql)
+and follow the three steps at the top (store `app_url` + `cron_secret` in Vault,
+run the schedule statements, verify with `cron.job_run_details`). The routes are
+unchanged and still authenticated by `CRON_SECRET`.
+
 ## Scripts
 
 | Command | Purpose |

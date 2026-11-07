@@ -12,7 +12,9 @@ import {
   type NotificationKind,
 } from "@/domain/notifications/email-templates";
 
-// Runs every 5 minutes via Vercel Cron (see vercel.json). Same admin-client
+// Runs every 5 minutes via Supabase Cron (pg_cron + pg_net) because Vercel
+// Hobby only allows daily cron jobs — see
+// supabase/snippets/hobby_cron_schedules.sql. Same admin-client
 // justification as billing-lifecycle: a trusted job authenticated by
 // CRON_SECRET, not a user session — the notification_deliveries queue has
 // no `authenticated` policy at all, only service_role can touch it.
