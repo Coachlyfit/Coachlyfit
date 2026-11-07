@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { resolveDayPlan } from "@/domain/programs/day-plan";
+import { sortItemsBySections } from "@/domain/programs/day-sections";
 import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
@@ -83,6 +84,12 @@ export default async function ClientPlanPage({
           const session = hasWorkout && day ? sessionsByDayId.get(day.id) : undefined;
           const done = session != null;
           const hasRehab = plan.rehabItems.length > 0 || plan.mobilityItems.length > 0;
+          // The coach can move Mobility & rehab above the main workout. The
+          // preview list must walk the day in that same section order.
+          const previewItems = sortItemsBySections(
+            [...plan.workoutItems, ...plan.mobilityItems, ...plan.rehabItems],
+            plan.day?.section_order
+          );
           const content = (
             <div
               className={cn(
@@ -148,10 +155,7 @@ export default async function ClientPlanPage({
               <details key={date}>
                 <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{content}</summary>
                 <div className="pt-3">
-                  <TodayExercisePreview
-                    locale={locale}
-                    items={hasWorkout ? plan.workoutItems : [...plan.mobilityItems, ...plan.rehabItems]}
-                  />
+                  <TodayExercisePreview locale={locale} items={previewItems} />
                 </div>
               </details>
             );

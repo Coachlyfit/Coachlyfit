@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ProgressionRule } from "./progression";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
+import { normalizeSectionOrder } from "./day-sections";
 
 type Program = Database["public"]["Tables"]["programs"]["Row"];
 type ProgramDay = Database["public"]["Tables"]["program_days"]["Row"];
@@ -457,6 +458,7 @@ export class ProgramsService {
           program_id: cloned.id,
           day_index: day.day_index,
           order_index: day.order_index,
+          section_order: day.section_order,
           label_ar: day.label_ar,
           label_en: day.label_en,
           weekday: day.weekday,
@@ -788,6 +790,7 @@ export class ProgramsService {
         program_id: source.program_id,
         day_index: nextDayIndex,
         order_index: nextOrderIndex,
+        section_order: source.section_order,
         label_ar: source.label_ar,
         label_en: source.label_en,
         weekday: source.weekday,
@@ -885,6 +888,22 @@ export class ProgramsService {
       .select("id");
     if (error) throw error;
     return data.length > 0;
+  }
+
+  /** Persists the section order of one day. Sections are derived from item
+   * data (see day-sections.ts), so the write is just the ordered key array on
+   * program_days. normalizeSectionOrder appends any known section missing from
+   * the caller's list, which is how a newly meaningful section lands at the
+   * end rather than being dropped. Returns the number of rows actually
+   * updated (0 = RLS hid the day, i.e. not this coach's program). */
+  async reorderSections(dayId: string, ordered: readonly string[]): Promise<number> {
+    const { data, error } = await this.db
+      .from("program_days")
+      .update({ section_order: normalizeSectionOrder(ordered) })
+      .eq("id", dayId)
+      .select("id");
+    if (error) throw error;
+    return data.length;
   }
 
   /** N scoped updates, not an upsert — a PostgREST upsert needs every NOT
@@ -1090,6 +1109,7 @@ export class ProgramsService {
           program_id: revision.program_id,
           day_index: day.day_index,
           order_index: day.order_index,
+          section_order: day.section_order,
           label_ar: day.label_ar,
           label_en: day.label_en,
           weekday: day.weekday,

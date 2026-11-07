@@ -15,6 +15,7 @@ import {
   daySchema,
   itemSchema,
   reorderSchema,
+  sectionOrderSchema,
   saveAsTemplateSchema,
   activitySchema,
   rehabProtocolSchema,
@@ -391,6 +392,29 @@ export async function reorderDaysAction(locale: string, programId: string, ids: 
   if (!user) return { error: "not_authenticated" };
 
   await new ProgramsService(supabase).reorderDays(programId, parsed.data.ids);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+/** Reorders the derived sections inside one day (workout / mobility & rehab /
+ * activities). The service owns normalization + persistence — this action only
+ * validates and re-checks auth, same as every other server action here. */
+export async function reorderSectionsAction(
+  locale: string,
+  programId: string,
+  dayId: string,
+  order: string[]
+): Promise<ActionResult> {
+  const parsed = sectionOrderSchema.safeParse({ order });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const updated = await new ProgramsService(supabase).reorderSections(dayId, parsed.data.order);
+  if (updated === 0) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 

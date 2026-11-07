@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DAY_SECTION_KEYS } from "@/domain/programs/day-sections";
 
 export const scheduleModeSchema = z.enum(["cycle", "weekly"]);
 
@@ -85,6 +86,13 @@ export const itemSchema = z.object({
 });
 
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });
+
+// One day's section order. The service normalizes (and appends any section
+// missing from an older row); this only rejects unknown keys and oversized
+// arrays before they reach the DB.
+export const sectionOrderSchema = z.object({
+  order: z.array(z.enum(DAY_SECTION_KEYS)).min(1).max(DAY_SECTION_KEYS.length),
+});
 
 const MODALITIES = [
   "walking", "running", "cycling", "rowing", "stairmaster", "swimming", "elliptical", "hiit", "other",

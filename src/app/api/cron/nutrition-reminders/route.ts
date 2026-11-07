@@ -2,7 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
 
-// Runs every 15 minutes via Vercel Cron (see vercel.json), so a reminder
+// Runs every 15 minutes via Supabase Cron (pg_cron + pg_net), not Vercel
+// Cron — Hobby only allows daily jobs, see
+// supabase/snippets/hobby_cron_schedules.sql — so a reminder
 // lands within 15 minutes of each client's chosen local time. Same
 // admin-client justification as the other cron routes: a trusted job
 // authenticated by CRON_SECRET that must read every client's reminder
