@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, Loader2, Plus, Check } from "lucide-react";
+import { Camera, Images, Loader2, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { PROGRESS_BUCKET } from "@/domain/progress/progress.service";
@@ -11,7 +11,7 @@ import { addProgressPhotoAction } from "../progress/actions";
 type Pose = "front" | "side";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "heic"]);
+const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
 const GHOST_OPACITY = 0.35;
 const CANVAS_WIDTH = 360;
 const CANVAS_HEIGHT = 480;
@@ -61,6 +61,7 @@ export function CameraCapture({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | undefined>(undefined);
   const ghostImgRef = useRef<HTMLImageElement | null>(null);
@@ -201,7 +202,10 @@ export function CameraCapture({
 
   async function handleFallbackFile(pose: Pose, file: File) {
     setError(null);
-    if (!file.type.startsWith("image/")) {
+    // Some Android providers report an empty/octet-stream MIME for gallery
+    // files (notably HEIC/HEIF), so fall back to the extension.
+    const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!file.type.startsWith("image/") && !ALLOWED_EXT.has(rawExt)) {
       setError(tErrors("invalid_file"));
       return;
     }
@@ -209,7 +213,6 @@ export function CameraCapture({
       setError(tErrors("file_too_large"));
       return;
     }
-    const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "";
     const ext = ALLOWED_EXT.has(rawExt) ? rawExt : "jpg";
     await uploadAndSave(file, ext, pose);
   }
@@ -310,6 +313,27 @@ export function CameraCapture({
           {uploading ? <Loader2 className="size-6 animate-spin" /> : <Camera className="size-6" />}
         </button>
       </div>
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        disabled={uploading}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void handleFallbackFile(stage, file);
+        }}
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        disabled={uploading}
+        onClick={() => galleryRef.current?.click()}
+      >
+        <Images className="size-4" />
+        {t("chooseFromLibrary")}
+      </Button>
     </div>
   );
 }
@@ -363,7 +387,6 @@ function FallbackTile({
             type="file"
             name={pose}
             accept="image/*"
-            capture="environment"
             className="hidden"
             disabled={uploading || done}
             onChange={(e) => {

@@ -29,6 +29,8 @@ import {
   Wind,
   StickyNote,
   Salad,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +47,12 @@ import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { ProgramTree } from "@/domain/programs/programs.service";
 import { projectSetsForWeek, MAX_PROGRAM_WEEKS, type ProgressionRule } from "@/domain/programs/progression";
 import {
+  moveVisibleSection,
+  normalizeSectionOrder,
+  reorderVisibleSections,
+  type DaySectionKey,
+} from "@/domain/programs/day-sections";
+import {
   deleteProgramAction,
   deleteDayAction,
   deleteItemAction,
@@ -52,6 +60,7 @@ import {
   duplicateItemAction,
   reorderDaysAction,
   reorderItemsAction,
+  reorderSectionsAction,
   groupItemsAction,
   ungroupItemsAction,
   deleteActivityAction,
@@ -215,6 +224,91 @@ function ActivityRow({
   );
 }
 
+/** One reorderable day section (workout / mobility & rehab / activities).
+ * Same @dnd-kit sortable pattern as SortableItem above, but the drag handle
+ * lives on the section header instead of each row. Up/down buttons are the
+ * non-drag fallback for touch and keyboard users; both paths go through the
+ * same persist callback on DayCard. */
+function SortableSection({
+  id,
+  title,
+  first,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  children,
+}: {
+  id: DaySectionKey;
+  /** null for the unnamed main workout section — it still gets a handle and
+   * buttons, so it is not pinned above the others. */
+  title: string | null;
+  first: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  children: React.ReactNode;
+}) {
+  const t = useTranslations("programs.builder");
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const sectionName = title ?? t("sectionMain");
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        first ? "pt-0" : "border-t border-border pt-3",
+        isDragging && "z-10 opacity-50"
+      )}
+    >
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={t("reorderSection", { section: sectionName })}
+          title={t("reorderSection", { section: sectionName })}
+          className="-ms-1.5 cursor-grab touch-none rounded p-1.5 text-muted-foreground active:cursor-grabbing"
+        >
+          <GripVertical className="size-4" />
+        </button>
+        {title ? (
+          <p className="text-xs font-medium text-muted-foreground">{title}</p>
+        ) : (
+          <span className="sr-only">{sectionName}</span>
+        )}
+        <span className="ms-auto flex items-center gap-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            disabled={!canMoveUp}
+            onClick={onMoveUp}
+            aria-label={t("moveSectionUp", { section: sectionName })}
+            title={t("moveSectionUp", { section: sectionName })}
+          >
+            <ChevronUp className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            disabled={!canMoveDown}
+            onClick={onMoveDown}
+            aria-label={t("moveSectionDown", { section: sectionName })}
+            title={t("moveSectionDown", { section: sectionName })}
+          >
+            <ChevronDown className="size-4" />
+          </Button>
+        </span>
+      </div>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
 function DayCard({
   locale,
   programId,
@@ -242,6 +336,7 @@ function DayCard({
   const router = useRouter();
   const readOnly = week !== 1;
   const [items, setItems] = useState(day.program_items);
+  const [sectionOrder, setSectionOrder] = useState(() => normalizeSectionOrder(day.section_order));
   const [activityDialog, setActivityDialog] = useState<{
     activity?: Activity;
     kind?: "cardio" | "recovery";
@@ -260,6 +355,21 @@ function DayCard({
 
   const workoutItems = items.filter((i) => i.block === "warmup" || i.block === "main" || i.block === "cooldown");
   const otherItems = items.filter((i) => i.block === "mobility" || i.block === "rehab");
+
+  // Only sections that actually have content render, but the persisted order
+  // keeps a slot for the empty ones too (see day-sections.ts) so a section
+  // that temporarily has nothing does not reshuffle the others.
+  const visibleSections = sectionOrder.filter((key) => {
+    if (key === "workout") return workoutItems.length > 0;
+    if (key === "mobility_rehab") return otherItems.length > 0;
+    return day.program_activities.length > 0;
+  });
+
+  function sectionTitle(key: DaySectionKey): string | null {
+    if (key === "mobility_rehab") return t("mobilityRehab");
+    if (key === "activities") return t("activities");
+    return null; // the unnamed main workout section
+  }
 
   // Position-within-group label (A1, A2, B1, B2, ...) — a fresh letter per
   // distinct group_key encountered, in item order. Recomputed from `items`
@@ -373,6 +483,40 @@ function DayCard({
     });
   }
 
+  /** Optimistic section reorder: paint the new order immediately, persist via
+   * the server action, and roll back to the pre-gesture order on a real error
+   * (same pattern as the item drag above). */
+  function persistSectionOrder(next: DaySectionKey[]) {
+    const previous = sectionOrder;
+    setSectionOrder(next);
+    startTransition(async () => {
+      const result = await reorderSectionsAction(locale, programId, day.id, next);
+      if (result?.error) {
+        toast.error(tErrors(result.error));
+        setSectionOrder(previous);
+        router.refresh();
+      }
+    });
+  }
+
+  function handleSectionDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const fromIndex = visibleSections.indexOf(active.id as DaySectionKey);
+    const toIndex = visibleSections.indexOf(over.id as DaySectionKey);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const reordered = [...visibleSections];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    persistSectionOrder(reorderVisibleSections(sectionOrder, reordered));
+  }
+
+  function moveSection(key: DaySectionKey, delta: -1 | 1) {
+    const next = moveVisibleSection(sectionOrder, visibleSections, key, delta);
+    if (next) persistSectionOrder(next);
+  }
+
   async function confirmDeleteItem() {
     if (!pendingDeleteItem) return;
     const result = await deleteItemAction(locale, programId, pendingDeleteItem);
@@ -397,6 +541,94 @@ function DayCard({
     const result = await deleteActivityAction(locale, programId, pendingDeleteActivity);
     if (result?.error) toast.error(tErrors(result.error));
     setPendingDeleteActivity(null);
+  }
+
+  /** The body of one section, without its header — SortableSection supplies
+   * the header (drag handle, title, up/down). The workout branch keeps its
+   * own item-level DndContext for exercise reordering. */
+  function renderSectionBody(key: DaySectionKey) {
+    if (key === "workout") {
+      if (workoutItems.length === 0) return null;
+      if (readOnly) {
+        return (
+          <div className="flex flex-col gap-1">
+            {workoutItems.map((item) => (
+              <SortableItem
+                key={item.id}
+                item={item}
+                locale={locale}
+                week={week}
+                groupLabel={groupLabels.get(item.id) ?? null}
+                selected={false}
+                onToggleSelect={() => {}}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                onDuplicate={() => {}}
+              />
+            ))}
+          </div>
+        );
+      }
+      return (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={workoutItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+            <div className="flex flex-col gap-1">
+              {workoutItems.map((item) => (
+                <SortableItem
+                  key={item.id}
+                  item={item}
+                  locale={locale}
+                  week={week}
+                  groupLabel={groupLabels.get(item.id) ?? null}
+                  selected={selected.has(item.id)}
+                  onToggleSelect={() => toggleSelect(item.id)}
+                  onEdit={() => setItemDialog({ item })}
+                  onDelete={() => setPendingDeleteItem(item.id)}
+                  onDuplicate={() => duplicateItem(item.id)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      );
+    }
+
+    if (key === "mobility_rehab") {
+      if (otherItems.length === 0) return null;
+      return (
+        <div className="flex flex-col gap-1">
+          {otherItems.map((item) => (
+            <SortableItem
+              key={item.id}
+              item={item}
+              locale={locale}
+              week={week}
+              groupLabel={null}
+              selected={false}
+              onToggleSelect={() => {}}
+              onEdit={() => setItemDialog({ item })}
+              onDelete={() => setPendingDeleteItem(item.id)}
+              onDuplicate={() => duplicateItem(item.id)}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (day.program_activities.length === 0) return null;
+    return (
+      <div className="flex flex-col gap-1">
+        {day.program_activities.map((activity) => (
+          <ActivityRow
+            key={activity.id}
+            activity={activity}
+            readOnly={readOnly}
+            onEdit={() => setActivityDialog({ activity })}
+            onDelete={() => setPendingDeleteActivity(activity.id)}
+          />
+        ))}
+      </div>
+    );
   }
 
   const hasNote = !!(day.notes_ar || day.notes_en);
@@ -496,80 +728,38 @@ function DayCard({
           <p className="py-6 text-center text-sm text-muted-foreground">{t("noItems")}</p>
         ) : (
           <>
-            {workoutItems.length > 0 &&
-              (readOnly ? (
-                <div className="flex flex-col gap-1">
-                  {workoutItems.map((item) => (
-                    <SortableItem
-                      key={item.id}
-                      item={item}
-                      locale={locale}
-                      week={week}
-                      groupLabel={groupLabels.get(item.id) ?? null}
-                      selected={false}
-                      onToggleSelect={() => {}}
-                      onEdit={() => {}}
-                      onDelete={() => {}}
-                      onDuplicate={() => {}}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={workoutItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                    <div className="flex flex-col gap-1">
-                      {workoutItems.map((item) => (
-                        <SortableItem
-                          key={item.id}
-                          item={item}
-                          locale={locale}
-                          week={week}
-                          groupLabel={groupLabels.get(item.id) ?? null}
-                          selected={selected.has(item.id)}
-                          onToggleSelect={() => toggleSelect(item.id)}
-                          onEdit={() => setItemDialog({ item })}
-                          onDelete={() => setPendingDeleteItem(item.id)}
-                          onDuplicate={() => duplicateItem(item.id)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
-              ))}
-
-            {otherItems.length > 0 && (
-              <div className="flex flex-col gap-1 border-t border-border pt-3">
-                <p className="text-xs font-medium text-muted-foreground">{t("mobilityRehab")}</p>
-                {otherItems.map((item) => (
-                  <SortableItem
-                    key={item.id}
-                    item={item}
-                    locale={locale}
-                    week={week}
-                    groupLabel={null}
-                    selected={false}
-                    onToggleSelect={() => {}}
-                    onEdit={() => setItemDialog({ item })}
-                    onDelete={() => setPendingDeleteItem(item.id)}
-                    onDuplicate={() => duplicateItem(item.id)}
-                  />
+            {readOnly ? (
+              <div className="flex flex-col gap-4">
+                {visibleSections.map((key, index) => (
+                  <div key={key} className={index === 0 ? undefined : "border-t border-border pt-3"}>
+                    {sectionTitle(key) && (
+                      <p className="mb-1 text-xs font-medium text-muted-foreground">{sectionTitle(key)}</p>
+                    )}
+                    {renderSectionBody(key)}
+                  </div>
                 ))}
               </div>
-            )}
-
-            {day.program_activities.length > 0 && (
-              <div className="flex flex-col gap-1 border-t border-border pt-3">
-                <p className="text-xs font-medium text-muted-foreground">{t("activities")}</p>
-                {day.program_activities.map((activity) => (
-                  <ActivityRow
-                    key={activity.id}
-                    activity={activity}
-                    readOnly={readOnly}
-                    onEdit={() => setActivityDialog({ activity })}
-                    onDelete={() => setPendingDeleteActivity(activity.id)}
-                  />
-                ))}
-              </div>
+            ) : (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
+                <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-4">
+                    {visibleSections.map((key, index) => (
+                      <SortableSection
+                        key={key}
+                        id={key}
+                        title={sectionTitle(key)}
+                        first={index === 0}
+                        canMoveUp={index > 0}
+                        canMoveDown={index < visibleSections.length - 1}
+                        onMoveUp={() => moveSection(key, -1)}
+                        onMoveDown={() => moveSection(key, 1)}
+                      >
+                        {renderSectionBody(key)}
+                      </SortableSection>
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             )}
 
             {hasNote && (

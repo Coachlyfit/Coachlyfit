@@ -9,6 +9,7 @@ import {
 import { weekIndexForDate } from "@/domain/programs/program-cycle";
 import { CLIENT_SAFE_ITEM_COLUMNS } from "@/domain/programs/programs.service";
 import { activePhase } from "@/domain/programs/day-plan";
+import { sortItemsBySections } from "@/domain/programs/day-sections";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import type { AppLocale } from "@/domain/locale";
 import { WorkoutSessionClient } from "./workout-session-client";
@@ -72,7 +73,9 @@ export default async function WorkoutSessionPage({
   const visibleItems = day.program_items.filter(
     (item) => item.block !== "rehab" || item.rehab_phase_id == null || activePhaseIds.has(item.rehab_phase_id)
   );
-  const visibleDay = { ...day, program_items: visibleItems };
+  // Walk the day in the coach's section order (e.g. Mobility & rehab before
+  // the main workout) so the session runner starts where the builder shows.
+  const visibleDay = { ...day, program_items: sortItemsBySections(visibleItems, day.section_order) };
 
   return (
     <WorkoutSessionClient

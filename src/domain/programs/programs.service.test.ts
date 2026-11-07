@@ -334,6 +334,26 @@ describe("ProgramsService", () => {
     });
   });
 
+  describe("reorderSections", () => {
+    it("persists the normalized section order on the day row", async () => {
+      const { db, updates } = fakeSupabase();
+      const count = await new ProgramsService(db).reorderSections("day-1", ["mobility_rehab", "workout"]);
+
+      expect(count).toBe(1);
+      expect(updates).toHaveLength(1);
+      expect(updates[0].table).toBe("program_days");
+      expect(updates[0].payload).toEqual({
+        section_order: ["mobility_rehab", "workout", "activities"],
+      });
+      expect(updates[0].eqs).toEqual([["id", "day-1"]]);
+    });
+
+    it("reports 0 when RLS hides the day (not this coach's program)", async () => {
+      const { db } = fakeSupabase({ affected: [] });
+      expect(await new ProgramsService(db).reorderSections("day-1", ["workout"])).toBe(0);
+    });
+  });
+
   describe("groupItems / ungroupItems", () => {
     it("groupItems stamps a shared group_key and the given kind on every item id, returning the affected count", async () => {
       const { db, updates } = fakeSupabase({ affected: [{ id: "a" }, { id: "b" }] });
@@ -379,6 +399,7 @@ describe("ProgramsService", () => {
           id: "day-1",
           day_index: 1,
           order_index: 0,
+          section_order: ["mobility_rehab", "workout", "activities"],
           label_ar: null,
           label_en: null,
           weekday: 3,
@@ -430,7 +451,12 @@ describe("ProgramsService", () => {
         schedule_mode: "weekly",
         source_template_id: "template-1",
       });
-      expect(dayInsert?.payload).toMatchObject({ client_id: "client-9", coach_id: "coach-1", weekday: 3 });
+      expect(dayInsert?.payload).toMatchObject({
+        client_id: "client-9",
+        coach_id: "coach-1",
+        weekday: 3,
+        section_order: ["mobility_rehab", "workout", "activities"],
+      });
       expect(itemInsert?.payload).toMatchObject({
         client_id: "client-9",
         coach_id: "coach-1",

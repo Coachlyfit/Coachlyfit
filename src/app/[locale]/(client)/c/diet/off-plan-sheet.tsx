@@ -14,7 +14,7 @@ import { PROGRESS_BUCKET } from "@/domain/progress/progress.service";
 import { reportOffPlanAction } from "./actions";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "heic"]);
+const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
 
 /** Report a day as off-plan: optional meal, estimated kcal, note and photo.
  * The photo goes to the private progress-media bucket under the client's
@@ -49,7 +49,10 @@ export function OffPlanSheet({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    if (!file.type.startsWith("image/")) return toast.error(tErrors("invalid_photo"));
+    const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!file.type.startsWith("image/") && !ALLOWED_EXT.has(rawExt)) {
+      return toast.error(tErrors("invalid_photo"));
+    }
     if (file.size > MAX_BYTES) return toast.error(tErrors("photo_too_large"));
     setPhoto(file);
   }
@@ -148,7 +151,7 @@ export function OffPlanSheet({
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-sm text-muted-foreground hover:bg-muted">
               <Camera className="size-4" />
               {t("addPhoto")}
-              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={onPhoto} />
+              <input type="file" accept="image/*" className="hidden" onChange={onPhoto} />
             </label>
           )}
           <Button type="submit" disabled={pending}>

@@ -8,7 +8,7 @@ import { PROGRESS_BUCKET } from "@/domain/progress/progress.service";
 import { addProgressPhotoAction } from "./actions";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "heic"]);
+const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
 
 export function PhotoUpload({
   locale,
@@ -45,7 +45,10 @@ export function PhotoUpload({
     if (!file) return;
     setError(null);
 
-    if (!file.type.startsWith("image/")) {
+    // Some Android providers report an empty/octet-stream MIME for gallery
+    // files (notably HEIC/HEIF), so fall back to the extension.
+    const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!file.type.startsWith("image/") && !ALLOWED_EXT.has(rawExt)) {
       setError(tErrors("invalid_file"));
       return;
     }
@@ -54,7 +57,6 @@ export function PhotoUpload({
       return;
     }
 
-    const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "";
     const ext = ALLOWED_EXT.has(rawExt) ? rawExt : "jpg";
     const path = `${coachId}/${clientId}/${crypto.randomUUID()}.${ext}`;
 
@@ -96,7 +98,6 @@ export function PhotoUpload({
           <input
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={handleChange}
             disabled={busy}
@@ -115,7 +116,6 @@ export function PhotoUpload({
         <input
           type="file"
           accept="image/*"
-          capture="environment"
           className="hidden"
           onChange={handleChange}
           disabled={busy}

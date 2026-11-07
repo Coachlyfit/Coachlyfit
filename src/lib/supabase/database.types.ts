@@ -3033,6 +3033,7 @@ export type Database = {
           notes_en: string | null
           order_index: number
           program_id: string
+          section_order: string[]
           weekday: number | null
         }
         Insert: {
@@ -3047,6 +3048,7 @@ export type Database = {
           notes_en?: string | null
           order_index?: number
           program_id: string
+          section_order?: string[]
           weekday?: number | null
         }
         Update: {
@@ -3061,6 +3063,7 @@ export type Database = {
           notes_en?: string | null
           order_index?: number
           program_id?: string
+          section_order?: string[]
           weekday?: number | null
         }
         Relationships: [

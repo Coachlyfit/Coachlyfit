@@ -10,6 +10,7 @@ import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { ActivityLogsService } from "@/domain/workouts/activity-logs.service";
 import { resolveDayPlan } from "@/domain/programs/day-plan";
+import { normalizeSectionOrder } from "@/domain/programs/day-sections";
 import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { checkinStreak, longestStreak, weightTrend } from "@/domain/progress/stats";
 import { LedgerService } from "@/domain/ledger/ledger.service";
@@ -78,6 +79,17 @@ export default async function ClientHomePage({
   const best = longestStreak(history);
   const checkinDue = !existingCheckin;
   const totalSets = plan?.workoutItems.reduce((sum, item) => sum + item.sets, 0) ?? 0;
+
+  // The coach controls the order of a day's sections in the builder. Render
+  // Today's cards in that same order (workout / mobility & rehab / activities).
+  const orderedSections =
+    plan?.day == null
+      ? []
+      : normalizeSectionOrder(plan.day.section_order).filter((key) => {
+          if (key === "workout") return plan.workoutItems.length > 0;
+          if (key === "mobility_rehab") return plan.rehabItems.length > 0 || plan.mobilityItems.length > 0;
+          return plan.activities.length > 0;
+        });
 
   const ChevronIcon = locale === "ar" ? ChevronLeft : ChevronRight;
   const activeProtocol = plan?.protocols.find((p) => p.activePhase != null) ?? null;
@@ -183,80 +195,88 @@ export default async function ClientHomePage({
         </Card>
       )}
 
-      {plan?.day == null ? (
+      {plan?.day == null || orderedSections.length === 0 ? (
         <Card>
           <CardContent>
             <EmptyState title={tToday("restDay")} description={tToday("restDayBody")} />
-          </CardContent>
-        </Card>
-      ) : plan.workoutItems.length > 0 ? (
-        <Card>
-          <CardContent className="flex flex-col gap-3.5 p-0">
-            <div className="px-4.5 pt-4 pb-3.5">
-              <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
-                {tToday("todayWorkout")}
-              </p>
-              <p className="mt-1.5 text-[17px] font-semibold">
-                {plan.day.label_ar || plan.day.label_en ? pickLocale(plan.day, locale, "label") : tToday("todayWorkout")}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {tToday("exerciseCount", { count: plan.workoutItems.length })}
-                {" · "}
-                {tToday("setCount", { count: totalSets })}
-              </p>
-            </div>
-            <TodayExercisePreview locale={locale} items={plan.workoutItems.slice(0, 4)} />
-            <div className="px-4.5 pb-4.5">
-              <Link
-                href={`/c/workout/${plan.day.id}`}
-                className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
-              >
-                {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (plan.rehabItems.length > 0 || plan.mobilityItems.length > 0) ? (
-        <Card>
-          <CardContent className="flex flex-col gap-3.5 p-0">
-            <div className="px-4.5 pt-4 pb-3.5">
-              <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
-                {tToday("mobilityRehab")}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {tToday("exerciseCount", { count: plan.rehabItems.length + plan.mobilityItems.length })}
-              </p>
-            </div>
-            <TodayExercisePreview locale={locale} items={[...plan.mobilityItems, ...plan.rehabItems].slice(0, 4)} />
-            <div className="px-4.5 pb-4.5">
-              <Link
-                href={`/c/workout/${plan.day.id}`}
-                className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
-              >
-                {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
-              </Link>
-            </div>
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent>
-            <EmptyState title={tToday("restDay")} description={tToday("restDayBody")} />
-          </CardContent>
-        </Card>
-      )}
+        orderedSections.map((key) => {
+          if (!plan || !plan.day) return null;
 
-      {plan && plan.activities.length > 0 && (
-        <div className="flex flex-col gap-2.5">
-          {plan.activities.map((activity) => (
-            <TodayActivityCard
-              key={activity.id}
-              locale={locale}
-              activity={activity}
-              logged={loggedActivityIds.has(activity.id)}
-            />
-          ))}
-        </div>
+          if (key === "workout") {
+            return (
+              <Card key={key}>
+                <CardContent className="flex flex-col gap-3.5 p-0">
+                  <div className="px-4.5 pt-4 pb-3.5">
+                    <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
+                      {tToday("todayWorkout")}
+                    </p>
+                    <p className="mt-1.5 text-[17px] font-semibold">
+                      {plan.day.label_ar || plan.day.label_en
+                        ? pickLocale(plan.day, locale, "label")
+                        : tToday("todayWorkout")}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {tToday("exerciseCount", { count: plan.workoutItems.length })}
+                      {" · "}
+                      {tToday("setCount", { count: totalSets })}
+                    </p>
+                  </div>
+                  <TodayExercisePreview locale={locale} items={plan.workoutItems.slice(0, 4)} />
+                  <div className="px-4.5 pb-4.5">
+                    <Link
+                      href={`/c/workout/${plan.day.id}`}
+                      className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
+                    >
+                      {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          if (key === "mobility_rehab") {
+            return (
+              <Card key={key}>
+                <CardContent className="flex flex-col gap-3.5 p-0">
+                  <div className="px-4.5 pt-4 pb-3.5">
+                    <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
+                      {tToday("mobilityRehab")}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {tToday("exerciseCount", { count: plan.rehabItems.length + plan.mobilityItems.length })}
+                    </p>
+                  </div>
+                  <TodayExercisePreview locale={locale} items={[...plan.mobilityItems, ...plan.rehabItems].slice(0, 4)} />
+                  <div className="px-4.5 pb-4.5">
+                    <Link
+                      href={`/c/workout/${plan.day.id}`}
+                      className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
+                    >
+                      {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          return (
+            <div key={key} className="flex flex-col gap-2.5">
+              {plan.activities.map((activity) => (
+                <TodayActivityCard
+                  key={activity.id}
+                  locale={locale}
+                  activity={activity}
+                  logged={loggedActivityIds.has(activity.id)}
+                />
+              ))}
+            </div>
+          );
+        })
       )}
 
       <div className="grid grid-cols-2 gap-3">

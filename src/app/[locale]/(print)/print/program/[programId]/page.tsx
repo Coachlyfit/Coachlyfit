@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ProgramsService } from "@/domain/programs/programs.service";
+import { sortItemsBySections } from "@/domain/programs/day-sections";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { PrintButton } from "@/components/print/print-button";
@@ -47,7 +48,9 @@ export default async function PrintProgramPage({
       </header>
 
       <div className="flex flex-col gap-6">
-        {tree.program_days.map((day) => (
+        {tree.program_days.map((day) => {
+          const orderedItems = sortItemsBySections(day.program_items, day.section_order);
+          return (
           <section key={day.id} className="break-inside-avoid">
             <h2 className="text-lg font-semibold">
               {tBuilder("dayN", { n: day.day_index })}
@@ -78,7 +81,7 @@ export default async function PrintProgramPage({
                     const groupLetterByKey = new Map<string, string>();
                     let nextLetterIndex = 0;
                     const groupCounts = new Map<string, number>();
-                    return day.program_items.map((item) => {
+                    return orderedItems.map((item) => {
                       let label: string | null = null;
                       if (item.group_key) {
                         let letter = groupLetterByKey.get(item.group_key);
@@ -153,7 +156,8 @@ export default async function PrintProgramPage({
               <p className="mt-1 text-sm italic text-gray-700">{pickLocale(day, locale, "notes")}</p>
             )}
           </section>
-        ))}
+          );
+        })}
       </div>
 
       {tree.rehab_protocols.length > 0 && (
