@@ -45,7 +45,7 @@ export const getViewerProfile = cache(async () => {
   if (!user) return null;
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name, suspended_at")
+    .select("role, full_name, avatar_url, suspended_at")
     .eq("id", user.id)
     .maybeSingle();
   return profile;

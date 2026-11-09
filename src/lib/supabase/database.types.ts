@@ -4553,6 +4553,7 @@ export type Database = {
       coach_client_roster: {
         Row: {
           adherence: number | null
+          avatar_url: string | null
           client_id: string | null
           coach_id: string | null
           created_at: string | null

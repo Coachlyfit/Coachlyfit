@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { COACH_LOGOS_BUCKET } from "@/domain/billing/invoices.service";
 import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
+import { AvatarUpload } from "@/components/shared/avatar-upload";
 import type { BusinessProfileFormInput } from "@/app/[locale]/(coach)/settings/business-profile-schema";
 
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
@@ -25,18 +26,23 @@ const LOGO_EXT = new Set(["png", "jpg", "jpeg", "webp"]);
 export function IdentityFields({
   form,
   coachId,
+  userId,
+  avatarUrl,
   logoUrl,
   canSetLogo,
 }: {
   form: UseFormReturn<BusinessProfileFormInput>;
   coachId: string;
+  /** Signed-in user's id (the avatar owner). */
+  userId: string;
+  /** Public avatar URL, or null. */
+  avatarUrl: string | null;
   logoUrl: string | null;
-  /** Whether the plan includes white label. Without it an existing logo
-   * stays and can be removed, but a new one can't be set. */
   canSetLogo: boolean;
 }) {
   const t = useTranslations("settings.businessProfile");
   const tErrors = useTranslations("settings.errors");
+  const locale = useLocale();
   const [uploading, setUploading] = useState(false);
   const {
     register,
@@ -72,6 +78,16 @@ export function IdentityFields({
 
   return (
     <>
+      <div className="flex flex-wrap items-center gap-3.5">
+        <AvatarUpload
+          userId={userId}
+          name={(watch("business_name") ?? "").trim() || " Coach"}
+          src={avatarUrl}
+          size="lg"
+          locale={locale}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3.5">
         {logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- user-uploaded public storage URL.

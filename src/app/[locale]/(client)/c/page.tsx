@@ -16,13 +16,15 @@ import { checkinStreak, longestStreak, weightTrend } from "@/domain/progress/sta
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import type { StructuredAdjustment } from "@/domain/progress/review.service";
 import { pickLocale, type AppLocale } from "@/domain/locale";
+import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { formatNumber } from "@/lib/format";
-import { tintFor } from "@/lib/tint";
 import { TodayExercisePreview } from "./today-exercise-preview";
 import { TodayActivityCard } from "./today-activity-card";
 import { CoachDecisionCard } from "./coach-decision-card";
 import { CoachInviteCard } from "./coach-invite-card";
 import { RelationshipsService } from "@/domain/relationships/relationships.service";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { AvatarUpload } from "@/components/shared/avatar-upload";
 
 export default async function ClientHomePage({
   params,
@@ -39,9 +41,13 @@ export default async function ClientHomePage({
   } = await supabase.auth.getUser();
 
   const [{ data: profile }, { data: clientRow }] = await Promise.all([
-    supabase.from("profiles").select("full_name").eq("id", user!.id).single(),
+    supabase.from("profiles").select("full_name, avatar_url").eq("id", user!.id).single(),
     supabase.from("clients").select("id, coach_id, coaches(business_name)").eq("profile_id", user!.id).single(),
   ]);
+
+  const avatarUrl = profile?.avatar_url
+    ? supabase.storage.from(AVATARS_BUCKET).getPublicUrl(profile.avatar_url).data.publicUrl
+    : null;
 
   const today = new Date();
   const todayIso = today.toISOString().slice(0, 10);
@@ -100,13 +106,21 @@ export default async function ClientHomePage({
         <h1 className="min-w-0 flex-1 text-2xl font-semibold tracking-tight">
           {t("welcome", { name: profile?.full_name ?? "" })}
         </h1>
-        {clientRow && (
-          <div
-            className={`flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${tintFor(clientRow.id)}`}
-            aria-hidden="true"
-          >
-            {(profile?.full_name ?? "?")[0]}
-          </div>
+        {clientRow && user && (
+          <>
+            <UserAvatar
+              src={avatarUrl}
+              name={profile?.full_name ?? ""}
+              userId={user.id}
+              size="lg"
+            />
+            <AvatarUpload
+              userId={user.id}
+              name={profile?.full_name ?? ""}
+              src={avatarUrl}
+              locale={locale}
+            />
+          </>
         )}
       </div>
 

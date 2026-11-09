@@ -8,6 +8,7 @@ import { getBranding } from "@/lib/branding";
 import { getFeatures } from "@/lib/features";
 import { coachAccess } from "@/domain/billing/access";
 import { BrandStyle } from "@/components/brand/coach-brand";
+import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
@@ -100,6 +101,9 @@ export default async function CoachLayout({
   // Owner-only nav items (support) are left out for a team member.
   const isOwner = coachId === user.id;
   const brandLogo = branding?.logoUrl ? { src: branding.logoUrl, name: branding.businessName } : null;
+  const avatarUrl = profile?.avatar_url
+    ? supabase.storage.from(AVATARS_BUCKET).getPublicUrl(profile.avatar_url).data.publicUrl
+    : null;
 
   return (
     <div className="flex min-h-dvh">
@@ -130,6 +134,8 @@ export default async function CoachLayout({
         <Topbar
           locale={locale}
           fullName={profile.full_name}
+          avatarUrl={avatarUrl}
+          userId={user.id}
           brandLogo={brandLogo}
           navFeatures={features}
           isOwner={isOwner}

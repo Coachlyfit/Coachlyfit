@@ -42,6 +42,8 @@ type Named = { id: string; name_ar: string; name_en: string };
 
 export function SettingsShell({
   coachId,
+  userId,
+  avatarUrl,
   profile,
   portal,
   brand,
@@ -53,6 +55,9 @@ export function SettingsShell({
   customMetrics,
 }: {
   coachId: string;
+  userId: string;
+  /** Public avatar URL of the signed-in user, or null. */
+  avatarUrl: string | null;
   profile: BusinessProfileFormInput;
   portal: PortalFormInput;
   brand: BrandFormInput;
@@ -236,7 +241,14 @@ export function SettingsShell({
             <>
               <h2 className="text-xl font-semibold">{t("headings.identity")}</h2>
               <form id={FORM_ID} onSubmit={saveProfile} className="flex flex-col gap-4" noValidate>
-                <IdentityFields form={profileForm} coachId={coachId} logoUrl={logoUrl} canSetLogo={whiteLabelEnabled} />
+                <IdentityFields
+                  form={profileForm}
+                  coachId={coachId}
+                  userId={userId}
+                  avatarUrl={avatarUrl}
+                  logoUrl={logoUrl}
+                  canSetLogo={whiteLabelEnabled}
+                />
               </form>
             </>
           )}

@@ -20,6 +20,7 @@ export type RosterClient = {
   id: string;
   displayName: string;
   email: string | null;
+  avatarUrl: string | null;
   status: Database["public"]["Enums"]["client_status"];
   lastCheckin: string | null;
   adherence: number | null;
@@ -101,6 +102,7 @@ function toRosterClient(row: Database["public"]["Views"]["coach_client_roster"][
     id: row.client_id!,
     displayName: row.display_name!,
     email: row.email,
+    avatarUrl: row.avatar_url ?? null,
     status: row.status!,
     lastCheckin: row.last_checkin_date,
     adherence: row.adherence,

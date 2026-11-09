@@ -14,9 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link, useRouter } from "@/i18n/navigation";
-import { tintFor } from "@/lib/tint";
 import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { AddObservationDialog } from "./add-observation-dialog";
 import { EditClientDialog } from "./edit-client-dialog";
 import { ClientAccountDialog, type ClientAccountMode } from "./client-account-dialog";
@@ -29,6 +29,7 @@ type Client = {
   display_name: string;
   email: string | null;
   phone: string | null;
+  avatarUrl: string | null;
   status: "invited" | "active" | "archived";
   created_at: string;
 };
@@ -84,11 +85,7 @@ export function ClientHeader({
       <Card>
         <CardContent className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div
-              className={`flex size-11 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white ${tintFor(client.id)}`}
-            >
-              {client.display_name[0]}
-            </div>
+            <UserAvatar src={client.avatarUrl} name={client.display_name} userId={client.id} size="lg" />
             <div className="flex flex-col gap-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-lg font-semibold tracking-tight">{client.display_name}</h1>

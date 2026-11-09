@@ -3,7 +3,9 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getBranding } from "@/lib/branding";
 import { getFeatures } from "@/lib/features";
+import { getAuthUser } from "@/lib/auth/session";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { SettingsShell } from "@/components/settings/settings-shell";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
@@ -18,6 +20,19 @@ export default async function SettingsPage() {
 
   const coachId = await resolveCoachId(supabase);
   if (!coachId) notFound();
+
+  const user = await getAuthUser();
+  let avatarUrl: string | null = null;
+  if (user) {
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+    avatarUrl = profileRow?.avatar_url
+      ? supabase.storage.from(AVATARS_BUCKET).getPublicUrl(profileRow.avatar_url).data.publicUrl
+      : null;
+  }
 
   const billing = new ClientBillingService(supabase);
   const [{ data: coach }, { data: checkinTemplates }, packages, paymentMethods, customMetrics, branding, features] = await Promise.all([
@@ -52,6 +67,8 @@ export default async function SettingsPage() {
       <PageTitle title={t("title")} subtitle={t("subtitle")} />
       <SettingsShell
         coachId={coachId}
+        userId={user?.id ?? ""}
+        avatarUrl={avatarUrl}
         profile={{
           business_name: coach.business_name,
           address: coach.address ?? "",

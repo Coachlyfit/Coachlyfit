@@ -2,12 +2,13 @@
 
 import { useTranslations, useLocale } from "next-intl";
 import { useTheme } from "next-themes";
-import { LogOut, User, Languages, SunMoon } from "lucide-react";
+import { LogOut, Languages, SunMoon } from "lucide-react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { InstallAppButton } from "@/components/install-app-button";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { BrandLogo } from "@/components/brand/coach-brand";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
@@ -30,6 +31,8 @@ import type { NavFeatures, NavItem } from "./nav-items";
 export function Topbar({
   locale,
   fullName,
+  avatarUrl = null,
+  userId = "",
   navItems,
   navFeatures,
   isOwner,
@@ -37,6 +40,10 @@ export function Topbar({
 }: {
   locale: string;
   fullName: string | null;
+  /** Public avatar URL, or null. */
+  avatarUrl?: string | null;
+  /** Used to pick a stable fallback tint for the initials. */
+  userId?: string;
   /** Studio coaches' own logo (see lib/branding.ts); null keeps the mark. */
   brandLogo?: { src: string; name: string } | null;
   /** Forwarded to CommandPalette; defaults to the coach NAV_ITEMS there.
@@ -87,7 +94,7 @@ export function Topbar({
           <DropdownMenuTrigger
             render={<Button variant="outline" size="icon-sm" aria-label={fullName ?? tCommon("appName")} />}
           >
-            <User className="size-4" />
+            <UserAvatar src={avatarUrl} name={fullName ?? ""} userId={userId} size="sm" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {fullName && (

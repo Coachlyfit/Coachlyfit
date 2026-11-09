@@ -55,6 +55,13 @@
       "enable": "Enable push notifications",
       "disable": "Disable push notifications",
       "failed": "Couldn't update push notifications"
+    },
+    "avatar": {
+      "upload": "Upload photo",
+      "remove": "Remove",
+      "uploaded": "Uploaded.",
+      "removed": "Removed.",
+      "replace": "Replace"
     }
   },
   "nav": {

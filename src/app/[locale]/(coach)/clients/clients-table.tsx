@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import type { SubscriptionRosterStatus } from "@/domain/billing/client-subscription";
 import type { AppLocale } from "@/domain/locale";
 import type { ClientCheckinStatus } from "@/domain/progress/stats";
-import { ClientAvatar } from "../dashboard/client-avatar";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { RegenerateInviteButton } from "./regenerate-invite-button";
 import { STATUS_FILTERS, type StatusFilter } from "./schemas";
 
@@ -31,6 +31,7 @@ export type ClientRow = {
   id: string;
   name: string;
   email: string | null;
+  avatarUrl: string | null;
   invited: boolean;
   program: string | null;
   lastCheckin: string | null;
@@ -229,7 +230,7 @@ export function ClientsTable({
                 <TableRow key={client.id}>
                   <TableCell>
                     <div className="flex min-w-0 items-center gap-3">
-                      <ClientAvatar id={client.id} name={client.name} />
+                      <UserAvatar src={client.avatarUrl} name={client.name} userId={client.id} />
                       <div className="flex min-w-0 flex-col">
                         <Link href={`/clients/${client.id}`} className="truncate font-medium hover:underline">
                           {client.name}
