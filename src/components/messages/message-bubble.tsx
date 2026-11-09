@@ -35,9 +35,10 @@ export function MessageBubble({
         ),
     );
 
+  // One logical bubble only: `variant` drives the background/text colour on
+  // the bubble-content element, so there is never an inner box inside the
+  // bubble. `align` flips between RTL and LTR together with the message.
   return (
-    // `align` is logical: own messages sit at the end, the other party's at
-    // the start, and both flip together between RTL and LTR.
     <Message align={isOwn ? "end" : "start"} className="w-full min-w-0">
       {!isOwn && message.senderAvatarUrl && (
         <MessageAvatar>
@@ -51,12 +52,8 @@ export function MessageBubble({
       )}
       <Bubble
         align={isOwn ? "end" : "start"}
-        className={cn(
-          "max-w-[80%] rounded-2xl px-3 pt-2 pb-1.5 lg:max-w-[min(72%,32.5rem)]",
-          isOwn
-            ? cn("rounded-ee-sm bg-sidebar text-sidebar-foreground dark:bg-sidebar-accent", isFailed && "outline outline-destructive/60")
-            : "rounded-es-sm bg-card ring-1 ring-foreground/10 ring-inset",
-        )}
+        variant={isOwn ? "default" : "muted"}
+        className="max-w-[80%] lg:max-w-[min(72%,32.5rem)]"
       >
         <BubbleContent
           render={({ className, ...rest }) => (
@@ -66,6 +63,7 @@ export function MessageBubble({
               className={cn(
                 className,
                 "whitespace-pre-wrap [overflow-wrap:anywhere]",
+                !isOwn && "border border-border",
                 isEmojiOnly ? "text-lg" : "text-sm leading-relaxed",
               )}
             >
@@ -79,18 +77,24 @@ export function MessageBubble({
         <div
           className={cn(
             "flex items-center gap-1 self-end text-[11px]",
-            isOwn ? "text-sidebar-foreground/60" : "text-muted-foreground",
+            isOwn ? "text-primary-foreground/60" : "text-muted-foreground",
           )}
         >
           <time dateTime={message.createdAt} className="font-mono tabular-nums">
             {formatDate(message.createdAt, locale, { timeStyle: "short", dateStyle: undefined })}
           </time>
-          {message.status && <MessageStatus status={message.status} label={t(`status.${message.status}`)} />}
+          {message.status && (
+            <MessageStatus
+              status={message.status}
+              label={t(`status.${message.status}`)}
+              className={isOwn ? "text-primary-foreground/60" : "text-muted-foreground"}
+            />
+          )}
           {isFailed && message.pendingRef && (
             <button
               type="button"
               onClick={() => onRetry(message.pendingRef!.tempId)}
-              className="ms-1 rounded-sm font-medium text-sidebar-foreground underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
+              className="ms-1 rounded-sm font-medium text-primary-foreground/60 underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
             >
               {t("retry")}
             </button>
@@ -103,20 +107,20 @@ export function MessageBubble({
 
 /** Tick + its meaning in words. The words are visually hidden below lg
  * (bubbles are narrow there) but always available to assistive tech. */
-function MessageStatus({ status, label }: { status: NonNullable<RenderableMessage["status"]>; label: string }) {
+function MessageStatus({
+  status,
+  label,
+  className,
+}: {
+  status: NonNullable<RenderableMessage["status"]>;
+  label: string;
+  className?: string;
+}) {
   const Icon = { sending: Loader2, failed: AlertCircle, read: CheckCheck, sent: Check }[status];
   return (
-    <span
-      className={cn(
-        "flex items-center gap-1",
-        // sidebar-ring: the accent that stays legible on the navy bubble in
-        // both themes (primary is too dark on it in light mode).
-        status === "read" && "text-sidebar-ring",
-        status === "failed" && "text-sidebar-foreground",
-      )}
-    >
+    <span className={cn("flex items-center gap-1", className)}>
       <Icon
-        className={cn("size-3.5", status === "sending" && "animate-spin", status === "failed" && "text-destructive")}
+        className={cn("size-3.5", status === "sending" && "animate-spin", status === "failed" && "text-destructive", className)}
         aria-hidden="true"
       />
       <span className="sr-only lg:not-sr-only">{label}</span>
