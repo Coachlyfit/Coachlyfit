@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale } from "next-intl";
 import { Delete } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,14 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "backspace"
 /** Custom keypad for the step flow's `number` fields — the design's case
  * for it is that the system keyboard shows 40 keys for one numeric answer.
  * Writes a `number | undefined` so buildAnswerSchema's z.coerce.number()
- * path is unchanged; empty string clears to undefined rather than 0. */
+ * path is unchanged; empty string clears to undefined rather than 0.
+ *
+ * The keypad keeps a local `draft` of what's being typed so a decimal point
+ * can be entered (e.g. `90.` → `90.5`). Only a complete number is committed
+ * via `onChange`; a trailing "." stays on screen as in-progress text.
+ * Callers should pass a React `key` that changes when the logical field
+ * changes (e.g. the step/field id) so the draft resets instead of leaking
+ * between fields. */
 export function NumericPad({
   value,
   onChange,
@@ -26,28 +34,31 @@ export function NumericPad({
   delta?: number;
 }) {
   const locale = useLocale() as AppLocale;
-  const raw = value === undefined ? "" : String(value);
+  const [draft, setDraft] = useState(value === undefined ? "" : String(value));
 
   function press(key: (typeof KEYS)[number]) {
     if (key === "backspace") {
-      const next = raw.slice(0, -1);
-      onChange(next === "" || next === "-" ? undefined : Number(next));
+      const next = draft.slice(0, -1);
+      setDraft(next);
+      onChange(next === "" ? undefined : Number(next));
       return;
     }
-    if (key === "." && (integer || raw.includes("."))) return;
-    const next = raw + key;
-    // Trailing "." or lone "-" isn't a valid number yet — keep it as text
-    // state via the string coercion above until another digit lands; store
-    // nothing on those intermediate states so the pad doesn't emit NaN.
-    if (next.endsWith(".") || Number.isNaN(Number(next))) return;
-    onChange(Number(next));
+    if (key === "." && (integer || draft.includes("."))) return;
+    const next = draft + key;
+    if (Number.isNaN(Number(next))) return;
+    setDraft(next);
+    // Only commit once the number is complete — a trailing "." means the
+    // user is still typing a decimal, so keep drafting without notifying.
+    if (!next.endsWith(".")) {
+      onChange(Number(next));
+    }
   }
 
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-baseline justify-center gap-2.5">
         <span className="font-mono text-6xl font-semibold tracking-tight text-foreground tabular-nums">
-          {raw || "0"}
+          {draft || "0"}
         </span>
         {unit && <span className="text-xl text-muted-foreground">{unit}</span>}
       </div>

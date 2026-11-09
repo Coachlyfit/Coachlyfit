@@ -35,6 +35,7 @@ export function StepFieldInput({
         control={control}
         render={({ field: f }) => (
           <NumericPad
+            key={field.id}
             value={f.value}
             onChange={f.onChange}
             unit={field.unit}
