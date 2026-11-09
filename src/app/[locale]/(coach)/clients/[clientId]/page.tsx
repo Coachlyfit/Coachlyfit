@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { parseRange } from "@/domain/progress/stats";
 import type { AppLocale } from "@/domain/locale";
 import { PageTitle } from "@/components/dashboard/page-title";
@@ -45,10 +46,13 @@ export default async function ClientDetailPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, display_name, email, phone, status, created_at, profile_id")
+    .select("id, display_name, email, phone, status, created_at, profile_id, profiles(avatar_url)")
     .eq("id", clientId)
     .maybeSingle();
   if (!client) notFound();
+  const avatarUrl = client.profiles?.avatar_url
+    ? supabase.storage.from(AVATARS_BUCKET).getPublicUrl(client.profiles.avatar_url).data.publicUrl
+    : null;
   const { profile_id, ...headerClient } = client;
   const account = await getClientAccountState(profile_id);
 
@@ -56,7 +60,7 @@ export default async function ClientDetailPage({
     <div className="flex flex-col gap-6">
       <PageTitle title={client.display_name} subtitle={tClients(`status.${client.status}`)} />
 
-      <ClientHeader locale={locale} client={headerClient} account={account} />
+      <ClientHeader locale={locale} client={{ ...headerClient, avatarUrl }} account={account} />
 
       <Suspense fallback={<AttentionSkeleton />}>
         <AttentionStrip clientId={clientId} />

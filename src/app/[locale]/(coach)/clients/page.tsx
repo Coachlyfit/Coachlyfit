@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ClientsService } from "@/domain/clients/clients.service";
+import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { subscriptionRosterStatus } from "@/domain/billing/client-subscription";
 import { clientCheckinStatus, daysSince } from "@/domain/progress/stats";
 import { pickLocale, type AppLocale } from "@/domain/locale";
@@ -30,10 +31,15 @@ export default async function ClientsPage({
   const roster = await new ClientsService(supabase).listRoster();
   const now = new Date();
 
+  // Avatar bucket is public, so getPublicUrl is enough to render it.
+  const avatarUrl = (path: string | null) =>
+    path ? supabase.storage.from(AVATARS_BUCKET).getPublicUrl(path).data.publicUrl : null;
+
   const rows: ClientRow[] = roster.map((client) => ({
     id: client.id,
     name: client.displayName,
     email: client.email,
+    avatarUrl: avatarUrl(client.avatarUrl),
     invited: client.status === "invited",
     program: client.program ? pickLocale(client.program, locale) : null,
     lastCheckin: client.lastCheckin,
