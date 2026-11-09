@@ -17,13 +17,14 @@ import {
   UserPlus,
   LifeBuoy,
   CirclePlay,
+  ClipboardCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support" | "guides";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support" | "guides";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge and
    * SupportUnreadBadge. */
@@ -58,6 +59,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/clients", labelKey: "clients", icon: Users },
   { href: "/programs", labelKey: "programs", icon: ClipboardList },
   { href: "/forms", labelKey: "forms", icon: FileText },
+  { href: "/review", labelKey: "review", icon: ClipboardCheck },
   { href: "/library", labelKey: "library", icon: Dumbbell },
   { href: "/diets", labelKey: "diets", icon: Salad },
   { href: "/tasks", labelKey: "tasks", icon: ListTodo, feature: "task_management" },
