@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Dumbbell } from "lucide-react";
@@ -32,6 +32,22 @@ export function ExercisePicker({
   });
   const exercises = data?.rows;
 
+  /** When the exercise was pre-selected (e.g. picked from the sidebar before
+   * this dialog opened) and the coach hasn't typed a search, show only that
+   * exercise immediately instead of forcing them to scroll through or search
+   * the full list again. A manual search still filters across every exercise
+   * so they can change their mind if needed. `selectedId` keeps driving the
+   * row highlight regardless. */
+  const visibleExercises = useMemo(() => {
+    const all = exercises ?? [];
+    if (selectedId && !debounced.trim()) return all.filter((exercise) => exercise.id === selectedId);
+    if (debounced.trim()) {
+      const q = debounced.trim().toLowerCase();
+      return all.filter((exercise) => pickLocale(exercise, locale).toLowerCase().includes(q));
+    }
+    return all;
+  }, [exercises, selectedId, debounced, locale]);
+
   return (
     <div className="flex w-full flex-col gap-2">
       <Input
@@ -43,10 +59,10 @@ export function ExercisePicker({
         {isPending && (
           <p className="p-3 text-center text-sm text-muted-foreground">{t("loading")}</p>
         )}
-        {!isPending && exercises?.length === 0 && (
+        {!isPending && visibleExercises.length === 0 && (
           <p className="p-3 text-center text-sm text-muted-foreground">{t("noResults")}</p>
         )}
-        {exercises?.map((exercise) => {
+        {visibleExercises.map((exercise) => {
           const media = resolveExerciseMedia(
             exercise.thumbnail_url || exercise.image_url || exercise.video_url
           );
