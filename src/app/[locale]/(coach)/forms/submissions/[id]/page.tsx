@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/format";
 import { listExerciseOptions, listFoodOptions } from "@/domain/forms/library-refs";
+import { ProgressService } from "@/domain/progress/progress.service";
 import type { FormField } from "@/domain/forms/schema";
 import type { AppLocale } from "@/domain/locale";
 import { FormRenderer } from "@/components/forms-runtime/form-renderer";
@@ -32,6 +33,21 @@ export default async function SubmissionDetailPage({
   const template = submission.form_template_versions?.form_templates;
   const fields = ((submission.form_template_versions?.schema as { fields?: FormField[] } | null)?.fields ??
     []) as FormField[];
+
+  // The `progress-media` bucket is private, so photo storage paths stored in
+  // `answers` must be turned into signed URLs before the coach can view them.
+  // Sign once in a batch and hand the path -> URL map down to the renderer.
+  const progress = new ProgressService(supabase);
+  const answers = submission.answers as Record<string, unknown>;
+  const photoPaths: string[] = [];
+  for (const field of fields) {
+    if (field.type !== "photo") continue;
+    const raw = answers[field.id];
+    if (Array.isArray(raw)) photoPaths.push(...raw.filter((v): v is string => typeof v === "string"));
+    else if (typeof raw === "string") photoPaths.push(raw);
+  }
+  const signed = await progress.signMediaUrls(photoPaths);
+  const signedUrls = Object.fromEntries(signed);
 
   const needsExerciseOptions = fields.some((f) => f.type === "exercise_ref");
   const needsFoodOptions = fields.some((f) => f.type === "food_ref");
@@ -65,6 +81,7 @@ export default async function SubmissionDetailPage({
             answers={submission.answers as Record<string, unknown>}
             exerciseOptions={exerciseOptions}
             foodOptions={foodOptions}
+            signedUrls={signedUrls}
           />
         </CardContent>
       </Card>

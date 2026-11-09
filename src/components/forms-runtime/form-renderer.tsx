@@ -20,6 +20,8 @@ type FormRendererProps = {
   exerciseOptions?: LibraryRefOption[];
   foodOptions?: LibraryRefOption[];
   uploadContext?: { coachId: string; clientId: string };
+  /** Storage path -> signed URL map for photo/file fields (private buckets). */
+  signedUrls?: Record<string, string>;
 };
 
 /** One renderer, three modes — see build plan Phase 5: preview (coach
@@ -35,6 +37,7 @@ export function FormRenderer({
   exerciseOptions,
   foodOptions,
   uploadContext,
+  signedUrls,
 }: FormRendererProps) {
   const locale = useLocale() as AppLocale;
   const t = useTranslations("forms.fill");
@@ -70,6 +73,7 @@ export function FormRenderer({
                 value={answers?.[field.id]}
                 locale={locale}
                 refOptions={field.type === "exercise_ref" ? exerciseOptions : foodOptions}
+                signedUrls={signedUrls}
               />
             </div>
           );
