@@ -200,6 +200,7 @@ export function CheckinWizard({
           control={control}
           render={({ field }) => (
             <NumericPad
+              key={step.id}
               value={field.value as number | undefined}
               onChange={field.onChange}
               unit={step.unit}

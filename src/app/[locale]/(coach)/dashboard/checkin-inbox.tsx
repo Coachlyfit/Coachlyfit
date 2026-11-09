@@ -57,7 +57,7 @@ export async function CheckinInbox({ locale, filter }: { locale: AppLocale; filt
               <StatusBadge tone="accent">{t("status.new")}</StatusBadge>
             )}
             <Link
-              href={`/forms/submissions/${row.id}`}
+              href="/review"
               className={buttonVariants({ variant: "outline", size: "xs" })}
               aria-label={t("reviewLabel", { name: row.clientName })}
             >
