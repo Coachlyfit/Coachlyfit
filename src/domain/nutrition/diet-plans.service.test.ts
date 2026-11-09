@@ -223,6 +223,24 @@ describe("DietPlansService", () => {
     });
   });
 
+  describe("renameDiet", () => {
+    it("writes only the two names, scoped to the plan id", async () => {
+      const { db, updates } = fakeSupabase();
+      const renamed = await new DietPlansService(db).renameDiet("p1", { name_ar: "خطة", name_en: "Plan" });
+
+      expect(renamed).toBe(true);
+      expect(updates).toHaveLength(1);
+      expect(updates[0].table).toBe("diet_plans");
+      expect(updates[0].payload).toEqual({ name_ar: "خطة", name_en: "Plan" });
+      expect(updates[0].eqs).toEqual([["id", "p1"]]);
+    });
+
+    it("reports false when RLS hides the plan (not this coach's row)", async () => {
+      const { db } = fakeSupabase({ affected: [] });
+      expect(await new DietPlansService(db).renameDiet("p1", { name_ar: "x", name_en: "x" })).toBe(false);
+    });
+  });
+
   describe("reorderItems", () => {
     it("writes order_index = array position and scopes each update by the parent meal id", async () => {
       const { db, updates } = fakeSupabase();

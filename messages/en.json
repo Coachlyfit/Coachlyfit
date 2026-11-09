@@ -1654,6 +1654,13 @@
       "scheduleModeWeekly": "Fixed weekdays",
       "scheduleModeHint": "Cycle repeats the days in order from the start date. Weekly pins each day to a specific weekday."
     },
+    "renameDialog": {
+      "button": "Edit name",
+      "title": "Edit program name",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "success": "Program renamed."
+    },
     "editDialog": {
       "title": "Edit program",
       "submit": "Save"
@@ -3486,6 +3493,13 @@
       "startDate": "Start date",
       "endDate": "End date (optional)",
       "submit": "Create"
+    },
+    "renameDialog": {
+      "button": "Edit name",
+      "title": "Edit plan name",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "success": "Plan renamed."
     },
     "assignTemplateDialog": {
       "title": "Assign this template",

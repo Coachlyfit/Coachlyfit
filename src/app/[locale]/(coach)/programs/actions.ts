@@ -15,6 +15,7 @@ import {
   daySchema,
   itemSchema,
   reorderSchema,
+  renameSchema,
   sectionOrderSchema,
   saveAsTemplateSchema,
   activitySchema,
@@ -83,6 +84,28 @@ export async function updateProgramAction(locale: string, id: string, formData: 
     schedule_mode,
   });
   if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+  revalidatePath(`/${locale}/programs/${id}`);
+}
+
+// Rename-only update from the detail page's pencil action. Reuses the
+// service's RLS-scoped rename so a coach who doesn't own the program gets
+// not_found_or_forbidden instead of mutating it.
+export async function renameProgramAction(locale: string, id: string, formData: FormData): Promise<ActionResult> {
+  const parsed = renameSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const renamed = await new ProgramsService(supabase).renameProgram(id, parsed.data);
+  if (!renamed) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
   revalidatePath(`/${locale}/programs/${id}`);
 }

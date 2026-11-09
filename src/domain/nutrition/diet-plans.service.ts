@@ -299,6 +299,16 @@ export class DietPlansService {
     return data.length > 0;
   }
 
+  /** Renames a plan without touching its dates/targets/notes. Same RLS
+   * boundary as ProgramsService.renameProgram: coach_rw UPDATE on
+   * diet_plans (20260731000008_plans.sql) scopes this to the owner coach,
+   * and clients have no UPDATE policy of their own. */
+  async renameDiet(id: string, input: { name_ar: string; name_en: string }): Promise<boolean> {
+    const { data, error } = await this.db.from("diet_plans").update(input).eq("id", id).select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
   /** Writes a plan's targets together with where they came from — the
    * macro suggestion (as-is or edited) or a hand-typed "manual" set — and,
    * for suggestions, a snapshot of what was suggested. */

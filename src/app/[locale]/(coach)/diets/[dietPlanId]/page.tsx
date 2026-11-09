@@ -8,6 +8,7 @@ import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { Link } from "@/i18n/navigation";
 import { DietPlanBuilder } from "./diet-plan-builder";
+import { EditNameDialog } from "./edit-name-dialog";
 import { PlanToolbar } from "./plan-toolbar";
 import { VariantTabs } from "./variant-tabs";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
@@ -62,6 +63,12 @@ export default async function DietPlanDetailPage({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="truncate text-2xl font-semibold tracking-tight">{pickLocale(tree, locale)}</h1>
+            <EditNameDialog
+              locale={locale}
+              dietPlanId={tree.id}
+              nameAr={tree.name_ar}
+              nameEn={tree.name_en}
+            />
             {isTemplate && !tree.program_id && <Badge variant="secondary">{t("template")}</Badge>}
           </div>
           <p className="text-sm text-muted-foreground">{subtitle.join(" · ")}</p>

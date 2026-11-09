@@ -8,6 +8,7 @@ import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { Link } from "@/i18n/navigation";
 import { ProgramBuilder } from "./program-builder";
+import { EditNameDialog } from "./edit-name-dialog";
 import { PendingAdjustmentsBanner, type PendingAdjustmentCheckin } from "./pending-adjustments-banner";
 
 export default async function ProgramDetailPage({
@@ -44,7 +45,15 @@ export default async function ProgramDetailPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{pickLocale(tree, locale)}</h1>
+            <div className="flex items-center gap-1">
+              <h1 className="text-2xl font-semibold tracking-tight">{pickLocale(tree, locale)}</h1>
+              <EditNameDialog
+                locale={locale}
+                programId={tree.id}
+                nameAr={tree.name_ar}
+                nameEn={tree.name_en}
+              />
+            </div>
             <p className="text-sm text-muted-foreground">
               {isTemplate
                 ? t("template")

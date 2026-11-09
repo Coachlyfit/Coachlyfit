@@ -348,6 +348,16 @@ export class ProgramsService {
     return data.length > 0;
   }
 
+  /** Renames a program without touching its dates/schedule. RLS's coach_rw
+   * UPDATE policy (20260731000008_plans.sql) already scopes this to the
+   * owner coach; client_read_own is select-only, so a 0-row result means
+   * "not yours" rather than "not found". */
+  async renameProgram(id: string, input: { name_ar: string; name_en: string }): Promise<boolean> {
+    const { data, error } = await this.db.from("programs").update(input).eq("id", id).select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
   async remove(id: string): Promise<boolean> {
     const { data, error } = await this.db.from("programs").delete().eq("id", id).select("id");
     if (error) throw error;
