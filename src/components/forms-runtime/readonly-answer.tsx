@@ -30,12 +30,10 @@ function photoPaths(value: unknown): string[] {
 function PhotoAnswer({
   field,
   value,
-  locale,
   signedUrls,
 }: {
   field: FormField;
   value: unknown;
-  locale: AppLocale;
   signedUrls?: Record<string, string>;
 }) {
   const t = useTranslations("forms.submissions");
@@ -93,7 +91,7 @@ function PhotoAnswer({
                 onError={onError}
               />
               {!hasUrl && (
-                <span className="absolute bottom-1 left-1 right-1 z-10 text-[10px] text-center bg-black/60 text-white rounded">
+                <span className="absolute bottom-1 ps-1 pe-1 z-10 text-[10px] text-center bg-black/60 text-white rounded">
                   —
                 </span>
               )}
@@ -101,7 +99,7 @@ function PhotoAnswer({
                 <button
                   type="button"
                   aria-label={t("view")}
-                  className="absolute top-1 right-1 z-20 p-1 bg-black/50 text-white rounded hover:bg-black/70 focus:outline-none"
+                  className="absolute top-1 pe-1 z-20 p-1 bg-black/50 text-white rounded hover:bg-black/70 focus:outline-none"
                   onClick={(event) => {
                     event.stopPropagation();
                     openLightbox(path);
@@ -122,7 +120,7 @@ function PhotoAnswer({
             <button
               type="button"
               aria-label="Close"
-              className="absolute top-2 right-2 z-30 p-2 bg-black/60 text-white rounded-full focus:outline-none"
+              className="absolute top-2 pe-2 z-30 p-2 bg-black/60 text-white rounded-full focus:outline-none"
               onClick={(event) => {
                 event.stopPropagation();
                 setLightbox(null);
@@ -186,7 +184,7 @@ export function ReadonlyAnswer({
   }
 
   if (field.type === "photo") {
-    return <PhotoAnswer field={field} value={value} locale={locale} signedUrls={signedUrls} />;
+    return <PhotoAnswer field={field} value={value} signedUrls={signedUrls} />;
   }
 
   if ((field.type === "exercise_ref" || field.type === "food_ref") && typeof value === "string") {
