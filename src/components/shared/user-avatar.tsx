@@ -14,16 +14,18 @@ export function UserAvatar({
   name,
   size = "default",
   userId,
+  className,
 }: {
   src?: string | null;
   name: string;
   size?: "default" | "sm" | "lg";
   /** Used only to pick a stable fallback color. */
   userId?: string;
+  className?: string;
 }) {
   const initial = name.trim().charAt(0) || "?";
   return (
-    <Avatar size={size} aria-label={name} data-slot="user-avatar">
+    <Avatar size={size} aria-label={name} data-slot="user-avatar" className={className}>
       {src ? (
         <AvatarImage src={src} alt="" />
       ) : (

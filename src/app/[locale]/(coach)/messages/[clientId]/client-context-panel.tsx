@@ -18,6 +18,7 @@ import { assignTemplateAction } from "../../forms/actions";
 export type ConversationClient = {
   id: string;
   name: string;
+  avatar_url: string | null;
   status: "invited" | "active" | "archived";
   program: string | null;
   lastCheckin: string | null;

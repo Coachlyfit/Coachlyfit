@@ -13,6 +13,7 @@ import {
   mealItemSchema,
   mealRecipeItemSchema,
   reorderSchema,
+  renameSchema,
   saveAsTemplateSchema,
 } from "./schemas";
 
@@ -116,6 +117,28 @@ export async function updateDietTargetsAction(
   });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+// Rename-only update from the detail page's pencil action. RLS's
+// coach-owned UPDATE policy decides whether the row is writable; this only
+// validates the names and re-checks auth.
+export async function renameDietPlanAction(locale: string, id: string, formData: FormData): Promise<ActionResult> {
+  const parsed = renameSchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const renamed = await new DietPlansService(supabase).renameDiet(id, parsed.data);
+  if (!renamed) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets`);
+  revalidatePath(`/${locale}/diets/${id}`);
 }
 
 // Soft delete: archives instead of removing, so it can be undone from the

@@ -292,6 +292,24 @@ describe("ProgramsService", () => {
     });
   });
 
+  describe("renameProgram", () => {
+    it("writes only the two names, scoped to the program id", async () => {
+      const { db, updates } = fakeSupabase();
+      const renamed = await new ProgramsService(db).renameProgram("p1", { name_ar: "برنامج", name_en: "Program" });
+
+      expect(renamed).toBe(true);
+      expect(updates).toHaveLength(1);
+      expect(updates[0].table).toBe("programs");
+      expect(updates[0].payload).toEqual({ name_ar: "برنامج", name_en: "Program" });
+      expect(updates[0].eqs).toEqual([["id", "p1"]]);
+    });
+
+    it("reports false when RLS hides the program (not this coach's row)", async () => {
+      const { db } = fakeSupabase({ affected: [] });
+      expect(await new ProgramsService(db).renameProgram("p1", { name_ar: "x", name_en: "x" })).toBe(false);
+    });
+  });
+
   describe("reorderItems", () => {
     it("writes order_index = array position and scopes each update by the parent day id", async () => {
       const { db, updates } = fakeSupabase();

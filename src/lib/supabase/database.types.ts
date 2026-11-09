@@ -4593,6 +4593,7 @@ export type Database = {
       }
       coach_inbox_threads: {
         Row: {
+          avatar_url: string | null
           client_id: string | null
           coach_id: string | null
           display_name: string | null

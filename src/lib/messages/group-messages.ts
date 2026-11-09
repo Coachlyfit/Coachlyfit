@@ -32,6 +32,8 @@ export type RenderableMessage = {
   createdAt: string;
   senderRole: "coach" | "client";
   isOwn: boolean;
+  /** Public avatar URL of the sender, or null. */
+  senderAvatarUrl: string | null;
   status: MessageStatus | null;
   pendingRef?: PendingMessage;
 };
@@ -48,7 +50,14 @@ export function toRenderableMessages(
   messages: Message[],
   pending: PendingMessage[],
   viewerRole: "coach" | "client",
+  viewerAvatarUrl: string | null,
+  otherAvatarUrl: string | null,
 ): RenderableMessage[] {
+  const avatarByRole: Record<"coach" | "client", string | null> = {
+    coach: viewerRole === "coach" ? viewerAvatarUrl : otherAvatarUrl,
+    client: viewerRole === "client" ? viewerAvatarUrl : otherAvatarUrl,
+  };
+
   const fromServer: RenderableMessage[] = messages.map((message) => ({
     key: message.id,
     body: message.body,
@@ -62,6 +71,7 @@ export function toRenderableMessages(
     createdAt: message.created_at,
     senderRole: message.sender_role as "coach" | "client",
     isOwn: message.sender_role === viewerRole,
+    senderAvatarUrl: avatarByRole[message.sender_role as "coach" | "client"] ?? null,
     status: getMessageStatus({ isOwn: message.sender_role === viewerRole, readAt: message.read_at }),
   }));
 
@@ -74,6 +84,7 @@ export function toRenderableMessages(
     createdAt: p.createdAt,
     senderRole: viewerRole,
     isOwn: true,
+    senderAvatarUrl: viewerAvatarUrl,
     status: getMessageStatus({ isOwn: true, readAt: null, pendingStatus: p.status }),
     pendingRef: p,
   }));

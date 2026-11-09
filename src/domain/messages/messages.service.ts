@@ -1,7 +1,26 @@
+import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { subscriptionDisplayStatus, type ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
 import { VOICE_MIME_EXT, VOICE_NOTES_BUCKET, type VoiceMime } from "./voice-notes";
+
+/** Counted by Unicode scalar value ("characters") so an emoji counts as one,
+ * not as the two UTF-16 code units (or four UTF-8 bytes) it occupies. */
+export const MESSAGE_MAX_BODY_CHARS = 2000;
+
+/** Validation for sending a message. Kept in the domain layer (not the
+ * Server Action) so it can be tested and reused. */
+export const sendMessageSchema = z.object({
+  clientId: z.string().uuid(),
+  body: z.string()
+    .trim()
+    .min(1, { message: "message_required" })
+    .refine(
+      (text) => [...text].length <= MESSAGE_MAX_BODY_CHARS,
+      { message: "message_too_long" },
+    ),
+  id: z.string().uuid().optional(),
+});
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 // last_read_at was added to the view in 20261008000002. Optional so this
@@ -19,6 +38,7 @@ export type InboxThread = {
   client_id: string;
   coach_id: string;
   display_name: string;
+  avatar_url: string | null;
   status: InboxThreadRow["status"];
   last_body: string | null;
   /** A voice note has an empty body; the list shows a label instead. */
@@ -76,6 +96,7 @@ export class MessagesService {
       client_id: row.client_id as string,
       coach_id: row.coach_id as string,
       display_name: row.display_name as string,
+      avatar_url: row.avatar_url as string | null,
       status: row.status,
       last_body: row.last_body,
       last_is_voice: row.last_kind === "voice",

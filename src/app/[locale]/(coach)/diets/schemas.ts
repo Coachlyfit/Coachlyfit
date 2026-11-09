@@ -75,6 +75,13 @@ export const saveAsTemplateSchema = z.object({
   name_en: z.string().min(1).max(100),
 });
 
+// Renaming only — same 100-char ceiling as the create form, trimmed so a
+// whitespace-only name is rejected instead of saved as blank.
+export const renameSchema = z.object({
+  name_ar: z.string().trim().min(1).max(100),
+  name_en: z.string().trim().min(1).max(100),
+});
+
 // target_* use z.coerce.number(), which makes the schema's input type (what
 // RHF's number inputs actually hand it, pre-validation) diverge from its
 // output type — same z.input/z.output split as programs/schemas.ts's
@@ -87,3 +94,4 @@ export type MealFormInput = z.input<typeof mealSchema>;
 export type MealItemFormInput = z.input<typeof mealItemSchema>;
 export type MealItemInput = z.output<typeof mealItemSchema>;
 export type SaveAsTemplateInput = z.infer<typeof saveAsTemplateSchema>;
+export type RenameFormInput = z.infer<typeof renameSchema>;

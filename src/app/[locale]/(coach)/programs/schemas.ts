@@ -148,6 +148,13 @@ export const saveAsTemplateSchema = z.object({
   name_en: z.string().min(1).max(100),
 });
 
+// Renaming only — same 100-char ceiling as the create form, trimmed so a
+// whitespace-only name is rejected instead of saved as blank.
+export const renameSchema = z.object({
+  name_ar: z.string().trim().min(1).max(100),
+  name_en: z.string().trim().min(1).max(100),
+});
+
 // schedule_mode has a zod .default(), which makes RHF's input type (what the
 // form actually manages before validation) diverge from the output type
 // (schedule_mode always present after parsing) — same z.input/z.output split
@@ -163,6 +170,7 @@ export type SetFormInput = z.input<typeof setInputSchema>;
 export type ItemFormInput = z.input<typeof itemSchema>;
 export type ItemInput = z.output<typeof itemSchema>;
 export type SaveAsTemplateInput = z.infer<typeof saveAsTemplateSchema>;
+export type RenameFormInput = z.infer<typeof renameSchema>;
 export type ActivityFormInput = z.input<typeof activitySchema>;
 export type ActivityInput = z.output<typeof activitySchema>;
 export type RehabProtocolInput = z.infer<typeof rehabProtocolSchema>;
