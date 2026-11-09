@@ -131,6 +131,7 @@ export function MessageThread({
       <div className="border-t border-border bg-card px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:px-4">
         <TypingIndicator show={otherTyping} />
         <MessageComposer
+          locale={locale}
           quickReplies={quickReplies}
           onSend={handleSend}
           onSendVoice={(recording) => {

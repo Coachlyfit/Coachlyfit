@@ -2,22 +2,28 @@ import { useCallback, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Mic, Send, Smile } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EmojiPicker } from "frimousse";
 import type { VoiceRecording } from "@/lib/messages/group-messages";
+import type { AppLocale } from "@/domain/locale";
 import { useVoiceRecorder } from "./use-voice-recorder";
 import { VoiceRecorderBar } from "./voice-recorder-bar";
 
 const MAX_TEXTAREA_HEIGHT_PX = 144; // ~6 lines
 
 export function MessageComposer({
+  locale,
   quickReplies,
   onSend,
   onSendVoice,
   onTyping,
   onStopTyping,
 }: {
+  /** Interface direction of the current locale, used to set `dir` on the
+   * emoji picker so its rows flip correctly between RTL and LTR. */
+  locale: AppLocale;
   /** Canned texts shown as chips above the input; picking one fills the
    * draft (it is never sent without the sender seeing it first). */
   quickReplies?: string[];
@@ -149,38 +155,54 @@ export function MessageComposer({
         <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
           <PopoverTrigger
             render={
+              // Ghost icon button: muted by default, brand tint on hover.
               <Button
                 size="icon"
-                className="size-11 shrink-0 rounded-xl"
+                variant="ghost"
+                className="size-11 shrink-0 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary"
                 aria-label={t("emoji")}
               >
                 <Smile className="size-4" aria-hidden="true" />
               </Button>
             }
           />
-          <PopoverContent className="p-0 w-80">
+          <PopoverContent className="w-80 p-0 rounded-lg border border-border bg-card shadow-sm outline-none">
             <EmojiPicker.Root
+              dir={locale}
               locale="en"
               columns={8}
               onEmojiSelect={({ emoji }) => insertEmoji(emoji)}
             >
               <EmojiPicker.Search
-                className="w-full min-w-[14rem] rounded-md border border-input bg-input px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
+                className="w-full min-w-[14rem] rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring"
                 placeholder={t("emojiSearch")}
               />
-              <EmojiPicker.Viewport className="max-h-[16rem] overflow-y-auto">
+              <EmojiPicker.Viewport
+                className="max-h-[16rem] overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted/50 [&::-webkit-scrollbar-thumb:hover]:bg-muted"
+              >
                 <EmojiPicker.Loading>{t("emojiLoading")}</EmojiPicker.Loading>
                 <EmojiPicker.Empty>{t("emojiEmpty")}</EmojiPicker.Empty>
                 <EmojiPicker.List
-                  className="grid grid-cols-8 gap-1 p-0.5"
+                  className="p-0.5"
                   components={{
+                    CategoryHeader: ({ category, ...props }) => (
+                      <div
+                        {...props}
+                        className="px-2 py-1 text-xs font-medium text-muted-foreground text-start"
+                      >
+                        {category.label}
+                      </div>
+                    ),
                     Emoji: ({ emoji, ...props }) => (
                       <button
                         {...props}
-                        className="w-7 h-7 rounded-md flex items-center justify-center text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="w-7 h-7 rounded-md flex items-center justify-center text-xl leading-none hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {emoji.emoji}
                       </button>
+                    ),
+                    Row: ({ className, ...props }) => (
+                      <div {...props} className={cn("flex w-full justify-between", className)} />
                     ),
                   }}
                 />
@@ -192,7 +214,8 @@ export function MessageComposer({
         {!draft.trim() && recorder.supported ? (
           <Button
             size="icon"
-            className="size-11 shrink-0 rounded-xl"
+            variant="ghost"
+            className="size-11 shrink-0 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary"
             onClick={recorder.start}
             aria-label={t("voice.record")}
           >
