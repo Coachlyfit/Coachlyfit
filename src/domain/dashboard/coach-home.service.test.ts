@@ -71,27 +71,26 @@ describe("CoachHomeService.listInbox", () => {
   const row = {
     id: "s1",
     client_id: "c1",
-    submitted_at: "2026-10-05T08:00:00Z",
+    checkin_date: "2026-10-05",
     reviewed_at: null,
     clients: { display_name: "Sara" },
-    form_template_versions: { form_templates: { name_ar: "تسجيل", name_en: "Check-in" } },
   };
 
   it("maps rows and applies no review filter for 'all'", async () => {
-    const { db, filters } = fakeSupabase({ form_submissions: { data: [row] } });
+    const { db, filters } = fakeSupabase({ checkins: { data: [row] } });
 
     expect(await new CoachHomeService(db).listInbox("all", 6)).toEqual([
       {
         id: "s1",
         clientId: "c1",
         clientName: "Sara",
-        template: { name_ar: "تسجيل", name_en: "Check-in" },
-        submittedAt: "2026-10-05T08:00:00Z",
+        template: null,
+        submittedAt: "2026-10-05",
         reviewed: false,
       },
     ]);
-    expect(filters("form_submissions")).toEqual([
-      ["order", "submitted_at", { ascending: false }],
+    expect(filters("checkins")).toEqual([
+      ["order", "checkin_date", { ascending: false }],
       ["limit", 6],
     ]);
   });
@@ -99,11 +98,11 @@ describe("CoachHomeService.listInbox", () => {
   it("filters on reviewed_at for 'new' and 'reviewed'", async () => {
     const fresh = fakeSupabase({});
     await new CoachHomeService(fresh.db).listInbox("new", 6);
-    expect(fresh.filters("form_submissions")).toContainEqual(["is", "reviewed_at", null]);
+    expect(fresh.filters("checkins")).toContainEqual(["is", "reviewed_at", null]);
 
     const done = fakeSupabase({});
     await new CoachHomeService(done.db).listInbox("reviewed", 6);
-    expect(done.filters("form_submissions")).toContainEqual(["not", "reviewed_at", "is", null]);
+    expect(done.filters("checkins")).toContainEqual(["not", "reviewed_at", "is", null]);
   });
 });
 

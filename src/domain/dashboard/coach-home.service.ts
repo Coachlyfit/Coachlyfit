@@ -68,11 +68,9 @@ export class CoachHomeService {
 
   async listInbox(filter: InboxFilter, limit: number): Promise<InboxRow[]> {
     let query = this.db
-      .from("form_submissions")
-      .select(
-        "id, client_id, submitted_at, reviewed_at, clients(display_name), form_template_versions(form_templates!form_template_versions_template_id_fkey(name_ar, name_en))"
-      )
-      .order("submitted_at", { ascending: false })
+      .from("checkins")
+      .select("id, client_id, checkin_date, reviewed_at, clients(display_name)")
+      .order("checkin_date", { ascending: false })
       .limit(limit);
     if (filter === "new") query = query.is("reviewed_at", null);
     if (filter === "reviewed") query = query.not("reviewed_at", "is", null);
@@ -83,8 +81,8 @@ export class CoachHomeService {
       id: row.id,
       clientId: row.client_id,
       clientName: row.clients?.display_name ?? "",
-      template: row.form_template_versions?.form_templates ?? null,
-      submittedAt: row.submitted_at,
+      template: null,
+      submittedAt: row.checkin_date,
       reviewed: row.reviewed_at != null,
     }));
   }
