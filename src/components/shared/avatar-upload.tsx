@@ -3,15 +3,15 @@
 import { useCallback, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Trash2, Upload } from "lucide-react";
+import { Trash2, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "./user-avatar";
 import { uploadAvatarAction, removeAvatarAction } from "@/app/[locale]/(coach)/settings/avatar-actions";
 
-/** Editable avatar: current image/initials, an upload button with preview,
- * loading and error states, and a remove option. Validates image type and the
- * 2 MB cap client-side as a courtesy; the server action re-validates, so a
- * malicious or non-browser caller can't bypass it. */
+/** Editable avatar: a polished circular photo with an inline upload button,
+ * instant preview, loading state, and a remove option. Validates image type
+ * and the 2 MB cap client-side as a courtesy; the server action re-validates,
+ * so a malicious or non-browser caller can't bypass it. */
 export function AvatarUpload({
   userId,
   name,
@@ -32,6 +32,8 @@ export function AvatarUpload({
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const objectUrl = useRef<string | null>(null);
+
+  const avatarSizes = { default: "size-16", sm: "size-10", lg: "size-20" };
 
   const clearPreview = useCallback(() => {
     setPreview(null);
@@ -69,12 +71,13 @@ export function AvatarUpload({
         if ("error" in result) {
           setError(result.error);
           clearPreview();
+          toast.error(tErrors(result.error));
           return;
         }
         toast.success(t("uploaded"));
       });
     },
-    [locale, t, tErrors, clearPreview]
+    [locale, t, tErrors, clearPreview],
   );
 
   const handleRemove = useCallback(async () => {
@@ -83,11 +86,12 @@ export function AvatarUpload({
       const result = await removeAvatarAction(locale);
       if ("error" in result) {
         setError(result.error);
+        toast.error(tErrors(result.error));
         return;
       }
       toast.success(t("removed"));
     });
-  }, [locale, t]);
+  }, [locale, t, tErrors]);
 
   const displayUrl = preview ?? src;
   const hasAvatar = !!displayUrl;
@@ -96,23 +100,28 @@ export function AvatarUpload({
     <div className="flex flex-col items-center gap-3">
       <div className="relative inline-block">
         <UserAvatar src={displayUrl ?? undefined} name={name} size={size} userId={userId} />
-        {hasAvatar && (
-          <button
-            type="button"
-            onClick={handleRemove}
-            disabled={pending}
-            aria-label={t("remove")}
-            className="absolute end-0 bottom-0 z-20 flex size-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-2 ring-background text-xs"
-          >
-            <Trash2 className="size-2.5" aria-hidden="true" />
-          </button>
-        )}
-        {!hasAvatar && (
+
+        <div className="absolute end-0 bottom-0 z-20 flex flex-col items-end gap-1">
+          {hasAvatar && (
+            <button
+              type="button"
+              onClick={handleRemove}
+              disabled={pending}
+              aria-label={t("remove")}
+              className="flex size-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-2 ring-background hover:bg-destructive/90 transition-colors disabled:opacity-50"
+            >
+              <Trash2 className="size-3" aria-hidden="true" />
+            </button>
+          )}
           <label
-            className="absolute end-0 bottom-0 z-20 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background text-xs cursor-pointer hover:bg-primary/90 transition-colors"
-            aria-label={t("upload")}
+            className="flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={hasAvatar ? t("replace") : t("upload")}
           >
-            <Upload className="size-2.5" aria-hidden="true" />
+            {pending ? (
+              <Loader2 className="size-3.5 animate-spin text-white" aria-hidden="true" />
+            ) : (
+              <Upload className="size-3.5" aria-hidden="true" />
+            )}
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
@@ -121,13 +130,13 @@ export function AvatarUpload({
               disabled={pending}
             />
           </label>
-        )}
+        </div>
       </div>
 
       {error && (
         <p className="text-sm text-destructive text-start w-full">{error}</p>
       )}
-      {preview && (
+      {preview && !pending && (
         <Button
           type="button"
           variant="outline"

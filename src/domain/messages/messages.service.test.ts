@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MessagesService } from "./messages.service";
+import { MessagesService, sendMessageSchema } from "./messages.service";
 
 function fakeSupabase(rows: unknown[] = [], insertError: { code: string } | null = null) {
   const inserts: { table: string; payload: unknown }[] = [];
@@ -280,5 +280,44 @@ describe("MessagesService", () => {
     const result = await new MessagesService(db).listBroadcastRecipients(new Date("2026-10-08T00:00:00Z"));
 
     expect(result).toEqual({ all: ["live", "expired", "frozen", "none"], subscribed: ["live"] });
+  });
+});
+
+describe("sendMessageSchema", () => {
+  const clientId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+
+  it("accepts a normal message", () => {
+    expect(sendMessageSchema.safeParse({ clientId, body: "hi there" }).success).toBe(true);
+  });
+
+  it("accepts an idempotency id when supplied", () => {
+    const parsed = sendMessageSchema.safeParse({
+      clientId,
+      body: "hi",
+      id: "f47ac10b-58cc-4372-b567-0e02b2c3d479",
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.id).toBe("f47ac10b-58cc-4372-b567-0e02b2c3d479");
+  });
+
+  it("rejects an empty or whitespace-only body", () => {
+    expect(sendMessageSchema.safeParse({ clientId, body: "" }).success).toBe(false);
+    expect(sendMessageSchema.safeParse({ clientId, body: "   " }).success).toBe(false);
+  });
+
+  it("counts message length by characters, not bytes", () => {
+    // 2000 emojis = 2000 characters (4000 UTF-8 bytes, 4000 UTF-16 units)
+    expect(sendMessageSchema.safeParse({ clientId, body: "👍".repeat(2000) }).success).toBe(true);
+    // 2001 emojis = 2001 characters → over the 2000-character cap
+    expect(sendMessageSchema.safeParse({ clientId, body: "👍".repeat(2001) }).success).toBe(false);
+  });
+
+  it("caps plain text at 2000 characters", () => {
+    expect(sendMessageSchema.safeParse({ clientId, body: "a".repeat(2000) }).success).toBe(true);
+    expect(sendMessageSchema.safeParse({ clientId, body: "a".repeat(2001) }).success).toBe(false);
+  });
+
+  it("rejects a non-uuid clientId", () => {
+    expect(sendMessageSchema.safeParse({ clientId: "not-a-uuid", body: "hi" }).success).toBe(false);
   });
 });

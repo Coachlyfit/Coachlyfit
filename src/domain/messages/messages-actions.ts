@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { PresenceService } from "@/domain/presence/presence.service";
-import { MessagesService, type ThreadPage } from "./messages.service";
+import { MessagesService, sendMessageSchema as sendSchema, type ThreadPage } from "./messages.service";
 import {
   VOICE_NOTE_MAX_BYTES,
   VOICE_NOTE_MAX_SECONDS,
@@ -12,12 +12,6 @@ import {
   normalizeVoiceMime,
   sniffVoiceMime,
 } from "./voice-notes";
-
-const sendSchema = z.object({
-  clientId: z.string().uuid(),
-  body: z.string().trim().min(1).max(2000),
-  id: z.string().uuid().optional(),
-});
 
 const sendVoiceSchema = z.object({
   clientId: z.string().uuid(),

@@ -22,7 +22,12 @@ type ThreadData = InfiniteData<ThreadPage, string | null>;
 const POLL_INTERVAL_MS = 30_000;
 const MARK_READ_DEBOUNCE_MS = 1500;
 
-export function useMessageThread(clientId: string, viewerRole: ViewerRole) {
+export function useMessageThread(
+  clientId: string,
+  viewerRole: ViewerRole,
+  viewerAvatarUrl: string | null,
+  otherAvatarUrl: string | null,
+) {
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => ["messages", clientId], [clientId]);
   const [pending, setPending] = useState<PendingMessage[]>([]);
@@ -183,7 +188,13 @@ export function useMessageThread(clientId: string, viewerRole: ViewerRole) {
     [deliver, visiblePending],
   );
 
-  const renderable = toRenderableMessages(messages, visiblePending, viewerRole);
+  const renderable = toRenderableMessages(
+    messages,
+    visiblePending,
+    viewerRole,
+    viewerAvatarUrl,
+    otherAvatarUrl,
+  );
 
   return {
     renderable,

@@ -5,13 +5,15 @@ import { useTranslations } from "next-intl";
 import { MessageCircle, Search } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/supabase/client";
 import { useClientPresence } from "@/components/messages/use-inbox-threads";
+import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { Link } from "@/i18n/navigation";
 import { formatDate } from "@/lib/format";
-import { tintFor } from "@/lib/tint";
 import { cn } from "@/lib/utils";
 import type { AppLocale } from "@/domain/locale";
 import type { InboxThread } from "@/domain/messages/messages.service";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 type Filter = "all" | "unread" | "awaitingRead";
 const FILTERS: Filter[] = ["all", "unread", "awaitingRead"];
@@ -124,6 +126,10 @@ function ConversationRow({
   const unread = thread.unread_count > 0;
   const preview = thread.last_is_voice ? t("voice.preview") : thread.last_body;
 
+  const avatarUrl = thread.avatar_url
+    ? createClient().storage.from(AVATARS_BUCKET).getPublicUrl(thread.avatar_url).data.publicUrl
+    : null;
+
   return (
     // A link, not a button: opening a conversation is a navigation (the
     // selected thread lives in the URL), so it gets prefetch, middle-click
@@ -137,15 +143,12 @@ function ConversationRow({
       )}
     >
       <span className="relative shrink-0">
-        <span
-          className={cn(
-            "flex size-11 items-center justify-center rounded-full font-semibold text-white",
-            tintFor(thread.client_id),
-          )}
-          aria-hidden="true"
-        >
-          {thread.display_name[0]}
-        </span>
+        <UserAvatar
+          src={avatarUrl}
+          name={thread.display_name}
+          userId={thread.client_id}
+          size="sm"
+        />
         {online && (
           <span
             role="img"

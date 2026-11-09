@@ -25,6 +25,10 @@ export function MessageThread({
   header,
   quickReplies,
   className,
+  /** Public avatar URL of the viewer (the person looking at the thread). */
+  viewerAvatarUrl = null,
+  /** Public avatar URL of the other participant. */
+  otherAvatarUrl = null,
 }: {
   clientId: string;
   viewerRole: "coach" | "client";
@@ -34,6 +38,8 @@ export function MessageThread({
   header?: React.ReactNode;
   quickReplies?: string[];
   className?: string;
+  viewerAvatarUrl?: string | null;
+  otherAvatarUrl?: string | null;
 }) {
   const t = useTranslations("inbox");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,6 +48,8 @@ export function MessageThread({
   const { renderable, isLoading, send, sendVoice, retry, hasOlder, isLoadingOlder, loadOlder } = useMessageThread(
     clientId,
     viewerRole,
+    viewerAvatarUrl,
+    otherAvatarUrl,
   );
   const { otherOnline, lastSeenAt, channel } = usePresence(clientId, viewerRole);
   const { otherTyping, notifyTyping, notifyStopped } = useTyping(channel, viewerRole);
@@ -104,7 +112,14 @@ export function MessageThread({
                 item.kind === "date-separator" ? (
                   <DateSeparator key={item.key} date={item.date} locale={locale} />
                 ) : (
-                  <MessageGroup key={item.key} group={item} locale={locale} onRetry={retry} />
+                  <MessageGroup
+                    key={item.key}
+                    group={item}
+                    locale={locale}
+                    onRetry={retry}
+                    viewerAvatarUrl={viewerAvatarUrl}
+                    otherAvatarUrl={otherAvatarUrl}
+                  />
                 ),
               )}
             </>

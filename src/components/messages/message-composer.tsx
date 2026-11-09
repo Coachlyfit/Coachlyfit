@@ -1,8 +1,10 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Mic, Send } from "lucide-react";
+import { Mic, Send, Smile } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { EmojiPicker } from "frimousse";
 import type { VoiceRecording } from "@/lib/messages/group-messages";
 import { useVoiceRecorder } from "./use-voice-recorder";
 import { VoiceRecorderBar } from "./voice-recorder-bar";
@@ -26,6 +28,7 @@ export function MessageComposer({
 }) {
   const t = useTranslations("inbox");
   const [draft, setDraft] = useState("");
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recorder = useVoiceRecorder((notice) => {
     if (notice === "limitReached") toast.message(t("voice.limitReached"));
@@ -43,6 +46,31 @@ export function MessageComposer({
     if (e.target.value.trim()) onTyping();
     else onStopTyping();
   }
+
+  /** Insert `emoji` at the textarea cursor (or append if there's no focusable
+   * field), then restore the caret right after the inserted emoji. */
+  const insertEmoji = useCallback(
+    (emoji: string) => {
+      setEmojiPickerOpen(false);
+      const el = textareaRef.current;
+      const start = el?.selectionStart ?? 0;
+      const end = el?.selectionEnd ?? 0;
+      const next = draft.slice(0, start) + emoji + draft.slice(end);
+      setDraft(next);
+      // React re-renders the controlled textarea with `next`; restore the
+      // caret after the commit so the user can keep typing where they left.
+      requestAnimationFrame(() => {
+        const current = textareaRef.current;
+        if (current) {
+          current.focus();
+          current.setSelectionRange(start + emoji.length, start + emoji.length);
+        }
+      });
+      onTyping();
+      if (el) resize(el);
+    },
+    [draft, onTyping],
+  );
 
   function handleQuickReply(text: string) {
     setDraft(text);
@@ -118,6 +146,48 @@ export function MessageComposer({
           // page when the field takes focus.
           className="max-h-36 min-h-11 flex-1 resize-none rounded-xl border border-border bg-card px-3.5 py-2.5 text-base leading-relaxed outline-none focus-visible:ring-1 focus-visible:ring-ring lg:text-sm"
         />
+        <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+          <PopoverTrigger
+            render={
+              <Button
+                size="icon"
+                className="size-11 shrink-0 rounded-xl"
+                aria-label={t("emoji")}
+              >
+                <Smile className="size-4" aria-hidden="true" />
+              </Button>
+            }
+          />
+          <PopoverContent className="p-0 w-80">
+            <EmojiPicker.Root
+              locale="en"
+              columns={8}
+              onEmojiSelect={({ emoji }) => insertEmoji(emoji)}
+            >
+              <EmojiPicker.Search
+                className="w-full min-w-[14rem] rounded-md border border-input bg-input px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
+                placeholder={t("emojiSearch")}
+              />
+              <EmojiPicker.Viewport className="max-h-[16rem] overflow-y-auto">
+                <EmojiPicker.Loading>{t("emojiLoading")}</EmojiPicker.Loading>
+                <EmojiPicker.Empty>{t("emojiEmpty")}</EmojiPicker.Empty>
+                <EmojiPicker.List
+                  className="grid grid-cols-8 gap-1 p-0.5"
+                  components={{
+                    Emoji: ({ emoji, ...props }) => (
+                      <button
+                        {...props}
+                        className="w-7 h-7 rounded-md flex items-center justify-center text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {emoji.emoji}
+                      </button>
+                    ),
+                  }}
+                />
+              </EmojiPicker.Viewport>
+            </EmojiPicker.Root>
+          </PopoverContent>
+        </Popover>
         {/* An empty draft has nothing to send, so that slot offers the mic. */}
         {!draft.trim() && recorder.supported ? (
           <Button

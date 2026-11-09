@@ -5,6 +5,9 @@ import type { AppLocale } from "@/domain/locale";
 import type { RenderableMessage } from "@/lib/messages/group-messages";
 import { cn } from "@/lib/utils";
 import { VoicePlayer } from "./voice-player";
+import { Bubble, BubbleContent } from "@/components/ui/bubble";
+import { Message, MessageAvatar } from "@/components/ui/message";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 export function MessageBubble({
   message,
@@ -17,29 +20,66 @@ export function MessageBubble({
 }) {
   const t = useTranslations("inbox");
   const isFailed = message.status === "failed";
+  const isOwn = message.isOwn;
+  // Emoji-only messages render larger so they feel like a quick reaction.
+  // Every non-whitespace token must be an emoji grapheme (with optional
+  // skin tone / ZWJ sequence).
+  const isEmojiOnly = message.body
+    .trim()
+    .split(/\s+/)
+    .every(
+      (part) =>
+        part.length > 0 &&
+        /^\p{Extended_Pictographic}(\ufe0f|\p{Emoji_Modifier})?(\u200d\p{Extended_Pictographic}(\ufe0f|\p{Emoji_Modifier})?)*$/u.test(
+          part,
+        ),
+    );
 
   return (
-    // Own messages sit on the inline-end side, the other party's on
-    // inline-start; the squared corner is the bottom one on that same side.
-    // All logical, so both flip together between RTL and LTR.
-    <div className={cn("flex", message.isOwn ? "justify-end" : "justify-start")}>
-      <div
+    // `align` is logical: own messages sit at the end, the other party's at
+    // the start, and both flip together between RTL and LTR.
+    <Message align={isOwn ? "end" : "start"} className="w-full min-w-0">
+      {!isOwn && message.senderAvatarUrl && (
+        <MessageAvatar>
+          <UserAvatar
+            src={message.senderAvatarUrl}
+            name={message.senderRole === "coach" ? t("you") : "client"}
+            size="sm"
+            userId={message.key}
+          />
+        </MessageAvatar>
+      )}
+      <Bubble
+        align={isOwn ? "end" : "start"}
         className={cn(
-          "flex max-w-[80%] flex-col gap-0.5 rounded-2xl px-3 pt-2 pb-1.5 lg:max-w-[min(72%,32.5rem)]",
-          message.isOwn
+          "max-w-[80%] rounded-2xl px-3 pt-2 pb-1.5 lg:max-w-[min(72%,32.5rem)]",
+          isOwn
             ? cn("rounded-ee-sm bg-sidebar text-sidebar-foreground dark:bg-sidebar-accent", isFailed && "outline outline-destructive/60")
             : "rounded-es-sm bg-card ring-1 ring-foreground/10 ring-inset",
         )}
       >
+        <BubbleContent
+          render={({ className, ...rest }) => (
+            <p
+              dir="auto"
+              {...rest}
+              className={cn(
+                className,
+                "whitespace-pre-wrap [overflow-wrap:anywhere]",
+                isEmojiOnly ? "text-lg" : "text-sm leading-relaxed",
+              )}
+            >
+              {message.body}
+            </p>
+          )}
+        />
         {message.voice ? (
-          <VoicePlayer voice={message.voice} onDark={message.isOwn} />
-        ) : (
-          <p dir="auto" className="text-sm leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">{message.body}</p>
-        )}
+          <VoicePlayer voice={message.voice} onDark={isOwn} />
+        ) : null}
         <div
           className={cn(
             "flex items-center gap-1 self-end text-[11px]",
-            message.isOwn ? "text-sidebar-foreground/60" : "text-muted-foreground",
+            isOwn ? "text-sidebar-foreground/60" : "text-muted-foreground",
           )}
         >
           <time dateTime={message.createdAt} className="font-mono tabular-nums">
@@ -56,8 +96,8 @@ export function MessageBubble({
             </button>
           )}
         </div>
-      </div>
-    </div>
+      </Bubble>
+    </Message>
   );
 }
 

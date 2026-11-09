@@ -10,11 +10,13 @@ import { useClientPresence } from "@/components/messages/use-inbox-threads";
 import { usePersistedFlag } from "@/components/messages/use-persisted-flag";
 import { Link } from "@/i18n/navigation";
 import { formatRelativeTime } from "@/lib/format";
-import { tintFor } from "@/lib/tint";
 import { cn } from "@/lib/utils";
 import type { AppLocale } from "@/domain/locale";
 import { QUICK_REPLY_KEYS } from "@/domain/messages/quick-replies";
 import { ClientContextPanel, type ConversationClient } from "./client-context-panel";
+import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
+import { createClient } from "@/lib/supabase/client";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 const PANEL_STORAGE_KEY = "messages:context-panel";
 
@@ -25,10 +27,13 @@ const PANEL_STORAGE_KEY = "messages:context-panel";
 export function ConversationPane({
   locale,
   client,
+  viewerAvatarUrl,
   checkinTemplateVersionId,
 }: {
   locale: AppLocale;
   client: ConversationClient;
+  /** Public avatar URL of the coach viewing this thread. */
+  viewerAvatarUrl: string | null;
   checkinTemplateVersionId: string | null;
 }) {
   const t = useTranslations("inbox");
@@ -46,6 +51,10 @@ export function ConversationPane({
       ? t("lastSeen", { time: formatRelativeTime(presence.lastSeenAt, locale) })
       : t("offline");
 
+  const clientAvatarUrl = client.avatar_url
+    ? createClient().storage.from(AVATARS_BUCKET).getPublicUrl(client.avatar_url).data.publicUrl
+    : null;
+
   const panel = (
     <ClientContextPanel locale={locale} client={client} checkinTemplateVersionId={checkinTemplateVersionId} />
   );
@@ -60,15 +69,13 @@ export function ConversationPane({
         {/* Points toward inline-start: right in RTL as drawn, mirrored for LTR. */}
         <ChevronRight className="size-5 ltr:-scale-x-100" aria-hidden="true" />
       </Link>
-      <span
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-full font-semibold text-white",
-          tintFor(client.id),
-        )}
-        aria-hidden="true"
-      >
-        {client.name[0]}
-      </span>
+      <UserAvatar
+        src={clientAvatarUrl}
+        name={client.name}
+        userId={client.id}
+        size="lg"
+        className="shrink-0"
+      />
       <div className="flex min-w-0 flex-1 flex-col leading-tight">
         <h2 className="truncate font-semibold">{client.name}</h2>
         <span
@@ -117,6 +124,8 @@ export function ConversationPane({
         viewerRole="coach"
         locale={locale}
         header={header}
+        viewerAvatarUrl={viewerAvatarUrl}
+        otherAvatarUrl={clientAvatarUrl}
         quickReplies={QUICK_REPLY_KEYS.map((key) => t(`quickReplies.${key}`))}
         className="min-w-0 flex-1"
       />

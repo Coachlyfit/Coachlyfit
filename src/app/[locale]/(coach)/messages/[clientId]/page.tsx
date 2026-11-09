@@ -22,7 +22,7 @@ export default async function MessagesThreadPage({
 
   // The roster view is security_invoker: another coach's client simply isn't
   // in it, so "not found" here is also the authorization check.
-  const [client, { data: coach }] = await Promise.all([
+  const [client, { data: coach }, viewerProfile] = await Promise.all([
     new ClientsService(supabase).getRosterClient(clientId),
     coachId
       ? supabase
@@ -30,6 +30,9 @@ export default async function MessagesThreadPage({
           .select("form_templates!coaches_default_checkin_template_id_fkey(current_version_id, archived_at)")
           .eq("id", coachId)
           .maybeSingle()
+      : Promise.resolve({ data: null }),
+    coachId
+      ? supabase.from("profiles").select("avatar_url").eq("id", coachId).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
 
@@ -44,12 +47,14 @@ export default async function MessagesThreadPage({
       client={{
         id: client.id,
         name: client.displayName,
+        avatar_url: client.avatarUrl,
         status: client.status,
         program: client.program ? pickLocale(client.program, locale) : null,
         lastCheckin: client.lastCheckin,
         adherence: client.adherence,
         subscription: subscriptionRosterStatus(client.subscription, new Date()),
       }}
+      viewerAvatarUrl={viewerProfile?.data?.avatar_url ?? null}
       // A deleted (archived) default form is treated as no default at all,
       // same rule as the dashboard's send-check-in action.
       checkinTemplateVersionId={

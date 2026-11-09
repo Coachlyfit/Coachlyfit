@@ -1203,6 +1203,10 @@
     "placeholder": "Type a message…",
     "send": "Send",
     "retry": "Retry",
+    "emoji": "Emoji",
+    "emojiSearch": "Search emojis",
+    "emojiLoading": "Loading emojis…",
+    "emojiEmpty": "No emoji found",
     "voice": {
       "record": "Record voice note",
       "stop": "Stop recording",
