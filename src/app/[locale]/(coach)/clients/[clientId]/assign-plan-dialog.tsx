@@ -76,6 +76,7 @@ export function AssignPlanDialog({
         type="button"
         variant={variant}
         size="sm"
+        nativeButton={false}
         render={<Link href={kind === "program" ? "/programs" : "/diets"} />}
       >
         <Send className="size-4" />

@@ -37,7 +37,7 @@ export function invoicePaymentStatus(
   return invoice.due_date != null && invoice.due_date < today ? "overdue" : "due";
 }
 
-export type QuietClient = { id: string; name: string; days: number | null };
+export type QuietClient = { id: string; name: string; days: number | null; avatarUrl?: string | null };
 
 /** Active clients with no check-in in LATE_AFTER_DAYS -- the same rule as
  * the roster's "late" flag (isClientLate), so the two never disagree.

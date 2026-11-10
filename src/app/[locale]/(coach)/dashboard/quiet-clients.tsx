@@ -39,7 +39,7 @@ export async function QuietClients({ locale }: { locale: AppLocale }) {
         <ul className="flex flex-col gap-4">
           {clients.map((client) => (
             <li key={client.id} className="flex items-center gap-3">
-              <ClientAvatar id={client.id} name={client.name} />
+              <ClientAvatar id={client.id} name={client.name} src={client.avatarUrl} />
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate font-medium">{client.name}</span>
                 <span className="text-muted-foreground">

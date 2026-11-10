@@ -41,7 +41,7 @@ export async function CheckinInbox({ locale, filter }: { locale: AppLocale; filt
             key={row.id}
             className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-border px-5 py-3.5"
           >
-            <ClientAvatar id={row.clientId} name={row.clientName} />
+            <ClientAvatar id={row.clientId} name={row.clientName} src={row.avatarUrl} />
             <div className="flex min-w-0 flex-[1_1_11rem] flex-col">
               <span className="truncate font-medium">{row.clientName}</span>
               <span className="truncate text-muted-foreground">

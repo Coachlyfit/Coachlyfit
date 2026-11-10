@@ -44,14 +44,14 @@ export function NutritionCalendar({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <Button variant="ghost" size="icon-sm" aria-label={t("prev")} render={<Link href={prevHref} scroll={false} />}>
+        <Button variant="ghost" size="icon-sm" aria-label={t("prev")} nativeButton={false} render={<Link href={prevHref} scroll={false} />}>
           <ChevronLeft className="size-4 rtl:rotate-180" />
         </Button>
         <p className="text-sm font-medium">
           {formatDate(`${month}-01`, locale, { month: "long", year: "numeric", timeZone: "UTC" })}
         </p>
         {nextHref ? (
-          <Button variant="ghost" size="icon-sm" aria-label={t("next")} render={<Link href={nextHref} scroll={false} />}>
+          <Button variant="ghost" size="icon-sm" aria-label={t("next")} nativeButton={false} render={<Link href={nextHref} scroll={false} />}>
             <ChevronRight className="size-4 rtl:rotate-180" />
           </Button>
         ) : (

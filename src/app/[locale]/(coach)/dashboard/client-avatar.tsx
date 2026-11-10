@@ -1,11 +1,17 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import { tintFor } from "@/lib/tint";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
-export function ClientAvatar({ id, name, size = "lg" }: { id: string; name: string; size?: "default" | "lg" }) {
-  return (
-    <Avatar size={size} aria-hidden="true">
-      <AvatarFallback className={cn("font-semibold text-white", tintFor(id))}>{name[0] ?? "?"}</AvatarFallback>
-    </Avatar>
-  );
+/** Client (or coach/user) avatar: the photo when `src` is given, else the
+ * tinted initial. Decorative — the name is always rendered beside it. */
+export function ClientAvatar({
+  id,
+  name,
+  src,
+  size = "lg",
+}: {
+  id: string;
+  name: string;
+  src?: string | null;
+  size?: "default" | "lg";
+}) {
+  return <UserAvatar src={src} name={name} userId={id} size={size} />;
 }

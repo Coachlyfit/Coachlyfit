@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { avatarPublicUrl } from "@/lib/avatar-url";
 import { homeWindow, invoicePaymentStatus, quietClients, type PaymentStatus, type QuietClient } from "./coach-home";
 
 export const INBOX_FILTERS = ["all", "new", "reviewed"] as const;
@@ -9,6 +10,7 @@ export type InboxRow = {
   id: string;
   clientId: string;
   clientName: string;
+  avatarUrl: string | null;
   template: { name_ar: string; name_en: string } | null;
   submittedAt: string;
   reviewed: boolean;
@@ -69,7 +71,7 @@ export class CoachHomeService {
   async listInbox(filter: InboxFilter, limit: number): Promise<InboxRow[]> {
     let query = this.db
       .from("checkins")
-      .select("id, client_id, checkin_date, reviewed_at, clients(display_name)")
+      .select("id, client_id, checkin_date, reviewed_at, clients(display_name, profiles(avatar_url))")
       .order("checkin_date", { ascending: false })
       .limit(limit);
     if (filter === "new") query = query.is("reviewed_at", null);
@@ -81,6 +83,7 @@ export class CoachHomeService {
       id: row.id,
       clientId: row.client_id,
       clientName: row.clients?.display_name ?? "",
+      avatarUrl: avatarPublicUrl(row.clients?.profiles?.avatar_url),
       template: null,
       submittedAt: row.checkin_date,
       reviewed: row.reviewed_at != null,
@@ -90,12 +93,15 @@ export class CoachHomeService {
   async listQuietClients(now: Date, limit: number): Promise<QuietClient[]> {
     const since = new Date(now.getTime() - QUIET_LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const [clients, checkins] = await Promise.all([
-      this.db.from("clients").select("id, display_name, status").eq("status", "active"),
+      this.db.from("clients").select("id, display_name, status, profiles(avatar_url)").eq("status", "active"),
       this.db.from("checkins").select("client_id, checkin_date").gte("checkin_date", since),
     ]);
     if (clients.error) throw clients.error;
     if (checkins.error) throw checkins.error;
-    return quietClients(clients.data, checkins.data, now).slice(0, limit);
+    const avatars = new Map(clients.data.map((c) => [c.id, avatarPublicUrl(c.profiles?.avatar_url)]));
+    return quietClients(clients.data, checkins.data, now)
+      .slice(0, limit)
+      .map((c) => ({ ...c, avatarUrl: avatars.get(c.id) ?? null }));
   }
 
   /** Invoices falling due around now. There is no paid_at column, so a paid

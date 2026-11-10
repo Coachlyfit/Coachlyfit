@@ -39,7 +39,7 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
                   replaceActive={false}
                   trigger={t("assign")}
                 />
-                <Button variant="outline" size="sm" render={<Link href={`/programs?client=${clientId}`} />}>
+                <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/programs?client=${clientId}`} />}>
                   {t("create")}
                 </Button>
               </div>
@@ -165,7 +165,7 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
         )}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <Button size="sm" render={<Link href={`/programs/${program.id}`} />}>
+          <Button size="sm" nativeButton={false} render={<Link href={`/programs/${program.id}`} />}>
             <ExternalLink className="size-4" />
             {t("open")}
           </Button>

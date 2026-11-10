@@ -55,7 +55,7 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
                   replaceActive={false}
                   trigger={t("assign")}
                 />
-                <Button variant="outline" size="sm" render={<Link href={`/diets?client=${clientId}`} />}>
+                <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/diets?client=${clientId}`} />}>
                   {t("create")}
                 </Button>
                 {suggestDialog}
@@ -93,7 +93,7 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
         <p className="text-xs text-muted-foreground">{t("mealCount", { count: diet.meals.length })}</p>
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <Button size="sm" render={<Link href={`/diets/${diet.id}`} />}>
+          <Button size="sm" nativeButton={false} render={<Link href={`/diets/${diet.id}`} />}>
             <ExternalLink className="size-4" />
             {t("open")}
           </Button>

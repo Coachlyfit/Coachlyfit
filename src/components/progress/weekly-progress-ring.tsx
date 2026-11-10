@@ -7,8 +7,9 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 /** Circular "done / planned" dial for the client home header — a plain
  * stroke-dasharray ring, not the linear shadcn Progress primitive, since the
  * visual (a count dial with the fraction inside) is a different shape
- * entirely. Sits on the sidebar-colored header card, so it paints with the
- * sidebar foreground. `total` must be > 0; callers hide the ring otherwise. */
+ * entirely. Sits on the sidebar-colored header card and paints with the
+ * sidebar foreground, not --primary: a coach's brand can make primary dark,
+ * and the sidebar foreground is the one color guaranteed readable on it. `total` must be > 0; callers hide the ring otherwise. */
 export function WeeklyProgressRing({
   done,
   total,
@@ -33,12 +34,13 @@ export function WeeklyProgressRing({
         cy="60"
         r={RADIUS}
         fill="none"
-        stroke="var(--primary)"
+        stroke="currentColor"
         strokeWidth="12"
         strokeLinecap="round"
         strokeDasharray={CIRCUMFERENCE}
         strokeDashoffset={CIRCUMFERENCE * (1 - ratio)}
         transform="rotate(-90 60 60)"
+        className="text-sidebar-foreground"
       />
       {/* direction="ltr": the "3/5" fraction must not reorder under RTL. */}
       <text

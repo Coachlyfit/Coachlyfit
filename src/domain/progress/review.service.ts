@@ -5,7 +5,8 @@ import type { PastNote } from "./note-similarity";
 type Checkin = Database["public"]["Tables"]["checkins"]["Row"];
 
 export type PendingCheckin = Checkin & {
-  clients: { id: string; display_name: string } | null;
+  // profiles only on the queue query (avatar for the review console).
+  clients: { id: string; display_name: string; profiles?: { avatar_url: string | null } | null } | null;
 };
 
 export type ReviewDecision = "keep" | "adjust" | "call";
@@ -40,7 +41,7 @@ export class ReviewService {
   async listPendingQueue(): Promise<PendingCheckin[]> {
     const { data, error } = await this.db
       .from("checkins")
-      .select("*, clients(id, display_name)")
+      .select("*, clients(id, display_name, profiles(avatar_url))")
       .is("reviewed_at", null)
       .order("checkin_date", { ascending: true });
     if (error) throw error;

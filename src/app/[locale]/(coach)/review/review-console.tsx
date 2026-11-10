@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SaveConfirmedMark } from "@/components/brand/save-confirmed-mark";
 import { formatDate, formatNumber } from "@/lib/format";
-import { tintFor } from "@/lib/tint";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { cn } from "@/lib/utils";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { StructuredAdjustment } from "@/domain/progress/review.service";
@@ -30,6 +30,7 @@ export type ReviewQueueEntry = {
   checkinId: string;
   clientId: string;
   clientName: string;
+  avatarUrl: string | null;
   checkinDate: string;
   weight: number | null;
   weightDelta: number | null;
@@ -176,12 +177,11 @@ export function ReviewConsole({ locale, initialEntries }: { locale: AppLocale; i
               aria-current={i === safeIndex ? "true" : undefined}
               aria-label={entry.clientName}
               className={cn(
-                "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white ring-2 transition-opacity",
-                tintFor(entry.clientId),
+                "shrink-0 rounded-full ring-2 transition-opacity",
                 i === safeIndex ? "opacity-100 ring-sidebar-ring" : "opacity-60 ring-transparent hover:opacity-90"
               )}
             >
-              {entry.clientName[0] ?? "?"}
+              <UserAvatar src={entry.avatarUrl} name={entry.clientName} userId={entry.clientId} className="size-8" />
             </button>
           ))}
         </div>
@@ -348,14 +348,7 @@ function ReviewEntryPanel({
       <div className="flex flex-col gap-4">
         <Card>
           <CardContent className="flex items-center gap-4 pt-6">
-            <div
-              className={cn(
-                "flex size-11 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white",
-                tintFor(entry.clientId)
-              )}
-            >
-              {entry.clientName[0] ?? "?"}
-            </div>
+            <UserAvatar src={entry.avatarUrl} name={entry.clientName} userId={entry.clientId} className="size-11" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-base font-semibold">{entry.clientName}</p>
               <p className="text-xs text-muted-foreground">{formatDate(entry.checkinDate, locale)}</p>
