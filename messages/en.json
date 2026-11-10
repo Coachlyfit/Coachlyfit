@@ -1493,48 +1493,68 @@
     },
     "fill": {
       "submit": "Submit",
-      "submitted": "Submitted — thank you!",
       "chooseFile": "Choose file",
       "removeFile": "Remove file",
-      "intro": {
-        "eyebrow": "{coach} sent you {form}",
-        "body": "Your answers go straight to {coach} and shape next week's plan.",
-        "questionCount": "{count} questions, {requiredCount} required",
-        "duration": "About {minutes} min",
-        "resume": "You can stop and finish later",
-        "cta": "Let's start",
-        "privacy": "Only {coach} can see your answers"
+      "autosave": "Your answers save automatically",
+      "autosaveShort": "Saved automatically",
+      "progress": "Progress",
+      "close": "Save and close",
+      "requiredMark": "required",
+      "optional": "optional",
+      "back": "Back",
+      "next": "Next",
+      "skip": "Skip",
+      "send": "Submit",
+      "submitToCoach": "Send to coach",
+      "remainingRequired": "{count, plural, one {# required question left} other {# required questions left}}",
+      "readyToSubmit": "All set, ready to send.",
+      "lastTime": "Last time: {value}",
+      "decrease": "Decrease",
+      "increase": "Increase",
+      "selectPlaceholder": "Choose…",
+      "yes": "Yes",
+      "no": "No",
+      "textPlaceholder": "Type here…",
+      "fieldError": "Check this answer and try again.",
+      "done": {
+        "title": "Sent to your coach",
+        "streak": "{count} {count, plural, one {day} other {days}} in a row. Keep it up.",
+        "ok": "Done"
       },
-      "step": {
-        "next": "Next",
-        "back": "Back",
-        "of": "{current} / {total}"
+      "view": {
+        "back": "Back to forms"
       },
       "photo": {
         "hint": "Stand the same way as last week",
-        "skip": "Skip",
-        "retake": "Retake"
-      },
-      "review": {
-        "title": "Review before you send",
-        "subtitle": "You can edit any answer",
-        "edit": "Edit",
-        "photosCount": "{count} photos",
-        "submit": "Send to {coach}"
-      },
-      "done": {
-        "title": "Sent to {coach}",
-        "body": "They'll review it and reply within 24 hours.\nNext check-in is next Friday.",
-        "seenNow": "Seen just now",
-        "close": "Done"
+        "retake": "Retake",
+        "remove": "Remove photo",
+        "capture": "Take photo"
       }
     },
     "clientList": {
-      "title": "Forms",
-      "pending": "Pending",
-      "completed": "Completed",
-      "empty": "No forms assigned yet.",
-      "dueAt": "Due {date}"
+      "title": "My forms",
+      "fromCoach": "From coach {coach}",
+      "tabsLabel": "Status",
+      "tabTodo": "To do",
+      "tabSent": "Sent",
+      "emptyTodo": "No forms waiting for you right now",
+      "emptySent": "You haven't sent any forms yet",
+      "pickForm": "Pick a form from the list to start",
+      "today": "Today",
+      "dueToday": "Due today",
+      "dueIn": "In <n>{days}</n> {days, plural, one {day} other {days}}",
+      "overdue": "<n>{days}</n> {days, plural, one {day} other {days}} overdue",
+      "questions": "<n>{count}</n> {count, plural, one {question} other {questions}}",
+      "timeUnderMinute": "Under a minute",
+      "timeMinutes": "<n>{minutes}</n> {minutes, plural, one {minute} other {minutes}}",
+      "start": "Start",
+      "resume": "Resume",
+      "draftInProgress": "Unfinished",
+      "streakLabel": "Last 7 days: {done} of 7",
+      "sentOn": "Sent {date}",
+      "view": "View",
+      "reviewed": "Coach has seen it",
+      "pendingBadge": "{count, plural, one {# form due} other {# forms due}}"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -1792,7 +1812,25 @@
       "rehabPhase": "Rehab phase",
       "rehabPhaseNone": "No specific phase — shows every week",
       "coachNotePrivate": "Private note (only you see this)",
-      "coachNotePrivateHint": "Never shown to the client — visible only in the builder."
+      "coachNotePrivateHint": "Never shown to the client — visible only in the builder.",
+      "addToProgram": "Add to program",
+      "addToProgramCount": "Add to program · <m>{count}</m> {count, plural, one {set} other {sets}}",
+      "changeExercise": "Change exercise",
+      "notes": "Notes",
+      "optional": "(optional)",
+      "progressionAndNotes": "Progression & notes",
+      "weightKg": "Weight (kg)",
+      "restS": "Rest (s)",
+      "setNumber": "#",
+      "repsAria": "Reps for set {n}",
+      "durationAria": "Duration in seconds for set {n}",
+      "weightAria": "Weight for set {n}",
+      "restAria": "Rest for set {n}",
+      "removeSetAria": "Remove set {n}",
+      "duplicateSet": "Add set",
+      "summaryReps": "<m>{sets}</m> {sets, plural, one {set} other {sets}} · <m>{total}</m> {total, plural, one {rep} other {reps}}",
+      "summaryHolds": "<m>{sets}</m> {sets, plural, one {hold} other {holds}} · <m>{total}</m> sec",
+      "close": "Close"
     },
     "activityDialog": {
       "addTitle": "Add cardio/recovery",
@@ -1922,6 +1960,16 @@
         "replace_exercise": "Exercise replaced",
         "before_restore": "Before a restore"
       }
+    },
+    "exerciseMedia": {
+      "gif": "GIF",
+      "play": "Play",
+      "pause": "Pause",
+      "expand": "Expand",
+      "close": "Close",
+      "lightboxTitle": "{name} — full size",
+      "noMedia": "No media",
+      "loadFailed": "Couldn't load media"
     }
   },
   "library": {

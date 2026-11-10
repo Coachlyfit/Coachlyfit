@@ -1493,48 +1493,68 @@
     },
     "fill": {
       "submit": "ابعت",
-      "submitted": "اتبعت — شكرًا!",
       "chooseFile": "اختار ملف",
       "removeFile": "احذف الملف",
-      "intro": {
-        "eyebrow": "{coach} بعتلك {form}",
-        "body": "إجاباتك بتوصله على طول وبيستخدمها يظبط برنامج الأسبوع الجاي.",
-        "questionCount": "{count} أسئلة، منها {requiredCount} إجباريين",
-        "duration": "{minutes} دقيقة تقريبًا",
-        "resume": "تقدر توقف وتكمّل بعدين",
-        "cta": "يلا نبدأ",
-        "privacy": "بياناتك بتتشاف من {coach} بس"
+      "autosave": "إجاباتك بتتحفظ تلقائياً",
+      "autosaveShort": "اتحفظ تلقائياً",
+      "progress": "التقدم",
+      "close": "إغلاق وحفظ",
+      "requiredMark": "مطلوب",
+      "optional": "اختياري",
+      "back": "السابق",
+      "next": "التالي",
+      "skip": "تخطي",
+      "send": "إرسال",
+      "submitToCoach": "إرسال للكوتش",
+      "remainingRequired": "{count, plural, one {باقي سؤال إجباري واحد} two {باقي سؤالين إجباريين} few {باقي # أسئلة إجبارية} other {باقي # سؤال إجباري}}",
+      "readyToSubmit": "كله تمام، جاهز للإرسال.",
+      "lastTime": "آخر مرة: {value}",
+      "decrease": "إنقاص",
+      "increase": "زيادة",
+      "selectPlaceholder": "اختار…",
+      "yes": "أيوه",
+      "no": "لأ",
+      "textPlaceholder": "اكتب هنا…",
+      "fieldError": "راجع الإجابة دي وجرّب تاني.",
+      "done": {
+        "title": "اتبعتت للكوتش",
+        "streak": "{count} {count, plural, few {أيام} other {يوم}} على التوالي. كمّل كده.",
+        "ok": "تمام"
       },
-      "step": {
-        "next": "التالي",
-        "back": "رجوع",
-        "of": "{current} / {total}"
+      "view": {
+        "back": "رجوع للنماذج"
       },
       "photo": {
         "hint": "وقف زي الأسبوع اللي فات بالظبط",
-        "skip": "تخطّي",
-        "retake": "إعادة"
-      },
-      "review": {
-        "title": "راجع قبل ما تبعت",
-        "subtitle": "تقدر تعدّل أي إجابة",
-        "edit": "تعديل",
-        "photosCount": "{count} صور",
-        "submit": "ابعت لـ {coach}"
-      },
-      "done": {
-        "title": "وصلت لـ {coach}",
-        "body": "هيراجعها ويرد عليك خلال ٢٤ ساعة.\nالمتابعة الجاية الجمعة اللي بعدها.",
-        "seenNow": "شافها دلوقتي",
-        "close": "تمام"
+        "retake": "إعادة",
+        "remove": "امسح الصورة",
+        "capture": "التقاط صورة"
       }
     },
     "clientList": {
-      "title": "النماذج",
-      "pending": "لسه واقفة",
-      "completed": "خلصت",
-      "empty": "مفيش نماذج معيّنة لسه.",
-      "dueAt": "الاستحقاق {date}"
+      "title": "نماذجي",
+      "fromCoach": "من الكوتش {coach}",
+      "tabsLabel": "الحالة",
+      "tabTodo": "مطلوبة منك",
+      "tabSent": "تم إرسالها",
+      "emptyTodo": "مفيش نماذج مطلوبة منك دلوقتي",
+      "emptySent": "لسه ما بعتّش أي نموذج",
+      "pickForm": "اختار نموذج من القايمة عشان تبدأ",
+      "today": "النهارده",
+      "dueToday": "النهارده",
+      "dueIn": "بعد <n>{days}</n> {days, plural, few {أيام} other {يوم}}",
+      "overdue": "متأخر <n>{days}</n> {days, plural, few {أيام} other {يوم}}",
+      "questions": "<n>{count}</n> {count, plural, few {أسئلة} other {سؤال}}",
+      "timeUnderMinute": "أقل من دقيقة",
+      "timeMinutes": "<n>{minutes}</n> {minutes, plural, few {دقايق} other {دقيقة}}",
+      "start": "ابدأ",
+      "resume": "كمّل",
+      "draftInProgress": "مكمّلتش",
+      "streakLabel": "آخر 7 أيام: {done} من 7",
+      "sentOn": "أُرسل {date}",
+      "view": "عرض",
+      "reviewed": "الكوتش شافها",
+      "pendingBadge": "{count, plural, one {نموذج مطلوب} two {نموذجين مطلوبين} few {# نماذج مطلوبة} other {# نموذج مطلوب}}"
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
@@ -1792,7 +1812,25 @@
       "rehabPhase": "مرحلة التأهيل",
       "rehabPhaseNone": "بدون مرحلة محددة — يظهر كل أسبوع",
       "coachNotePrivate": "ملاحظة خاصة (تراها أنت فقط)",
-      "coachNotePrivateHint": "لا تظهر للعميل أبدًا — تظهر فقط في أداة البناء."
+      "coachNotePrivateHint": "لا تظهر للعميل أبدًا — تظهر فقط في أداة البناء.",
+      "addToProgram": "ضيف للبرنامج",
+      "addToProgramCount": "ضيف للبرنامج · <m>{count}</m> {count, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}}",
+      "changeExercise": "تغيير التمرين",
+      "notes": "ملاحظات",
+      "optional": "(اختياري)",
+      "progressionAndNotes": "التدرّج والملاحظات",
+      "weightKg": "الوزن (كجم)",
+      "restS": "الراحة (ث)",
+      "setNumber": "#",
+      "repsAria": "تكرارات المجموعة {n}",
+      "durationAria": "مدة المجموعة {n} بالثواني",
+      "weightAria": "وزن المجموعة {n}",
+      "restAria": "راحة المجموعة {n}",
+      "removeSetAria": "حذف المجموعة {n}",
+      "duplicateSet": "ضيف مجموعة",
+      "summaryReps": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> تكرار",
+      "summaryHolds": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> ثانية",
+      "close": "إغلاق"
     },
     "activityDialog": {
       "addTitle": "ضيف كارديو/استشفاء",
@@ -1922,6 +1960,16 @@
         "replace_exercise": "تم تغيير التمرين",
         "before_restore": "قبل الاستعادة"
       }
+    },
+    "exerciseMedia": {
+      "gif": "GIF",
+      "play": "تشغيل",
+      "pause": "إيقاف مؤقت",
+      "expand": "تكبير",
+      "close": "إغلاق",
+      "lightboxTitle": "{name} — عرض كامل",
+      "noMedia": "من غير وسائط",
+      "loadFailed": "تعذّر تحميل الوسائط"
     }
   },
   "library": {

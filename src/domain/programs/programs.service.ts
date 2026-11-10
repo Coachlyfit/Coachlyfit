@@ -319,7 +319,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, primary_muscles, secondary_muscles), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, equipment, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, primary_muscles, secondary_muscles), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)"
       )
       .eq("id", programId)
       .order("order_index", { referencedTable: "program_days" })

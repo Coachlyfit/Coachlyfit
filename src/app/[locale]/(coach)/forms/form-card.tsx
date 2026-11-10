@@ -21,7 +21,7 @@ import type { AppLocale } from "@/domain/locale";
 import type { TemplateOverview } from "@/domain/forms/templates.service";
 import { archiveTemplateAction, duplicateTemplateAction } from "./actions";
 import { AssignDialog } from "./assign-dialog";
-import { kindMeta } from "./kind-meta";
+import { kindMeta } from "@/components/forms-runtime/kind-meta";
 
 export type FormRow = TemplateOverview & { name: string };
 export type ClientOption = { id: string; display_name: string };

@@ -7,7 +7,7 @@ import type { AppLocale } from "@/domain/locale";
 import type { FormField } from "@/domain/forms/schema";
 import { publishTemplateAction, renameTemplateAction, saveDraftAction } from "../actions";
 import { AssignDialog } from "../assign-dialog";
-import { kindMeta } from "../kind-meta";
+import { kindMeta } from "@/components/forms-runtime/kind-meta";
 
 /** Wires the route's server actions and assign dialog into the builder,
  * which lives in components/ and knows about neither. */

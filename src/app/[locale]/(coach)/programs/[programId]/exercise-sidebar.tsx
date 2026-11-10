@@ -10,9 +10,9 @@ import { MUSCLE_GROUPS } from "@/domain/library/taxonomy";
 import type { ProgramTree } from "@/domain/programs/programs.service";
 import { searchExercisesAction } from "../../library/actions";
 import { ItemDialog } from "./item-dialog";
+import { ExerciseRow, type PickedExercise } from "./exercise-media";
 
 type Day = ProgramTree["program_days"][number];
-type PickedExercise = { id: string; name_ar: string; name_en: string };
 
 /** Native HTML5 drag-and-drop, not dnd-kit — this gesture (sidebar list ->
  * a day card in a different component tree) doesn't need to share a
@@ -87,25 +87,25 @@ export function ExerciseSidebar({ locale, programId, days }: { locale: AppLocale
           </button>
         ))}
       </div>
-      <div className="flex max-h-80 flex-col gap-1 overflow-y-auto">
+      <div className="flex max-h-[28rem] flex-col gap-1 overflow-y-auto">
         {isPending && <p className="p-3 text-center text-sm text-muted-foreground">{t("loading")}</p>}
         {!isPending && exercises?.length === 0 && (
           <p className="p-3 text-center text-sm text-muted-foreground">{t("noResults")}</p>
         )}
         {exercises?.map((exercise) => (
-          <button
+          <ExerciseRow
             key={exercise.id}
-            type="button"
+            exercise={exercise}
+            locale={locale}
+            selected={picked?.id === exercise.id}
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData(EXERCISE_DRAG_MIME, JSON.stringify(exercise));
               e.dataTransfer.effectAllowed = "copy";
             }}
             onClick={() => setPicked(exercise)}
-            className="flex cursor-grab items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm hover:bg-muted active:cursor-grabbing"
-          >
-            <span className="min-w-0 flex-1 truncate">{pickLocale(exercise, locale)}</span>
-          </button>
+            className="cursor-grab active:cursor-grabbing"
+          />
         ))}
       </div>
 
