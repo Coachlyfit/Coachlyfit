@@ -40,11 +40,17 @@ export default async function ClientLayout({
   // one another, so fetch them together instead of one at a time. The
   // active-subscription check below does depend on the client row, so it
   // has to wait for that one result.
-  const [profile, clientRow, settings, branding] = await Promise.all([
+  const [profile, clientRow, settings, branding, formsDue] = await Promise.all([
     getViewerProfile(),
     supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle().then((r) => r.data),
     getPlatformSettings(),
     getBranding(),
+    // RLS (client_read_own) scopes this to the viewer's own assignments.
+    supabase
+      .from("form_assignments")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending")
+      .then((r) => r.count ?? 0),
   ]);
 
   if (profile?.role !== "client") redirect(roleHome(locale, profile?.role));
@@ -98,8 +104,10 @@ export default async function ClientLayout({
           </form>
         </div>
       </header>
-      <main className="mx-auto w-full min-w-0 max-w-lg flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)]">{children}</main>
-      <ClientNav />
+      <main className="mx-auto w-full min-w-0 max-w-lg flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] has-[[data-wide]]:lg:max-w-5xl">
+        {children}
+      </main>
+      <ClientNav formsDue={formsDue} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { FormField, FormTemplateSchema, VisibleIf } from "./schema";
 
-function isEmptyAnswer(value: unknown): boolean {
+export function isEmptyAnswer(value: unknown): boolean {
   if (value === undefined || value === null || value === "") return true;
   if (Array.isArray(value)) return value.length === 0;
   return false;
@@ -34,7 +34,7 @@ export function isFieldVisible(field: FormField, answers: Record<string, unknown
 // is enforced in the superRefine below instead, because a required field
 // hidden by visibleIf must NOT block submission. Section fields carry no
 // answer at all.
-function fieldAnswerShape(field: FormField): z.ZodTypeAny {
+export function fieldAnswerShape(field: FormField): z.ZodTypeAny {
   switch (field.type) {
     case "section":
       return z.undefined();
@@ -82,4 +82,24 @@ export function buildAnswerSchema(template: Pick<FormTemplateSchema, "fields">) 
       }
     }
   });
+}
+
+/** Draft answers are partial and untrusted: keep only the entries that are
+ * non-empty and valid for their field, drop the rest (unknown ids, wrong
+ * types, bad option values) instead of rejecting the whole draft — one bad
+ * value must not stop every later autosave. Required-ness is not checked;
+ * that is submit's job (buildAnswerSchema). */
+export function sanitizeDraftAnswers(
+  fields: FormField[],
+  answers: Record<string, unknown>
+): Record<string, unknown> {
+  const clean: Record<string, unknown> = {};
+  for (const field of fields) {
+    if (field.type === "section") continue;
+    const value = answers[field.id];
+    if (isEmptyAnswer(value)) continue;
+    const parsed = fieldAnswerShape(field).safeParse(value);
+    if (parsed.success && parsed.data !== undefined) clean[field.id] = parsed.data;
+  }
+  return clean;
 }

@@ -1531,6 +1531,59 @@ export type Database = {
           },
         ]
       }
+      form_drafts: {
+        Row: {
+          answers: Json
+          assignment_id: string
+          client_id: string
+          current_field_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          assignment_id: string
+          client_id: string
+          current_field_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          assignment_id?: string
+          client_id?: string
+          current_field_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_drafts_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: true
+            referencedRelation: "form_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_drafts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_drafts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "form_drafts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       form_submissions: {
         Row: {
           answers: Json

@@ -14,9 +14,10 @@ const ITEMS = [
   { href: "/c/forms", key: "forms", icon: FileText },
 ] as const;
 
-export function ClientNav() {
+export function ClientNav({ formsDue = 0 }: { formsDue?: number }) {
   const t = useTranslations("nav");
   const tClient = useTranslations("client");
+  const tForms = useTranslations("forms.clientList");
   const pathname = usePathname();
 
   function labelFor(key: (typeof ITEMS)[number]["key"]) {
@@ -43,7 +44,20 @@ export function ClientNav() {
               active ? "text-primary" : "text-muted-foreground"
             )}
           >
-            <Icon className="size-5 shrink-0" aria-hidden="true" />
+            <span className="relative">
+              <Icon className="size-5 shrink-0" aria-hidden="true" />
+              {item.key === "forms" && formsDue > 0 && (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-1.5 -end-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 font-mono text-[10px] leading-none text-primary-foreground"
+                  >
+                    {formsDue > 9 ? "9+" : formsDue}
+                  </span>
+                  <span className="sr-only">{tForms("pendingBadge", { count: formsDue })}</span>
+                </>
+              )}
+            </span>
             <span className="max-w-full truncate px-0.5">{labelFor(item.key)}</span>
           </Link>
         );

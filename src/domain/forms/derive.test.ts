@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildAnswerSchema } from "./derive";
+import { buildAnswerSchema, isEmptyAnswer, sanitizeDraftAnswers } from "./derive";
 import type { FormField } from "./schema";
 
 function field(overrides: Partial<FormField>): FormField {
@@ -91,5 +91,31 @@ describe("buildAnswerSchema", () => {
       }).success
     ).toBe(true);
     expect(schema.safeParse({ exercise: "not-a-uuid" }).success).toBe(false);
+  });
+});
+
+describe("isEmptyAnswer", () => {
+  it("treats undefined, null, empty string and empty array as empty, but not 0 or false", () => {
+    for (const v of [undefined, null, "", []]) expect(isEmptyAnswer(v)).toBe(true);
+    for (const v of [0, false, "0", ["a"]]) expect(isEmptyAnswer(v)).toBe(false);
+  });
+});
+
+describe("sanitizeDraftAnswers", () => {
+  const fields = [
+    field({ id: "weight", type: "number" }),
+    field({ id: "mood", type: "radio", options: [{ value: "good", label: { ar: "جيد", en: "Good" } }] }),
+    field({ id: "notes", type: "textarea" }),
+    field({ id: "head", type: "section" }),
+  ];
+
+  it("keeps valid partial answers and drops empty, invalid, unknown and section entries", () => {
+    expect(
+      sanitizeDraftAnswers(fields, { weight: "78.5", mood: "nope", notes: "", head: "x", ghost: 1 })
+    ).toEqual({ weight: 78.5 });
+  });
+
+  it("keeps a legitimate zero and false-y-but-answered values", () => {
+    expect(sanitizeDraftAnswers(fields, { weight: 0, mood: "good" })).toEqual({ weight: 0, mood: "good" });
   });
 });

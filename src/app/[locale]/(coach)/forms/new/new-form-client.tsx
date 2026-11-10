@@ -16,7 +16,7 @@ import type { AppLocale } from "@/domain/locale";
 import type { FormKind } from "@/domain/forms/schema";
 import { FORM_STARTERS } from "@/domain/forms/starters";
 import { createTemplateAction } from "../actions";
-import { KIND_META } from "../kind-meta";
+import { KIND_META } from "@/components/forms-runtime/kind-meta";
 
 // Mockup order: the two forms a coach sends most come first.
 const KINDS = ["intake", "checkin", "workout", "diet", "custom"] as const satisfies readonly FormKind[];
