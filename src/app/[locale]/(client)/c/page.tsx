@@ -1,30 +1,28 @@
-import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { ChevronLeft, ChevronRight, Receipt, StickyNote } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { WeeklyProgressRing } from "@/components/progress/weekly-progress-ring";
 import { createClient } from "@/lib/supabase/server";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
 import { ActivityLogsService } from "@/domain/workouts/activity-logs.service";
-import { resolveDayPlan } from "@/domain/programs/day-plan";
-import { normalizeSectionOrder } from "@/domain/programs/day-sections";
-import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
-import { checkinStreak, longestStreak, weightTrend } from "@/domain/progress/stats";
+import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
+import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
 import { LedgerService } from "@/domain/ledger/ledger.service";
+import { RelationshipsService } from "@/domain/relationships/relationships.service";
+import { resolveDayPlan } from "@/domain/programs/day-plan";
+import { programWeekProgress, startOfWeekSaturday } from "@/domain/programs/program-cycle";
+import { weekWorkoutCounts } from "@/domain/programs/week-workouts";
+import { adherenceAverage, checkinStreak } from "@/domain/progress/stats";
 import type { StructuredAdjustment } from "@/domain/progress/review.service";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
-import { formatNumber } from "@/lib/format";
-import { TodayExercisePreview } from "./today-exercise-preview";
-import { TodayActivityCard } from "./today-activity-card";
+import { HomeHeader } from "@/components/client-home/home-header";
+import { CheckinBanner } from "@/components/client-home/checkin-banner";
+import { WeightCard } from "@/components/client-home/weight-card";
+import { StatTiles } from "@/components/client-home/stat-tiles";
+import { TodaySection, type NutritionToday } from "@/components/client-home/today-section";
+import { CoachRow } from "@/components/client-home/coach-row";
 import { CoachDecisionCard } from "./coach-decision-card";
 import { CoachInviteCard } from "./coach-invite-card";
-import { RelationshipsService } from "@/domain/relationships/relationships.service";
-import { UserAvatar } from "@/components/shared/user-avatar";
-import { AvatarUpload } from "@/components/shared/avatar-upload";
+import { nextDueForm } from "./home-data";
 
 export default async function ClientHomePage({
   params,
@@ -32,8 +30,6 @@ export default async function ClientHomePage({
   params: Promise<{ locale: AppLocale }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations("client");
-  const tToday = await getTranslations("client.today");
   const supabase = await createClient();
 
   const {
@@ -51,96 +47,67 @@ export default async function ClientHomePage({
 
   const today = new Date();
   const todayIso = today.toISOString().slice(0, 10);
+  const weekStart = startOfWeekSaturday(todayIso);
 
   const progress = new ProgressService(supabase);
   const programs = new ProgramsService(supabase);
   const workouts = new WorkoutsService(supabase);
+  const dietPlans = new DietPlansService(supabase);
+  const nutritionLogs = new NutritionLogsService(supabase);
 
   // Invoice count: RLS scopes it to this client's own non-draft invoices,
-  // so the link below only shows once a coach has actually issued one.
-  const [existingCheckin, history, tree, latestDecision, { count: invoiceCount }, coachInvites] = await Promise.all([
-    clientRow ? progress.getCheckin(clientRow.id, todayIso) : null,
-    clientRow ? progress.listCheckins(clientRow.id) : [],
-    clientRow ? programs.getActiveTreeForClient(clientRow.id) : null,
-    clientRow ? new LedgerService(supabase).latestUnseenForClient(clientRow.id) : null,
-    supabase.from("invoices").select("id", { count: "exact", head: true }),
-    new RelationshipsService(supabase).listPending(),
-  ]);
+  // so the link only shows once a coach has actually issued one.
+  const [history, tree, latestDecision, { count: invoiceCount }, coachInvites, dueForm, stats, standaloneDiet, todayLogs] =
+    await Promise.all([
+      clientRow ? progress.listCheckins(clientRow.id) : [],
+      clientRow ? programs.getActiveTreeForClient(clientRow.id) : null,
+      clientRow ? new LedgerService(supabase).latestUnseenForClient(clientRow.id) : null,
+      supabase.from("invoices").select("id", { count: "exact", head: true }),
+      new RelationshipsService(supabase).listPending(),
+      nextDueForm(supabase, locale),
+      clientRow ? workouts.completedStats(clientRow.id, weekStart) : { total: 0, weekStartedAt: [] as string[] },
+      clientRow ? dietPlans.getActiveTreeForClient(clientRow.id) : null,
+      clientRow ? nutritionLogs.listLogs(clientRow.id, todayIso, todayIso) : [],
+    ]);
 
   const plan = tree ? resolveDayPlan(tree, todayIso) : null;
-  const cycleLength = tree?.program_days.length ?? 0;
 
-  const [session, activityLogs] = await Promise.all([
-    plan?.day ? workouts.getSessionForDay(plan.day.id, startOfWeekSaturday(todayIso)) : null,
+  // Today's diet: the program day's linked variant, else the client's
+  // standalone active plan (same resolution as the Nutrition tab).
+  const [session, activityLogs, variantDiet] = await Promise.all([
+    plan?.day ? workouts.getSessionForDay(plan.day.id, weekStart) : null,
     clientRow ? new ActivityLogsService(supabase).listForDate(clientRow.id, todayIso) : [],
+    plan?.dietPlanId && plan.dietPlanId !== standaloneDiet?.id ? dietPlans.getTree(plan.dietPlanId) : null,
   ]);
-  const workoutDone = session?.completed_at != null;
-  const loggedActivityIds = new Set(activityLogs.map((l) => l.program_activity_id));
+  const diet = variantDiet ?? standaloneDiet;
 
-  const weekPct = cycleLength > 0 ? Math.round(((plan?.week ?? 1) / cycleLength) * 100) : 0;
-  const trend = weightTrend(history);
-  const firstWeighed = history.find((c) => c.weight != null);
-  const sinceStartDelta = trend && firstWeighed?.weight != null ? trend.latest - firstWeighed.weight : null;
-  const streak = checkinStreak(history, today);
-  const best = longestStreak(history);
-  const checkinDue = !existingCheckin;
-  const totalSets = plan?.workoutItems.reduce((sum, item) => sum + item.sets, 0) ?? 0;
+  const workoutState = session?.completed_at != null ? "done" : session ? "resume" : "new";
+  const nutrition: NutritionToday | null = diet
+    ? {
+        targetKcal: diet.target_kcal,
+        eatenKcal: todayLogs[0]?.kcal ?? null,
+        meals: diet.meals
+          .filter((m) => m.time_of_day)
+          .map((m) => ({
+            label: m.label_ar || m.label_en ? pickLocale(m, locale, "label") : null,
+            time: m.time_of_day!.slice(0, 5),
+          })),
+      }
+    : null;
 
-  // The coach controls the order of a day's sections in the builder. Render
-  // Today's cards in that same order (workout / mobility & rehab / activities).
-  const orderedSections =
-    plan?.day == null
-      ? []
-      : normalizeSectionOrder(plan.day.section_order).filter((key) => {
-          if (key === "workout") return plan.workoutItems.length > 0;
-          if (key === "mobility_rehab") return plan.rehabItems.length > 0 || plan.mobilityItems.length > 0;
-          return plan.activities.length > 0;
-        });
-
-  const ChevronIcon = locale === "ar" ? ChevronLeft : ChevronRight;
-  const activeProtocol = plan?.protocols.find((p) => p.activePhase != null) ?? null;
+  const weightPoints = history.flatMap((c) => (c.weight != null ? [{ date: c.checkin_date, value: c.weight }] : []));
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <h1 className="min-w-0 flex-1 text-2xl font-semibold tracking-tight">
-          {t("welcome", { name: profile?.full_name ?? "" })}
-        </h1>
-        {clientRow && user && (
-          <>
-            <UserAvatar
-              src={avatarUrl}
-              name={profile?.full_name ?? ""}
-              userId={user.id}
-              size="lg"
-            />
-            <AvatarUpload
-              userId={user.id}
-              name={profile?.full_name ?? ""}
-              src={avatarUrl}
-              locale={locale}
-            />
-          </>
-        )}
-      </div>
-
-      <Card className="border-none bg-sidebar text-sidebar-foreground">
-        <CardContent className="flex items-center gap-5">
-          {cycleLength > 0 && (
-            <WeeklyProgressRing pct={weekPct} locale={locale} />
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">
-              {tree
-                ? tToday("weekProgress", { n: plan?.week ?? 1, total: cycleLength })
-                : tToday("noProgram")}
-            </p>
-            <p className="mt-1.5 text-xs leading-relaxed text-sidebar-foreground/70">
-              {tree ? (workoutDone ? tToday("weekLineDone") : tToday("weekLine")) : tToday("noProgramBody")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    // data-wide: opts this page into the client layout's lg:max-w-5xl.
+    <div data-wide className="flex flex-col gap-4">
+      <HomeHeader
+        locale={locale}
+        userId={user!.id}
+        name={profile?.full_name ?? ""}
+        avatarUrl={avatarUrl}
+        program={tree ? programWeekProgress(tree.start_date, tree.end_date, todayIso) : null}
+        workouts={tree ? weekWorkoutCounts(tree, weekStart, stats.weekStartedAt) : { planned: 0, done: 0 }}
+      />
 
       {coachInvites.map((invite) => (
         <CoachInviteCard
@@ -164,194 +131,35 @@ export default async function ClientHomePage({
         }
       />
 
-      {checkinDue && (
-        <Link
-          href="/c/checkin"
-          className="flex min-h-11 items-center gap-3.5 rounded-2xl border border-warning-tint bg-warning-tint px-4 py-4 text-start"
-        >
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-warning-tint-foreground">{tToday("checkinBanner")}</p>
-            <p className="mt-0.5 text-xs text-warning-tint-foreground/80">
-              {tToday("checkinBannerMeta", { count: 5 })}
-            </p>
+      {dueForm && <CheckinBanner form={dueForm} locale={locale} />}
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        <div className="lg:col-start-1 lg:row-start-1">
+          <WeightCard locale={locale} points={weightPoints} />
+        </div>
+        <div className="lg:col-start-2 lg:row-start-1">
+          <StatTiles
+            locale={locale}
+            streak={checkinStreak(history, today)}
+            workoutsDone={stats.total}
+            adherence={adherenceAverage(history)}
+          />
+        </div>
+        <div className="lg:col-start-1 lg:row-start-2">
+          <TodaySection
+            locale={locale}
+            plan={plan}
+            workoutState={workoutState}
+            loggedActivityIds={activityLogs.map((l) => l.program_activity_id)}
+            nutrition={nutrition}
+          />
+        </div>
+        {clientRow?.coaches && (
+          <div className="lg:col-start-2 lg:row-start-2">
+            <CoachRow businessName={clientRow.coaches.business_name} hasInvoices={!!invoiceCount} />
           </div>
-          <ChevronIcon className="size-4.5 shrink-0 text-warning-tint-foreground" aria-hidden="true" />
-        </Link>
-      )}
-
-      {/* Coach note for today — always first in the agenda when present, so
-          it's read before anything else. */}
-      {plan?.day && (plan.day.notes_ar || plan.day.notes_en) && (
-        <Card>
-          <CardContent className="flex items-start gap-2.5 py-3.5">
-            <StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <p className="text-sm text-muted-foreground">{pickLocale(plan.day, locale, "notes")}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Rehab: injury/phase/restrictions come before the workout card —
-          restrictions are what the client most needs to see before they
-          start moving today. */}
-      {activeProtocol && (
-        <Card className="border-warning-tint">
-          <CardContent className="flex flex-col gap-1.5 py-3.5">
-            <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
-              {tToday("rehabPhase", { area: activeProtocol.body_area })}
-            </p>
-            <p className="text-sm font-semibold">{pickLocale(activeProtocol.activePhase, locale)}</p>
-            {(activeProtocol.restrictions_ar || activeProtocol.restrictions_en) && (
-              <p className="text-xs text-warning-tint-foreground">
-                {pickLocale(activeProtocol, locale, "restrictions")}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {plan?.day == null || orderedSections.length === 0 ? (
-        <Card>
-          <CardContent>
-            <EmptyState title={tToday("restDay")} description={tToday("restDayBody")} />
-          </CardContent>
-        </Card>
-      ) : (
-        orderedSections.map((key) => {
-          if (!plan || !plan.day) return null;
-
-          if (key === "workout") {
-            return (
-              <Card key={key}>
-                <CardContent className="flex flex-col gap-3.5 p-0">
-                  <div className="px-4.5 pt-4 pb-3.5">
-                    <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
-                      {tToday("todayWorkout")}
-                    </p>
-                    <p className="mt-1.5 text-[17px] font-semibold">
-                      {plan.day.label_ar || plan.day.label_en
-                        ? pickLocale(plan.day, locale, "label")
-                        : tToday("todayWorkout")}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {tToday("exerciseCount", { count: plan.workoutItems.length })}
-                      {" · "}
-                      {tToday("setCount", { count: totalSets })}
-                    </p>
-                  </div>
-                  <TodayExercisePreview locale={locale} items={plan.workoutItems.slice(0, 4)} />
-                  <div className="px-4.5 pb-4.5">
-                    <Link
-                      href={`/c/workout/${plan.day.id}`}
-                      className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
-                    >
-                      {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          }
-
-          if (key === "mobility_rehab") {
-            return (
-              <Card key={key}>
-                <CardContent className="flex flex-col gap-3.5 p-0">
-                  <div className="px-4.5 pt-4 pb-3.5">
-                    <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
-                      {tToday("mobilityRehab")}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {tToday("exerciseCount", { count: plan.rehabItems.length + plan.mobilityItems.length })}
-                    </p>
-                  </div>
-                  <TodayExercisePreview locale={locale} items={[...plan.mobilityItems, ...plan.rehabItems].slice(0, 4)} />
-                  <div className="px-4.5 pb-4.5">
-                    <Link
-                      href={`/c/workout/${plan.day.id}`}
-                      className="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
-                    >
-                      {workoutDone ? tToday("reviewWorkout") : session ? tToday("resumeWorkout") : tToday("startWorkout")}
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          }
-
-          return (
-            <div key={key} className="flex flex-col gap-2.5">
-              {plan.activities.map((activity) => (
-                <TodayActivityCard
-                  key={activity.id}
-                  locale={locale}
-                  activity={activity}
-                  logged={loggedActivityIds.has(activity.id)}
-                />
-              ))}
-            </div>
-          );
-        })
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardContent className="gap-1.5 p-4">
-            <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
-              {tToday("currentWeight")}
-            </p>
-            {trend ? (
-              <>
-                <p className="font-mono text-[22px] font-semibold tabular-nums">
-                  {formatNumber(trend.latest, locale, { maximumFractionDigits: 1 })}{" "}
-                  <span className="text-xs font-normal text-muted-foreground">kg</span>
-                </p>
-                {sinceStartDelta != null && (
-                  <p className={`text-xs ${sinceStartDelta <= 0 ? "text-success" : "text-muted-foreground"}`}>
-                    {tToday("weightSinceStart", {
-                      delta: `${sinceStartDelta > 0 ? "+" : ""}${formatNumber(sinceStartDelta, locale, { maximumFractionDigits: 1 })}`,
-                    })}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">—</p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="gap-1.5 p-4">
-            <p className="font-mono text-[9.5px] font-medium tracking-wider text-muted-foreground uppercase">
-              {tToday("streak")}
-            </p>
-            <p className="font-mono text-[22px] font-semibold tabular-nums">
-              {formatNumber(streak, locale)} <span className="text-xs font-normal text-muted-foreground">{tToday("streakDays", { count: streak })}</span>
-            </p>
-            {best > streak && (
-              <p className="text-xs text-muted-foreground">{tToday("streakBest", { count: best })}</p>
-            )}
-          </CardContent>
-        </Card>
+        )}
       </div>
-
-      {!!invoiceCount && (
-        <Link
-          href="/c/invoices"
-          className="flex min-h-11 items-center gap-3 rounded-xl border border-border px-4 py-3 text-start"
-        >
-          <Receipt className="size-4.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">{t("invoices.link")}</p>
-            <p className="text-xs text-muted-foreground">{t("invoices.linkHint")}</p>
-          </div>
-          <ChevronIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        </Link>
-      )}
-
-      {clientRow?.coaches && (
-        <p className="text-sm text-muted-foreground">
-          {t("coachedBy", { business: clientRow.coaches.business_name })}
-        </p>
-      )}
     </div>
   );
 }

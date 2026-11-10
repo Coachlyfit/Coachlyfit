@@ -434,3 +434,38 @@ describe("WorkoutsService.getLastPerformance", () => {
     expect(calls.some((c) => c.startsWith("neq:"))).toBe(false);
   });
 });
+
+describe("WorkoutsService.completedStats", () => {
+  // Records the filter chain per query; head:true queries resolve to a count.
+  function fakeStatsDb() {
+    const calls: string[] = [];
+    const db = {
+      from(table: string) {
+        calls.push(`from:${table}`);
+        return {
+          select(_cols: string, opts?: { head?: boolean }) {
+            const result = opts?.head
+              ? { count: 7, data: null, error: null }
+              : { count: null, data: [{ started_at: "2026-08-02T07:00:00Z" }], error: null };
+            const chain: Record<string, unknown> = {
+              eq: (col: string, val: string) => (calls.push(`eq:${col}=${val}`), chain),
+              not: (col: string) => (calls.push(`not:${col}`), chain),
+              gte: (col: string, val: string) => (calls.push(`gte:${col}=${val}`), chain),
+              then: (resolve: (v: unknown) => unknown) => Promise.resolve(result).then(resolve),
+            };
+            return chain;
+          },
+        };
+      },
+    };
+    return { db: db as never, calls };
+  }
+
+  it("returns the lifetime completed count and this week's started_at list", async () => {
+    const { db, calls } = fakeStatsDb();
+    const stats = await new WorkoutsService(db).completedStats("client-1", "2026-08-01");
+    expect(stats).toEqual({ total: 7, weekStartedAt: ["2026-08-02T07:00:00Z"] });
+    expect(calls).toContain("gte:started_at=2026-08-01T00:00:00.000Z");
+    expect(calls).toContain("not:completed_at");
+  });
+});

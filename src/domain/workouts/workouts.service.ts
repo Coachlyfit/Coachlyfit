@@ -142,6 +142,28 @@ export class WorkoutsService {
     return data;
   }
 
+  /** Client home numbers: how many workouts the client has ever completed,
+   * and when each one completed since `weekStartIso` (for "3 of 5 this
+   * week"). Read-only; RLS's client_own scopes both queries to the caller. */
+  async completedStats(clientId: string, weekStartIso: string): Promise<{ total: number; weekStartedAt: string[] }> {
+    const [{ count, error: countError }, { data, error }] = await Promise.all([
+      this.db
+        .from("workout_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .not("completed_at", "is", null),
+      this.db
+        .from("workout_sessions")
+        .select("started_at")
+        .eq("client_id", clientId)
+        .not("completed_at", "is", null)
+        .gte("started_at", `${weekStartIso}T00:00:00.000Z`),
+    ]);
+    if (countError) throw countError;
+    if (error) throw error;
+    return { total: count ?? 0, weekStartedAt: (data ?? []).map((r) => r.started_at) };
+  }
+
   /** Upserts on the (session_id, program_item_id, set_index) unique key
    * (20260829000001_workout_set_logs_actuals.sql) rather than a plain
    * insert -- a retry after a flaky connection or a resumed session on a

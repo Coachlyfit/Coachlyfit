@@ -28,6 +28,9 @@ import { usePushSubscription } from "./use-push-subscription";
 // support_ticket_created / _coach_reply / _ticket_reopened go to admins and
 // support_admin_reply / _status_changed to the ticket's coach
 // (notify_on_ticket_message, notify_on_ticket_status).
+// The client home reuses this bell (`role="client"`): coach_decision and
+// coach_invite (cards live on /c) and nutrition_log_reminder are the kinds
+// only a client receives; new_message there is from the coach.
 const ADMIN_SUPPORT_KINDS = ["support_ticket_created", "support_coach_reply", "support_ticket_reopened"] as const;
 const COACH_SUPPORT_KINDS = ["support_admin_reply", "support_status_changed"] as const;
 
@@ -44,6 +47,9 @@ const KINDS = [
   "subscription_canceled",
   "task_assigned",
   "task_completed",
+  "coach_decision",
+  "coach_invite",
+  "nutrition_log_reminder",
   ...ADMIN_SUPPORT_KINDS,
   ...COACH_SUPPORT_KINDS,
 ] as const;
@@ -56,7 +62,17 @@ function isAdminSupportKind(kind: string): kind is (typeof ADMIN_SUPPORT_KINDS)[
   return (ADMIN_SUPPORT_KINDS as readonly string[]).includes(kind);
 }
 
-export function NotificationBell({ locale }: { locale: AppLocale }) {
+export function NotificationBell({
+  locale,
+  role = "coach",
+  className,
+}: {
+  locale: AppLocale;
+  /** Client viewers get /c links instead of the coach app's routes. */
+  role?: "coach" | "client";
+  /** Overrides for the trigger button (e.g. the dark client-home header). */
+  className?: string;
+}) {
   const t = useTranslations("notifications");
   const tOutcome = useTranslations("ledger.outcome");
   const tTicketStatus = useTranslations("support.status");
@@ -85,6 +101,12 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
     const payload = (notification.payload ?? {}) as Record<string, unknown>;
     if (notification.kind === "new_message") {
       return t("new_message", { name: (payload.sender_name as string | null) ?? t("unknown") });
+    }
+    if (notification.kind === "coach_invite") {
+      return t("coach_invite", { name: (payload.business_name as string | null) ?? t("unknown") });
+    }
+    if (notification.kind === "coach_decision" || notification.kind === "nutrition_log_reminder") {
+      return t(notification.kind);
     }
     if (notification.kind === "decision_outcome") {
       return t("decision_outcome", { status: tOutcome(payload.outcome_status as string) });
@@ -134,6 +156,12 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
 
   function href(notification: Notification): string | null {
     const payload = (notification.payload ?? {}) as Record<string, unknown>;
+    if (role === "client") {
+      if (notification.kind === "new_message") return "/c/coach";
+      if (notification.kind === "nutrition_log_reminder") return "/c/diet";
+      if (notification.kind === "coach_decision" || notification.kind === "coach_invite") return "/c";
+      return null;
+    }
     if (notification.kind === "new_message") {
       const clientId = payload.client_id as string | null;
       return clientId ? `/messages/${clientId}` : null;
@@ -177,7 +205,7 @@ export function NotificationBell({ locale }: { locale: AppLocale }) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
-        render={<Button variant="outline" size="icon-sm" aria-label={t("label")} />}
+        render={<Button variant="outline" size="icon-sm" aria-label={t("label")} className={className} />}
       >
         <span className="relative">
           <Bell className="size-4" />

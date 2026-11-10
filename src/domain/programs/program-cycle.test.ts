@@ -4,6 +4,7 @@ import {
   dayIndexForDateWithMode,
   dayIndicesForWeek,
   dayIndicesForWeekWithMode,
+  programWeekProgress,
   startOfWeekSaturday,
   weekIndexForDate,
 } from "./program-cycle";
@@ -110,5 +111,35 @@ describe("startOfWeekSaturday", () => {
   it("rewinds a mid-week Wednesday to that week's Saturday", () => {
     // 2026-08-05 is a Wednesday.
     expect(startOfWeekSaturday("2026-08-05")).toBe("2026-08-01");
+  });
+});
+
+describe("programWeekProgress", () => {
+  // 12-week program: 2026-08-01 .. 2026-10-23 (84 days inclusive)
+  const start = "2026-08-01";
+  const end = "2026-10-23";
+
+  it("reports week 7 of 12, not week 7 of the split's day count", () => {
+    const r = programWeekProgress(start, end, "2026-09-12");
+    expect(r.week).toBe(7);
+    expect(r.totalWeeks).toBe(12);
+  });
+
+  it("clamps week to totalWeeks once the program is over", () => {
+    const r = programWeekProgress(start, end, "2027-01-01");
+    expect(r).toEqual({ week: 12, totalWeeks: 12, pct: 100 });
+  });
+
+  it("is week 1 / 0% on start day and before it", () => {
+    expect(programWeekProgress(start, end, start)).toEqual({ week: 1, totalWeeks: 12, pct: 0 });
+    expect(programWeekProgress(start, end, "2026-07-01").week).toBe(1);
+  });
+
+  it("has no total or percent without an end_date, and is not capped at 12", () => {
+    expect(programWeekProgress(start, null, "2027-01-01")).toEqual({ week: 22, totalWeeks: null, pct: null });
+  });
+
+  it("rounds a partial last week up", () => {
+    expect(programWeekProgress("2026-08-01", "2026-08-10", "2026-08-10").totalWeeks).toBe(2);
   });
 });
