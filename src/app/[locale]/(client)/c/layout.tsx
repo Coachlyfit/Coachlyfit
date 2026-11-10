@@ -8,6 +8,7 @@ import { signOutAction } from "@/lib/auth/sign-out-action";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { getBranding } from "@/lib/branding";
 import { BrandLogo, BrandStyle } from "@/components/brand/coach-brand";
+import { MessagesService } from "@/domain/messages/messages.service";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { subscriptionDisplayStatus, type ClientSubscriptionStatus } from "@/domain/billing/client-subscription";
 import { LocaleSwitcher } from "@/components/locale-switcher";
@@ -40,7 +41,7 @@ export default async function ClientLayout({
   // one another, so fetch them together instead of one at a time. The
   // active-subscription check below does depend on the client row, so it
   // has to wait for that one result.
-  const [profile, clientRow, settings, branding, formsDue] = await Promise.all([
+  const [profile, clientRow, settings, branding, formsDue, unreadMessages] = await Promise.all([
     getViewerProfile(),
     supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle().then((r) => r.data),
     getPlatformSettings(),
@@ -51,6 +52,7 @@ export default async function ClientLayout({
       .select("id", { count: "exact", head: true })
       .eq("status", "pending")
       .then((r) => r.count ?? 0),
+    new MessagesService(supabase).countUnreadFromCoach().catch(() => 0),
   ]);
 
   if (profile?.role !== "client") redirect(roleHome(locale, profile?.role));
@@ -107,7 +109,7 @@ export default async function ClientLayout({
       <main className="mx-auto w-full min-w-0 max-w-lg flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] has-[[data-wide]]:lg:max-w-5xl">
         {children}
       </main>
-      <ClientNav formsDue={formsDue} />
+      <ClientNav formsDue={formsDue} unreadMessages={unreadMessages} />
     </div>
   );
 }
