@@ -73,7 +73,7 @@ describe("CoachHomeService.listInbox", () => {
     client_id: "c1",
     checkin_date: "2026-10-05",
     reviewed_at: null,
-    clients: { display_name: "Sara" },
+    clients: { display_name: "Sara", profiles: null },
   };
 
   it("maps rows and applies no review filter for 'all'", async () => {
@@ -84,6 +84,7 @@ describe("CoachHomeService.listInbox", () => {
         id: "s1",
         clientId: "c1",
         clientName: "Sara",
+        avatarUrl: null,
         template: null,
         submittedAt: "2026-10-05",
         reviewed: false,
@@ -93,6 +94,14 @@ describe("CoachHomeService.listInbox", () => {
       ["order", "checkin_date", { ascending: false }],
       ["limit", 6],
     ]);
+  });
+
+  it("turns the client's stored avatar path into its public URL", async () => {
+    const withAvatar = { ...row, clients: { display_name: "Sara", profiles: { avatar_url: "u1/avatar.jpg" } } };
+    const { db } = fakeSupabase({ checkins: { data: [withAvatar] } });
+
+    const [first] = await new CoachHomeService(db).listInbox("all", 6);
+    expect(first.avatarUrl).toBe(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/u1/avatar.jpg`);
   });
 
   it("filters on reviewed_at for 'new' and 'reviewed'", async () => {
@@ -125,7 +134,7 @@ describe("CoachHomeService.listQuietClients", () => {
       },
     });
 
-    expect(await new CoachHomeService(db).listQuietClients(NOW, 1)).toEqual([{ id: "c", name: "C", days: 15 }]);
+    expect(await new CoachHomeService(db).listQuietClients(NOW, 1)).toEqual([{ id: "c", name: "C", days: 15, avatarUrl: null }]);
     expect(filters("checkins")).toEqual([["gte", "checkin_date", "2026-07-07"]]);
   });
 });

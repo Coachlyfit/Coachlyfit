@@ -9,6 +9,7 @@ import { detectPainRepeat, detectMissedReps, repeatedNoteSignal, type Signal } f
 import { suggestReason } from "@/domain/ledger/reasons";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { AppLocale } from "@/domain/locale";
+import { avatarPublicUrl } from "@/lib/avatar-url";
 import type { Database } from "@/lib/supabase/database.types";
 import { ReviewConsole, type ReviewPhoto, type ReviewPose, type ReviewQueueEntry } from "./review-console";
 
@@ -135,6 +136,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
       checkinId: item.id,
       clientId: item.client_id,
       clientName: item.clients?.display_name ?? "",
+      avatarUrl: avatarPublicUrl(item.clients?.profiles?.avatar_url),
       checkinDate: item.checkin_date,
       weight: item.weight,
       weightDelta: trend?.delta ?? null,

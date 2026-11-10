@@ -113,7 +113,7 @@ export function ClientHeader({
 
           <div className="flex items-center gap-2">
             {!archived && (
-              <Button render={<Link href={`/messages/${client.id}`} />} size="sm">
+              <Button nativeButton={false} render={<Link href={`/messages/${client.id}`} />} size="sm">
                 <MessageCircle className="size-4" />
                 {tProfile("message")}
               </Button>

@@ -9,8 +9,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { StatusBadge, type StatusTone } from "@/components/status-badge";
 import { Link } from "@/i18n/navigation";
 import { formatDate, formatNumber } from "@/lib/format";
-import { tintFor } from "@/lib/tint";
-import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { avatarPublicUrl } from "@/lib/avatar-url";
 import type { SubscriptionRosterStatus } from "@/domain/billing/client-subscription";
 import type { AppLocale } from "@/domain/locale";
 import { assignTemplateAction } from "../../forms/actions";
@@ -75,15 +75,12 @@ export function ClientContextPanel({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col items-center gap-1.5 text-center">
-        <span
-          className={cn(
-            "flex size-16 items-center justify-center rounded-full text-2xl font-semibold text-white",
-            tintFor(client.id),
-          )}
-          aria-hidden="true"
-        >
-          {client.name[0]}
-        </span>
+        <UserAvatar
+          src={avatarPublicUrl(client.avatar_url)}
+          name={client.name}
+          userId={client.id}
+          className="size-16 [&_[data-slot=avatar-fallback]]:text-2xl"
+        />
         <span className="font-semibold">{client.name}</span>
         <Badge variant={client.status === "active" ? "success" : "secondary"}>
           {tClients(`status.${client.status}`)}
