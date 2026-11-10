@@ -74,6 +74,7 @@ import { AssignTemplateDialog } from "./assign-template-dialog";
 import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 import { RevisionHistoryDrawer } from "./revision-history-drawer";
 import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
+import type { PickedExercise } from "./exercise-media";
 import { VolumeSidebar } from "./volume-sidebar";
 import { Link, useRouter } from "@/i18n/navigation";
 
@@ -344,7 +345,7 @@ function DayCard({
   const [pendingDeleteActivity, setPendingDeleteActivity] = useState<string | null>(null);
   const [itemDialog, setItemDialog] = useState<{
     item?: Item;
-    initialExercise?: { id: string; name_ar: string; name_en: string };
+    initialExercise?: PickedExercise;
     initialBlock?: "mobility" | "rehab";
   } | null>(null);
   const [pendingDeleteItem, setPendingDeleteItem] = useState<string | null>(null);

@@ -1812,7 +1812,25 @@
       "rehabPhase": "مرحلة التأهيل",
       "rehabPhaseNone": "بدون مرحلة محددة — يظهر كل أسبوع",
       "coachNotePrivate": "ملاحظة خاصة (تراها أنت فقط)",
-      "coachNotePrivateHint": "لا تظهر للعميل أبدًا — تظهر فقط في أداة البناء."
+      "coachNotePrivateHint": "لا تظهر للعميل أبدًا — تظهر فقط في أداة البناء.",
+      "addToProgram": "ضيف للبرنامج",
+      "addToProgramCount": "ضيف للبرنامج · <m>{count}</m> {count, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}}",
+      "changeExercise": "تغيير التمرين",
+      "notes": "ملاحظات",
+      "optional": "(اختياري)",
+      "progressionAndNotes": "التدرّج والملاحظات",
+      "weightKg": "الوزن (كجم)",
+      "restS": "الراحة (ث)",
+      "setNumber": "#",
+      "repsAria": "تكرارات المجموعة {n}",
+      "durationAria": "مدة المجموعة {n} بالثواني",
+      "weightAria": "وزن المجموعة {n}",
+      "restAria": "راحة المجموعة {n}",
+      "removeSetAria": "حذف المجموعة {n}",
+      "duplicateSet": "ضيف مجموعة",
+      "summaryReps": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> تكرار",
+      "summaryHolds": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> ثانية",
+      "close": "إغلاق"
     },
     "activityDialog": {
       "addTitle": "ضيف كارديو/استشفاء",
@@ -1942,6 +1960,16 @@
         "replace_exercise": "تم تغيير التمرين",
         "before_restore": "قبل الاستعادة"
       }
+    },
+    "exerciseMedia": {
+      "gif": "GIF",
+      "play": "تشغيل",
+      "pause": "إيقاف مؤقت",
+      "expand": "تكبير",
+      "close": "إغلاق",
+      "lightboxTitle": "{name} — عرض كامل",
+      "noMedia": "من غير وسائط",
+      "loadFailed": "تعذّر تحميل الوسائط"
     }
   },
   "library": {

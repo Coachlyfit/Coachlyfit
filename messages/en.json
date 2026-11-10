@@ -1812,7 +1812,25 @@
       "rehabPhase": "Rehab phase",
       "rehabPhaseNone": "No specific phase — shows every week",
       "coachNotePrivate": "Private note (only you see this)",
-      "coachNotePrivateHint": "Never shown to the client — visible only in the builder."
+      "coachNotePrivateHint": "Never shown to the client — visible only in the builder.",
+      "addToProgram": "Add to program",
+      "addToProgramCount": "Add to program · <m>{count}</m> {count, plural, one {set} other {sets}}",
+      "changeExercise": "Change exercise",
+      "notes": "Notes",
+      "optional": "(optional)",
+      "progressionAndNotes": "Progression & notes",
+      "weightKg": "Weight (kg)",
+      "restS": "Rest (s)",
+      "setNumber": "#",
+      "repsAria": "Reps for set {n}",
+      "durationAria": "Duration in seconds for set {n}",
+      "weightAria": "Weight for set {n}",
+      "restAria": "Rest for set {n}",
+      "removeSetAria": "Remove set {n}",
+      "duplicateSet": "Add set",
+      "summaryReps": "<m>{sets}</m> {sets, plural, one {set} other {sets}} · <m>{total}</m> {total, plural, one {rep} other {reps}}",
+      "summaryHolds": "<m>{sets}</m> {sets, plural, one {hold} other {holds}} · <m>{total}</m> sec",
+      "close": "Close"
     },
     "activityDialog": {
       "addTitle": "Add cardio/recovery",
@@ -1942,6 +1960,16 @@
         "replace_exercise": "Exercise replaced",
         "before_restore": "Before a restore"
       }
+    },
+    "exerciseMedia": {
+      "gif": "GIF",
+      "play": "Play",
+      "pause": "Pause",
+      "expand": "Expand",
+      "close": "Close",
+      "lightboxTitle": "{name} — full size",
+      "noMedia": "No media",
+      "loadFailed": "Couldn't load media"
     }
   },
   "library": {
