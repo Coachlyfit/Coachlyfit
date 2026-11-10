@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatRelativeTime } from "@/lib/format";
 import { CoachHomeService, type InboxFilter } from "@/domain/dashboard/coach-home.service";
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import type { AppLocale } from "@/domain/locale";
 import { ClientAvatar } from "./client-avatar";
 
 const INBOX_LIMIT = 6;
@@ -44,9 +44,6 @@ export async function CheckinInbox({ locale, filter }: { locale: AppLocale; filt
             <ClientAvatar id={row.clientId} name={row.clientName} src={row.avatarUrl} />
             <div className="flex min-w-0 flex-[1_1_11rem] flex-col">
               <span className="truncate font-medium">{row.clientName}</span>
-              <span className="truncate text-muted-foreground">
-                {row.template ? pickLocale(row.template, locale) : "—"}
-              </span>
             </div>
             <span className="font-mono text-sm text-muted-foreground tabular-nums">
               {formatRelativeTime(row.submittedAt, locale)}

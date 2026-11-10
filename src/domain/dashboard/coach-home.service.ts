@@ -11,7 +11,6 @@ export type InboxRow = {
   clientId: string;
   clientName: string;
   avatarUrl: string | null;
-  template: { name_ar: string; name_en: string } | null;
   submittedAt: string;
   reviewed: boolean;
 };
@@ -84,7 +83,6 @@ export class CoachHomeService {
       clientId: row.client_id,
       clientName: row.clients?.display_name ?? "",
       avatarUrl: avatarPublicUrl(row.clients?.profiles?.avatar_url),
-      template: null,
       submittedAt: row.checkin_date,
       reviewed: row.reviewed_at != null,
     }));

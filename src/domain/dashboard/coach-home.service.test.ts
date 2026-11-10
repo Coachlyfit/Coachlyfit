@@ -85,7 +85,6 @@ describe("CoachHomeService.listInbox", () => {
         clientId: "c1",
         clientName: "Sara",
         avatarUrl: null,
-        template: null,
         submittedAt: "2026-10-05",
         reviewed: false,
       },
