@@ -17,12 +17,16 @@ export function ProgressLineChart({
   label,
   color,
   unit,
+  compact = false,
 }: {
   data: { date: string; value: number }[];
   dataKey?: string;
   label: string;
   color: string;
   unit?: string;
+  /** Sparkline: short, no grid or axes, y-range fitted to the data (a weight
+   * line against a 0-based axis would be flat). Tooltip stays. */
+  compact?: boolean;
 }) {
   const locale = useLocale() as AppLocale;
   const t = useTranslations("progress.chart");
@@ -38,17 +42,18 @@ export function ProgressLineChart({
 
   if (data.length === 0) {
     return (
-      <div className="flex h-64 w-full items-center justify-center rounded-md border border-dashed border-border text-sm text-muted-foreground">
+      <div className={`flex w-full items-center justify-center rounded-md border border-dashed border-border text-sm text-muted-foreground ${compact ? "h-28" : "h-64"}`}>
         {t("empty")}
       </div>
     );
   }
 
   return (
-    <ChartContainer config={config} className="h-64 w-full">
+    <ChartContainer config={config} className={compact ? "h-28 w-full" : "h-64 w-full"}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+        {!compact && <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />}
         <XAxis
+          hide={compact}
           dataKey="date"
           reversed={isRtl}
           tickFormatter={(d: string) => formatDate(d, locale, { month: "short", day: "numeric" })}
@@ -57,6 +62,8 @@ export function ProgressLineChart({
           minTickGap={16}
         />
         <YAxis
+          hide={compact}
+          domain={compact ? ["dataMin - 1", "dataMax + 1"] : undefined}
           orientation={isRtl ? "right" : "left"}
           className="text-xs"
           tickLine={false}
@@ -78,7 +85,7 @@ export function ProgressLineChart({
           strokeWidth={2.5}
           fill={color}
           fillOpacity={0.08}
-          dot={{ r: 3 }}
+          dot={compact ? false : { r: 3 }}
           isAnimationActive={!reduceMotion}
         />
       </AreaChart>

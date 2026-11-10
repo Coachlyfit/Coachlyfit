@@ -49,6 +49,32 @@ export function weekIndexForDate(startDate: string, targetDate: string, maxWeeks
   return Math.min(week, maxWeeks);
 }
 
+export type ProgramWeekProgress = {
+  /** 1-based, uncapped by the 12-week progression ceiling; clamped to totalWeeks when known. */
+  week: number;
+  /** null when the program has no end_date — its length is unknown, never guessed. */
+  totalWeeks: number | null;
+  /** 0-100 share of the program's calendar span elapsed; null when totalWeeks is. */
+  pct: number | null;
+};
+
+/** "Week N of M" for display. Distinct from weekIndexForDate (progression's
+ * 12-capped index) and from cycle length (days in the split): the home screen
+ * once divided one by the other and showed "week 7 of 5". */
+export function programWeekProgress(startDate: string, endDate: string | null, targetDate: string): ProgramWeekProgress {
+  const daysSinceStart = Math.max(0, Math.floor((toUtcDate(targetDate) - toUtcDate(startDate)) / 86_400_000));
+  const rawWeek = Math.floor(daysSinceStart / 7) + 1;
+  if (!endDate) return { week: rawWeek, totalWeeks: null, pct: null };
+
+  const spanDays = Math.max(1, Math.floor((toUtcDate(endDate) - toUtcDate(startDate)) / 86_400_000) + 1);
+  const totalWeeks = Math.ceil(spanDays / 7);
+  return {
+    week: Math.min(rawWeek, totalWeeks),
+    totalWeeks,
+    pct: Math.min(100, Math.round((daysSinceStart / spanDays) * 100)),
+  };
+}
+
 export type ScheduleMode = "cycle" | "weekly";
 
 /** Resolves which program_day (by its day_index, matching dayIndexForDate's

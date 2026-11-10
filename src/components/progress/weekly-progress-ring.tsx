@@ -1,39 +1,57 @@
 import { formatNumber } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 
-const RADIUS = 32;
+const RADIUS = 50;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-/** Circular week-progress indicator for the client Today card — a plain
- * stroke-dasharray ring, not the linear shadcn Progress primitive, since
- * the visual (a percentage dial with the number inside) is a different
- * shape entirely. `pct` is 0-100. */
-export function WeeklyProgressRing({ pct, locale }: { pct: number; locale: AppLocale }) {
-  const clamped = Math.min(100, Math.max(0, pct));
-  const offset = CIRCUMFERENCE * (1 - clamped / 100);
+/** Circular "done / planned" dial for the client home header — a plain
+ * stroke-dasharray ring, not the linear shadcn Progress primitive, since the
+ * visual (a count dial with the fraction inside) is a different shape
+ * entirely. Sits on the sidebar-colored header card, so it paints with the
+ * sidebar foreground. `total` must be > 0; callers hide the ring otherwise. */
+export function WeeklyProgressRing({
+  done,
+  total,
+  label,
+  ariaLabel,
+  locale,
+}: {
+  done: number;
+  total: number;
+  /** Small caption under the fraction ("workouts"). */
+  label: string;
+  ariaLabel: string;
+  locale: AppLocale;
+}) {
+  const ratio = total > 0 ? Math.min(1, Math.max(0, done / total)) : 0;
 
   return (
-    <svg viewBox="0 0 80 80" width={76} height={76} fill="none" className="shrink-0" aria-hidden="true">
-      <circle cx="40" cy="40" r={RADIUS} fill="none" stroke="currentColor" strokeWidth="9" className="text-white/10" />
+    <svg viewBox="0 0 120 120" role="img" aria-label={ariaLabel} className="size-28 shrink-0" fill="none">
+      <circle cx="60" cy="60" r={RADIUS} fill="none" stroke="currentColor" strokeWidth="12" className="text-sidebar-foreground/15" />
       <circle
-        cx="40"
-        cy="40"
+        cx="60"
+        cy="60"
         r={RADIUS}
         fill="none"
         stroke="var(--primary)"
-        strokeWidth="9"
+        strokeWidth="12"
         strokeLinecap="round"
         strokeDasharray={CIRCUMFERENCE}
-        strokeDashoffset={offset}
-        transform="rotate(-90 40 40)"
+        strokeDashoffset={CIRCUMFERENCE * (1 - ratio)}
+        transform="rotate(-90 60 60)"
       />
+      {/* direction="ltr": the "3/5" fraction must not reorder under RTL. */}
       <text
-        x="40"
-        y="45"
+        x="60"
+        y="63"
         textAnchor="middle"
-        className="fill-white font-mono text-[18px] font-semibold"
+        direction="ltr"
+        className="fill-sidebar-foreground font-mono text-[26px] font-semibold"
       >
-        {formatNumber(clamped, locale)}%
+        {formatNumber(done, locale)}/{formatNumber(total, locale)}
+      </text>
+      <text x="60" y="82" textAnchor="middle" className="fill-sidebar-foreground/70 text-[12px]">
+        {label}
       </text>
     </svg>
   );
