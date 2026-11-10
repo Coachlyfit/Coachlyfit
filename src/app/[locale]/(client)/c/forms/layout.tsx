@@ -20,9 +20,9 @@ export default async function ClientFormsLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: AppLocale }>;
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  const { locale } = (await params) as { locale: AppLocale };
   return (
     // data-wide: lets the client layout widen <main> on lg for the two-column view.
     <div data-wide className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
