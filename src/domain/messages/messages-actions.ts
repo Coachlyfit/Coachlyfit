@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { PresenceService } from "@/domain/presence/presence.service";
+import { NotificationsService } from "@/domain/notifications/notifications.service";
 import { MessagesService, sendMessageSchema as sendSchema, type ThreadPage } from "./messages.service";
 import {
   VOICE_NOTE_MAX_BYTES,
@@ -190,6 +191,17 @@ export async function markThreadReadAction(clientId: string) {
   const ctx = await callerContext(supabase, clientId);
   if (!ctx) return;
   await new MessagesService(supabase).markThreadRead(clientId, ctx.role);
+  // Best effort: a failed bell update must not fail the read receipt.
+  await new NotificationsService(supabase).markThreadMessagesRead(clientId).catch(() => {});
+}
+
+export async function countUnreadCoachMessagesAction(): Promise<number> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+  return new MessagesService(supabase).countUnreadFromCoach();
 }
 
 export async function sendBroadcastAction(

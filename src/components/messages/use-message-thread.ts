@@ -10,6 +10,7 @@ import {
   sendVoiceMessageAction,
 } from "@/domain/messages/messages-actions";
 import { toRenderableMessages, type PendingMessage, type VoiceRecording } from "@/lib/messages/group-messages";
+import { CLIENT_UNREAD_QUERY_KEY } from "./use-client-unread";
 import { INBOX_QUERY_KEY } from "./use-inbox-threads";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
@@ -74,7 +75,11 @@ export function useMessageThread(
     const hasUnreadFromOther = messages.some((m) => m.sender_role !== viewerRole && !m.read_at);
     if (!hasUnreadFromOther) return;
     lastMarkReadAtRef.current = now;
-    markThreadReadAction(clientId).then(() => queryClient.invalidateQueries({ queryKey: INBOX_QUERY_KEY }));
+    markThreadReadAction(clientId).then(() => {
+      queryClient.invalidateQueries({ queryKey: INBOX_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CLIENT_UNREAD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    });
   }, [clientId, messages, viewerRole, queryClient]);
 
   useEffect(() => {

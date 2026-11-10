@@ -214,6 +214,18 @@ export class MessagesService {
     if (error) throw error;
   }
 
+  /** Unread messages from the coach, for the client's nav badge. RLS scopes
+   * this to the caller's own thread. */
+  async countUnreadFromCoach(): Promise<number> {
+    const { count, error } = await this.db
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("sender_role", "coach")
+      .is("read_at", null);
+    if (error) throw error;
+    return count ?? 0;
+  }
+
   /** Marks every message in the thread NOT sent by the caller as read —
    * the caller passes their own role so they never mark their own
    * outgoing messages read. */

@@ -4,6 +4,7 @@ import { Home, CalendarDays, Salad, LineChart, MessageCircle, FileText } from "l
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useClientUnread } from "@/components/messages/use-client-unread";
 
 const ITEMS = [
   { href: "/c", key: "home", icon: Home },
@@ -14,11 +15,19 @@ const ITEMS = [
   { href: "/c/forms", key: "forms", icon: FileText },
 ] as const;
 
-export function ClientNav({ formsDue = 0 }: { formsDue?: number }) {
+export function ClientNav({ formsDue = 0, unreadMessages = 0 }: { formsDue?: number; unreadMessages?: number }) {
   const t = useTranslations("nav");
   const tClient = useTranslations("client");
   const tForms = useTranslations("forms.clientList");
+  const tInbox = useTranslations("inbox");
   const pathname = usePathname();
+  const unread = useClientUnread(unreadMessages);
+
+  // Per-tab badge: count + screen-reader label, rendered next to the icon.
+  const badges: Partial<Record<(typeof ITEMS)[number]["key"], { count: number; label: string }>> = {
+    forms: { count: formsDue, label: tForms("pendingBadge", { count: formsDue }) },
+    coach: { count: unread, label: tInbox("unreadCount", { count: unread }) },
+  };
 
   function labelFor(key: (typeof ITEMS)[number]["key"]) {
     if (key === "home") return tClient("home");
@@ -34,6 +43,7 @@ export function ClientNav({ formsDue = 0 }: { formsDue?: number }) {
       {ITEMS.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
+        const badge = badges[item.key];
         return (
           <Link
             key={item.href}
@@ -46,15 +56,15 @@ export function ClientNav({ formsDue = 0 }: { formsDue?: number }) {
           >
             <span className="relative">
               <Icon className="size-5 shrink-0" aria-hidden="true" />
-              {item.key === "forms" && formsDue > 0 && (
+              {badge && badge.count > 0 && (
                 <>
                   <span
                     aria-hidden="true"
                     className="absolute -top-1.5 -end-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 font-mono text-[10px] leading-none text-primary-foreground"
                   >
-                    {formsDue > 9 ? "9+" : formsDue}
+                    {badge.count > 9 ? "9+" : badge.count}
                   </span>
-                  <span className="sr-only">{tForms("pendingBadge", { count: formsDue })}</span>
+                  <span className="sr-only">{badge.label}</span>
                 </>
               )}
             </span>

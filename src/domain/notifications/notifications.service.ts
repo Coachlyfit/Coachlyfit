@@ -24,6 +24,18 @@ export class NotificationsService {
     return data;
   }
 
+  /** Clears the bell entries for one thread — called when its messages are
+   * read, so the bell never disagrees with the messages page. */
+  async markThreadMessagesRead(clientId: string): Promise<void> {
+    const { error } = await this.db
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("kind", "new_message")
+      .eq("payload->>client_id", clientId)
+      .is("read_at", null);
+    if (error) throw error;
+  }
+
   async markAllRead(): Promise<void> {
     const { error } = await this.db
       .from("notifications")
