@@ -240,7 +240,7 @@ export async function createObservationAction(
   input: ObservationInput
 ): Promise<VoidActionResult> {
   const ctx = await parseObservation(clientId, input);
-  if (!("fields" in ctx)) return { error: ctx.error };
+  if (ctx.error) return { error: ctx.error };
 
   await new ObservationsService(ctx.supabase).create(ctx.coachId, clientId, ctx.fields);
   revalidatePath(`/${locale}/clients/${clientId}`);
@@ -253,7 +253,7 @@ export async function updateObservationAction(
   input: ObservationInput
 ): Promise<VoidActionResult> {
   const ctx = await parseObservation(clientId, input);
-  if (!("fields" in ctx)) return { error: ctx.error };
+  if (ctx.error) return { error: ctx.error };
 
   const updated = await new ObservationsService(ctx.supabase).update(observationId, ctx.fields);
   if (!updated) return { error: "not_found_or_forbidden" };
