@@ -195,6 +195,44 @@ describe("workout sessions & set logs: client owns, coach reads", () => {
     expect(logs).toEqual([]);
   });
 
+  it("exercise_id is stamped from the prescription, never trusted from the client", async () => {
+    const { data: item } = await admin.from("program_items").select("exercise_id").eq("id", tree.itemId).single();
+    const { data: other, error: otherError } = await admin
+      .from("exercises")
+      .insert({ coach_id: coachA.userId, name_ar: "آخر", name_en: "Other" })
+      .select("id")
+      .single();
+    if (otherError) throw otherError;
+
+    const { data: log, error } = await clientOfA.client
+      .from("workout_set_logs")
+      .insert({
+        coach_id: coachA.userId,
+        client_id: clientOfA.clientRowId,
+        session_id: sessionId,
+        program_item_id: tree.itemId,
+        set_index: 3,
+        weight: 70,
+        reps: 5,
+        exercise_id: other.id, // forged: the trigger must overwrite it
+      })
+      .select("exercise_id")
+      .single();
+    if (error) throw error;
+    expect(log.exercise_id).toBe(item!.exercise_id);
+  });
+
+  it("exercise_bests: the owning coach sees the best set, a foreign coach sees nothing", async () => {
+    const args = { p_client_id: clientOfA.clientRowId };
+    const { data: mine, error } = await coachA.client.rpc("exercise_bests", args);
+    if (error) throw error;
+    expect(mine).toHaveLength(1);
+    expect(mine![0]).toMatchObject({ best_weight: 70, best_reps: 5, set_count: 2 });
+
+    const { data: theirs } = await coachB.client.rpc("exercise_bests", args);
+    expect(theirs).toEqual([]);
+  });
+
   it("the coach cannot write into the client's set logs — read-only by design", async () => {
     const { data } = await coachA.client
       .from("workout_set_logs")

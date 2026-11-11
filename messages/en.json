@@ -764,6 +764,43 @@
       "unknownExercise": "An exercise",
       "sessionStats": "{completed}/{prescribed} sets · {volume} kg volume"
     },
+    "weightHistory": {
+      "title": "Weight history",
+      "exercise": "Exercise",
+      "allExercises": "All exercises",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear filters",
+      "bestSets": "Best sets",
+      "bestSetLine": "{weight} kg × {reps}",
+      "setCount": "{count, plural, one {# set} other {# sets}}",
+      "chartTitle": "{exercise} — top weight per session",
+      "sessions": "Sessions",
+      "compareHint": "Tick two sessions to compare them side by side.",
+      "compare": "Compare",
+      "compareTitle": "Comparison",
+      "sessionA": "A: {label}",
+      "sessionB": "B: {label}",
+      "selectRow": "Select {label} for comparison",
+      "colExercise": "Exercise",
+      "colDate": "Date",
+      "colWorkout": "Workout",
+      "colExercises": "Exercises (sets × reps × weight)",
+      "diffKg": "Change (kg)",
+      "diffPct": "Change (%)",
+      "weightKg": "{weight} kg",
+      "setLine": "{sets} × {reps} × {weight} kg",
+      "setLineBodyweight": "{sets} × {reps}",
+      "workoutFallback": "Workout",
+      "unknownExercise": "An exercise",
+      "loadMore": "Load more",
+      "loading": "Loading…",
+      "empty": "No logged sets match.",
+      "emptyDescription": "Widen the date range or pick another exercise. Sets appear here once the client logs a workout.",
+      "error": "Couldn't load the weight history.",
+      "errorDescription": "Something went wrong while loading. Try again.",
+      "retry": "Try again"
+    },
     "errors": {
       "invalid_input": "Please check the form and try again.",
       "image_type": "The image must be JPG, PNG or WebP.",
@@ -955,6 +992,7 @@
       "tabs": {
         "progress": "Progress",
         "sessions": "Sessions",
+        "history": "Weight history",
         "billing": "Billing",
         "notes": "Notes",
         "decisions": "Decisions",
@@ -3461,7 +3499,7 @@
       "exercisesSelected": "{count} exercises selected"
     },
     "reply": {
-      "title": "Your reply",
+      "title": "Your reply (optional)",
       "placeholder": "Write your reply to {name}…",
       "deliveryNote": "Delivered to the client in the app",
       "chips": {
@@ -3480,7 +3518,7 @@
       }
     },
     "submit": {
-      "sendDefault": "Write your reply first",
+      "sendDefault": "Continue without a reply",
       "send": "Send and continue",
       "sent": "Sent",
       "skip": "Leave for later"

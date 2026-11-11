@@ -4562,6 +4562,7 @@ export type Database = {
           coach_id: string
           completed_at: string
           duration_seconds: number | null
+          exercise_id: string | null
           id: string
           notes: string | null
           prescribed_reps: number | null
@@ -4580,6 +4581,7 @@ export type Database = {
           coach_id: string
           completed_at?: string
           duration_seconds?: number | null
+          exercise_id?: string | null
           id?: string
           notes?: string | null
           prescribed_reps?: number | null
@@ -4598,6 +4600,7 @@ export type Database = {
           coach_id?: string
           completed_at?: string
           duration_seconds?: number | null
+          exercise_id?: string | null
           id?: string
           notes?: string | null
           prescribed_reps?: number | null
@@ -4638,6 +4641,20 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises_visible"
             referencedColumns: ["id"]
           },
           {
@@ -5011,6 +5028,17 @@ export type Database = {
           p_subject: string
         }
         Returns: string
+      }
+      exercise_bests: {
+        Args: { p_client_id: string; p_from?: string; p_to?: string }
+        Returns: {
+          best_at: string
+          best_reps: number
+          best_weight: number
+          exercise_id: string
+          last_at: string
+          set_count: number
+        }[]
       }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
       get_my_branding: { Args: never; Returns: Json }

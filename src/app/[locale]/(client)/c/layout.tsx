@@ -41,11 +41,20 @@ export default async function ClientLayout({
   // one another, so fetch them together instead of one at a time. The
   // active-subscription check below does depend on the client row, so it
   // has to wait for that one result.
-  const [profile, clientRow, settings, branding, formsDue, unreadMessages] = await Promise.all([
+  const [profile, clientRow, settings, branding, coachName, formsDue, unreadMessages] = await Promise.all([
     getViewerProfile(),
     supabase.from("clients").select("id").eq("profile_id", user.id).maybeSingle().then((r) => r.data),
     getPlatformSettings(),
     getBranding(),
+    // The active coach's name for the header. Both tables are readable by the
+    // client under RLS (client_read_own, client_read_related_coach), and it
+    // is the coach's name, not a branding feature, so every plan gets it.
+    supabase
+      .from("coaching_relationships")
+      .select("coaches(business_name)")
+      .eq("status", "active")
+      .maybeSingle()
+      .then((r) => r.data?.coaches?.business_name ?? null),
     // RLS (client_read_own) scopes this to the viewer's own assignments.
     supabase
       .from("form_assignments")
@@ -95,7 +104,10 @@ export default async function ClientLayout({
         ) : (
           <CoachlyMark size={24} className="text-foreground" />
         )}
-        <div className="ms-auto flex items-center gap-2">
+        {(branding?.businessName ?? coachName) && (
+          <span className="min-w-0 truncate text-sm font-semibold">{branding?.businessName ?? coachName}</span>
+        )}
+        <div className="ms-auto flex shrink-0 items-center gap-2">
           <InstallAppButton />
           <LocaleSwitcher />
           <ThemeToggle />

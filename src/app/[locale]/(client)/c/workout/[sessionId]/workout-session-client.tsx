@@ -307,6 +307,7 @@ export function WorkoutSessionClient({
       rpe: null,
       notes: null,
       substituted_exercise_id,
+      exercise_id: substituted_exercise_id ?? item.exercise_id,
     };
     const nextLogs = new Map(logs).set(key, optimistic);
     const closedNext = closedIn(nextLogs, exerciseResults);

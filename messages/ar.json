@@ -764,6 +764,43 @@
       "unknownExercise": "تمرين",
       "sessionStats": "{completed}/{prescribed} سِت · {volume} كجم حجم تدريبي"
     },
+    "weightHistory": {
+      "title": "سجل الأوزان",
+      "exercise": "التمرين",
+      "allExercises": "كل التمارين",
+      "from": "من",
+      "to": "إلى",
+      "clear": "مسح الفلاتر",
+      "bestSets": "أفضل المجموعات",
+      "bestSetLine": "{weight} كجم × {reps}",
+      "setCount": "{count} سِت",
+      "chartTitle": "{exercise} — أعلى وزن في كل جلسة",
+      "sessions": "الجلسات",
+      "compareHint": "اختار جلستين عشان تقارنهم جنب بعض.",
+      "compare": "مقارنة",
+      "compareTitle": "المقارنة",
+      "sessionA": "أ: {label}",
+      "sessionB": "ب: {label}",
+      "selectRow": "اختيار {label} للمقارنة",
+      "colExercise": "التمرين",
+      "colDate": "التاريخ",
+      "colWorkout": "التمرينة",
+      "colExercises": "التمارين (سِت × تكرار × وزن)",
+      "diffKg": "الفرق (كجم)",
+      "diffPct": "الفرق (٪)",
+      "weightKg": "{weight} كجم",
+      "setLine": "{sets} × {reps} × {weight} كجم",
+      "setLineBodyweight": "{sets} × {reps}",
+      "workoutFallback": "تمرينة",
+      "unknownExercise": "تمرين",
+      "loadMore": "عرض المزيد",
+      "loading": "جارٍ التحميل…",
+      "empty": "مفيش مجموعات متسجلة بالفلاتر دي.",
+      "emptyDescription": "وسّع المدى الزمني أو اختار تمرين تاني. المجموعات بتظهر هنا أول ما العميل يسجّل تمرينة.",
+      "error": "معرفناش نحمّل سجل الأوزان.",
+      "errorDescription": "حصل خطأ أثناء التحميل. جرّب تاني.",
+      "retry": "جرّب تاني"
+    },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
       "image_type": "الصورة لازم تكون JPG أو PNG أو WebP.",
@@ -955,6 +992,7 @@
       "tabs": {
         "progress": "التقدم",
         "sessions": "الجلسات",
+        "history": "سجل الأوزان",
         "billing": "الفواتير",
         "notes": "الملاحظات",
         "decisions": "القرارات",
@@ -3461,7 +3499,7 @@
       "exercisesSelected": "اتختار {count} تمرين"
     },
     "reply": {
-      "title": "ردّك",
+      "title": "ردّك (اختياري)",
       "placeholder": "اكتب ردّك لـ{name}…",
       "deliveryNote": "هيوصل للعميل في التطبيق",
       "chips": {
@@ -3480,7 +3518,7 @@
       }
     },
     "submit": {
-      "sendDefault": "اكتب ردّك الأول",
+      "sendDefault": "كمّل من غير رد",
       "send": "ابعت وكمّل",
       "sent": "اتبعت",
       "skip": "سيبها لبعدين"

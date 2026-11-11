@@ -44,7 +44,7 @@ export const reviewSchema = z.object({
   checkinId: z.string().uuid(),
   decision: z.enum(["keep", "adjust", "call"]),
   adjustments: z.array(adjustmentSchema).max(10).optional(),
-  coachReply: z.string().trim().min(1).max(2000),
+  coachReply: z.string().trim().min(1).max(2000).optional(),
   reasonKey: z.enum(REASON_KEYS),
   clientNote: z.string().trim().min(1).max(280).optional(),
   evidence: z.array(signalSchema).max(10).optional(),

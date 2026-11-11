@@ -39,7 +39,7 @@ export async function submitReviewAction(locale: string, formData: FormData): Pr
     checkinId: formData.get("checkinId"),
     decision: formData.get("decision"),
     adjustments: parseJsonField(formData, "adjustments"),
-    coachReply: formData.get("coachReply"),
+    coachReply: formData.get("coachReply") ?? undefined,
     reasonKey: formData.get("reasonKey"),
     clientNote: formData.get("clientNote") ?? undefined,
     evidence: parseJsonField(formData, "evidence"),
@@ -62,10 +62,14 @@ export async function submitReviewAction(locale: string, formData: FormData): Pr
     return { error: "review_failed" };
   }
 
-  await new MessagesService(supabase).send(coachId, checkin.client_id, {
-    sender_role: "coach",
-    body: parsed.data.coachReply,
-  });
+  // The reply is optional: daily check-ins rarely need a written answer, so
+  // an empty one skips the message instead of sending a blank.
+  if (parsed.data.coachReply) {
+    await new MessagesService(supabase).send(coachId, checkin.client_id, {
+      sender_role: "coach",
+      body: parsed.data.coachReply,
+    });
+  }
 
   // Best-effort: the active program may have changed/ended between the
   // check-in and the review, and the ledger decision is still worth
