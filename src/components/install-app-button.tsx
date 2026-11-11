@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
 
 /** Renders only when the browser offers installation (not yet installed). */
-export function InstallAppButton({ className }: { className?: string }) {
+export function InstallAppButton({ className, variant = "outline" }: { className?: string; variant?: "outline" | "ghost" }) {
   const t = useTranslations("common");
   const { canInstall, install } = useInstallPrompt();
 
@@ -14,7 +14,7 @@ export function InstallAppButton({ className }: { className?: string }) {
 
   return (
     <Button
-      variant="outline"
+      variant={variant}
       size="icon-sm"
       aria-label={t("installApp")}
       title={t("installApp")}

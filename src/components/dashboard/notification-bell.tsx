@@ -66,12 +66,14 @@ export function NotificationBell({
   locale,
   role = "coach",
   className,
+  variant = "outline",
 }: {
   locale: AppLocale;
   /** Client viewers get /c links instead of the coach app's routes. */
   role?: "coach" | "client";
   /** Overrides for the trigger button (e.g. the dark client-home header). */
   className?: string;
+  variant?: "outline" | "ghost";
 }) {
   const t = useTranslations("notifications");
   const tOutcome = useTranslations("ledger.outcome");
@@ -205,7 +207,7 @@ export function NotificationBell({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
-        render={<Button variant="outline" size="icon-sm" aria-label={t("label")} className={className} />}
+        render={<Button variant={variant} size="icon-sm" aria-label={t("label")} className={className} />}
       >
         <span className="relative">
           <Bell className="size-4" />

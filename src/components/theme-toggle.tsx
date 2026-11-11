@@ -5,13 +5,13 @@ import { Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, variant = "outline" }: { className?: string; variant?: "outline" | "ghost" }) {
   const t = useTranslations("common");
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <Button
-      variant="outline"
+      variant={variant}
       size="icon-sm"
       aria-label={t("theme")}
       className={className}

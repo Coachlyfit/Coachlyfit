@@ -90,7 +90,20 @@
     "site": "Site",
     "leads": "Leads",
     "guides": "Guides",
-    "support": "Support"
+    "support": "Support",
+    "shell": {
+      "groupClients": "Clients",
+      "groupContent": "Content",
+      "groupAccount": "Account",
+      "groupCoaches": "Coaches",
+      "groupGrowth": "Growth",
+      "collapse": "Collapse menu",
+      "expand": "Expand menu",
+      "roleCoach": "Coach",
+      "shortDashboard": "Home",
+      "shortLibrary": "Library",
+      "shortLeads": "Leads"
+    }
   },
   "palette": {
     "navigation": "Navigation",
@@ -753,6 +766,9 @@
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
+      "image_type": "The image must be JPG, PNG or WebP.",
+      "image_too_large": "The image must be under 5 MB.",
+      "upload_failed": "Image upload failed. Please try again.",
       "client_limit_reached": "You've reached your plan's client limit. Upgrade to add more.",
       "not_authenticated": "Please log in again.",
       "signup_failed": "Something went wrong. Please try again.",
@@ -829,8 +845,45 @@
       "title": "Observations",
       "empty": "No observations yet.",
       "add": "Add note",
-      "placeholder": "Write a private note about this client...",
-      "submit": "Save"
+      "edit": "Edit note",
+      "submit": "Save",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Note title (e.g. knee pain after leg day)",
+      "categoryLabel": "Category",
+      "category": {
+        "general": "General",
+        "technique": "Technique",
+        "adherence": "Adherence",
+        "nutrition": "Nutrition",
+        "injury_pain": "Injury / pain",
+        "mental_state": "Mental state"
+      },
+      "severityLabel": "Severity (optional)",
+      "severity": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "detailsLabel": "Details (optional)",
+      "detailsPlaceholder": "Add more details if you like...",
+      "link": {
+        "label": "Linked items",
+        "add": "Add link",
+        "program": "Program",
+        "check_in": "Check-in",
+        "exercise": "Exercise",
+        "search": "Search...",
+        "loading": "Loading...",
+        "none": "No results.",
+        "unavailable": "Unavailable",
+        "remove": "Remove link",
+        "cancel": "Cancel"
+      },
+      "image": {
+        "label": "Attach image",
+        "attach": "Attach image",
+        "remove": "Remove image"
+      }
     },
     "profile": {
       "message": "Message",

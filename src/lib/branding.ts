@@ -1,15 +1,13 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { COACH_LOGOS_BUCKET } from "@/domain/billing/invoices.service";
-import { brandCss, isDarkGround } from "@/lib/brand-theme";
+import { brandCss } from "@/lib/brand-theme";
 
 export type Branding = {
   /** Ready-to-inline CSS overrides; "" when only a logo is set. */
   css: string;
   logoUrl: string | null;
   businessName: string;
-  /** False when the coach picked a light sidebar, so the nav swaps its lockup. */
-  sidebarDark: boolean;
 };
 
 type BrandingRow = {
@@ -42,6 +40,5 @@ export const getBranding = cache(async (): Promise<Branding | null> => {
       ? supabase.storage.from(COACH_LOGOS_BUCKET).getPublicUrl(row.logo_path).data.publicUrl
       : null,
     businessName: row.business_name,
-    sidebarDark: !row.sidebar || isDarkGround(row.sidebar),
   };
 });

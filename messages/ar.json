@@ -90,7 +90,20 @@
     "site": "الموقع",
     "leads": "العملاء المحتملون",
     "guides": "الشروحات",
-    "support": "الدعم"
+    "support": "الدعم",
+    "shell": {
+      "groupClients": "العملاء",
+      "groupContent": "المحتوى",
+      "groupAccount": "الحساب",
+      "groupCoaches": "المدربون",
+      "groupGrowth": "النمو",
+      "collapse": "طي القائمة",
+      "expand": "توسيع القائمة",
+      "roleCoach": "مدرب",
+      "shortDashboard": "الرئيسية",
+      "shortLibrary": "المكتبة",
+      "shortLeads": "المحتملون"
+    }
   },
   "palette": {
     "navigation": "التنقل",
@@ -753,6 +766,9 @@
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
+      "image_type": "الصورة لازم تكون JPG أو PNG أو WebP.",
+      "image_too_large": "الصورة لازم تكون أقل من ٥ ميجابايت.",
+      "upload_failed": "فشل رفع الصورة. جرّب تاني.",
       "client_limit_reached": "وصلت للحد الأقصى لعدد العملاء في باقتك. رقّي الباقة عشان تضيف أكتر.",
       "not_authenticated": "سجّل الدخول تاني.",
       "signup_failed": "حصل خطأ. جرّب تاني.",
@@ -829,8 +845,45 @@
       "title": "ملاحظات",
       "empty": "لا توجد ملاحظات بعد.",
       "add": "إضافة ملاحظة",
-      "placeholder": "اكتب ملاحظة خاصة عن هذا العميل...",
-      "submit": "حفظ"
+      "edit": "تعديل الملاحظة",
+      "submit": "حفظ",
+      "titleLabel": "العنوان",
+      "titlePlaceholder": "عنوان الملاحظة (مثال: ألم في الركبة بعد تمرين الأرجل)",
+      "categoryLabel": "الفئة",
+      "category": {
+        "general": "عام",
+        "technique": "الأداء الفني",
+        "adherence": "الالتزام",
+        "nutrition": "التغذية",
+        "injury_pain": "إصابة/ألم",
+        "mental_state": "الحالة الذهنية"
+      },
+      "severityLabel": "الشدة (اختياري)",
+      "severity": {
+        "low": "منخفضة",
+        "medium": "متوسطة",
+        "high": "عالية"
+      },
+      "detailsLabel": "التفاصيل (اختياري)",
+      "detailsPlaceholder": "أضف تفاصيل أكثر إن أردت...",
+      "link": {
+        "label": "العناصر المرتبطة",
+        "add": "إضافة رابط",
+        "program": "برنامج",
+        "check_in": "متابعة",
+        "exercise": "تمرين",
+        "search": "ابحث...",
+        "loading": "جارٍ التحميل...",
+        "none": "لا توجد نتائج.",
+        "unavailable": "غير متاح",
+        "remove": "إزالة الرابط",
+        "cancel": "إلغاء"
+      },
+      "image": {
+        "label": "إرفاق صورة",
+        "attach": "إرفاق صورة",
+        "remove": "إزالة الصورة"
+      }
     },
     "profile": {
       "message": "مراسلة",

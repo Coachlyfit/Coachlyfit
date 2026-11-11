@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OBSERVATION_CATEGORIES, OBSERVATION_LINK_TYPES, OBSERVATION_SEVERITIES } from "@/domain/clients/observations";
 
 // Roster status filter (?status=). Lives here, not in clients-table.tsx: the
 // server page validates the query param against it, and a value imported
@@ -38,11 +39,17 @@ export type CreateSubscriptionInput = z.infer<typeof createSubscriptionSchema>;
 export type RecordTransactionFormInput = z.input<typeof recordTransactionSchema>;
 export type RecordTransactionInput = z.output<typeof recordTransactionSchema>;
 
-export const createObservationSchema = z.object({
-  body: z.string().min(1).max(1000),
+export const observationSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  category: z.enum(OBSERVATION_CATEGORIES),
+  severity: z.enum(OBSERVATION_SEVERITIES).nullable(),
+  details: z.string().trim().max(2000),
+  linked: z.object({ type: z.enum(OBSERVATION_LINK_TYPES), id: z.string().uuid() }).nullable(),
+  // Path shape (coach/client prefix, extension) is re-checked in the action.
+  image_path: z.string().max(300).nullable(),
 });
 
-export type CreateObservationInput = z.infer<typeof createObservationSchema>;
+export type ObservationInput = z.infer<typeof observationSchema>;
 
 export const updateClientSchema = z.object({
   displayName: z.string().min(2).max(100),

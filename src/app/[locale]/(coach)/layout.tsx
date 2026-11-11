@@ -11,6 +11,7 @@ import { BrandStyle } from "@/components/brand/coach-brand";
 import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Topbar } from "@/components/dashboard/topbar";
+import { SIDEBAR_COOKIE, collapsedFromCookie } from "@/components/dashboard/sidebar-store";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
 import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
@@ -101,6 +102,7 @@ export default async function CoachLayout({
   // Owner-only nav items (support) are left out for a team member.
   const isOwner = coachId === user.id;
   const brandLogo = branding?.logoUrl ? { src: branding.logoUrl, name: branding.businessName } : null;
+  const sidebarCollapsed = collapsedFromCookie((await cookies()).get(SIDEBAR_COOKIE.coach)?.value, "coach");
   const avatarUrl = profile?.avatar_url
     ? supabase.storage.from(AVATARS_BUCKET).getPublicUrl(profile.avatar_url).data.publicUrl
     : null;
@@ -117,8 +119,15 @@ export default async function CoachLayout({
         <Sidebar
           features={features}
           isOwner={isOwner}
-          brandLogo={brandLogo}
-          darkGround={branding?.sidebarDark ?? true}
+          defaultCollapsed={sidebarCollapsed}
+          coach={{
+            brandName: branding?.businessName ?? null,
+            brandLogoUrl: branding?.logoUrl ?? null,
+            locale,
+            fullName: profile.full_name,
+            avatarUrl,
+            userId: user.id,
+          }}
         />
       )}
       <div className="flex min-w-0 flex-1 flex-col">
@@ -132,6 +141,7 @@ export default async function CoachLayout({
         )}
         {access.banner && <SubscriptionBanner kind={access.banner} days={access.days} />}
         <Topbar
+          defaultCollapsed={sidebarCollapsed}
           locale={locale}
           fullName={profile.full_name}
           avatarUrl={avatarUrl}

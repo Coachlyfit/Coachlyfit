@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { getAuthUser, getViewerProfile } from "@/lib/auth/session";
 import { roleHome } from "@/lib/auth/role-home";
 import { AdminSidebar } from "@/components/dashboard/admin-sidebar";
 import { AdminTopbar } from "@/components/dashboard/admin-topbar";
+import { SIDEBAR_COOKIE, collapsedFromCookie } from "@/components/dashboard/sidebar-store";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 
@@ -28,13 +30,18 @@ export default async function AdminLayout({
   const profile = await getViewerProfile();
   if (profile?.role !== "admin") redirect(roleHome(locale, profile?.role));
 
+  const collapsed = collapsedFromCookie((await cookies()).get(SIDEBAR_COOKIE.admin)?.value, "admin");
+
+  // L-shaped chrome: the top bar and sidebar share the navy `sidebar` surface
+  // and the content sits on the page background with a rounded top-start
+  // corner where the two meet.
   return (
-    <div className="flex min-h-dvh bg-background text-foreground">
+    <div className="flex min-h-dvh flex-col bg-sidebar text-foreground">
       <PresenceHeartbeat realtime={false} />
-      <AdminSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopbar locale={locale} fullName={profile.full_name} />
-        <main className="min-w-0 flex-1 p-4 pb-[calc(var(--bottom-nav-h)+1rem)] font-mono text-sm lg:p-6 lg:pb-6">
+      <AdminTopbar locale={locale} fullName={profile.full_name} userId={user.id} defaultCollapsed={collapsed} />
+      <div className="flex min-w-0 flex-1">
+        <AdminSidebar defaultCollapsed={collapsed} />
+        <main className="min-w-0 flex-1 bg-background p-4 pb-[calc(var(--bottom-nav-h)+1rem)] font-mono text-sm lg:rounded-ss-[18px] lg:p-6 lg:pb-6">
           {children}
         </main>
       </div>

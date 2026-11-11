@@ -39,9 +39,55 @@ export function useExerciseMeta() {
 
 const GIF = /\.gif(\?|#|$)/i;
 
-/** List row: a fixed 56px thumbnail + name (2 lines) + equipment. Only
- * `thumbnail_url` is loaded here — never the full-size GIF — so a 50-row list
- * stays light; exercises without one show the placeholder. */
+/** Row thumbnail. A GIF is covered by a canvas copy of its first frame (paint
+ * only, never read back, so cross-origin is fine) and animates only while the
+ * row is hovered/focused (`group` on the row button). Touch devices (iPad,
+ * tablets: `hover: none`) can't hover, so the cover is dropped and GIFs just
+ * animate. The GIF keeps animating underneath, so hover shows it mid-loop
+ * rather than from frame 0. */
+function RowThumb({ src }: { src: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isGif = GIF.test(src);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    const canvas = canvasRef.current;
+    if (!isGif || !loaded || !img || !canvas) return;
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext("2d")?.drawImage(img, 0, 0);
+  }, [isGif, loaded, src]);
+
+  return (
+    <>
+      <img
+        ref={imgRef}
+        src={src}
+        alt=""
+        width={56}
+        height={56}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        className="size-full object-cover"
+      />
+      {isGif && loaded && (
+        <canvas
+          ref={canvasRef}
+          aria-hidden="true"
+          className="absolute inset-0 size-full bg-muted object-cover group-hover:hidden group-focus-visible:hidden [@media(hover:none)]:hidden"
+        />
+      )}
+    </>
+  );
+}
+
+/** List row: a fixed 56px thumbnail + name (2 lines) + equipment. Prefers
+ * `thumbnail_url`, then falls back to the exercise's GIF/image (same order as
+ * the library cards) so rows without a thumbnail still show a preview. Images
+ * are `loading="lazy"`, so only rows scrolled into view fetch their GIF. */
 export function ExerciseRow({
   exercise,
   locale,
@@ -54,29 +100,21 @@ export function ExerciseRow({
   selected: boolean;
 }) {
   const meta = useExerciseMeta();
-  const thumb = resolveExerciseMedia(exercise.thumbnail_url);
+  const thumb = resolveExerciseMedia(exercise.thumbnail_url || exercise.image_url || exercise.video_url);
   return (
     <button
       type="button"
       aria-pressed={selected}
       className={cn(
-        "flex w-full items-center gap-2.5 rounded-lg p-1.5 text-start text-sm hover:bg-muted",
+        "group flex w-full items-center gap-2.5 rounded-lg p-1.5 text-start text-sm hover:bg-muted",
         selected && "bg-primary/10 ring-2 ring-primary hover:bg-primary/10",
         className
       )}
       {...props}
     >
-      <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
+      <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
         {thumb?.kind === "image" ? (
-          <img
-            src={thumb.src}
-            alt=""
-            width={56}
-            height={56}
-            loading="lazy"
-            decoding="async"
-            className="size-full object-cover"
-          />
+          <RowThumb src={thumb.src} />
         ) : (
           <Dumbbell className="size-6 text-muted-foreground/40" aria-hidden="true" />
         )}

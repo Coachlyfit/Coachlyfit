@@ -17,7 +17,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { AddObservationDialog } from "./add-observation-dialog";
+import { ObservationDialog } from "./observation-dialog";
 import { EditClientDialog } from "./edit-client-dialog";
 import { ClientAccountDialog, type ClientAccountMode } from "./client-account-dialog";
 import type { ClientAccountState } from "@/domain/clients/client-account";
@@ -36,10 +36,12 @@ type Client = {
 
 export function ClientHeader({
   locale,
+  coachId,
   client,
   account,
 }: {
   locale: AppLocale;
+  coachId: string;
   client: Client;
   account: ClientAccountState;
 }) {
@@ -118,7 +120,7 @@ export function ClientHeader({
                 {tProfile("message")}
               </Button>
             )}
-            {!archived && <AddObservationDialog locale={locale} clientId={client.id} />}
+            {!archived && <ObservationDialog locale={locale} clientId={client.id} coachId={coachId} />}
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button type="button" variant="outline" size="icon-sm" />}>
                 <MoreVertical className="size-4" />
