@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.15"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activity_logs: {
@@ -715,6 +740,7 @@ export type Database = {
           display_name: string
           email: string | null
           id: string
+          import_id: string | null
           phone: string | null
           profile_id: string | null
           status: Database["public"]["Enums"]["client_status"]
@@ -725,6 +751,7 @@ export type Database = {
           display_name: string
           email?: string | null
           id?: string
+          import_id?: string | null
           phone?: string | null
           profile_id?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -735,6 +762,7 @@ export type Database = {
           display_name?: string
           email?: string | null
           id?: string
+          import_id?: string | null
           phone?: string | null
           profile_id?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -745,6 +773,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "imports"
             referencedColumns: ["id"]
           },
           {
@@ -1255,6 +1290,7 @@ export type Database = {
           equipment: string | null
           id: string
           image_url: string | null
+          import_id: string | null
           instructions_ar: string | null
           instructions_en: string | null
           mistakes_ar: string[] | null
@@ -1286,6 +1322,7 @@ export type Database = {
           equipment?: string | null
           id?: string
           image_url?: string | null
+          import_id?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
           mistakes_ar?: string[] | null
@@ -1317,6 +1354,7 @@ export type Database = {
           equipment?: string | null
           id?: string
           image_url?: string | null
+          import_id?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
           mistakes_ar?: string[] | null
@@ -1342,6 +1380,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "imports"
             referencedColumns: ["id"]
           },
           {
@@ -1808,6 +1853,44 @@ export type Database = {
           },
           {
             foreignKeyName: "impersonation_log_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imports: {
+        Row: {
+          coach_id: string
+          created_at: string
+          failed_count: number
+          id: string
+          imported_count: number
+          skipped_count: number
+          type: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          imported_count?: number
+          skipped_count?: number
+          type: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          imported_count?: number
+          skipped_count?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imports_coach_id_fkey"
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
@@ -5406,6 +5489,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       client_status: ["invited", "active", "archived"],

@@ -4579,5 +4579,120 @@
       "network": "You seem to be offline. Your changes are still here; try again.",
       "unknown": "Something went wrong. Please try again."
     }
+  },
+  "imports": {
+    "trigger": "Import",
+    "title": {
+      "clients": "Import clients",
+      "exercises": "Import exercises"
+    },
+    "subtitle": {
+      "clients": "Bring your existing client list in from a spreadsheet. Clients are added as records; no invite is sent.",
+      "exercises": "Bring your own exercises in from a spreadsheet."
+    },
+    "steps": {
+      "source": "Source",
+      "map": "Columns",
+      "preview": "Preview",
+      "result": "Done"
+    },
+    "stepOf": "Step {step} of {total}: {name}",
+    "source": {
+      "label": "Import source",
+      "file": "Upload file",
+      "sheet": "Google Sheets",
+      "choose": "Choose a file",
+      "change": "Choose another file",
+      "fileHint": "Excel (.xlsx) or CSV. Up to 5 MB and 1,000 rows.",
+      "sheetLabel": "Google Sheets link",
+      "sheetPlaceholder": "https://docs.google.com/spreadsheets/d/…",
+      "sheetHint": "In Sheets choose Share, set access to “Anyone with the link” (Viewer), then paste the link.",
+      "formsHint": "Have Google Forms responses? In Forms open Responses, choose Link to Sheets, and import that sheet here.",
+      "fetch": "Fetch sheet",
+      "fetching": "Fetching…",
+      "reading": "Reading file…",
+      "template": "Download template"
+    },
+    "map": {
+      "subtitle": "Match each field to a column in your file. We matched what we could; change anything that's off.",
+      "found": "{rows, plural, one {# row} other {# rows}} found",
+      "field": "Field",
+      "column": "Column in your file",
+      "notMapped": "Don't import",
+      "required": "Required",
+      "needName": "Map the name column to continue.",
+      "needAnyName": "Map at least one name column to continue."
+    },
+    "preview": {
+      "subtitle": "Rows with problems are skipped. Uncheck any row you don't want to import.",
+      "summary": "{ready} ready · {problems} with problems · {excluded} excluded",
+      "include": "Include row {row}",
+      "row": "Row",
+      "status": "Status",
+      "ok": "Ready",
+      "loading": "Checking for duplicates…"
+    },
+    "rowErrors": {
+      "missing_required": "Missing name",
+      "invalid_email": "Invalid email",
+      "invalid_phone": "Invalid phone",
+      "invalid": "Invalid value",
+      "duplicate": "Duplicate"
+    },
+    "submit": "{count, plural, one {Import # row} other {Import # rows}}",
+    "result": {
+      "title": "Import finished",
+      "imported": "Imported",
+      "skipped": "Skipped (already exist)",
+      "failed": "Failed",
+      "overLimit": "{count, plural, one {# client wasn't} other {# clients weren't}} imported because you reached your plan's client limit. Upgrade your plan to add them.",
+      "nothing": "Nothing new was imported.",
+      "undo": "Undo import",
+      "undoTitle": "Undo this import?",
+      "undoBody": "This deletes the {count, plural, one {# record} other {# records}} this import created, along with anything added to them since.",
+      "undone": "Import undone: {count, plural, one {# record} other {# records}} removed.",
+      "done": "Done"
+    },
+    "errors": {
+      "invalid_url": "That doesn't look like a Google Sheets link.",
+      "sheet_not_shared": "We can't open that sheet. Set its sharing to “Anyone with the link” (Viewer) and try again.",
+      "file_too_large": "That file is over 5 MB.",
+      "too_many_rows": "Up to 1,000 rows per import. Split the file and import it in parts.",
+      "fetch_failed": "Couldn't fetch the sheet. Try again in a moment.",
+      "parse_failed": "Couldn't read that file. Use .xlsx or .csv.",
+      "empty": "No data rows found. The first row should hold the column headers.",
+      "not_authenticated": "Please sign in again.",
+      "invalid_input": "Something in the data was invalid. Check the file and try again.",
+      "subscription_inactive": "An active subscription is required to import.",
+      "upgrade_required": "Your plan doesn't include a custom library. Upgrade to import exercises.",
+      "client_limit_reached": "You've reached your plan's client limit.",
+      "in_use": "Some imported exercises are already used in a program, so the import can't be undone.",
+      "not_found_or_forbidden": "That import no longer exists.",
+      "unknown": "Something went wrong. Please try again."
+    },
+    "fields": {
+      "displayName": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "name_ar": "Name (Arabic)",
+      "name_en": "Name (English)",
+      "muscle_group": "Muscle group",
+      "equipment": "Equipment",
+      "video_url": "Video URL",
+      "instructions_ar": "Instructions (Arabic)",
+      "instructions_en": "Instructions (English)"
+    },
+    "example": {
+      "displayName": "Sara Ahmed",
+      "email": "sara@example.com",
+      "phone": "01012345678",
+      "name_ar": "ضغط الصدر بالبار",
+      "name_en": "Barbell bench press",
+      "muscle_group": "Chest",
+      "equipment": "Barbell",
+      "video_url": "https://example.com/bench-press",
+      "instructions_ar": "استلقِ على البنش وأنزل البار ببطء",
+      "instructions_en": "Lie on the bench and lower the bar slowly"
+    }
   }
 }
