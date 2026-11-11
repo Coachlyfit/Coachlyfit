@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.15"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       activity_logs: {
@@ -439,25 +414,43 @@ export type Database = {
       }
       client_observations: {
         Row: {
-          body: string
+          category: string
           client_id: string
           coach_id: string
           created_at: string
+          details: string | null
           id: string
+          image_path: string | null
+          linked_id: string | null
+          linked_type: string | null
+          severity: string | null
+          title: string
         }
         Insert: {
-          body: string
+          category?: string
           client_id: string
           coach_id: string
           created_at?: string
+          details?: string | null
           id?: string
+          image_path?: string | null
+          linked_id?: string | null
+          linked_type?: string | null
+          severity?: string | null
+          title: string
         }
         Update: {
-          body?: string
+          category?: string
           client_id?: string
           coach_id?: string
           created_at?: string
+          details?: string | null
           id?: string
+          image_path?: string | null
+          linked_id?: string | null
+          linked_type?: string | null
+          severity?: string | null
+          title?: string
         }
         Relationships: [
           {
@@ -5489,9 +5482,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       client_status: ["invited", "active", "archived"],
