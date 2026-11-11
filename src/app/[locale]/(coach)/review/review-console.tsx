@@ -316,12 +316,12 @@ function ReviewEntryPanel({
   }
 
   function onSubmit() {
-    if (!reply.trim() || (decision === "adjust" && removeMovementBlocked)) return;
+    if (decision === "adjust" && removeMovementBlocked) return;
     setFormError(null);
     const formData = new FormData();
     formData.set("checkinId", entry.checkinId);
     formData.set("decision", decision);
-    formData.set("coachReply", reply.trim());
+    if (reply.trim()) formData.set("coachReply", reply.trim());
     formData.set("reasonKey", reasonKey);
     if (clientNote.trim()) formData.set("clientNote", clientNote.trim());
     formData.set("evidence", JSON.stringify(entry.signals));
@@ -695,7 +695,7 @@ function ReviewEntryPanel({
             <Button
               type="button"
               size="lg"
-              disabled={pending || !reply.trim() || (decision === "adjust" && removeMovementBlocked)}
+              disabled={pending || (decision === "adjust" && removeMovementBlocked)}
               onClick={onSubmit}
               className="min-w-24"
             >

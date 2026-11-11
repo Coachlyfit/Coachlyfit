@@ -3461,7 +3461,7 @@
       "exercisesSelected": "{count} exercises selected"
     },
     "reply": {
-      "title": "Your reply",
+      "title": "Your reply (optional)",
       "placeholder": "Write your reply to {name}…",
       "deliveryNote": "Delivered to the client in the app",
       "chips": {
@@ -3480,7 +3480,7 @@
       }
     },
     "submit": {
-      "sendDefault": "Write your reply first",
+      "sendDefault": "Continue without a reply",
       "send": "Send and continue",
       "sent": "Sent",
       "skip": "Leave for later"

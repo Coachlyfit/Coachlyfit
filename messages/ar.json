@@ -3461,7 +3461,7 @@
       "exercisesSelected": "اتختار {count} تمرين"
     },
     "reply": {
-      "title": "ردّك",
+      "title": "ردّك (اختياري)",
       "placeholder": "اكتب ردّك لـ{name}…",
       "deliveryNote": "هيوصل للعميل في التطبيق",
       "chips": {
@@ -3480,7 +3480,7 @@
       }
     },
     "submit": {
-      "sendDefault": "اكتب ردّك الأول",
+      "sendDefault": "كمّل من غير رد",
       "send": "ابعت وكمّل",
       "sent": "اتبعت",
       "skip": "سيبها لبعدين"
