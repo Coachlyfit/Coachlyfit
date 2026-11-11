@@ -54,6 +54,26 @@ export type RecentSession = WorkoutSession & {
   swaps: SwapSummary[];
 };
 
+export type HistorySession = {
+  id: string;
+  started_at: string;
+  program_days: { label_ar: string | null; label_en: string | null } | null;
+  workout_set_logs: {
+    exercise_id: string | null;
+    set_index: number;
+    weight: number | null;
+    reps: number | null;
+    exercises: { name_ar: string; name_en: string } | null;
+  }[];
+};
+
+export type ExerciseSeriesPoint = {
+  session_id: string;
+  weight: number | null;
+  reps: number | null;
+  completed_at: string;
+};
+
 type SwapRow = {
   session_id: string;
   program_item_id: string;
@@ -443,15 +463,74 @@ export class WorkoutsService {
     return data.map((session) => ({ ...session, swaps: swapsBySession.get(session.id) ?? [] }));
   }
 
-  /** Both `program_items(exercises(...))` and the direct `exercises(...)`
-   * (via substituted_exercise_id) are each the ONLY foreign key between
-   * their two tables, so neither embed is ambiguous — no `!fk_name` hint
-   * needed (contrast with a table that has two FKs to the same target,
-   * where PostgREST refuses to guess and returns PGRST201). */
+  /** Coach weight history: sessions (newest first) with their logged sets,
+   * optionally narrowed to one exercise and a started_at range. `fromIso`
+   * is inclusive, `toIso` exclusive. Fetches limit + 1 rows so the caller
+   * knows whether "load more" has anything to load. RLS's coach_read scopes
+   * this to the caller's own clients; `clientId` only narrows it. */
+  async listHistorySessions(
+    clientId: string,
+    opts: { fromIso?: string; toIso?: string; exerciseId?: string; limit: number }
+  ): Promise<{ sessions: HistorySession[]; hasMore: boolean }> {
+    let q = this.db
+      .from("workout_sessions")
+      .select(
+        "id, started_at, program_days(label_ar, label_en), workout_set_logs!inner(exercise_id, set_index, weight, reps, exercises!workout_set_logs_exercise_id_fkey(name_ar, name_en))"
+      )
+      .eq("client_id", clientId);
+    if (opts.fromIso) q = q.gte("started_at", opts.fromIso);
+    if (opts.toIso) q = q.lt("started_at", opts.toIso);
+    if (opts.exerciseId) q = q.eq("workout_set_logs.exercise_id", opts.exerciseId);
+    const { data, error } = await q.order("started_at", { ascending: false }).limit(opts.limit + 1);
+    if (error) throw error;
+
+    const rows = data as unknown as HistorySession[];
+    return { sessions: rows.slice(0, opts.limit), hasMore: rows.length > opts.limit };
+  }
+
+  /** Every logged set of one exercise in the range, oldest first — the
+   * input for the progress chart. */
+  async listExerciseSeries(
+    clientId: string,
+    exerciseId: string,
+    opts: { fromIso?: string; toIso?: string } = {}
+  ): Promise<ExerciseSeriesPoint[]> {
+    let q = this.db
+      .from("workout_set_logs")
+      .select("session_id, weight, reps, completed_at")
+      .eq("client_id", clientId)
+      .eq("exercise_id", exerciseId);
+    if (opts.fromIso) q = q.gte("completed_at", opts.fromIso);
+    if (opts.toIso) q = q.lt("completed_at", opts.toIso);
+    // ponytail: newest 1000 sets (PostgREST max-rows); page by date range if one exercise ever exceeds that.
+    const { data, error } = await q.order("completed_at", { ascending: false }).limit(1000);
+    if (error) throw error;
+    return data.reverse();
+  }
+
+  /** Best set (heaviest, then most reps) per exercise, aggregated in SQL —
+   * see public.exercise_bests. security invoker, so RLS applies. */
+  async listExerciseBests(clientId: string, opts: { fromIso?: string; toIso?: string } = {}) {
+    const { data, error } = await this.db.rpc("exercise_bests", {
+      p_client_id: clientId,
+      p_from: opts.fromIso,
+      p_to: opts.toIso,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  /** `program_items(exercises(...))` is the ONLY foreign key between those
+   * two tables, so it needs no hint. workout_set_logs has TWO foreign keys
+   * to exercises (substituted_exercise_id, exercise_id), so that embed is
+   * pinned to substituted_exercise_id — unhinted, PostgREST refuses to
+   * guess and returns PGRST201. */
   private async fetchSwaps(sessionIds: string[]): Promise<Map<string, SwapSummary[]>> {
     const { data, error } = await this.db
       .from("workout_set_logs")
-      .select("session_id, program_item_id, program_items(exercises(name_ar, name_en)), exercises(name_ar, name_en)")
+      .select(
+        "session_id, program_item_id, program_items(exercises(name_ar, name_en)), exercises!workout_set_logs_substituted_exercise_id_fkey(name_ar, name_en)"
+      )
       .in("session_id", sessionIds)
       .not("substituted_exercise_id", "is", null);
     if (error) throw error;

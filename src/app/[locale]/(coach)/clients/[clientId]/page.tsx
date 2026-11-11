@@ -19,6 +19,8 @@ import { ProgressSection } from "./progress-section";
 import { ProgressSkeleton } from "./progress-skeleton";
 import { WorkoutSection } from "./workout-section";
 import { WorkoutSkeleton } from "./workout-skeleton";
+import { WeightHistorySection } from "./weight-history-section";
+import { historyQuery, parseHistoryParams } from "@/domain/workouts/weight-history";
 import { DecisionsSection } from "./decisions-section";
 import { DecisionsSkeleton } from "./decisions-skeleton";
 import { BillingSection } from "./billing-section";
@@ -29,17 +31,18 @@ import { NutritionSection } from "./nutrition-section";
 import { parseMonth } from "@/domain/nutrition/adherence";
 import { getClientAccountState } from "@/domain/clients/client-account";
 
-const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "decisions", "billing", "notes"];
+const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "history", "decisions", "billing", "notes"];
 
 export default async function ClientDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: AppLocale; clientId: string }>;
-  searchParams: Promise<{ range?: string; tab?: string; month?: string }>;
+  searchParams: Promise<{ range?: string; tab?: string; month?: string; ex?: string; from?: string; to?: string; n?: string }>;
 }) {
   const { locale, clientId } = await params;
-  const { range: rawRange, tab: rawTab, month: rawMonth } = await searchParams;
+  const { range: rawRange, tab: rawTab, month: rawMonth, ...rawHistory } = await searchParams;
+  const history = parseHistoryParams(rawHistory);
   const range = parseRange(rawRange);
   const tab: ClientTab = TABS.includes(rawTab as ClientTab) ? (rawTab as ClientTab) : "progress";
   const tClients = await getTranslations("clients");
@@ -101,6 +104,11 @@ export default async function ClientDetailPage({
         {tab === "sessions" && (
           <Suspense fallback={<WorkoutSkeleton />}>
             <WorkoutSection clientId={clientId} locale={locale} />
+          </Suspense>
+        )}
+        {tab === "history" && (
+          <Suspense key={historyQuery({ ...history, limit: undefined })} fallback={<WorkoutSkeleton />}>
+            <WeightHistorySection clientId={clientId} locale={locale} params={history} />
           </Suspense>
         )}
         {tab === "decisions" && (
