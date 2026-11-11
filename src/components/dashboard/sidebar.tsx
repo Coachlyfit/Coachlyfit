@@ -90,7 +90,9 @@ export function Sidebar({
       className={cn(
         "hidden shrink-0 flex-col overflow-hidden transition-[width] duration-200 motion-reduce:transition-none lg:flex",
         collapsed ? "w-22" : admin ? "w-62" : "w-66",
-        dark ? "bg-sidebar text-sidebar-foreground" : "border-e border-border bg-card text-foreground",
+        dark
+          ? "bg-sidebar text-sidebar-foreground [--scroll-thumb:color-mix(in_oklab,var(--sidebar-foreground)_35%,transparent)]"
+          : "border-e border-border bg-card text-foreground",
         admin ? "lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]" : "lg:sticky lg:top-0 lg:h-dvh"
       )}
     >

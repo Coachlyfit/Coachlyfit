@@ -248,6 +248,19 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Slim overlay-style scrollbars instead of the OS's arrowed ones. Standard
+   * properties (no arrow buttons, follows light/dark via the tokens). A
+   * surface on a different ground sets --scroll-thumb (see the coach nav). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb, color-mix(in oklab, var(--foreground) 28%, transparent)) transparent;
+  }
+  /* Touch devices already get slim overlay bars; keep theirs. */
+  @media (pointer: coarse) {
+    * {
+      scrollbar-width: auto;
+    }
+  }
   body {
     @apply bg-background text-foreground;
   }
