@@ -8,6 +8,9 @@ export type Branding = {
   css: string;
   logoUrl: string | null;
   businessName: string;
+  /** The coach picked a sidebar color/text; the coach nav then wears the
+   * --sidebar tokens instead of its stock light card. */
+  sidebarThemed: boolean;
 };
 
 type BrandingRow = {
@@ -40,5 +43,6 @@ export const getBranding = cache(async (): Promise<Branding | null> => {
       ? supabase.storage.from(COACH_LOGOS_BUCKET).getPublicUrl(row.logo_path).data.publicUrl
       : null,
     businessName: row.business_name,
+    sidebarThemed: Boolean(row.sidebar || row.sidebar_text),
   };
 });

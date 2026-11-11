@@ -27,6 +27,8 @@ type CoachChrome = {
   brandName: string | null;
   /** Studio coaches' own logo (see lib/branding.ts); null keeps the mark. */
   brandLogoUrl: string | null;
+  /** Coach picked sidebar colors: use the --sidebar tokens, not the light card. */
+  themed: boolean;
   locale: string;
   fullName: string | null;
   avatarUrl: string | null;
@@ -64,6 +66,8 @@ export function Sidebar({
   const pathname = usePathname();
   const [collapsed] = useSidebarCollapsed(variant, defaultCollapsed);
   const admin = variant === "admin";
+  // Admin always wears the navy tokens; the coach only once they've set them.
+  const dark = admin || Boolean(coach?.themed);
 
   const visible = visibleNavItems(items, features, isOwner);
   const byHref = new Map(visible.map((item) => [item.href, item]));
@@ -86,9 +90,8 @@ export function Sidebar({
       className={cn(
         "hidden shrink-0 flex-col overflow-hidden transition-[width] duration-200 motion-reduce:transition-none lg:flex",
         collapsed ? "w-22" : admin ? "w-62" : "w-66",
-        admin
-          ? "bg-sidebar text-sidebar-foreground lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]"
-          : "border-e border-border bg-card text-foreground lg:sticky lg:top-0 lg:h-dvh"
+        dark ? "bg-sidebar text-sidebar-foreground" : "border-e border-border bg-card text-foreground",
+        admin ? "lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]" : "lg:sticky lg:top-0 lg:h-dvh"
       )}
     >
       {coach && (
@@ -128,7 +131,7 @@ export function Sidebar({
               <span
                 className={cn(
                   "px-3 pb-1 text-xs font-medium",
-                  admin ? "text-sidebar-foreground/60" : "text-muted-foreground"
+                  dark ? "text-sidebar-foreground/60" : "text-muted-foreground"
                 )}
               >
                 {tShell(section.labelKey)}
@@ -150,10 +153,12 @@ export function Sidebar({
                     collapsed
                       ? "h-13.5 flex-col justify-center gap-1 rounded-xl text-[11px] leading-none"
                       : "h-11 gap-3 rounded-[10px] px-3 text-sm",
-                    admin
+                    dark
                       ? active
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent"
+                        ? admin
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                          : "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : cn("hover:bg-sidebar-accent", admin ? "text-sidebar-foreground" : "text-sidebar-foreground/70")
                       : active
                         ? "bg-accent-tint text-accent-tint-foreground"
                         : "text-foreground/80 hover:bg-muted"
@@ -192,7 +197,8 @@ export function Sidebar({
                 type="button"
                 aria-label={coach.fullName ?? tCommon("appName")}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl text-start ring-1 ring-border transition-colors outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring",
+                  "flex w-full items-center gap-3 rounded-xl text-start ring-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  dark ? "ring-sidebar-border hover:bg-sidebar-accent" : "ring-border hover:bg-muted",
                   collapsed ? "justify-center p-1.5" : "p-2"
                 )}
               />
@@ -203,9 +209,14 @@ export function Sidebar({
               <>
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-sm font-semibold">{coach.fullName}</span>
-                  <span className="truncate text-xs text-muted-foreground">{tShell("roleCoach")}</span>
+                  <span className={cn("truncate text-xs", dark ? "text-sidebar-foreground/70" : "text-muted-foreground")}>
+                    {tShell("roleCoach")}
+                  </span>
                 </span>
-                <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <ChevronsUpDown
+                  className={cn("size-4 shrink-0", dark ? "text-sidebar-foreground/70" : "text-muted-foreground")}
+                  aria-hidden="true"
+                />
               </>
             )}
           </UserMenu>

@@ -123,6 +123,7 @@ export default async function CoachLayout({
           coach={{
             brandName: branding?.businessName ?? null,
             brandLogoUrl: branding?.logoUrl ?? null,
+            themed: branding?.sidebarThemed ?? false,
             locale,
             fullName: profile.full_name,
             avatarUrl,
