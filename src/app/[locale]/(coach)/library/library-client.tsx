@@ -42,6 +42,7 @@ import {
   listArchivedExercisesAction,
 } from "./actions";
 import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
+import { ImportDialog } from "@/components/import/import-dialog";
 import { ExerciseDialog } from "./exercise-dialog";
 import { FoodDialog } from "./food-dialog";
 import { ExerciseCard } from "./exercise-card";
@@ -322,7 +323,10 @@ export function LibraryClient({
           ) : !canAddCustom ? (
             <UpgradePrompt feature="custom_library" />
           ) : tab === "exercises" ? (
-            <ExerciseDialog locale={locale} mode="create" onSaved={invalidate} />
+            <div className="flex items-center gap-2">
+              <ImportDialog type="exercises" locale={locale} onDone={invalidate} />
+              <ExerciseDialog locale={locale} mode="create" onSaved={invalidate} />
+            </div>
           ) : (
             <FoodDialog locale={locale} mode="create" onSaved={invalidate} />
           )}

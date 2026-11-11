@@ -414,25 +414,43 @@ export type Database = {
       }
       client_observations: {
         Row: {
-          body: string
+          category: string
           client_id: string
           coach_id: string
           created_at: string
+          details: string | null
           id: string
+          image_path: string | null
+          linked_id: string | null
+          linked_type: string | null
+          severity: string | null
+          title: string
         }
         Insert: {
-          body: string
+          category?: string
           client_id: string
           coach_id: string
           created_at?: string
+          details?: string | null
           id?: string
+          image_path?: string | null
+          linked_id?: string | null
+          linked_type?: string | null
+          severity?: string | null
+          title: string
         }
         Update: {
-          body?: string
+          category?: string
           client_id?: string
           coach_id?: string
           created_at?: string
+          details?: string | null
           id?: string
+          image_path?: string | null
+          linked_id?: string | null
+          linked_type?: string | null
+          severity?: string | null
+          title?: string
         }
         Relationships: [
           {
@@ -715,6 +733,7 @@ export type Database = {
           display_name: string
           email: string | null
           id: string
+          import_id: string | null
           phone: string | null
           profile_id: string | null
           status: Database["public"]["Enums"]["client_status"]
@@ -725,6 +744,7 @@ export type Database = {
           display_name: string
           email?: string | null
           id?: string
+          import_id?: string | null
           phone?: string | null
           profile_id?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -735,6 +755,7 @@ export type Database = {
           display_name?: string
           email?: string | null
           id?: string
+          import_id?: string | null
           phone?: string | null
           profile_id?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -745,6 +766,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "imports"
             referencedColumns: ["id"]
           },
           {
@@ -1255,6 +1283,7 @@ export type Database = {
           equipment: string | null
           id: string
           image_url: string | null
+          import_id: string | null
           instructions_ar: string | null
           instructions_en: string | null
           mistakes_ar: string[] | null
@@ -1286,6 +1315,7 @@ export type Database = {
           equipment?: string | null
           id?: string
           image_url?: string | null
+          import_id?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
           mistakes_ar?: string[] | null
@@ -1317,6 +1347,7 @@ export type Database = {
           equipment?: string | null
           id?: string
           image_url?: string | null
+          import_id?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
           mistakes_ar?: string[] | null
@@ -1342,6 +1373,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "imports"
             referencedColumns: ["id"]
           },
           {
@@ -1808,6 +1846,44 @@ export type Database = {
           },
           {
             foreignKeyName: "impersonation_log_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imports: {
+        Row: {
+          coach_id: string
+          created_at: string
+          failed_count: number
+          id: string
+          imported_count: number
+          skipped_count: number
+          type: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          imported_count?: number
+          skipped_count?: number
+          type: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          imported_count?: number
+          skipped_count?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imports_coach_id_fkey"
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"

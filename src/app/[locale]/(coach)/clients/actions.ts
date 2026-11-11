@@ -7,15 +7,18 @@ import { InvitesService, joinUrl } from "@/domain/clients/invites.service";
 import { AlreadyYourClientError } from "@/domain/relationships/relationships.service";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
-import { ObservationsService } from "@/domain/clients/observations.service";
+import { ObservationsService, type ObservationLinkOptions } from "@/domain/clients/observations.service";
+import type { AppLocale } from "@/domain/locale";
 import { ClientsService } from "@/domain/clients/clients.service";
 import {
   createInviteSchema,
   createSubscriptionSchema,
   recordTransactionSchema,
-  createObservationSchema,
+  observationSchema,
   updateClientSchema,
+  type ObservationInput,
 } from "./schemas";
+import { observationImagePathOk } from "@/domain/clients/observations";
 
 type ActionResult = { error: string } | { joinUrl: string };
 type CreateInviteActionResult = ActionResult | { linked: true };
@@ -211,24 +214,64 @@ export async function recordTransactionAction(
   revalidatePath(`/${locale}/clients/${clientId}`);
 }
 
-export async function createObservationAction(
-  locale: string,
-  clientId: string,
-  formData: FormData
-): Promise<VoidActionResult> {
-  const parsed = createObservationSchema.safeParse({ body: formData.get("body") });
-  if (!parsed.success) return { error: "invalid_input" };
+/** Shared by create/update: zod + auth + image-path check. Plain-object input
+ * (not FormData) because the note has nested fields (linked item). */
+async function parseObservation(clientId: string, input: unknown) {
+  const parsed = observationSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" } as const;
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  if (!user) return { error: "not_authenticated" } as const;
   const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  if (!coachId) return { error: "not_authenticated" } as const;
 
-  await new ObservationsService(supabase).create(coachId, clientId, parsed.data.body);
+  const { image_path } = parsed.data;
+  if (image_path && !observationImagePathOk(image_path, coachId, clientId)) return { error: "invalid_input" } as const;
+
+  return { supabase, coachId, fields: parsed.data };
+}
+
+export async function createObservationAction(
+  locale: string,
+  clientId: string,
+  input: ObservationInput
+): Promise<VoidActionResult> {
+  const ctx = await parseObservation(clientId, input);
+  if (ctx.error) return { error: ctx.error };
+
+  await new ObservationsService(ctx.supabase).create(ctx.coachId, clientId, ctx.fields);
   revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+export async function updateObservationAction(
+  locale: string,
+  clientId: string,
+  observationId: string,
+  input: ObservationInput
+): Promise<VoidActionResult> {
+  const ctx = await parseObservation(clientId, input);
+  if (ctx.error) return { error: ctx.error };
+
+  const updated = await new ObservationsService(ctx.supabase).update(observationId, ctx.fields);
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+/** Programs + recent check-ins for the note's "link" picker, fetched on demand
+ * (the dialog is mounted on every note card and in the header). RLS-scoped. */
+export async function getObservationLinkOptionsAction(
+  locale: AppLocale,
+  clientId: string
+): Promise<ObservationLinkOptions> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { programs: [], checkins: [] };
+  return new ObservationsService(supabase).linkOptions(clientId, locale);
 }
 
 export async function deleteObservationAction(

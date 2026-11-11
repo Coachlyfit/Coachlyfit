@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { routing } from "@/i18n/routing";
 
-export function LocaleSwitcher({ className }: { className?: string }) {
+export function LocaleSwitcher({ className, variant = "outline" }: { className?: string; variant?: "outline" | "ghost" }) {
   const t = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
@@ -17,7 +17,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
   return (
     <Button
       type="button"
-      variant="outline"
+      variant={variant}
       size="icon-sm"
       aria-label={t("language")}
       className={cn("font-mono text-[11px] font-semibold uppercase", className)}

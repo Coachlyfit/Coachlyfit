@@ -33,6 +33,15 @@ export type NavItem = {
   feature?: PlanFeature;
   /** Only shown to the tenant owner, not to team members. */
   ownerOnly?: boolean;
+  /** Shorter label (nav.shell.*) for the 88px collapsed rail, where the full
+   * label doesn't fit. Falls back to labelKey. */
+  shortLabelKey?: "shortDashboard" | "shortLibrary" | "shortLeads";
+};
+
+export type NavGroup = {
+  /** nav.shell.* key; omitted for an unlabelled group. */
+  labelKey?: "groupClients" | "groupContent" | "groupAccount" | "groupCoaches" | "groupGrowth";
+  hrefs: string[];
 };
 
 export type NavFeatures = Partial<Record<PlanFeature, boolean>>;
@@ -55,12 +64,12 @@ export function visibleNavItems(items: NavItem[], features?: NavFeatures, isOwne
 // programs daily, while the library is mostly reached from inside the
 // program builder's exercise picker, not as a standalone destination.
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard, shortLabelKey: "shortDashboard" },
   { href: "/clients", labelKey: "clients", icon: Users },
   { href: "/programs", labelKey: "programs", icon: ClipboardList },
   { href: "/forms", labelKey: "forms", icon: FileText },
   { href: "/review", labelKey: "review", icon: ClipboardCheck },
-  { href: "/library", labelKey: "library", icon: Dumbbell },
+  { href: "/library", labelKey: "library", icon: Dumbbell, shortLabelKey: "shortLibrary" },
   { href: "/diets", labelKey: "diets", icon: Salad },
   { href: "/tasks", labelKey: "tasks", icon: ListTodo, feature: "task_management" },
   { href: "/finance", labelKey: "finance", icon: Wallet },
@@ -74,16 +83,36 @@ export const NAV_ITEMS: NavItem[] = [
 // extra pages — none of the coach routes are reachable for them (the (coach)
 // layout bounces on role), so sharing one array would render dead links.
 export const ADMIN_NAV_ITEMS: NavItem[] = [
-  { href: "/admin", labelKey: "admin", icon: LayoutDashboard },
+  { href: "/admin", labelKey: "admin", icon: LayoutDashboard, shortLabelKey: "shortDashboard" },
   { href: "/admin/requests", labelKey: "requests", icon: Inbox },
   { href: "/admin/support", labelKey: "support", icon: LifeBuoy, badge: "supportUnread" },
   { href: "/admin/online", labelKey: "online", icon: Radio },
-  { href: "/admin/library", labelKey: "library", icon: Dumbbell },
+  { href: "/admin/library", labelKey: "library", icon: Dumbbell, shortLabelKey: "shortLibrary" },
   { href: "/admin/feedback", labelKey: "feedback", icon: MessageSquareText },
   { href: "/admin/emails", labelKey: "emails", icon: Mail },
-  { href: "/admin/leads", labelKey: "leads", icon: UserPlus },
+  { href: "/admin/leads", labelKey: "leads", icon: UserPlus, shortLabelKey: "shortLeads" },
   { href: "/admin/site", labelKey: "site", icon: Globe },
   { href: "/admin/settings", labelKey: "settings", icon: Settings },
+];
+
+// Sidebar sections. The collapsed rail ignores the labels and renders the
+// groups as one flat list. Every NAV_ITEMS / ADMIN_NAV_ITEMS href must appear
+// in exactly one group, or the item silently vanishes from the sidebar
+// (nav-items.test.ts enforces it). Item order here, not in NAV_ITEMS, is what
+// the sidebar shows; NAV_ITEMS order still drives the bottom nav and palette.
+export const COACH_NAV_GROUPS: NavGroup[] = [
+  { hrefs: ["/dashboard"] },
+  { labelKey: "groupClients", hrefs: ["/clients", "/review", "/messages", "/tasks"] },
+  { labelKey: "groupContent", hrefs: ["/programs", "/forms", "/library", "/diets"] },
+  { labelKey: "groupAccount", hrefs: ["/finance", "/settings", "/guides", "/support"] },
+];
+
+export const ADMIN_NAV_GROUPS: NavGroup[] = [
+  { hrefs: ["/admin"] },
+  { labelKey: "groupCoaches", hrefs: ["/admin/requests", "/admin/online", "/admin/support", "/admin/feedback"] },
+  { labelKey: "groupGrowth", hrefs: ["/admin/leads", "/admin/emails"] },
+  { labelKey: "groupContent", hrefs: ["/admin/library", "/admin/site"] },
+  { hrefs: ["/admin/settings"] },
 ];
 
 // Bottom tab bar caps at 5 items (bottom-nav-limit); the rest live behind

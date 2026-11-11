@@ -90,7 +90,20 @@
     "site": "الموقع",
     "leads": "العملاء المحتملون",
     "guides": "الشروحات",
-    "support": "الدعم"
+    "support": "الدعم",
+    "shell": {
+      "groupClients": "العملاء",
+      "groupContent": "المحتوى",
+      "groupAccount": "الحساب",
+      "groupCoaches": "المدربون",
+      "groupGrowth": "النمو",
+      "collapse": "طي القائمة",
+      "expand": "توسيع القائمة",
+      "roleCoach": "مدرب",
+      "shortDashboard": "الرئيسية",
+      "shortLibrary": "المكتبة",
+      "shortLeads": "المحتملون"
+    }
   },
   "palette": {
     "navigation": "التنقل",
@@ -753,6 +766,9 @@
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
+      "image_type": "الصورة لازم تكون JPG أو PNG أو WebP.",
+      "image_too_large": "الصورة لازم تكون أقل من ٥ ميجابايت.",
+      "upload_failed": "فشل رفع الصورة. جرّب تاني.",
       "client_limit_reached": "وصلت للحد الأقصى لعدد العملاء في باقتك. رقّي الباقة عشان تضيف أكتر.",
       "not_authenticated": "سجّل الدخول تاني.",
       "signup_failed": "حصل خطأ. جرّب تاني.",
@@ -829,8 +845,45 @@
       "title": "ملاحظات",
       "empty": "لا توجد ملاحظات بعد.",
       "add": "إضافة ملاحظة",
-      "placeholder": "اكتب ملاحظة خاصة عن هذا العميل...",
-      "submit": "حفظ"
+      "edit": "تعديل الملاحظة",
+      "submit": "حفظ",
+      "titleLabel": "العنوان",
+      "titlePlaceholder": "عنوان الملاحظة (مثال: ألم في الركبة بعد تمرين الأرجل)",
+      "categoryLabel": "الفئة",
+      "category": {
+        "general": "عام",
+        "technique": "الأداء الفني",
+        "adherence": "الالتزام",
+        "nutrition": "التغذية",
+        "injury_pain": "إصابة/ألم",
+        "mental_state": "الحالة الذهنية"
+      },
+      "severityLabel": "الشدة (اختياري)",
+      "severity": {
+        "low": "منخفضة",
+        "medium": "متوسطة",
+        "high": "عالية"
+      },
+      "detailsLabel": "التفاصيل (اختياري)",
+      "detailsPlaceholder": "أضف تفاصيل أكثر إن أردت...",
+      "link": {
+        "label": "العناصر المرتبطة",
+        "add": "إضافة رابط",
+        "program": "برنامج",
+        "check_in": "متابعة",
+        "exercise": "تمرين",
+        "search": "ابحث...",
+        "loading": "جارٍ التحميل...",
+        "none": "لا توجد نتائج.",
+        "unavailable": "غير متاح",
+        "remove": "إزالة الرابط",
+        "cancel": "إلغاء"
+      },
+      "image": {
+        "label": "إرفاق صورة",
+        "attach": "إرفاق صورة",
+        "remove": "إزالة الصورة"
+      }
     },
     "profile": {
       "message": "مراسلة",
@@ -4578,6 +4631,121 @@
       "in_use": "الوصفة دي مستخدمة في خطة.",
       "network": "شكلك مش متصل بالنت. تعديلاتك لسه موجودة، جرّب تاني.",
       "unknown": "حصل خطأ. جرّب تاني."
+    }
+  },
+  "imports": {
+    "trigger": "استيراد",
+    "title": {
+      "clients": "استيراد العملاء",
+      "exercises": "استيراد التمارين"
+    },
+    "subtitle": {
+      "clients": "هات قايمة عملائك من شيت جاهز. العملاء بيتضافوا كسجلات بس، ومفيش دعوة بتتبعت.",
+      "exercises": "هات تمارينك الخاصة من شيت جاهز."
+    },
+    "steps": {
+      "source": "المصدر",
+      "map": "الأعمدة",
+      "preview": "المعاينة",
+      "result": "تم"
+    },
+    "stepOf": "الخطوة {step} من {total}: {name}",
+    "source": {
+      "label": "مصدر الاستيراد",
+      "file": "رفع ملف",
+      "sheet": "Google Sheets",
+      "choose": "اختار ملف",
+      "change": "اختار ملف تاني",
+      "fileHint": "ملف Excel (xlsx) أو CSV. لحد 5 ميجا و1000 صف.",
+      "sheetLabel": "رابط Google Sheets",
+      "sheetPlaceholder": "https://docs.google.com/spreadsheets/d/…",
+      "sheetHint": "من Sheets اضغط مشاركة، واختار «أي شخص لديه الرابط» (مشاهد)، وبعدين الصق الرابط.",
+      "formsHint": "عندك ردود على Google Forms؟ افتح الردود، واختار «ربط بجداول البيانات»، واستورد الشيت ده من هنا.",
+      "fetch": "هات الشيت",
+      "fetching": "جاري الجلب…",
+      "reading": "جاري قراءة الملف…",
+      "template": "تحميل النموذج"
+    },
+    "map": {
+      "subtitle": "اربط كل حقل بالعمود المناسب في ملفك. طابقنا اللي قدرنا عليه، وغيّر أي حاجة مش مظبوطة.",
+      "found": "{rows, plural, one {لقينا صف واحد} two {لقينا صفّين} few {لقينا # صفوف} other {لقينا # صف}}",
+      "field": "الحقل",
+      "column": "العمود في ملفك",
+      "notMapped": "بلاش تستورد",
+      "required": "مطلوب",
+      "needName": "اربط عمود الاسم عشان تكمل.",
+      "needAnyName": "اربط عمود اسم واحد على الأقل عشان تكمل."
+    },
+    "preview": {
+      "subtitle": "الصفوف اللي فيها مشاكل هتتخطى. شيّل العلامة من أي صف مش عايز تستورده.",
+      "summary": "{ready} جاهز · {problems} فيها مشاكل · {excluded} مستبعد",
+      "include": "تضمين الصف {row}",
+      "row": "الصف",
+      "status": "الحالة",
+      "ok": "جاهز",
+      "loading": "جاري فحص التكرار…"
+    },
+    "rowErrors": {
+      "missing_required": "الاسم ناقص",
+      "invalid_email": "بريد غير صحيح",
+      "invalid_phone": "رقم غير صحيح",
+      "invalid": "قيمة غير صحيحة",
+      "duplicate": "مكرر"
+    },
+    "submit": "{count, plural, one {استيراد صف واحد} two {استيراد صفّين} few {استيراد # صفوف} other {استيراد # صف}}",
+    "result": {
+      "title": "خلص الاستيراد",
+      "imported": "تم استيرادهم",
+      "skipped": "تم تخطيهم (موجودين قبل كده)",
+      "failed": "فشلوا",
+      "overLimit": "{count, plural, one {عميل واحد ماتستوردش} two {عميلين ماتستوردوش} few {# عملاء ماتستوردوش} other {# عميل ماتستوردوش}} لأنك وصلت للحد الأقصى للعملاء في باقتك. رقّي باقتك عشان تضيفهم.",
+      "nothing": "مفيش حاجة جديدة اتستوردت.",
+      "undo": "تراجع عن الاستيراد",
+      "undoTitle": "تتراجع عن الاستيراد ده؟",
+      "undoBody": "ده هيمسح {count, plural, one {سجل واحد} two {سجلّين} few {# سجلات} other {# سجل}} اتعملوا من الاستيراد ده، مع أي حاجة اتضافت عليهم بعد كده.",
+      "undone": "تم التراجع: اتمسح {count, plural, one {سجل واحد} two {سجلّين} few {# سجلات} other {# سجل}}.",
+      "done": "تم"
+    },
+    "errors": {
+      "invalid_url": "ده مش شكل رابط Google Sheets.",
+      "sheet_not_shared": "مش قادرين نفتح الشيت ده. خلّي المشاركة «أي شخص لديه الرابط» (مشاهد) وجرّب تاني.",
+      "file_too_large": "الملف أكبر من 5 ميجا.",
+      "too_many_rows": "الحد الأقصى 1000 صف في المرة. قسّم الملف واستورده على مرات.",
+      "fetch_failed": "معرفناش نجيب الشيت. جرّب تاني بعد شوية.",
+      "parse_failed": "معرفناش نقرا الملف ده. استخدم xlsx أو csv.",
+      "empty": "مفيش صفوف بيانات. أول صف لازم يكون عناوين الأعمدة.",
+      "not_authenticated": "سجّل دخولك تاني.",
+      "invalid_input": "في بيانات مش صحيحة. راجع الملف وجرّب تاني.",
+      "subscription_inactive": "لازم يكون عندك اشتراك فعّال عشان تستورد.",
+      "upgrade_required": "باقتك مفيهاش مكتبة مخصصة. رقّي باقتك عشان تستورد تمارين.",
+      "client_limit_reached": "وصلت للحد الأقصى للعملاء في باقتك.",
+      "in_use": "في تمارين مستوردة اتستخدمت في برنامج، فمش هينفع نتراجع عن الاستيراد.",
+      "not_found_or_forbidden": "الاستيراد ده مبقاش موجود.",
+      "unknown": "حصل خطأ. جرّب تاني."
+    },
+    "fields": {
+      "displayName": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "name_ar": "الاسم بالعربي",
+      "name_en": "الاسم بالإنجليزي",
+      "muscle_group": "المجموعة العضلية",
+      "equipment": "الأدوات",
+      "video_url": "رابط الفيديو",
+      "instructions_ar": "التعليمات بالعربي",
+      "instructions_en": "التعليمات بالإنجليزي"
+    },
+    "example": {
+      "displayName": "سارة أحمد",
+      "email": "sara@example.com",
+      "phone": "01012345678",
+      "name_ar": "ضغط الصدر بالبار",
+      "name_en": "Barbell bench press",
+      "muscle_group": "الصدر",
+      "equipment": "بار",
+      "video_url": "https://example.com/bench-press",
+      "instructions_ar": "استلقِ على البنش وأنزل البار ببطء",
+      "instructions_en": "Lie on the bench and lower the bar slowly"
     }
   }
 }

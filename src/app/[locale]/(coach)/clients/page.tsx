@@ -9,6 +9,7 @@ import { clientCheckinStatus, daysSince } from "@/domain/progress/stats";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 import { PageTitle } from "@/components/dashboard/page-title";
+import { ImportDialog } from "@/components/import/import-dialog";
 import { InviteClientDialog } from "./invite-client-dialog";
 import { ClientsTable, type ClientRow } from "./clients-table";
 import { STATUS_FILTERS, type StatusFilter } from "./schemas";
@@ -75,7 +76,10 @@ export default async function ClientsPage({
             </p>
           )}
         </div>
-        <InviteClientDialog locale={locale} />
+        <div className="flex items-center gap-2">
+          <ImportDialog type="clients" locale={locale} />
+          <InviteClientDialog locale={locale} />
+        </div>
       </header>
 
       {rows.length === 0 ? (
@@ -84,7 +88,12 @@ export default async function ClientsPage({
             brandMark
             title={t("emptyTitle")}
             description={t("empty")}
-            action={<InviteClientDialog locale={locale} />}
+            action={
+              <div className="flex items-center gap-2">
+                <ImportDialog type="clients" locale={locale} />
+                <InviteClientDialog locale={locale} />
+              </div>
+            }
           />
         </Card>
       ) : (

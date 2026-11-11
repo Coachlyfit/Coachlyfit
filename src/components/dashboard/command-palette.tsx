@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Command,
   CommandDialog,
@@ -30,10 +31,13 @@ export function CommandPalette({
   items = NAV_ITEMS,
   features,
   isOwner,
+  onSidebar = false,
 }: {
   items?: NavItem[];
   features?: NavFeatures;
   isOwner?: boolean;
+  /** Trigger sits on the navy admin bar (sidebar tokens) instead of the page. */
+  onSidebar?: boolean;
 }) {
   const t = useTranslations("palette");
   const tNav = useTranslations("nav");
@@ -79,11 +83,22 @@ export function CommandPalette({
         size="sm"
         aria-label={t("trigger")}
         onClick={() => setOpen(true)}
-        className="text-muted-foreground"
+        className={cn(
+          // Icon-only below lg; from lg a search-field-shaped trigger.
+          "lg:h-11 lg:w-full lg:max-w-105 lg:justify-start lg:gap-2 lg:px-3.5 lg:text-sm",
+          onSidebar
+            ? "border-transparent bg-sidebar-accent text-sidebar-foreground/70 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground dark:border-transparent dark:bg-sidebar-accent dark:hover:bg-sidebar-accent/80"
+            : "bg-card text-muted-foreground"
+        )}
       >
-        <Search className="size-3.5" />
+        <Search className="size-4" />
         <span className="hidden lg:inline">{t("trigger")}</span>
-        <kbd className="hidden font-mono text-[10px] text-muted-foreground lg:ms-2 lg:inline">
+        <kbd
+          className={cn(
+            "hidden rounded-md px-1.5 py-0.5 font-mono text-[11px] lg:ms-auto lg:inline",
+            onSidebar ? "bg-sidebar-foreground/10 text-sidebar-foreground/70" : "bg-muted text-muted-foreground"
+          )}
+        >
           {"⌘K"}
         </kbd>
       </Button>

@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+
+.mcp.json
+
 # playwright
 /test-results/
 /playwright-report/
