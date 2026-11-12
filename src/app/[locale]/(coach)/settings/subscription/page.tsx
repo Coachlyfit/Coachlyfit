@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight, LifeBuoy } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -64,8 +65,9 @@ export default async function SubscriptionPage({
     getRequestCoachId(),
   ]);
 
-  // Only the tenant owner manages the subscription; a team member sees it.
   const isOwner = !!user && user.id === coachId;
+  // Subscription is owner-only — members have no Coachly Fit billing relation.
+  if (!isOwner) notFound();
   const tier = subscription?.subscription_tiers;
   const canceled = subscription?.status === "canceled";
   const cancelScheduled = !!subscription?.cancel_at_period_end && !canceled;

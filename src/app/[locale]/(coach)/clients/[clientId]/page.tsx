@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { getAuthUser } from "@/lib/auth/session";
 import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { parseRange } from "@/domain/progress/stats";
 import type { AppLocale } from "@/domain/locale";
@@ -50,23 +51,43 @@ export default async function ClientDetailPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, display_name, email, phone, status, created_at, profile_id, profiles(avatar_url)")
+    .select("id, display_name, email, phone, status, created_at, profile_id, assigned_to, profiles(avatar_url)")
     .eq("id", clientId)
     .maybeSingle();
   if (!client) notFound();
   const avatarUrl = client.profiles?.avatar_url
     ? supabase.storage.from(AVATARS_BUCKET).getPublicUrl(client.profiles.avatar_url).data.publicUrl
     : null;
-  const coachId = await resolveCoachId(supabase);
+  const [user, coachId] = await Promise.all([getAuthUser(), resolveCoachId(supabase)]);
   if (!coachId) notFound();
-  const { profile_id, ...headerClient } = client;
+  const isOwner = !!(user && user.id === coachId);
+  const { profile_id, assigned_to, ...headerClient } = client;
   const account = await getClientAccountState(profile_id);
+
+  // Team directory for the assign select (owner only).
+  let team: { id: string; name: string; isOwner: boolean }[] = [];
+  if (isOwner) {
+    const { data } = await supabase.rpc("get_team_directory");
+    team = (data ?? []).map((r: { profile_id: string; display_name: string; is_owner: boolean }) => ({
+      id: r.profile_id,
+      name: r.display_name,
+      isOwner: r.is_owner,
+    }));
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={client.display_name} subtitle={tClients(`status.${client.status}`)} />
 
-      <ClientHeader locale={locale} coachId={coachId} client={{ ...headerClient, avatarUrl }} account={account} />
+      <ClientHeader
+        locale={locale}
+        coachId={coachId}
+        client={{ ...headerClient, avatarUrl }}
+        account={account}
+        isOwner={isOwner}
+        assignedTo={assigned_to ?? null}
+        team={team}
+      />
 
       <Suspense fallback={<AttentionSkeleton />}>
         <AttentionStrip clientId={clientId} />

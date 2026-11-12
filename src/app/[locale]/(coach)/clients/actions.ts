@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
@@ -316,6 +317,44 @@ export async function updateClientAction(
   if (!ok) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/clients`);
   revalidatePath(`/${locale}/clients/${clientId}`);
+}
+
+const assignSchema = z.object({
+  clientIds: z.array(z.string().uuid()).min(1),
+  assigneeId: z.string().uuid().nullable(),
+});
+
+/** Owner-only: assign one or more clients to a team member (or unassign with null).
+ * The DB trigger is the real guard; the owner check here produces a clean error. */
+export async function assignClientsAction(
+  locale: string,
+  clientIds: string[],
+  assigneeId: string | null
+): Promise<VoidActionResult> {
+  const parsed = assignSchema.safeParse({ clientIds, assigneeId });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+  if (user.id !== coachId) return { error: "owner_only" };
+
+  try {
+    await new ClientsService(supabase).assign(parsed.data.clientIds, parsed.data.assigneeId);
+  } catch (error) {
+    const hint = (error as { hint?: string } | null)?.hint;
+    if (hint === "invalid_assignee") return { error: "invalid_assignee" };
+    return { error: "assignment_failed" };
+  }
+
+  for (const clientId of parsed.data.clientIds) {
+    revalidatePath(`/${locale}/clients/${clientId}`);
+  }
+  revalidatePath(`/${locale}/clients`);
 }
 
 export async function setClientArchivedAction(

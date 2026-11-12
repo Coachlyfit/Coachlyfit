@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getBranding } from "@/lib/branding";
@@ -11,10 +11,16 @@ import { SettingsShell } from "@/components/settings/settings-shell";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
 import type { InvoiceCurrency } from "@/domain/billing/invoices";
+import type { AppLocale } from "@/domain/locale";
 
 // Account, team and sign-out live on ./account -- this page is only what
 // the client ends up seeing (identity, billing, packages, portal).
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  params,
+}: {
+  params: Promise<{ locale: AppLocale }>;
+}) {
+  const { locale } = await params;
   const t = await getTranslations("settings");
   const supabase = await createClient();
 
@@ -22,6 +28,9 @@ export default async function SettingsPage() {
   if (!coachId) notFound();
 
   const user = await getAuthUser();
+  // Settings (identity, branding, billing) is owner-only. Members get
+  // their personal account page (sign-out, email, notifications).
+  if (!user || user.id !== coachId) redirect(`/${locale}/settings/account`);
   let avatarUrl: string | null = null;
   if (user) {
     const { data: profileRow } = await supabase

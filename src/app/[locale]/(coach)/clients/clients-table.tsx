@@ -25,6 +25,7 @@ import type { AppLocale } from "@/domain/locale";
 import type { ClientCheckinStatus } from "@/domain/progress/stats";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { RegenerateInviteButton } from "./regenerate-invite-button";
+import { AssignClientSelect, type TeamMember } from "./assign-client-select";
 import { STATUS_FILTERS, type StatusFilter } from "./schemas";
 
 export type ClientRow = {
@@ -41,6 +42,7 @@ export type ClientRow = {
   // none of the three rules, so it's listed under "all" only.
   checkinStatus: ClientCheckinStatus | "archived";
   subscription: SubscriptionRosterStatus;
+  assignedTo: string | null;
 };
 
 const CARD_DOT: Record<StatusFilter, string> = {
@@ -68,6 +70,8 @@ const ADHERENCE_WARNING_BELOW = 50;
 
 const ALL_PROGRAMS = "__all__";
 const NO_PROGRAM = "__none__";
+const ALL_MEMBERS = "__all__";
+const UNASSIGNED_MEMBERS = "__unassigned__";
 
 const SORTS = ["lastCheckin", "name", "adherence"] as const;
 type Sort = (typeof SORTS)[number];
@@ -80,10 +84,14 @@ export function ClientsTable({
   locale,
   clients,
   status,
+  isOwner = false,
+  team = [],
 }: {
   locale: AppLocale;
   clients: ClientRow[];
   status: StatusFilter;
+  isOwner?: boolean;
+  team?: TeamMember[];
 }) {
   const t = useTranslations("clients");
   const router = useRouter();
@@ -94,6 +102,7 @@ export function ClientsTable({
   const [filter, setFilter] = useOptimistic(status);
   const [query, setQuery] = useState("");
   const [program, setProgram] = useState(ALL_PROGRAMS);
+  const [memberFilter, setMemberFilter] = useState(ALL_MEMBERS);
   const [sort, setSort] = useState<Sort>("lastCheckin");
 
   function pickStatus(next: StatusFilter) {
@@ -125,6 +134,11 @@ export function ClientsTable({
     return clients
       .filter((c) => filter === "all" || c.checkinStatus === filter)
       .filter((c) => program === ALL_PROGRAMS || (program === NO_PROGRAM ? c.program == null : c.program === program))
+      .filter((c) => {
+        if (!isOwner || memberFilter === ALL_MEMBERS) return true;
+        if (memberFilter === UNASSIGNED_MEMBERS) return c.assignedTo == null;
+        return c.assignedTo === memberFilter;
+      })
       .filter((c) => !q || c.name.toLowerCase().includes(q) || (c.email?.toLowerCase().includes(q) ?? false))
       .sort((a, b) => {
         if (sort === "name") return a.name.localeCompare(b.name, locale);
@@ -133,7 +147,7 @@ export function ClientsTable({
         if (sort === "adherence") return (a.adherence ?? Infinity) - (b.adherence ?? Infinity);
         return (a.daysAgo ?? Infinity) - (b.daysAgo ?? Infinity);
       });
-  }, [clients, filter, program, query, sort, locale]);
+  }, [clients, filter, program, memberFilter, isOwner, query, sort, locale]);
 
   const noData = <span className="text-muted-foreground">{t("noData")}</span>;
 
@@ -191,6 +205,38 @@ export function ClientsTable({
               ))}
             </SelectContent>
           </Select>
+          {isOwner && team.filter((m) => !m.isOwner).length > 0 && (
+            <Select
+              value={memberFilter}
+              onValueChange={(v) => setMemberFilter(v ?? ALL_MEMBERS)}
+              items={[
+                { value: ALL_MEMBERS, label: t("assign.filterAll") },
+                { value: UNASSIGNED_MEMBERS, label: t("assign.filterUnassigned") },
+                ...team.filter((m) => !m.isOwner).map((m) => ({ value: m.id, label: m.name })),
+              ]}
+            >
+              <SelectTrigger aria-label={t("assign.filterLabel")}>
+                <SelectValue>
+                  {(v: string) => {
+                    if (v === ALL_MEMBERS) return t("assign.filterAll");
+                    if (v === UNASSIGNED_MEMBERS) return t("assign.filterUnassigned");
+                    return team.find((m) => m.id === v)?.name ?? t("assign.filterAll");
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_MEMBERS}>{t("assign.filterAll")}</SelectItem>
+                <SelectItem value={UNASSIGNED_MEMBERS}>{t("assign.filterUnassigned")}</SelectItem>
+                {team
+                  .filter((m) => !m.isOwner)
+                  .map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select
             value={sort}
             onValueChange={(v) => setSort(v as Sort)}
@@ -218,6 +264,7 @@ export function ClientsTable({
               <TableHead>{t("table.adherence")}</TableHead>
               <TableHead>{t("table.status")}</TableHead>
               <TableHead>{t("table.subscription")}</TableHead>
+              {isOwner && <TableHead>{t("table.assignedTo")}</TableHead>}
               <TableHead>
                 <span className="sr-only">{t("table.actions")}</span>
               </TableHead>
@@ -305,6 +352,16 @@ export function ClientsTable({
                       </Badge>
                     )}
                   </TableCell>
+                  {isOwner && (
+                    <TableCell>
+                      <AssignClientSelect
+                        locale={locale}
+                        clientId={client.id}
+                        assignedTo={client.assignedTo}
+                        team={team}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>
                     <div className="flex justify-end gap-1">
                       <Link

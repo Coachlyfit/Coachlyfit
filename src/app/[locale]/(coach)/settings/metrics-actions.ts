@@ -2,8 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { requireOwner } from "@/lib/auth/require-coach";
 import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.service";
 
 type ActionResult = { error: string } | void;
@@ -22,12 +21,11 @@ export async function createMetricDefinitionAction(locale: string, formData: For
   });
   if (!parsed.success) return { error: "invalid_input" };
 
-  const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  const auth = await requireOwner();
+  if ("error" in auth) return auth;
 
   try {
-    await new MetricDefinitionsService(supabase).create(coachId, parsed.data);
+    await new MetricDefinitionsService(auth.supabase).create(auth.coachId, parsed.data);
   } catch {
     // Most likely the (coach_id, key) unique constraint -- two labels that
     // slugify to the same key (e.g. "Neck" and "neck!!").
@@ -37,13 +35,10 @@ export async function createMetricDefinitionAction(locale: string, formData: For
 }
 
 export async function deleteMetricDefinitionAction(locale: string, id: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const auth = await requireOwner();
+  if ("error" in auth) return auth;
 
-  const ok = await new MetricDefinitionsService(supabase).remove(id);
+  const ok = await new MetricDefinitionsService(auth.supabase).remove(id);
   if (!ok) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/settings`);
 }

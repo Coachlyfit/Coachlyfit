@@ -13,6 +13,7 @@ import { ImportDialog } from "@/components/import/import-dialog";
 import { InviteClientDialog } from "./invite-client-dialog";
 import { ClientsTable, type ClientRow } from "./clients-table";
 import { STATUS_FILTERS, type StatusFilter } from "./schemas";
+import { getAuthUser, getRequestCoachId } from "@/lib/auth/session";
 
 export default async function ClientsPage({
   params,
@@ -29,7 +30,23 @@ export default async function ClientsPage({
   // Unknown values from a hand-edited URL fall back to "all", not an error.
   const status: StatusFilter = STATUS_FILTERS.includes(rawStatus as StatusFilter) ? (rawStatus as StatusFilter) : "all";
 
-  const roster = await new ClientsService(supabase).listRoster();
+  const [user, coachId, roster] = await Promise.all([
+    getAuthUser(),
+    getRequestCoachId(),
+    new ClientsService(supabase).listRoster(),
+  ]);
+  const isOwner = !!(user && coachId && user.id === coachId);
+
+  // Team directory: only fetched for the owner, used to populate the assign select.
+  let team: { id: string; name: string; isOwner: boolean }[] = [];
+  if (isOwner) {
+    const { data } = await supabase.rpc("get_team_directory");
+    team = (data ?? []).map((r: { profile_id: string; display_name: string; is_owner: boolean }) => ({
+      id: r.profile_id,
+      name: r.display_name,
+      isOwner: r.is_owner,
+    }));
+  }
   const now = new Date();
 
   // Avatar bucket is public, so getPublicUrl is enough to render it.
@@ -48,6 +65,7 @@ export default async function ClientsPage({
     adherence: client.adherence,
     checkinStatus: client.status === "archived" ? "archived" : clientCheckinStatus(client.lastCheckin, now),
     subscription: subscriptionRosterStatus(client.subscription, now),
+    assignedTo: client.assignedTo,
   }));
 
   const current = rows.filter((row) => row.checkinStatus !== "archived");
@@ -86,18 +104,20 @@ export default async function ClientsPage({
         <Card>
           <EmptyState
             brandMark
-            title={t("emptyTitle")}
-            description={t("empty")}
+            title={isOwner ? t("emptyTitle") : t("memberEmptyTitle")}
+            description={isOwner ? t("empty") : t("memberEmpty")}
             action={
-              <div className="flex items-center gap-2">
-                <ImportDialog type="clients" locale={locale} />
-                <InviteClientDialog locale={locale} />
-              </div>
+              isOwner ? (
+                <div className="flex items-center gap-2">
+                  <ImportDialog type="clients" locale={locale} />
+                  <InviteClientDialog locale={locale} />
+                </div>
+              ) : undefined
             }
           />
         </Card>
       ) : (
-        <ClientsTable locale={locale} clients={rows} status={status} />
+        <ClientsTable locale={locale} clients={rows} status={status} isOwner={isOwner} team={team} />
       )}
     </div>
   );

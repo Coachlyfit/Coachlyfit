@@ -729,8 +729,23 @@
       "adherence": "الالتزام",
       "status": "الحالة",
       "subscription": "الاشتراك",
+      "assignedTo": "مسند إلى",
       "actions": "إجراءات"
     },
+    "assign": {
+      "label": "مسند إلى",
+      "unassigned": "غير مسند",
+      "placeholder": "اسند إلى…",
+      "owner": "المالك",
+      "filterLabel": "عضو الفريق",
+      "filterAll": "الكل",
+      "filterUnassigned": "غير مسند",
+      "errorOwnerOnly": "بس المالك يقدر يسند العملاء.",
+      "errorInvalidAssignee": "عضو الفريق ده مش موجود.",
+      "errorFailed": "فشل الإسناد. حاول تاني."
+    },
+    "memberEmptyTitle": "مفيش عملاء مسندين ليك",
+    "memberEmpty": "معندكش عملاء مسندين ليك. اطلب من مالك الحساب إنه يسند ليك.",
     "status": {
       "invited": "اتبعتله دعوة",
       "active": "نشط",

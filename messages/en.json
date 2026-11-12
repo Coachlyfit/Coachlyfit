@@ -729,8 +729,23 @@
       "adherence": "Adherence",
       "status": "Status",
       "subscription": "Subscription",
+      "assignedTo": "Assigned to",
       "actions": "Actions"
     },
+    "assign": {
+      "label": "Assigned to",
+      "unassigned": "Unassigned",
+      "placeholder": "Assign to…",
+      "owner": "Owner",
+      "filterLabel": "Team member",
+      "filterAll": "All members",
+      "filterUnassigned": "Unassigned",
+      "errorOwnerOnly": "Only the owner can assign clients.",
+      "errorInvalidAssignee": "That team member no longer exists.",
+      "errorFailed": "Assignment failed. Please try again."
+    },
+    "memberEmptyTitle": "No clients assigned yet",
+    "memberEmpty": "You have no clients assigned to you. Ask the account owner to assign some.",
     "status": {
       "invited": "Invited",
       "active": "Active",

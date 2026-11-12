@@ -10,6 +10,7 @@ import { FinanceView, type InvoiceRow, type PaymentRow } from "@/components/fina
 import { FINANCE_TABS, STATUS_FILTERS, type FinanceTab, type StatusFilter } from "@/components/finance/filters";
 import { RecordPaymentButton, type PayableInvoice } from "@/components/finance/record-payment-dialog";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth/session";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -49,8 +50,10 @@ export default async function FinancePage({
   const t = await getTranslations("finance");
   const tBilling = await getTranslations("billing");
   const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
+  const [user, coachId] = await Promise.all([getAuthUser(), resolveCoachId(supabase)]);
   if (!coachId) notFound();
+  // Finance is owner-only. Members manage per-client billing from the client page.
+  if (!user || user.id !== coachId) notFound();
 
   // Unknown values from a hand-edited URL are ignored, not errors.
   const tab: FinanceTab = FINANCE_TABS.includes(raw.tab as FinanceTab) ? (raw.tab as FinanceTab) : "invoices";
