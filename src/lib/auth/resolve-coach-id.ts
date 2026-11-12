@@ -25,14 +25,15 @@ export async function resolveCoachId(supabase: SupabaseClient<Database>): Promis
   if (!user) return null;
 
   const [{ data: coach }, { data: profile }, { data: membership }] = await Promise.all([
-    supabase.from("coaches").select("id").eq("id", user.id).maybeSingle(),
+    supabase.from("coaches").select("id, archived_at").eq("id", user.id).maybeSingle(),
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
     supabase.from("team_members").select("coach_id").eq("profile_id", user.id).not("accepted_at", "is", null).maybeSingle(),
   ]);
 
-  if (coach && profile?.role === "coach") {
+  if (coach && !coach.archived_at && profile?.role === "coach") {
     // Mirrors private.coach_id()'s owner branch, which requires role =
-    // 'coach' alongside the coaches row.
+    // 'coach' and a non-archived coaches row (an empty workspace is archived
+    // when its owner joins a team via invite).
     return coach.id;
   }
 

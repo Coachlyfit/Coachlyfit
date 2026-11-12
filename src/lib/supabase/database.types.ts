@@ -787,6 +787,7 @@ export type Database = {
       coaches: {
         Row: {
           address: string | null
+          archived_at: string | null
           brand_accent: string | null
           brand_primary: string | null
           brand_sidebar: string | null
@@ -807,6 +808,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          archived_at?: string | null
           brand_accent?: string | null
           brand_primary?: string | null
           brand_sidebar?: string | null
@@ -827,6 +829,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          archived_at?: string | null
           brand_accent?: string | null
           brand_primary?: string | null
           brand_sidebar?: string | null

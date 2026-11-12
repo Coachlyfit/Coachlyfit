@@ -22,13 +22,20 @@ export async function GET(request: NextRequest) {
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/ar/dashboard";
+  const code = searchParams.get("code");
   const inviteToken = searchParams.get("invite_token");
-  const teamInviteToken = searchParams.get("team_invite_token");
   const impersonating = searchParams.get("impersonating") === "1";
 
-  if (tokenHash && type) {
+  // Two ways in: a token_hash (admin impersonation magic link) or a PKCE
+  // `code` -- what Supabase's own /verify redirect sends for the default
+  // signup-confirmation email. Handling only the first made every confirmation
+  // email land on confirmation_failed.
+  if ((tokenHash && type) || code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+    const { error } =
+      tokenHash && type
+        ? await supabase.auth.verifyOtp({ type, token_hash: tokenHash })
+        : await supabase.auth.exchangeCodeForSession(code!);
     if (!error) {
       // handle_new_user() already links a client-invite signup at signup
       // time (see 20260922000001_link_client_invite_on_signup.sql), so by
@@ -60,18 +67,9 @@ export async function GET(request: NextRequest) {
           { next }
         );
       }
-      // Team invite signups only get their coach link on confirmation when
-      // email confirmations are on — the immediate-session case is already
-      // handled in join-team/[token]/actions.ts.
-      if (teamInviteToken) {
-        const { error: acceptError } = await supabase.rpc("accept_team_invite", {
-          p_token: teamInviteToken,
-        });
-        if (acceptError) {
-          const code = acceptError.hint === "team_limit_reached" ? "team_full" : "invalid_invite";
-          redirect(`/ar/join-team/${teamInviteToken}?error=${code}`);
-        }
-      }
+      // Team-invite signups are linked by handle_new_user() at signup time
+      // (team_invite_token_hash in the metadata), so there's nothing to accept
+      // here -- confirming the email only signs the user in.
       const cookieStore = await cookies();
       if (impersonating) {
         cookieStore.set(IMPERSONATING_COOKIE, "1", {

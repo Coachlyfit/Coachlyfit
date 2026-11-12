@@ -10,7 +10,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
 import { rlsAdmin as admin, createRlsUser } from "./rls-test-helpers";
 
-type User = { userId: string; client: SupabaseClient<Database> };
+type User = { userId: string; email: string; client: SupabaseClient<Database> };
 
 const coachMeta = (tag: string) => ({ role: "coach", full_name: `Coach ${tag}`, business_name: `${tag} Gym`, locale: "ar" });
 const memberMeta = (tag: string) => ({ role: "coach", team_invite: true, full_name: `Member ${tag}`, locale: "ar" });
@@ -111,8 +111,9 @@ describe("downgrade over the cap", () => {
     coach = await createRlsUser("team-down", coachMeta("Down"));
     members = [];
     for (const n of [1, 2, 3, 4]) members.push(await seatMember(coach, `team-down-m${n}`));
-    expect((await invite(coach, "pending@example.test", pendingToken)).error).toBeNull();
+    // accept_team_invite() requires the invite's email to be the caller's.
     invitee = await createRlsUser("team-down-invitee", memberMeta("Invitee"));
+    expect((await invite(coach, invitee.email, pendingToken)).error).toBeNull();
 
     await setSubscription(coach.userId, { tierKey: "pro" });
   }, 60_000);

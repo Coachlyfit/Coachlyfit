@@ -815,6 +815,9 @@
       "already_your_client": "This person is already your client.",
       "subscription_inactive": "Your subscription isn't active, so you can't add clients. Reactivate it from the Subscription page.",
       "team_full": "This team is full. Ask the account owner to free a seat or upgrade their plan.",
+      "team_wrong_email": "This invite was sent to a different email. Use the email your coach invited.",
+      "team_owns_business": "This account already runs its own coaching business with data in it, so it can't join a team. Use a different email.",
+      "invalid_credentials": "Incorrect email or password.",
       "owner_only": "Only the account owner can manage client logins.",
       "already_active": "This client's account is already active.",
       "email_required": "Add an email for this client first.",
@@ -1047,7 +1050,13 @@
       "consent": "By creating an account you agree to the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>, and confirm you are 18 or older or have a parent's or guardian's consent."
     },
     "team": {
-      "heading": "You've been invited to join a coaching team"
+      "heading": "You've been invited to join a coaching team",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "submitLogin": "Sign in and join",
+      "newAccount": "New here? Create an account",
+      "joinAs": "Join this team as {email}",
+      "joinButton": "Join team"
     }
   },
   "client": {

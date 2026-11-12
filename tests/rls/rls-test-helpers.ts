@@ -48,7 +48,7 @@ export function trackRlsUser(userId: string) {
 export async function createRlsUser(
   tag: string,
   userMetadata: Record<string, unknown>
-): Promise<{ userId: string; client: SupabaseClient<Database> }> {
+): Promise<{ userId: string; email: string; client: SupabaseClient<Database> }> {
   const email = `${tag}-${Date.now()}-${Math.random().toString(36).slice(2)}@example.test`;
   const password = "correct horse battery staple";
 
@@ -81,5 +81,5 @@ export async function createRlsUser(
   const signIn = await client.auth.signInWithPassword({ email, password });
   if (signIn.error) throw signIn.error;
 
-  return { userId: data.user.id, client };
+  return { userId: data.user.id, email, client };
 }
