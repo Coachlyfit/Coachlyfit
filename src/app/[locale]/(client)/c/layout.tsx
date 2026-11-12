@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { InstallAppButton } from "@/components/install-app-button";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { Button } from "@/components/ui/button";
+import { FeedbackWidget } from "@/components/feedback/feedback-widget";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
 import { ClientNav } from "./client-nav";
@@ -122,6 +123,7 @@ export default async function ClientLayout({
         {children}
       </main>
       <ClientNav formsDue={formsDue} unreadMessages={unreadMessages} />
+      <FeedbackWidget userId={user.id} />
     </div>
   );
 }

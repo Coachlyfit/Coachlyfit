@@ -1400,24 +1400,49 @@ export type Database = {
       }
       feedback: {
         Row: {
-          body: string
-          coach_id: string
+          author_id: string
+          author_name: string | null
+          author_role: string
+          body: string | null
+          coach_id: string | null
           created_at: string
           id: string
+          kind: string
+          rating: number | null
+          screenshot_path: string | null
         }
         Insert: {
-          body: string
-          coach_id: string
+          author_id: string
+          author_name?: string | null
+          author_role: string
+          body?: string | null
+          coach_id?: string | null
           created_at?: string
           id?: string
+          kind: string
+          rating?: number | null
+          screenshot_path?: string | null
         }
         Update: {
-          body?: string
-          coach_id?: string
+          author_id?: string
+          author_name?: string | null
+          author_role?: string
+          body?: string | null
+          coach_id?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          rating?: number | null
+          screenshot_path?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "feedback_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "feedback_coach_id_fkey"
             columns: ["coach_id"]

@@ -2655,12 +2655,28 @@
       }
     },
     "feedback": {
-      "title": "ملاحظات المدربين",
+      "title": "الملاحظات",
       "empty": "لسه مفيش ملاحظات.",
       "table": {
+        "author": "من",
+        "role": "الدور",
+        "kind": "النوع",
+        "rating": "التقييم",
         "body": "الملاحظة",
+        "screenshot": "لقطة الشاشة",
         "date": "التاريخ"
-      }
+      },
+      "roles": {
+        "coach": "مدرب",
+        "client": "عميل"
+      },
+      "kinds": {
+        "bug": "مشكلة",
+        "feature": "ميزة",
+        "rating": "تقييم"
+      },
+      "viewScreenshot": "عرض",
+      "unknownAuthor": "غير معروف"
     },
     "emails": {
       "title": "مراسلة المدربين",
@@ -3947,13 +3963,45 @@
   },
   "feedback": {
     "trigger": "ابعت ملاحظة",
-    "title": "شاركنا رأيك",
-    "placeholder": "اكتب ملاحظتك أو اقتراحك هنا...",
+    "title": "إرسال ملاحظات",
+    "kindLabel": "نوع الملاحظة",
+    "kinds": {
+      "bug": "الإبلاغ عن مشكلة",
+      "feature": "اقتراح ميزة",
+      "rating": "قيّم Coachly Fit"
+    },
+    "ratingLabel": "تقييمك",
+    "stars": "{count, plural, one {نجمة} two {نجمتين} few {# نجوم} other {# نجمة}}",
+    "description": "الوصف",
+    "optional": " (اختياري)",
+    "placeholders": {
+      "bug": "إيه اللي حصل، أو كنت متوقع تشوف إيه؟",
+      "feature": "تحب نضيف إيه؟",
+      "rating": "عايز تضيف حاجة؟"
+    },
+    "screenshot": {
+      "label": "لقطة شاشة (اختياري)",
+      "add": "إضافة لقطة شاشة",
+      "uploading": "بيترفع…",
+      "remove": "حذف لقطة الشاشة",
+      "alt": "معاينة لقطة الشاشة",
+      "hint": "JPG أو PNG أو WebP، حتى {size} ميجا."
+    },
     "submit": "ابعت",
     "success": "وصلت! شكرًا على وقتك.",
     "errors": {
       "invalid_input": "راجع رسالتك وجرّب تاني.",
-      "not_authenticated": "سجّل الدخول تاني."
+      "not_authenticated": "سجّل الدخول تاني.",
+      "forbidden": "حسابك مش مسموح له يبعت ملاحظات.",
+      "kind_required": "اختار نوع الملاحظة.",
+      "rating_required": "اضغط على نجمة للتقييم.",
+      "body_required": "اوصف الموضوع في كلمتين.",
+      "invalid_attachment": "مقدرناش نرفق لقطة الشاشة. احذفها وجرّب تاني.",
+      "too_many_today": "بعتّ ملاحظات كتير النهارده. جرّب تاني بكره.",
+      "send_failed": "مقدرناش نبعت ملاحظتك. جرّب تاني.",
+      "invalid_file": "استخدم صورة JPG أو PNG أو WebP.",
+      "file_too_large": "الصورة لازم تكون أقل من {size} ميجا.",
+      "upload_failed": "مقدرناش نرفع الصورة. جرّب تاني."
     }
   },
   "ledger": {

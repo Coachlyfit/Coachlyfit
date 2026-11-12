@@ -2655,12 +2655,28 @@
       }
     },
     "feedback": {
-      "title": "Coach feedback",
+      "title": "Feedback",
       "empty": "No feedback yet.",
       "table": {
+        "author": "From",
+        "role": "Role",
+        "kind": "Type",
+        "rating": "Rating",
         "body": "Feedback",
+        "screenshot": "Screenshot",
         "date": "Date"
-      }
+      },
+      "roles": {
+        "coach": "Coach",
+        "client": "Client"
+      },
+      "kinds": {
+        "bug": "Problem",
+        "feature": "Feature",
+        "rating": "Rating"
+      },
+      "viewScreenshot": "View",
+      "unknownAuthor": "Unknown"
     },
     "emails": {
       "title": "Email coaches",
@@ -3947,13 +3963,45 @@
   },
   "feedback": {
     "trigger": "Send feedback",
-    "title": "Share your feedback",
-    "placeholder": "Write your note or suggestion here...",
+    "title": "Send feedback",
+    "kindLabel": "Type of feedback",
+    "kinds": {
+      "bug": "Report a problem",
+      "feature": "Suggest a feature",
+      "rating": "Rate Coachly Fit"
+    },
+    "ratingLabel": "Your rating",
+    "stars": "{count, plural, one {# star} other {# stars}}",
+    "description": "Description",
+    "optional": " (optional)",
+    "placeholders": {
+      "bug": "What happened, or what did you expect to see?",
+      "feature": "What would you like us to add?",
+      "rating": "Anything you'd like to add?"
+    },
+    "screenshot": {
+      "label": "Screenshot (optional)",
+      "add": "Add a screenshot",
+      "uploading": "Uploading…",
+      "remove": "Remove screenshot",
+      "alt": "Screenshot preview",
+      "hint": "JPG, PNG or WebP, up to {size} MB."
+    },
     "submit": "Send",
     "success": "Sent — thanks for your time.",
     "errors": {
       "invalid_input": "Please check your message and try again.",
-      "not_authenticated": "Please log in again."
+      "not_authenticated": "Please log in again.",
+      "forbidden": "Your account can't send feedback.",
+      "kind_required": "Pick what kind of feedback this is.",
+      "rating_required": "Tap a star to rate.",
+      "body_required": "Please describe it in a few words.",
+      "invalid_attachment": "That screenshot couldn't be attached. Remove it and try again.",
+      "too_many_today": "You've sent a lot of feedback today. Please try again tomorrow.",
+      "send_failed": "Couldn't send your feedback. Please try again.",
+      "invalid_file": "Use a JPG, PNG or WebP image.",
+      "file_too_large": "The image must be under {size} MB.",
+      "upload_failed": "Couldn't upload the image. Try again."
     }
   },
   "ledger": {
