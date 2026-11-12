@@ -814,7 +814,8 @@
       "emptyDescription": "وسّع المدى الزمني أو اختار تمرين تاني. المجموعات بتظهر هنا أول ما العميل يسجّل تمرينة.",
       "error": "معرفناش نحمّل سجل الأوزان.",
       "errorDescription": "حصل خطأ أثناء التحميل. جرّب تاني.",
-      "retry": "جرّب تاني"
+       "retry": "جرّب تاني",
+      "groupLine": "{sets} × {value}"
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",
@@ -1153,7 +1154,10 @@
         "notes": "ملاحظات (اختياري)",
         "save": "حفظ",
         "saveFailed": "مقدرناش نحفظ — جرّب تاني.",
-        "entryLocked": "الإدخال ده أقدم من ٧ أيام ومينفعش تتغيّر."
+        "entryLocked": "الإدخال ده أقدم من ٧ أيام ومينفعش تتغيّر.",
+        "kcal": "السعرات (سعرة)",
+        "avgHr": "متوسط نبض القلب (نبضة/د)",
+        "rpe": "كان صعب قد إيه؟ (RPE)"
       }
     },
     "plan": {
@@ -1988,7 +1992,8 @@
       "duplicateSet": "ضيف مجموعة",
       "summaryReps": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> تكرار",
       "summaryHolds": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> ثانية",
-      "close": "إغلاق"
+      "close": "إغلاق",
+      "summarySets": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}}"
     },
     "activityDialog": {
       "addTitle": "ضيف كارديو/استشفاء",
@@ -2222,7 +2227,9 @@
       },
       "thumbnailUrl": "رابط الصورة المصغرة",
       "videoUrlAlt": "رابط فيديو بزاوية بديلة",
-      "linesPlaceholder": "عنصر واحد في كل سطر"
+      "linesPlaceholder": "عنصر واحد في كل سطر",
+      "measurementType": "طريقة القياس",
+      "measurementTypeHint": "تحدد المدخلات التي يراها المدرب والعميل لهذا التمرين: تكرارات، زمن، مسافة، سعرات..."
     },
     "food": {
       "add": "ضيف طعام",
@@ -3349,7 +3356,12 @@
       "title": "الأرقام القياسية الشخصية",
       "emptyTitle": "لا توجد أرقام قياسية بعد",
       "emptyDescription": "سجّل الوزن والتكرارات أثناء الجلسة لبدء تتبع الأرقام القياسية الشخصية.",
-      "estimated1rm": "تقدير أقصى وزن لمرة واحدة {value} كجم"
+      "estimated1rm": "تقدير أقصى وزن لمرة واحدة {value} كجم",
+      "maxReps": "الأقصى {value} تكرار",
+      "longest": "الأطول {value}",
+      "farthest": "الأبعد {value}",
+      "bestPace": "أفضل وتيرة {value} /كم",
+      "maxCalories": "الأفضل {value} سعرة"
     },
     "planStory": {
       "title": "قصة خطتي",
@@ -4875,6 +4887,89 @@
       "title": "أنت غير متصل",
       "body": "افتح التمرين مرة واحدة أثناء اتصالك بالإنترنت ليصبح متاحاً هنا دون اتصال.",
       "resume": "متابعة التمرين"
+    }
+  },
+  "measure": {
+    "types": {
+      "weight_reps": "وزن × تكرارات",
+      "bodyweight_reps": "وزن الجسم (تكرارات، وزن إضافي اختياري)",
+      "assisted_bw": "وزن الجسم بمساعدة",
+      "duration": "زمن / ثبات",
+      "distance": "مسافة",
+      "distance_duration": "مسافة + زمن",
+      "calories": "سعرات (أجهزة)",
+      "weight_duration": "وزن + زمن",
+      "weight_distance": "وزن + مسافة",
+      "reps_duration": "تكرارات + زمن (أكبر عدد / كل دقيقة)",
+      "intervals": "فترات / جولات",
+      "cardio_machine": "جهاز كارديو (مستوى، ميل، سرعة)",
+      "steps_laps": "خطوات / لفّات"
+    },
+    "fields": {
+      "weightKg": "الوزن (كجم)",
+      "assistKg": "المساعدة (كجم)",
+      "reps": "التكرارات",
+      "durationS": "الزمن (ث)",
+      "durationMin": "الزمن (دقيقة)",
+      "distanceM": "المسافة (م)",
+      "distanceKm": "المسافة (كم)",
+      "calories": "السعرات (سعرة)",
+      "rounds": "الجولات",
+      "work": "العمل (ث)",
+      "restInterval": "الراحة (ث)",
+      "level": "المستوى",
+      "incline": "الميل (%)",
+      "speed": "السرعة (كم/س)",
+      "laps": "اللفّات",
+      "steps": "الخطوات"
+    },
+    "unit": {
+      "reps": "تكرار",
+      "seconds": "ث",
+      "meters": "م",
+      "pace": "ث/كم",
+      "kcal": "سعرة"
+    },
+    "kg": "{value} كجم",
+    "assist": "مساعدة {value} كجم",
+    "bodyweight": "وزن الجسم",
+    "repsCount": "{value} تكرار",
+    "minutes": "{value} دقيقة",
+    "seconds": "{value} ث",
+    "km": "{value} كم",
+    "meters": "{value} م",
+    "kcal": "{value} سعرة",
+    "extra": {
+      "rounds": "{value} جولات",
+      "work": "{value} ث عمل",
+      "restInterval": "{value} ث راحة",
+      "level": "المستوى {value}",
+      "incline": "ميل {value}%",
+      "speed": "{value} كم/س",
+      "laps": "{value} لفّات",
+      "steps": "{value} خطوة"
+    },
+    "decrease": "تقليل {field}",
+    "increase": "زيادة {field}",
+    "more": "المزيد",
+    "summary": {
+      "distance": "المسافة",
+      "timeUnderEffort": "زمن العمل",
+      "calories": "السعرات"
+    },
+    "sheet": {
+      "rir": "التكرارات المتبقية (RIR)",
+      "setType": "نوع المجموعة",
+      "setTypes": {
+        "warmup": "إحماء",
+        "drop": "مجموعة تنازلية",
+        "failure": "حتى الفشل"
+      },
+      "side": "الجانب",
+      "sides": {
+        "left": "يسار",
+        "right": "يمين"
+      }
     }
   }
 }

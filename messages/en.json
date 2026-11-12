@@ -814,7 +814,8 @@
       "emptyDescription": "Widen the date range or pick another exercise. Sets appear here once the client logs a workout.",
       "error": "Couldn't load the weight history.",
       "errorDescription": "Something went wrong while loading. Try again.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "groupLine": "{sets} × {value}"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -1153,7 +1154,10 @@
         "notes": "Notes (optional)",
         "save": "Save",
         "saveFailed": "Couldn't save — try again.",
-        "entryLocked": "This entry is more than 7 days old and can no longer be changed."
+        "entryLocked": "This entry is more than 7 days old and can no longer be changed.",
+        "kcal": "Calories (kcal)",
+        "avgHr": "Avg heart rate (bpm)",
+        "rpe": "How hard was it? (RPE)"
       }
     },
     "plan": {
@@ -1988,7 +1992,8 @@
       "duplicateSet": "Add set",
       "summaryReps": "<m>{sets}</m> {sets, plural, one {set} other {sets}} · <m>{total}</m> {total, plural, one {rep} other {reps}}",
       "summaryHolds": "<m>{sets}</m> {sets, plural, one {hold} other {holds}} · <m>{total}</m> sec",
-      "close": "Close"
+      "close": "Close",
+      "summarySets": "<m>{sets}</m> {sets, plural, one {set} other {sets}}"
     },
     "activityDialog": {
       "addTitle": "Add cardio/recovery",
@@ -2222,7 +2227,9 @@
       },
       "thumbnailUrl": "Thumbnail URL",
       "videoUrlAlt": "Alternate-angle video link",
-      "linesPlaceholder": "One per line"
+      "linesPlaceholder": "One per line",
+      "measurementType": "How it's measured",
+      "measurementTypeHint": "Decides which inputs coaches and clients see for this exercise: reps, time, distance, calories..."
     },
     "food": {
       "add": "Add food",
@@ -3349,7 +3356,12 @@
       "title": "Personal records",
       "emptyTitle": "No PRs yet",
       "emptyDescription": "Log weight and reps during a session to start tracking personal records.",
-      "estimated1rm": "Est. 1RM {value}kg"
+      "estimated1rm": "Est. 1RM {value}kg",
+      "maxReps": "Max {value} reps",
+      "longest": "Longest {value}",
+      "farthest": "Farthest {value}",
+      "bestPace": "Best pace {value} /km",
+      "maxCalories": "Best {value} kcal"
     },
     "planStory": {
       "title": "My Plan Story",
@@ -4875,6 +4887,89 @@
       "title": "You’re offline",
       "body": "Open a workout once while you’re online and it will be available here without a connection.",
       "resume": "Resume workout"
+    }
+  },
+  "measure": {
+    "types": {
+      "weight_reps": "Weight × reps",
+      "bodyweight_reps": "Bodyweight reps (optional added weight)",
+      "assisted_bw": "Assisted bodyweight",
+      "duration": "Time / hold",
+      "distance": "Distance",
+      "distance_duration": "Distance + time",
+      "calories": "Calories (machines)",
+      "weight_duration": "Weight + time",
+      "weight_distance": "Weight + distance",
+      "reps_duration": "Reps + time (AMRAP / EMOM)",
+      "intervals": "Intervals / rounds",
+      "cardio_machine": "Cardio machine (level, incline, speed)",
+      "steps_laps": "Steps / laps"
+    },
+    "fields": {
+      "weightKg": "Weight (kg)",
+      "assistKg": "Assistance (kg)",
+      "reps": "Reps",
+      "durationS": "Time (s)",
+      "durationMin": "Time (min)",
+      "distanceM": "Distance (m)",
+      "distanceKm": "Distance (km)",
+      "calories": "Calories (kcal)",
+      "rounds": "Rounds",
+      "work": "Work (s)",
+      "restInterval": "Rest (s)",
+      "level": "Level",
+      "incline": "Incline (%)",
+      "speed": "Speed (km/h)",
+      "laps": "Laps",
+      "steps": "Steps"
+    },
+    "unit": {
+      "reps": "reps",
+      "seconds": "s",
+      "meters": "m",
+      "pace": "s/km",
+      "kcal": "kcal"
+    },
+    "kg": "{value} kg",
+    "assist": "{value} kg assist",
+    "bodyweight": "BW",
+    "repsCount": "{value} reps",
+    "minutes": "{value} min",
+    "seconds": "{value} s",
+    "km": "{value} km",
+    "meters": "{value} m",
+    "kcal": "{value} kcal",
+    "extra": {
+      "rounds": "{value} rounds",
+      "work": "{value} s work",
+      "restInterval": "{value} s rest",
+      "level": "level {value}",
+      "incline": "{value}% incline",
+      "speed": "{value} km/h",
+      "laps": "{value} laps",
+      "steps": "{value} steps"
+    },
+    "decrease": "Decrease {field}",
+    "increase": "Increase {field}",
+    "more": "More",
+    "summary": {
+      "distance": "Distance",
+      "timeUnderEffort": "Work time",
+      "calories": "Calories"
+    },
+    "sheet": {
+      "rir": "Reps in reserve (RIR)",
+      "setType": "Set type",
+      "setTypes": {
+        "warmup": "Warm-up",
+        "drop": "Drop set",
+        "failure": "To failure"
+      },
+      "side": "Side",
+      "sides": {
+        "left": "Left",
+        "right": "Right"
+      }
     }
   }
 }

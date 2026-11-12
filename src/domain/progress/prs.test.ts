@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { computePersonalRecords, computeRecentPersonalRecords, weeklyVolume, type SetLogForPr } from "./prs";
+import {
+  computeMeasureRecords,
+  computePersonalRecords,
+  computeRecentPersonalRecords,
+  weeklyVolume,
+  type SetLogForMeasure,
+  type SetLogForPr,
+} from "./prs";
 
 function log(overrides: Partial<SetLogForPr>): SetLogForPr {
   return {
@@ -101,5 +108,61 @@ describe("weeklyVolume", () => {
 
   it("returns an empty array for no logs", () => {
     expect(weeklyVolume([])).toEqual([]);
+  });
+});
+
+describe("computeMeasureRecords", () => {
+  const set = (overrides: Partial<SetLogForMeasure>): SetLogForMeasure => ({ exercise_id: "ex-1", ...overrides });
+
+  it("tracks the longest hold and the max reps", () => {
+    const [rec] = computeMeasureRecords([
+      set({ duration_seconds: 45 }),
+      set({ duration_seconds: 90 }),
+      set({ duration_seconds: 60 }),
+      set({ reps: 12 }),
+      set({ reps: 15 }),
+    ]);
+    expect(rec.maxDuration).toBe(90);
+    expect(rec.maxReps).toBe(15);
+    expect(rec.totalDurationSeconds).toBe(195);
+  });
+
+  it("derives best pace (seconds per km, lower is better) from sets with both time and distance", () => {
+    const [rec] = computeMeasureRecords([
+      set({ distance_m: 5000, duration_seconds: 1800 }), // 360 s/km
+      set({ distance_m: 5000, duration_seconds: 1500 }), // 300 s/km
+      set({ distance_m: 10_000, duration_seconds: 3600 }), // 360 s/km
+    ]);
+    expect(rec.bestPace).toBe(300);
+    expect(rec.maxDistance).toBe(10_000);
+    expect(rec.totalDistanceM).toBe(20_000);
+  });
+
+  it("ignores a pace over a distance too short to mean anything", () => {
+    const [rec] = computeMeasureRecords([set({ distance_m: 20, duration_seconds: 3 })]);
+    expect(rec.bestPace).toBeNull();
+    expect(rec.maxDistance).toBe(20);
+  });
+
+  it("separates exercises and drops ones with nothing to report", () => {
+    const records = computeMeasureRecords([
+      set({ exercise_id: "a", calories: 150 }),
+      set({ exercise_id: "b", reps: null, duration_seconds: null }),
+    ]);
+    expect(records.map((r) => r.exerciseId)).toEqual(["a"]);
+    expect(records[0].maxCalories).toBe(150);
+  });
+
+  it("returns nothing for no logs", () => {
+    expect(computeMeasureRecords([])).toEqual([]);
+  });
+});
+
+describe("assisted sets (negative weight)", () => {
+  it("are not strength PRs and add nothing to volume", () => {
+    expect(computePersonalRecords([log({ weight: -20, reps: 8 })])).toEqual([]);
+    expect(weeklyVolume([log({ weight: -20, reps: 8, completed_at: "2026-01-05T10:00:00Z" })])).toEqual([
+      { weekStart: "2026-01-05", volumeKg: 0 },
+    ]);
   });
 });

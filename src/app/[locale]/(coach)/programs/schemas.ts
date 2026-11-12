@@ -53,22 +53,51 @@ function optionalCoercedNumber<S extends z.ZodTypeAny>(schema: S) {
   return z.preprocess((v) => (v === "" || v === null ? undefined : v), schema);
 }
 
-// One prescribed set — either reps-based (weight/rest, as before) or
-// duration-based (a rehab hold, a stretch: duration_seconds instead of
-// reps). The refine mirrors the DB's program_item_sets_reps_or_duration
-// check: exactly one of reps/duration_seconds must be set, never both,
-// never neither.
+// Numeric extra metrics a set can carry besides the five columns
+// (EXTRA_KEYS in library/measurement.ts is the single list of names). Blank
+// inputs preprocess to undefined and are dropped; an all-blank object becomes
+// null, because the DB's has_measure check treats ANY non-null `extra` as a
+// measure and `{}` must not satisfy it.
+const extraSchema = z
+  .object({
+    rounds: optionalCoercedNumber(z.coerce.number().int().min(1).max(100).optional()),
+    work_s: optionalCoercedNumber(z.coerce.number().int().min(1).max(3600).optional()),
+    rest_s: optionalCoercedNumber(z.coerce.number().int().min(0).max(3600).optional()),
+    level: optionalCoercedNumber(z.coerce.number().min(0).max(100).optional()),
+    incline: optionalCoercedNumber(z.coerce.number().min(-10).max(100).optional()),
+    speed: optionalCoercedNumber(z.coerce.number().min(0).max(100).optional()),
+    laps: optionalCoercedNumber(z.coerce.number().int().min(1).max(1000).optional()),
+    steps: optionalCoercedNumber(z.coerce.number().int().min(1).max(200000).optional()),
+  })
+  .nullable()
+  .optional()
+  .transform((value) => {
+    if (!value) return null;
+    const kept = Object.fromEntries(Object.entries(value).filter(([, v]) => v != null)) as Record<string, number>;
+    return Object.keys(kept).length > 0 ? kept : null;
+  });
+
+// One prescribed set. Which of reps / duration / distance / calories / extra
+// it carries depends on the exercise's measurement_type; the refine mirrors
+// the DB's program_item_sets_has_measure check (at least one measure). Weight
+// may be negative: assisted bodyweight work is stored as -assistance. The
+// ranges are deliberately wide enough for any unit the builder lets a coach
+// type in (a type may be entered in minutes or km and is converted to seconds
+// / metres before it reaches the server).
 export const setInputSchema = z
   .object({
-    reps: optionalCoercedNumber(z.coerce.number().int().min(1).max(100).nullable().optional()),
-    duration_seconds: optionalCoercedNumber(z.coerce.number().int().min(1).max(3600).nullable().optional()),
-    weight: optionalCoercedNumber(z.coerce.number().min(0).max(1000).nullable().optional()),
+    reps: optionalCoercedNumber(z.coerce.number().int().min(1).max(500).nullable().optional()),
+    duration_seconds: optionalCoercedNumber(z.coerce.number().int().min(1).max(14_400).nullable().optional()),
+    distance_m: optionalCoercedNumber(z.coerce.number().min(1).max(1_000_000).nullable().optional()),
+    calories: optionalCoercedNumber(z.coerce.number().int().min(1).max(10_000).nullable().optional()),
+    weight: optionalCoercedNumber(z.coerce.number().min(-1000).max(1000).nullable().optional()),
     rest_seconds: optionalCoercedNumber(z.coerce.number().int().min(0).max(900).nullable().optional()),
+    extra: extraSchema,
   })
-  .refine((v) => (v.reps != null) !== (v.duration_seconds != null), {
-    message: "reps_xor_duration",
-    path: ["reps"],
-  });
+  .refine(
+    (v) => v.reps != null || v.duration_seconds != null || v.distance_m != null || v.calories != null || v.extra != null,
+    { message: "set_needs_measure", path: ["reps"] }
+  );
 
 export const progressionRuleSchema = z.enum(["none", "plus_2_5kg_week", "plus_5kg_week", "plus_1_rep_week"]);
 

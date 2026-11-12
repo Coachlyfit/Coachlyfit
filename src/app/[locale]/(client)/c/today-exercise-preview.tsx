@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Play } from "lucide-react";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { ProgramTree } from "@/domain/programs/programs.service";
+import { useTranslations } from "next-intl";
 import { ExerciseVideoSheet, type VideoSheetExercise } from "@/components/workout/exercise-video-sheet";
+import { measurementFields } from "@/domain/library/measurement";
+import { formatSetMeasures, measuresFromRow } from "@/domain/workouts/set-measures";
 
 type PreviewItem = ProgramTree["program_days"][number]["program_items"][number];
 
@@ -14,6 +17,14 @@ type PreviewItem = ProgramTree["program_days"][number]["program_items"][number];
  * something to watch. */
 export function TodayExercisePreview({ locale, items }: { locale: AppLocale; items: PreviewItem[] }) {
   const [selected, setSelected] = useState<VideoSheetExercise | null>(null);
+  const tm = useTranslations("measure");
+
+  // Reps-based exercises keep the "sets × rep range" line; a hold, a run or a
+  // carry reads from its first set ("30 s", "5 km · 28 min").
+  const target = (item: PreviewItem) =>
+    measurementFields(item.exercises.measurement_type, item.block).includes("reps")
+      ? `${item.sets} × ${item.reps}`
+      : `${item.sets} × ${formatSetMeasures(item.exercises.measurement_type, item.block, measuresFromRow(item.program_item_sets[0]), tm)}`;
 
   return (
     <>
@@ -32,7 +43,7 @@ export function TodayExercisePreview({ locale, items }: { locale: AppLocale; ite
               <span className="flex-1 truncate text-[13px]">{pickLocale(item.exercises, locale)}</span>
               {hasVideo && <Play className="size-2.5 shrink-0 fill-primary text-primary" aria-hidden="true" />}
               <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                {item.sets} × {item.reps}
+                {target(item)}
               </span>
             </button>
           );

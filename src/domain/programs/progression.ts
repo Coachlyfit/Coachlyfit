@@ -2,16 +2,21 @@ export type ProgressionRule = "none" | "plus_2_5kg_week" | "plus_5kg_week" | "pl
 
 export type BaseSet = {
   set_index: number;
-  /** Null for a duration-based set (a rehab hold, a stretch) — see
-   * duration_seconds. Exactly one of the two is set, enforced by the DB's
-   * program_item_sets_reps_or_duration check. */
+  /** Null for a set measured by something else (a hold, a distance) — at
+   * least one measure is always set, enforced by the DB's
+   * program_item_sets_has_measure check. */
   reps: number | null;
+  /** Negative = assisted bodyweight, so "+2.5 kg a week" means less help. */
   weight: number | null;
   rest_seconds: number | null;
-  /** Prescribed hold time for a duration-based set; null for a normal
-   * reps-based set. Never projected by week — a 30s hold doesn't grow with
-   * progression the way reps/weight do, so it passes through unchanged. */
+  /** Prescribed hold/work time; null for a normal reps-based set. Never
+   * projected by week — a 30s hold doesn't grow with progression the way
+   * reps/weight do, so it passes through unchanged. */
   duration_seconds: number | null;
+  /** distance_m / calories / extra are likewise passed through untouched. */
+  distance_m?: number | null;
+  calories?: number | null;
+  extra?: unknown;
 };
 
 export const MAX_PROGRAM_WEEKS = 12;

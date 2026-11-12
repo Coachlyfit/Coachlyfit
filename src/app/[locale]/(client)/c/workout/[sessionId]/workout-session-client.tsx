@@ -21,23 +21,43 @@ import { uuid } from "@/lib/offline/uuid";
 import { projectSetsForWeek, type BaseSet, type ProgressionRule } from "@/domain/programs/progression";
 import { useRestTimer } from "@/hooks/use-rest-timer";
 import { suggestNextWeight } from "@/domain/workouts/suggest";
-import { computeSessionSummary } from "@/domain/workouts/summary";
+import { computeSessionSummary, computeSessionTotals } from "@/domain/workouts/summary";
 import {
   buildSteps,
   exerciseSummaries,
   mmss,
   nextOpenStep,
-  parseDecimal,
-  prefillDraft,
+  prefillMeasures,
   previousSetLog,
   shouldRest,
   stepValue,
   trimNumber,
   type Step,
 } from "@/domain/workouts/session-runner";
+import {
+  dockOrder,
+  dockStep,
+  fieldLabelKey,
+  fieldSnap,
+  inputRule,
+  isAssisted,
+  isExtraField,
+  measurementFields,
+  type MeasureField,
+} from "@/domain/library/measurement";
+import {
+  draftFromMeasures,
+  formatSetMeasures,
+  measuresFromDraft,
+  measuresFromRow,
+  sanitizeExtra,
+  type MeasureDraft,
+  type SetMeasures,
+} from "@/domain/workouts/set-measures";
+import type { LastPerformance } from "@/domain/workouts/workouts.service";
 import { isKnownMuscleGroup } from "@/domain/library/taxonomy";
 import { cn } from "@/lib/utils";
-import { SessionDock } from "./session-dock";
+import { SessionDock, type DockField } from "./session-dock";
 import { SessionSummary } from "./session-summary";
 
 type ProgramItemSetRow = Database["public"]["Tables"]["program_item_sets"]["Row"];
@@ -45,14 +65,16 @@ type ProgramItemSetRow = Database["public"]["Tables"]["program_item_sets"]["Row"
 // list (CLIENT_SAFE_ITEM_COLUMNS) rather than `*` specifically so that
 // coach-only annotation never reaches this client component's props. See
 // programs.service.ts's doc comment on that constant.
-type ProgramItem = Omit<Database["public"]["Tables"]["program_items"]["Row"], "coach_note_private"> & {
+// created_by (team feature, 20261112000004) is likewise not in the column list.
+type ProgramItem = Omit<Database["public"]["Tables"]["program_items"]["Row"], "coach_note_private" | "created_by"> & {
   exercises: SwapExercise;
   program_item_sets: ProgramItemSetRow[]; // must already be ordered by set_index
 };
 type ProgramDay = Database["public"]["Tables"]["program_days"]["Row"] & { program_items: ProgramItem[] };
 type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
-type Prescribed = { reps: number | null; weight: number | null; duration_seconds: number | null };
-type Draft = { weight: string; count: string };
+type Prescribed = SetMeasures;
+/** The dock's text inputs, keyed by measure field, in the entered unit. */
+type Draft = MeasureDraft;
 
 /** min-max reps across a projected set list ("8-12" or "10"). Duration-only
  * sets (reps null — a rehab hold, a stretch) are excluded from the range; if
@@ -66,6 +88,13 @@ function repsRangeLabel(sets: { reps: number | null; duration_seconds: number | 
   const min = Math.min(...reps);
   const max = Math.max(...reps);
   return min === max ? String(min) : `${min}-${max}`;
+}
+
+/** side / set_type tags live in the set's `extra` jsonb next to the numeric
+ * metrics; anything that isn't one of the known values reads as untagged. */
+function existingTag<T extends string>(log: { extra: unknown }, key: string, allowed: T[]): T | null {
+  const v = sanitizeExtra(log.extra)?.[key];
+  return typeof v === "string" && (allowed as string[]).includes(v) ? (v as T) : null;
 }
 
 // Logs are keyed by `${program_item_id}-${set_index}` (1-based set_index,
@@ -117,7 +146,7 @@ export function WorkoutSessionClient({
   /** Latest logged set per exercise_id from a previous session, as a plain
    * object (server actions can't return a Map) — see
    * getLastPerformanceAction. Drives suggestNextWeight and "last time". */
-  lastPerformance: Record<string, { weight: number | null; reps: number | null; rpe: number | null }>;
+  lastPerformance: Record<string, LastPerformance>;
   alreadyCompleted: boolean;
   /** Elapsed time as of the last saveSessionProgressAction call — resuming
    * a backgrounded/refreshed session picks up here instead of restarting
@@ -130,6 +159,7 @@ export function WorkoutSessionClient({
   adjustedItemReasons: Record<string, string>;
 }) {
   const t = useTranslations("client.workout");
+  const tm = useTranslations("measure");
   const tOffline = useTranslations("offline");
   const syncStatus = useSetSyncStatus(sessionId);
   const tReason = useTranslations("review.reason.options");
@@ -194,9 +224,13 @@ export function WorkoutSessionClient({
     return null;
   }
 
+  /** How the exercise actually being done is measured (a swap can change it). */
+  function typeOf(item: ProgramItem, swapMap = swaps) {
+    return activeExercise(item, swapMap).measurement_type;
+  }
+
   function prescribedFor(item: ProgramItem, setIndex: number): Prescribed {
-    const set = projectedByItem.get(item.id)?.[setIndex - 1];
-    return { reps: set?.reps ?? null, weight: set?.weight ?? null, duration_seconds: set?.duration_seconds ?? null };
+    return measuresFromRow(projectedByItem.get(item.id)?.[setIndex - 1]);
   }
 
   /** Real history for this exercise if there is any, otherwise the coach's
@@ -204,7 +238,9 @@ export function WorkoutSessionClient({
    * a suggestion never bleeds across a mid-session substitution. */
   function suggestedWeight(item: ProgramItem, prescribed: Prescribed, swapMap = swaps): number | null {
     const history = lastPerformance[activeExercise(item, swapMap).id];
-    if (!history || prescribed.reps == null) return prescribed.weight;
+    // Assisted work is stored negative; "progress" there is less help, which
+    // the coach sets — don't second-guess it from history.
+    if (!history || prescribed.reps == null || isAssisted(typeOf(item, swapMap))) return prescribed.weight;
     return suggestNextWeight({
       lastWeight: history.weight,
       lastReps: history.reps,
@@ -218,13 +254,14 @@ export function WorkoutSessionClient({
   function seedDraft(item: ProgramItem, logMap = logs, swapMap = swaps): Draft {
     const setIndex = firstOpenSet(item, closedIn(logMap, exerciseResults)) ?? item.program_item_sets.length;
     const prescribed = prescribedFor(item, setIndex);
-    const itemLogs = [...logMap.values()].filter((l) => l.program_item_id === item.id);
-    const values = prefillDraft(previousSetLog(itemLogs, setIndex), {
+    const itemLogs = [...logMap.values()]
+      .filter((l) => l.program_item_id === item.id)
+      .map((l) => ({ set_index: l.set_index, ...measuresFromRow(l) }));
+    const values = prefillMeasures(previousSetLog(itemLogs, setIndex), {
       ...prescribed,
       weight: suggestedWeight(item, prescribed, swapMap),
     });
-    const count = prescribed.duration_seconds != null ? values.duration_seconds : values.reps;
-    return { weight: values.weight != null ? trimNumber(values.weight) : "", count: count != null ? String(count) : "" };
+    return draftFromMeasures(typeOf(item, swapMap), item.block, values);
   }
 
   const [currentItemId, setCurrentItemId] = useState<string | null>(() => {
@@ -233,7 +270,7 @@ export function WorkoutSessionClient({
   });
   const currentIdx = Math.max(0, items.findIndex((i) => i.id === currentItemId));
   const current = items[currentIdx] as ProgramItem | undefined;
-  const [draft, setDraft] = useState<Draft>(() => (current ? seedDraft(current) : { weight: "", count: "" }));
+  const [draft, setDraft] = useState<Draft>(() => (current ? seedDraft(current) : {}));
 
   function goTo(item: ProgramItem) {
     setCurrentItemId(item.id);
@@ -294,13 +331,9 @@ export function WorkoutSessionClient({
     if (setIndex == null) return;
     const item = current;
     const prescribed = prescribedFor(item, setIndex);
-    const durationMode = prescribed.duration_seconds != null;
-    const weightIn = parseDecimal(draft.weight);
-    const countIn = parseDecimal(draft.count);
-    // Bodyweight exercise with 0 extra load is stored as bodyweight (null).
-    const weight = weightIn === 0 && prescribed.weight == null ? null : weightIn;
-    const reps = durationMode ? null : countIn != null ? Math.round(countIn) : prescribed.reps;
-    const duration_seconds = durationMode ? (countIn != null ? Math.round(countIn) : prescribed.duration_seconds) : null;
+    // Typed values -> stored units (minutes -> s, km -> m, assistance -> negative
+    // weight); a blank field logs the target, except weight (blank = bodyweight).
+    const measures = measuresFromDraft(typeOf(item), item.block, draft, prescribed);
     const substituted_exercise_id = swaps.get(item.id)?.id ?? null;
 
     const key = setKey(item.id, setIndex);
@@ -320,9 +353,13 @@ export function WorkoutSessionClient({
       client_logged_at: loggedAt,
       prescribed_reps: prescribed.reps,
       prescribed_weight: prescribed.weight,
-      weight,
-      reps,
-      duration_seconds,
+      weight: measures.weight,
+      reps: measures.reps,
+      duration_seconds: measures.duration_seconds,
+      distance_m: measures.distance_m,
+      calories: measures.calories,
+      extra: measures.extra,
+      rir: null,
       rpe: null,
       notes: null,
       substituted_exercise_id,
@@ -346,7 +383,7 @@ export function WorkoutSessionClient({
     if (next) {
       const nextItem = items.find((i) => i.id === next.itemId)!;
       setCurrentItemId(nextItem.id);
-      setDraft(nextItem.id === item.id ? { weight: draftBefore.weight, count: draftBefore.count } : seedDraft(nextItem, nextLogs));
+      setDraft(nextItem.id === item.id ? { ...draftBefore } : seedDraft(nextItem, nextLogs));
     }
 
     const rollback = () => {
@@ -366,9 +403,12 @@ export function WorkoutSessionClient({
         client_logged_at: loggedAt,
         program_item_id: item.id,
         set_index: setIndex,
-        weight,
-        reps,
-        duration_seconds,
+        weight: measures.weight,
+        reps: measures.reps,
+        duration_seconds: measures.duration_seconds,
+        distance_m: measures.distance_m,
+        calories: measures.calories,
+        extra: measures.extra,
         rpe: null,
         notes: null,
         substituted_exercise_id,
@@ -394,7 +434,25 @@ export function WorkoutSessionClient({
     const existing = logs.get(key);
     if (!existing) return;
     setSavingSet(true);
-    setLogs((prev) => new Map(prev).set(key, { ...existing, ...values }));
+    // Blank fields log nothing (no target fallback when correcting a set).
+    const measured = measuresFromDraft(typeOf(editSet.item), editSet.item.block, values.draft);
+    const extra = {
+      ...(measured.extra ?? {}),
+      ...(values.side ? { side: values.side } : {}),
+      ...(values.set_type ? { set_type: values.set_type } : {}),
+    };
+    const patch = {
+      weight: measured.weight,
+      reps: measured.reps,
+      duration_seconds: measured.duration_seconds,
+      distance_m: measured.distance_m,
+      calories: measured.calories,
+      extra: Object.keys(extra).length > 0 ? extra : null,
+      rpe: values.rpe,
+      rir: values.rir,
+      notes: values.notes,
+    };
+    setLogs((prev) => new Map(prev).set(key, { ...existing, ...patch }));
     setEditSet(null);
     // An edit is an upsert of the same set (no client_logged_at, so its
     // completed_at and 7-day lock window are untouched). If the original is
@@ -402,7 +460,7 @@ export function WorkoutSessionClient({
     const result = await submitOp({
       kind: "set_upsert",
       sessionId,
-      input: { id: existing.id, program_item_id: editSet.item.id, set_index: editSet.setIndex, ...values },
+      input: { id: existing.id, program_item_id: editSet.item.id, set_index: editSet.setIndex, ...patch },
     });
     if (result.status === "error") {
       restoreRow(key, existing);
@@ -484,6 +542,7 @@ export function WorkoutSessionClient({
         setsDone={logs.size}
         setsTotal={totalSets}
         totalVolume={computeSessionSummary(allLogs).totalVolume}
+        totals={computeSessionTotals(allLogs)}
         rows={items.map((item, i) => ({ ...perItem[i], id: item.id, name: pickLocale(activeExercise(item), locale) }))}
         onEditSets={() => setView("run")}
       />
@@ -494,7 +553,8 @@ export function WorkoutSessionClient({
   const displaySets = projectedByItem.get(current.id) ?? [];
   const openSet = firstOpenSet(current);
   const currentPrescribed = prescribedFor(current, openSet ?? 1);
-  const durationMode = currentPrescribed.duration_seconds != null;
+  const type = exercise.measurement_type;
+  const measureFields = measurementFields(type, current.block);
   const skipped = exerciseResults.get(current.id) === "skipped";
   const history = lastPerformance[exercise.id];
   const nextItem = items[currentIdx + 1];
@@ -503,8 +563,36 @@ export function WorkoutSessionClient({
 
   const kg = (w: number) => t("kg", { value: trimNumber(w) });
   const weightText = (w: number | null) => (w != null && w > 0 ? kg(w) : t("bodyweight"));
-  const setText = (s: { weight: number | null; reps: number | null; duration_seconds: number | null }) =>
-    `${weightText(s.weight)} × ${s.duration_seconds != null ? t("secondsShort", { value: s.duration_seconds }) : (s.reps ?? "")}`;
+  const setText = (s: Parameters<typeof measuresFromRow>[0]) =>
+    formatSetMeasures(type, current.block, measuresFromRow(s), tm);
+  // "3 × 8-12 · 60 kg" for classic strength; anything else reads from the
+  // first set's measures ("5 km · 28 min").
+  const classicTarget = measureFields.includes("reps") && !isAssisted(type);
+  const targetText = classicTarget
+    ? `${repsRangeLabel(displaySets)} · ${weightText(currentPrescribed.weight)}`
+    : setText(currentPrescribed);
+  const nextTargetText = (item: ProgramItem) => {
+    const sets = projectedByItem.get(item.id) ?? [];
+    const nextType = typeOf(item);
+    return measurementFields(nextType, item.block).includes("reps")
+      ? repsRangeLabel(sets)
+      : formatSetMeasures(nextType, item.block, measuresFromRow(sets[0]), tm);
+  };
+
+  const dockFields: DockField[] = dockOrder(measureFields).map((f) => {
+    const rule = inputRule(type, f, current.block);
+    return {
+      key: f,
+      label:
+        f === "weight" && currentPrescribed.weight == null && !isAssisted(type)
+          ? t("extraWeightKg")
+          : tm(`fields.${fieldLabelKey(type, f, current.block)}`),
+      value: draft[f] ?? "",
+      step: dockStep(type, f, current.block),
+      inputMode: rule.integer ? "numeric" : "decimal",
+      secondary: isExtraField(f),
+    };
+  });
 
   const upNextItem = upNext && items.find((i) => i.id === upNext.itemId);
   const upNextLabel = !upNext || !upNextItem
@@ -608,13 +696,13 @@ export function WorkoutSessionClient({
             <div className="flex min-w-0 flex-col gap-0.5 px-3 py-2.5">
               <dt className="text-sm text-muted-foreground">{t("target")}</dt>
               <dd className="font-mono text-[15px] font-semibold break-words tabular-nums">
-                {displaySets.length} × {repsRangeLabel(displaySets)} · {weightText(currentPrescribed.weight)}
+                {displaySets.length} × {targetText}
               </dd>
             </div>
             <div className="flex min-w-0 flex-col gap-0.5 border-s border-border px-3 py-2.5">
               <dt className="text-sm text-muted-foreground">{t("lastTime")}</dt>
               <dd className="font-mono text-[15px] font-semibold break-words tabular-nums">
-                {history ? `${weightText(history.weight)} × ${history.reps ?? ""}` : t("noHistory")}
+                {history ? setText(history) : t("noHistory")}
               </dd>
             </div>
           </dl>
@@ -728,7 +816,7 @@ export function WorkoutSessionClient({
                 <span className="truncate text-[15px] font-semibold">{pickLocale(activeExercise(nextItem), locale)}</span>
               </span>
               <span className="shrink-0 font-mono text-sm text-muted-foreground tabular-nums">
-                {nextItem.program_item_sets.length} × {repsRangeLabel(projectedByItem.get(nextItem.id) ?? [])}
+                {nextItem.program_item_sets.length} × {nextTargetText(nextItem)}
               </span>
               <ForwardIcon className="size-5 shrink-0" aria-hidden="true" />
             </button>
@@ -774,14 +862,14 @@ export function WorkoutSessionClient({
         rest={restTimer}
         upNext={upNextLabel}
         state={dockState}
-        weightLabel={currentPrescribed.weight == null ? t("extraWeightKg") : t("weightKg")}
-        weight={draft.weight}
-        onWeightChange={(weight) => setDraft((d) => ({ ...d, weight }))}
-        onWeightStep={(delta) => setDraft((d) => ({ ...d, weight: stepValue(d.weight, delta, 0.25) }))}
-        countMode={durationMode ? "duration" : "reps"}
-        count={draft.count}
-        onCountChange={(count) => setDraft((d) => ({ ...d, count }))}
-        onCountStep={(delta) => setDraft((d) => ({ ...d, count: stepValue(d.count, delta) }))}
+        fields={dockFields}
+        onFieldChange={(key, value) => setDraft((d) => ({ ...d, [key]: value }))}
+        onFieldStep={(key, delta) =>
+          setDraft((d) => ({
+            ...d,
+            [key]: stepValue(d[key as MeasureField] ?? "", delta, fieldSnap(type, key as MeasureField, current.block)),
+          }))
+        }
         completeLabel={t("completeSet", { n: openSet ?? 1, total: current.program_item_sets.length })}
         onComplete={completeSet}
         onContinue={continueToNext}
@@ -831,13 +919,18 @@ export function WorkoutSessionClient({
               onOpenChange={(open) => !open && setEditSet(null)}
               formKey={key}
               initial={{
-                weight: existing.weight,
-                reps: existing.reps,
-                duration_seconds: existing.duration_seconds,
+                draft: draftFromMeasures(typeOf(editSet.item), editSet.item.block, measuresFromRow(existing)),
                 rpe: existing.rpe,
+                rir: existing.rir,
                 notes: existing.notes,
+                side: existingTag(existing, "side", ["left", "right"]),
+                set_type: existingTag(existing, "set_type", ["warmup", "drop", "failure"]),
               }}
-              mode={editSet.prescribed.duration_seconds != null ? "duration" : "reps"}
+              type={typeOf(editSet.item)}
+              block={editSet.item.block}
+              weightLabel={
+                !isAssisted(typeOf(editSet.item)) && editSet.prescribed.weight == null ? t("extraWeightKg") : undefined
+              }
               onSave={saveEditedSet}
               onDelete={deleteEditedSet}
               saving={savingSet}

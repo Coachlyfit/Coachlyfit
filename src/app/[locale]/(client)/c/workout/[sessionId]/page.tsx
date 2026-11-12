@@ -32,7 +32,7 @@ export default async function WorkoutSessionPage({
       // include coach_note_private (a coach-only prescription annotation)
       // on a route the client's browser directly receives the response
       // for. See CLIENT_SAFE_ITEM_COLUMNS's doc comment.
-      `*, programs(start_date, id), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*))`
+      `*, programs(start_date, id), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, measurement_type), program_item_sets(*))`
     )
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })

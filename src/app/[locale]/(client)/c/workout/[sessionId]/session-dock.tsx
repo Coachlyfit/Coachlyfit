@@ -63,18 +63,26 @@ function Stepper({
   );
 }
 
+/** One numeric input in the dock. Built by the runner from the exercise's
+ * measurement type, so a plank gets a seconds stepper, a run gets distance +
+ * time, a treadmill adds level/incline/speed. */
+export type DockField = {
+  key: string;
+  label: string;
+  value: string;
+  step: number;
+  inputMode: "decimal" | "numeric";
+  /** Long-tail metric: tucked under "More" instead of the main row. */
+  secondary: boolean;
+};
+
 export function SessionDock({
   rest,
   upNext,
   state,
-  weightLabel,
-  weight,
-  onWeightChange,
-  onWeightStep,
-  countMode,
-  count,
-  onCountChange,
-  onCountStep,
+  fields,
+  onFieldChange,
+  onFieldStep,
   completeLabel,
   onComplete,
   onContinue,
@@ -86,14 +94,9 @@ export function SessionDock({
   /** log: current exercise has an open set; exerciseComplete: it doesn't
    * but others do; allDone: every set in the workout is logged. */
   state: "log" | "exerciseComplete" | "allDone";
-  weightLabel: string;
-  weight: string;
-  onWeightChange: (value: string) => void;
-  onWeightStep: (delta: number) => void;
-  countMode: "reps" | "duration";
-  count: string;
-  onCountChange: (value: string) => void;
-  onCountStep: (delta: number) => void;
+  fields: DockField[];
+  onFieldChange: (key: string, value: string) => void;
+  onFieldStep: (key: string, delta: number) => void;
   completeLabel: string;
   onComplete: () => void;
   onContinue: () => void;
@@ -101,7 +104,25 @@ export function SessionDock({
   finishing: boolean;
 }) {
   const t = useTranslations("client.workout");
+  const tm = useTranslations("measure");
   const pct = rest.duration > 0 ? Math.min(100, (rest.remaining / rest.duration) * 100) : 0;
+  // A type made only of long-tail metrics (intervals, laps/steps) has nothing
+  // "main" to show, so everything is primary in that case.
+  const primary = fields.some((f) => !f.secondary) ? fields.filter((f) => !f.secondary) : fields;
+  const secondary = primary === fields ? [] : fields.filter((f) => f.secondary);
+  const renderStepper = (f: DockField) => (
+    <Stepper
+      key={f.key}
+      label={f.label}
+      value={f.value}
+      onChange={(value) => onFieldChange(f.key, value)}
+      onStep={(delta) => onFieldStep(f.key, delta)}
+      step={f.step}
+      inputMode={f.inputMode}
+      decreaseLabel={tm("decrease", { field: f.label })}
+      increaseLabel={tm("increase", { field: f.label })}
+    />
+  );
 
   return (
     <div className="flex shrink-0 flex-col gap-3 border-t border-border bg-card px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -153,28 +174,17 @@ export function SessionDock({
 
       {state === "log" && (
         <>
-          <div className="grid grid-cols-2 gap-2.5">
-            <Stepper
-              label={weightLabel}
-              value={weight}
-              onChange={onWeightChange}
-              onStep={onWeightStep}
-              step={2.5}
-              inputMode="decimal"
-              decreaseLabel={t("decreaseWeight")}
-              increaseLabel={t("increaseWeight")}
-            />
-            <Stepper
-              label={countMode === "duration" ? t("seconds") : t("reps")}
-              value={count}
-              onChange={onCountChange}
-              onStep={onCountStep}
-              step={countMode === "duration" ? 5 : 1}
-              inputMode="numeric"
-              decreaseLabel={countMode === "duration" ? t("decreaseSeconds") : t("decreaseReps")}
-              increaseLabel={countMode === "duration" ? t("increaseSeconds") : t("increaseReps")}
-            />
+          <div className={cn("grid gap-2.5", primary.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
+            {primary.map(renderStepper)}
           </div>
+          {secondary.length > 0 && (
+            <details className="group rounded-xl bg-muted/40">
+              <summary className="flex h-11 cursor-pointer list-none items-center justify-between px-3 text-sm font-medium text-muted-foreground outline-none [&::-webkit-details-marker]:hidden">
+                {tm("more")}
+              </summary>
+              <div className="grid grid-cols-2 gap-2.5 px-3 pb-3">{secondary.map(renderStepper)}</div>
+            </details>
+          )}
           <button
             type="button"
             onClick={onComplete}

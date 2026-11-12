@@ -8,6 +8,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { pickLocale, type AppLocale } from "@/domain/locale";
+import { normalizeMeasurementType } from "@/domain/library/measurement";
 import { createExerciseSchema, type CreateExerciseInput } from "./schemas";
 import { createExerciseAction, updateExerciseAction, type searchExercisesAction } from "./actions";
 import { ExerciseFields } from "./exercise-fields";
@@ -64,6 +65,7 @@ export function ExerciseDialog({
       name_ar: item?.name_ar ?? "",
       name_en: item?.name_en ?? "",
       muscle_group: (item?.muscle_group as CreateExerciseInput["muscle_group"]) ?? "other",
+      measurement_type: normalizeMeasurementType(item?.measurement_type),
       equipment: item?.equipment ?? "",
       video_url: item?.video_url ?? "",
       image_url: item?.image_url ?? "",
@@ -92,6 +94,7 @@ export function ExerciseDialog({
     formData.set("name_ar", data.name_ar);
     formData.set("name_en", data.name_en);
     if (data.muscle_group) formData.set("muscle_group", data.muscle_group);
+    if (data.measurement_type) formData.set("measurement_type", data.measurement_type);
     if (data.equipment) formData.set("equipment", data.equipment);
     if (data.video_url) formData.set("video_url", data.video_url);
     if (data.image_url) formData.set("image_url", data.image_url);

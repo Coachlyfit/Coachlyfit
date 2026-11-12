@@ -4,7 +4,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Dumbbell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
-import { computePersonalRecords } from "@/domain/progress/prs";
+import { computeMeasureRecords, computePersonalRecords } from "@/domain/progress/prs";
+import { buildPrRows } from "@/domain/progress/pr-rows";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
 import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
@@ -25,25 +26,17 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
   ]);
 
   const records = computePersonalRecords(logs);
+  const measureRecords = computeMeasureRecords(logs);
   let prRows: PrListRow[] = [];
-  if (records.length > 0) {
+  const prExerciseIds = [...new Set([...records, ...measureRecords].map((r) => r.exerciseId))];
+  if (prExerciseIds.length > 0) {
     const { data: exercises } = await supabase
       .from("exercises")
-      .select("id, name_ar, name_en")
-      .in(
-        "id",
-        records.map((r) => r.exerciseId)
-      );
-    const nameById = new Map((exercises ?? []).map((e) => [e.id, { name_ar: e.name_ar, name_en: e.name_en }]));
-    prRows = records
-      .filter((r) => nameById.has(r.exerciseId))
-      .map((r) => ({
-        exerciseId: r.exerciseId,
-        exerciseName: nameById.get(r.exerciseId)!,
-        maxWeight: r.maxWeight ? { weight: r.maxWeight.weight, reps: r.maxWeight.reps } : null,
-        estimatedOneRepMax: r.estimatedOneRepMax?.value ?? null,
-      }))
-      .sort((a, b) => pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale)));
+      .select("id, name_ar, name_en, measurement_type")
+      .in("id", prExerciseIds);
+    prRows = buildPrRows(records, measureRecords, exercises ?? []).sort((a, b) =>
+      pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale))
+    );
   }
 
   return (

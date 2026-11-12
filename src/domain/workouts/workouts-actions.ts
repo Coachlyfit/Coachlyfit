@@ -6,12 +6,35 @@ import { WorkoutsService, type LogSetInput, type UpdateSetInput, type ExerciseRe
 import { ActivityLogsService, type LogActivityInput } from "./activity-logs.service";
 import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 
+// Numeric extra metrics a set can carry (EXTRA_KEYS in library/measurement.ts)
+// plus the two per-set tags. Anything else in the object is rejected, so a
+// client can't use `extra` as free-form storage.
+const extraSchema = z
+  .object({
+    rounds: z.number().int().min(1).max(100),
+    work_s: z.number().int().min(1).max(3600),
+    rest_s: z.number().int().min(0).max(3600),
+    level: z.number().min(0).max(100),
+    incline: z.number().min(-10).max(100),
+    speed: z.number().min(0).max(100),
+    laps: z.number().int().min(1).max(1000),
+    steps: z.number().int().min(1).max(200_000),
+    side: z.enum(["left", "right"]),
+    set_type: z.enum(["warmup", "drop", "failure"]),
+  })
+  .partial()
+  .strict();
+
 const setFieldsSchema = {
-  weight: z.coerce.number().min(0).max(999).multipleOf(0.25).optional().nullable(),
-  reps: z.coerce.number().int().min(0).max(200).optional().nullable(),
-  // The client already sends this for duration-based sets; without it here
-  // zod stripped it and the hold time was never saved.
+  // Negative = assisted bodyweight (stored as -assistance, see measurement.ts).
+  weight: z.coerce.number().min(-999).max(999).multipleOf(0.25).optional().nullable(),
+  reps: z.coerce.number().int().min(0).max(1000).optional().nullable(),
+  // Hold/work time. Without it here zod stripped it and it was never saved.
   duration_seconds: z.coerce.number().int().min(1).max(86_400).optional().nullable(),
+  distance_m: z.coerce.number().min(1).max(1_000_000).optional().nullable(),
+  calories: z.coerce.number().int().min(1).max(10_000).optional().nullable(),
+  rir: z.coerce.number().int().min(0).max(10).optional().nullable(),
+  extra: extraSchema.optional().nullable(),
   rpe: z.coerce.number().min(1).max(10).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
 };

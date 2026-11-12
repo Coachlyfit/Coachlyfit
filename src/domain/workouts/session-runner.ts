@@ -3,10 +3,10 @@
  * set_index that workout_set_logs and program_item_sets actually store. */
 
 import { expandSessionOrder, isGroupRoundComplete, type SessionOrderItem } from "./session-order";
+import type { SetMeasures } from "./set-measures";
 
 export type Step = { itemId: string; setIndex: number; groupKey: string | null };
 export type IsLogged = (itemId: string, setIndex: number) => boolean;
-export type SetValues = { weight: number | null; reps: number | null; duration_seconds: number | null };
 
 export function buildSteps(items: SessionOrderItem[]): Step[] {
   return expandSessionOrder(items).map((s) => ({ ...s, setIndex: s.setIndex + 1 }));
@@ -44,12 +44,19 @@ export function previousSetLog<T extends { set_index: number }>(itemLogs: T[], s
   return best;
 }
 
-export function prefillDraft(previous: SetValues | null, target: SetValues): SetValues {
+/** Dock values for a set: the previous set's results when there is one
+ * (weight carries over exactly, including blank = bodyweight; every other
+ * measure falls back to the target when the previous set didn't have it),
+ * otherwise the target itself. */
+export function prefillMeasures(previous: SetMeasures | null, target: SetMeasures): SetMeasures {
   if (!previous) return target;
   return {
     weight: previous.weight,
     reps: previous.reps ?? target.reps,
     duration_seconds: previous.duration_seconds ?? target.duration_seconds,
+    distance_m: previous.distance_m ?? target.distance_m,
+    calories: previous.calories ?? target.calories,
+    extra: previous.extra ?? target.extra,
   };
 }
 

@@ -30,6 +30,7 @@ export type SwapExercise = Pick<
   | "safety_ar"
   | "safety_en"
   | "tempo"
+  | "measurement_type"
 >;
 
 /** Session-only exercise substitution — see workouts.service.ts's

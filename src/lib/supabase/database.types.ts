@@ -728,6 +728,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          assigned_to: string | null
           coach_id: string
           created_at: string
           display_name: string
@@ -739,6 +740,7 @@ export type Database = {
           status: Database["public"]["Enums"]["client_status"]
         }
         Insert: {
+          assigned_to?: string | null
           coach_id: string
           created_at?: string
           display_name: string
@@ -750,6 +752,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
         }
         Update: {
+          assigned_to?: string | null
           coach_id?: string
           created_at?: string
           display_name?: string
@@ -761,6 +764,13 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_coach_id_fkey"
             columns: ["coach_id"]
@@ -1063,6 +1073,7 @@ export type Database = {
           client_id: string | null
           coach_id: string
           created_at: string
+          created_by: string | null
           end_date: string | null
           id: string
           name_ar: string
@@ -1084,6 +1095,7 @@ export type Database = {
           client_id?: string | null
           coach_id: string
           created_at?: string
+          created_by?: string | null
           end_date?: string | null
           id?: string
           name_ar: string
@@ -1105,6 +1117,7 @@ export type Database = {
           client_id?: string | null
           coach_id?: string
           created_at?: string
+          created_by?: string | null
           end_date?: string | null
           id?: string
           name_ar?: string
@@ -1148,6 +1161,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1280,6 +1300,7 @@ export type Database = {
           coach_notes_ar: string | null
           coach_notes_en: string | null
           created_at: string
+          created_by: string | null
           cues_ar: string[] | null
           cues_en: string[] | null
           difficulty: string | null
@@ -1289,6 +1310,7 @@ export type Database = {
           import_id: string | null
           instructions_ar: string | null
           instructions_en: string | null
+          measurement_type: string
           mistakes_ar: string[] | null
           mistakes_en: string[] | null
           muscle_group: string | null
@@ -1312,6 +1334,7 @@ export type Database = {
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
           created_at?: string
+          created_by?: string | null
           cues_ar?: string[] | null
           cues_en?: string[] | null
           difficulty?: string | null
@@ -1321,6 +1344,7 @@ export type Database = {
           import_id?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
+          measurement_type?: string
           mistakes_ar?: string[] | null
           mistakes_en?: string[] | null
           muscle_group?: string | null
@@ -1344,6 +1368,7 @@ export type Database = {
           coach_notes_ar?: string | null
           coach_notes_en?: string | null
           created_at?: string
+          created_by?: string | null
           cues_ar?: string[] | null
           cues_en?: string[] | null
           difficulty?: string | null
@@ -1353,6 +1378,7 @@ export type Database = {
           import_id?: string | null
           instructions_ar?: string | null
           instructions_en?: string | null
+          measurement_type?: string
           mistakes_ar?: string[] | null
           mistakes_en?: string[] | null
           muscle_group?: string | null
@@ -1376,6 +1402,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1461,6 +1494,7 @@ export type Database = {
           category: string
           coach_id: string | null
           created_at: string
+          created_by: string | null
           fat_g: number
           id: string
           kcal: number
@@ -1477,6 +1511,7 @@ export type Database = {
           category?: string
           coach_id?: string | null
           created_at?: string
+          created_by?: string | null
           fat_g?: number
           id?: string
           kcal: number
@@ -1493,6 +1528,7 @@ export type Database = {
           category?: string
           coach_id?: string | null
           created_at?: string
+          created_by?: string | null
           fat_g?: number
           id?: string
           kcal?: number
@@ -1510,6 +1546,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1750,6 +1793,7 @@ export type Database = {
         Row: {
           coach_id: string
           created_at: string
+          created_by: string | null
           id: string
           published_at: string
           schema: Json
@@ -1759,6 +1803,7 @@ export type Database = {
         Insert: {
           coach_id: string
           created_at?: string
+          created_by?: string | null
           id?: string
           published_at?: string
           schema: Json
@@ -1768,6 +1813,7 @@ export type Database = {
         Update: {
           coach_id?: string
           created_at?: string
+          created_by?: string | null
           id?: string
           published_at?: string
           schema?: Json
@@ -1780,6 +1826,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_template_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1796,6 +1849,7 @@ export type Database = {
           archived_at: string | null
           coach_id: string
           created_at: string
+          created_by: string | null
           current_version_id: string | null
           draft_schema: Json | null
           id: string
@@ -1808,6 +1862,7 @@ export type Database = {
           archived_at?: string | null
           coach_id: string
           created_at?: string
+          created_by?: string | null
           current_version_id?: string | null
           draft_schema?: Json | null
           id?: string
@@ -1820,6 +1875,7 @@ export type Database = {
           archived_at?: string | null
           coach_id?: string
           created_at?: string
+          created_by?: string | null
           current_version_id?: string | null
           draft_schema?: Json | null
           id?: string
@@ -1834,6 +1890,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2376,6 +2439,7 @@ export type Database = {
         Row: {
           client_id: string | null
           coach_id: string
+          created_by: string | null
           food_id: string | null
           id: string
           meal_id: string
@@ -2387,6 +2451,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           coach_id: string
+          created_by?: string | null
           food_id?: string | null
           id?: string
           meal_id: string
@@ -2398,6 +2463,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           coach_id?: string
+          created_by?: string | null
           food_id?: string | null
           id?: string
           meal_id?: string
@@ -2433,6 +2499,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2476,6 +2549,7 @@ export type Database = {
         Row: {
           client_id: string | null
           coach_id: string
+          created_by: string | null
           diet_plan_id: string
           id: string
           label_ar: string | null
@@ -2486,6 +2560,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           coach_id: string
+          created_by?: string | null
           diet_plan_id: string
           id?: string
           label_ar?: string | null
@@ -2496,6 +2571,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           coach_id?: string
+          created_by?: string | null
           diet_plan_id?: string
           id?: string
           label_ar?: string | null
@@ -2530,6 +2606,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3088,6 +3171,7 @@ export type Database = {
         Row: {
           client_id: string | null
           coach_id: string
+          created_by: string | null
           distance_km: number | null
           duration_min: number | null
           hr_zone: number | null
@@ -3106,6 +3190,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           coach_id: string
+          created_by?: string | null
           distance_km?: number | null
           duration_min?: number | null
           hr_zone?: number | null
@@ -3124,6 +3209,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           coach_id?: string
+          created_by?: string | null
           distance_km?: number | null
           duration_min?: number | null
           hr_zone?: number | null
@@ -3169,6 +3255,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "program_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "program_activities_program_day_id_fkey"
             columns: ["program_day_id"]
             isOneToOne: false
@@ -3181,6 +3274,7 @@ export type Database = {
         Row: {
           client_id: string | null
           coach_id: string
+          created_by: string | null
           day_index: number
           diet_plan_id: string | null
           id: string
@@ -3196,6 +3290,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           coach_id: string
+          created_by?: string | null
           day_index: number
           diet_plan_id?: string | null
           id?: string
@@ -3211,6 +3306,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           coach_id?: string
+          created_by?: string | null
           day_index?: number
           diet_plan_id?: string | null
           id?: string
@@ -3253,6 +3349,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "program_days_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "program_days_diet_plan_id_fkey"
             columns: ["diet_plan_id"]
             isOneToOne: false
@@ -3277,9 +3380,13 @@ export type Database = {
       }
       program_item_sets: {
         Row: {
+          calories: number | null
           client_id: string | null
           coach_id: string
+          created_by: string | null
+          distance_m: number | null
           duration_seconds: number | null
+          extra: Json | null
           id: string
           program_item_id: string
           reps: number | null
@@ -3288,9 +3395,13 @@ export type Database = {
           weight: number | null
         }
         Insert: {
+          calories?: number | null
           client_id?: string | null
           coach_id: string
+          created_by?: string | null
+          distance_m?: number | null
           duration_seconds?: number | null
+          extra?: Json | null
           id?: string
           program_item_id: string
           reps?: number | null
@@ -3299,9 +3410,13 @@ export type Database = {
           weight?: number | null
         }
         Update: {
+          calories?: number | null
           client_id?: string | null
           coach_id?: string
+          created_by?: string | null
+          distance_m?: number | null
           duration_seconds?: number | null
+          extra?: Json | null
           id?: string
           program_item_id?: string
           reps?: number | null
@@ -3339,6 +3454,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "program_item_sets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "program_item_sets_program_item_id_fkey"
             columns: ["program_item_id"]
             isOneToOne: false
@@ -3353,6 +3475,7 @@ export type Database = {
           client_id: string | null
           coach_id: string
           coach_note_private: string | null
+          created_by: string | null
           exercise_id: string
           group_key: string | null
           group_kind: string | null
@@ -3372,6 +3495,7 @@ export type Database = {
           client_id?: string | null
           coach_id: string
           coach_note_private?: string | null
+          created_by?: string | null
           exercise_id: string
           group_key?: string | null
           group_kind?: string | null
@@ -3391,6 +3515,7 @@ export type Database = {
           client_id?: string | null
           coach_id?: string
           coach_note_private?: string | null
+          created_by?: string | null
           exercise_id?: string
           group_key?: string | null
           group_kind?: string | null
@@ -3432,6 +3557,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3520,6 +3652,7 @@ export type Database = {
           client_id: string | null
           coach_id: string
           created_at: string
+          created_by: string | null
           end_date: string | null
           id: string
           name_ar: string
@@ -3534,6 +3667,7 @@ export type Database = {
           client_id?: string | null
           coach_id: string
           created_at?: string
+          created_by?: string | null
           end_date?: string | null
           id?: string
           name_ar: string
@@ -3548,6 +3682,7 @@ export type Database = {
           client_id?: string | null
           coach_id?: string
           created_at?: string
+          created_by?: string | null
           end_date?: string | null
           id?: string
           name_ar?: string
@@ -3583,6 +3718,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3638,6 +3780,7 @@ export type Database = {
       }
       recipe_ingredients: {
         Row: {
+          created_by: string | null
           food_id: string
           id: string
           note: string | null
@@ -3647,6 +3790,7 @@ export type Database = {
           unit: string
         }
         Insert: {
+          created_by?: string | null
           food_id: string
           id?: string
           note?: string | null
@@ -3656,6 +3800,7 @@ export type Database = {
           unit?: string
         }
         Update: {
+          created_by?: string | null
           food_id?: string
           id?: string
           note?: string | null
@@ -3665,6 +3810,13 @@ export type Database = {
           unit?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "recipe_ingredients_food_id_fkey"
             columns: ["food_id"]
@@ -3701,6 +3853,7 @@ export type Database = {
           coach_id: string
           cook_minutes: number | null
           created_at: string
+          created_by: string | null
           description: string | null
           id: string
           image_path: string | null
@@ -3717,6 +3870,7 @@ export type Database = {
           coach_id: string
           cook_minutes?: number | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           image_path?: string | null
@@ -3733,6 +3887,7 @@ export type Database = {
           coach_id?: string
           cook_minutes?: number | null
           created_at?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           image_path?: string | null
@@ -3752,12 +3907,20 @@ export type Database = {
             referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "recipes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       rehab_phases: {
         Row: {
           client_id: string | null
           coach_id: string
+          created_by: string | null
           from_week: number
           goals_ar: string | null
           goals_en: string | null
@@ -3773,6 +3936,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           coach_id: string
+          created_by?: string | null
           from_week: number
           goals_ar?: string | null
           goals_en?: string | null
@@ -3788,6 +3952,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           coach_id?: string
+          created_by?: string | null
           from_week?: number
           goals_ar?: string | null
           goals_en?: string | null
@@ -3830,6 +3995,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "rehab_phases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rehab_phases_protocol_id_fkey"
             columns: ["protocol_id"]
             isOneToOne: false
@@ -3843,6 +4015,7 @@ export type Database = {
           body_area: string
           client_id: string | null
           coach_id: string
+          created_by: string | null
           id: string
           injury_ar: string | null
           injury_en: string | null
@@ -3857,6 +4030,7 @@ export type Database = {
           body_area: string
           client_id?: string | null
           coach_id: string
+          created_by?: string | null
           id?: string
           injury_ar?: string | null
           injury_en?: string | null
@@ -3871,6 +4045,7 @@ export type Database = {
           body_area?: string
           client_id?: string | null
           coach_id?: string
+          created_by?: string | null
           id?: string
           injury_ar?: string | null
           injury_en?: string | null
@@ -3908,6 +4083,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rehab_protocols_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -4586,12 +4768,15 @@ export type Database = {
       }
       workout_set_logs: {
         Row: {
+          calories: number | null
           client_id: string
           client_logged_at: string | null
           coach_id: string
           completed_at: string
+          distance_m: number | null
           duration_seconds: number | null
           exercise_id: string | null
+          extra: Json | null
           id: string
           notes: string | null
           prescribed_reps: number | null
@@ -4599,6 +4784,7 @@ export type Database = {
           program_item_id: string
           relationship_id: string | null
           reps: number | null
+          rir: number | null
           rpe: number | null
           session_id: string
           set_index: number
@@ -4606,12 +4792,15 @@ export type Database = {
           weight: number | null
         }
         Insert: {
+          calories?: number | null
           client_id: string
           client_logged_at?: string | null
           coach_id: string
           completed_at?: string
+          distance_m?: number | null
           duration_seconds?: number | null
           exercise_id?: string | null
+          extra?: Json | null
           id?: string
           notes?: string | null
           prescribed_reps?: number | null
@@ -4619,6 +4808,7 @@ export type Database = {
           program_item_id: string
           relationship_id?: string | null
           reps?: number | null
+          rir?: number | null
           rpe?: number | null
           session_id: string
           set_index: number
@@ -4626,12 +4816,15 @@ export type Database = {
           weight?: number | null
         }
         Update: {
+          calories?: number | null
           client_id?: string
           client_logged_at?: string | null
           coach_id?: string
           completed_at?: string
+          distance_m?: number | null
           duration_seconds?: number | null
           exercise_id?: string | null
+          extra?: Json | null
           id?: string
           notes?: string | null
           prescribed_reps?: number | null
@@ -4639,6 +4832,7 @@ export type Database = {
           program_item_id?: string
           relationship_id?: string | null
           reps?: number | null
+          rir?: number | null
           rpe?: number | null
           session_id?: string
           set_index?: number
@@ -4807,6 +5001,7 @@ export type Database = {
           image_url: string | null
           instructions_ar: string | null
           instructions_en: string | null
+          measurement_type: string | null
           mistakes_ar: string[] | null
           mistakes_en: string[] | null
           muscle_group: string | null
@@ -5064,10 +5259,13 @@ export type Database = {
         Args: { p_client_id: string; p_from?: string; p_to?: string }
         Returns: {
           best_at: string
+          best_distance: number
+          best_duration: number
           best_reps: number
           best_weight: number
           exercise_id: string
           last_at: string
+          max_reps: number
           set_count: number
         }[]
       }

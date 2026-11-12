@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { ScaleButtons } from "@/components/ui/scale-buttons";
 import { logActivityAction } from "@/domain/workouts/workouts-actions";
 
 export type ActivityLogTarget = {
@@ -37,6 +38,9 @@ export function ActivityLogSheet({
   const [pending, startTransition] = useTransition();
   const [durationMin, setDurationMin] = useState("");
   const [distanceKm, setDistanceKm] = useState("");
+  const [kcal, setKcal] = useState("");
+  const [avgHr, setAvgHr] = useState("");
+  const [rpe, setRpe] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
 
   // Reset the form's prefill whenever a different activity opens — a plain
@@ -47,6 +51,9 @@ export function ActivityLogSheet({
     setLastActivityId(activity.id);
     setDurationMin(activity.duration_min != null ? String(activity.duration_min) : "");
     setDistanceKm(activity.distance_km != null ? String(activity.distance_km) : "");
+    setKcal("");
+    setAvgHr("");
+    setRpe(null);
     setNotes("");
   }
 
@@ -56,6 +63,9 @@ export function ActivityLogSheet({
       const result = await logActivityAction(activity.id, {
         duration_min: durationMin ? Number(durationMin) : null,
         distance_km: distanceKm ? Number(distanceKm) : null,
+        kcal: kcal ? Number(kcal) : null,
+        avg_hr: avgHr ? Number(avgHr) : null,
+        rpe,
         notes: notes || null,
       });
       if ("error" in result) {
@@ -69,7 +79,7 @@ export function ActivityLogSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex flex-col gap-4 rounded-t-2xl p-5">
+      <SheetContent side="bottom" className="flex max-h-[92dvh] flex-col gap-4 overflow-y-auto rounded-t-2xl p-5">
         <SheetTitle>{t("title")}</SheetTitle>
         <div className="flex flex-col gap-2">
           <Label htmlFor="activity-duration">{t("durationMin")}</Label>
@@ -95,6 +105,38 @@ export function ActivityLogSheet({
             />
           </div>
         )}
+        {activity?.kind === "cardio" && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="activity-kcal">{t("kcal")}</Label>
+              <Input
+                id="activity-kcal"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={5000}
+                value={kcal}
+                onChange={(e) => setKcal(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="activity-hr">{t("avgHr")}</Label>
+              <Input
+                id="activity-hr"
+                type="number"
+                inputMode="numeric"
+                min={30}
+                max={250}
+                value={avgHr}
+                onChange={(e) => setAvgHr(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        <div className="flex flex-col gap-2">
+          <Label>{t("rpe")}</Label>
+          <ScaleButtons value={rpe ?? undefined} onChange={(v) => setRpe(rpe === v ? null : v)} min={1} max={10} />
+        </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="activity-notes">{t("notes")}</Label>
           <Input id="activity-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />

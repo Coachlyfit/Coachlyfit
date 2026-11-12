@@ -1,10 +1,15 @@
 import { z } from "zod";
 import { MUSCLE_GROUPS, FOOD_CATEGORIES } from "@/domain/library/taxonomy";
+import { MEASUREMENT_TYPES } from "@/domain/library/measurement";
 
 export const createExerciseSchema = z.object({
   name_ar: z.string().min(1).max(100),
   name_en: z.string().min(1).max(100),
   muscle_group: z.enum(MUSCLE_GROUPS).optional(),
+  // How the exercise is measured (weight × reps, a timed hold, a distance...)
+  // — decides the inputs the builder/runner show. Omitted = unchanged on edit,
+  // the column default (weight_reps) on create.
+  measurement_type: z.enum(MEASUREMENT_TYPES).optional(),
   equipment: z.string().max(50).optional(),
   video_url: z.string().url().optional().or(z.literal("")),
   image_url: z.string().url().optional().or(z.literal("")),

@@ -45,15 +45,20 @@ export type CreateDayInput = {
 export type UpdateDayInput = Partial<CreateDayInput>;
 
 /** One prescribed set — the week-1 base that `progression.ts` projects onto
- * weeks 2-12. `weight: null` means bodyweight/unloaded. Exactly one of
- * `reps`/`duration_seconds` is set — a duration set (a rehab hold, a
- * stretch) has `reps` omitted, everything else has `duration_seconds`
- * omitted. Matches the DB's program_item_sets_reps_or_duration check. */
+ * weeks 2-12. `weight: null` means bodyweight/unloaded; a negative weight is
+ * assisted bodyweight work (see measurement.ts). At least one measure —
+ * reps, duration_seconds, distance_m, calories or an `extra` metric — must be
+ * set, matching the DB's program_item_sets_has_measure check; which ones a
+ * set carries depends on the exercise's measurement_type. */
 export type SetInput = {
   reps?: number | null;
   weight?: number | null;
   rest_seconds?: number | null;
   duration_seconds?: number | null;
+  distance_m?: number | null;
+  calories?: number | null;
+  /** rounds, work_s, rest_s, level, incline, speed, laps, steps. */
+  extra?: Record<string, number> | null;
 };
 
 export type CreateItemInput = {
@@ -137,6 +142,7 @@ export type ProgramTree = Program & {
         | "tempo"
         | "primary_muscles"
         | "secondary_muscles"
+        | "measurement_type"
       >;
       program_item_sets: ProgramItemSet[];
     })[];
@@ -187,6 +193,9 @@ function setRows(sets: SetInput[], coachId: string, clientId: string | null, pro
     weight: set.weight ?? null,
     rest_seconds: set.rest_seconds ?? null,
     duration_seconds: set.duration_seconds ?? null,
+    distance_m: set.distance_m ?? null,
+    calories: set.calories ?? null,
+    extra: set.extra ?? null,
   }));
 }
 
@@ -300,7 +309,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, primary_muscles, secondary_muscles), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)`
+        `*, program_days(*, program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, primary_muscles, secondary_muscles, measurement_type), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)`
       )
       .eq("client_id", clientId)
       .is("archived_at", null)
@@ -319,7 +328,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, equipment, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, primary_muscles, secondary_muscles), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)"
+        "*, program_days(*, program_items(*, exercises(id, name_ar, name_en, muscle_group, equipment, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, primary_muscles, secondary_muscles, measurement_type), program_item_sets(*)), program_activities(*)), rehab_protocols(*, rehab_phases(*)), diet_variants:diet_plans(id, name_ar, name_en, target_kcal, target_protein_g, target_carb_g, target_fat_g)"
       )
       .eq("id", programId)
       .order("order_index", { referencedTable: "program_days" })
@@ -518,6 +527,9 @@ export class ProgramsService {
               weight: set.weight,
               rest_seconds: set.rest_seconds,
               duration_seconds: set.duration_seconds,
+              distance_m: set.distance_m,
+              calories: set.calories,
+              extra: set.extra,
             }))
           );
           if (setsError) throw setsError;
@@ -757,6 +769,9 @@ export class ProgramsService {
           weight: set.weight,
           rest_seconds: set.rest_seconds,
           duration_seconds: set.duration_seconds,
+          distance_m: set.distance_m,
+          calories: set.calories,
+          extra: set.extra,
         }))
       );
       if (setsError) throw setsError;
@@ -851,6 +866,9 @@ export class ProgramsService {
             weight: set.weight,
             rest_seconds: set.rest_seconds,
             duration_seconds: set.duration_seconds,
+            distance_m: set.distance_m,
+            calories: set.calories,
+            extra: set.extra,
           }))
         );
         if (setsError) throw setsError;
@@ -1167,6 +1185,9 @@ export class ProgramsService {
               weight: set.weight,
               rest_seconds: set.rest_seconds,
               duration_seconds: set.duration_seconds,
+              distance_m: set.distance_m,
+              calories: set.calories,
+              extra: set.extra,
             }))
           );
           if (setsError) throw setsError;

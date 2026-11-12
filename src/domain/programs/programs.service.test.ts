@@ -491,6 +491,30 @@ describe("ProgramsService", () => {
       ]);
     });
 
+    it("clones distance, calories and extra metrics on each set (a run, an assisted pull-up)", async () => {
+      const withRun = structuredClone(tree) as typeof tree;
+      withRun.program_days[0].program_items[0].program_item_sets = [
+        {
+          id: "set-1",
+          set_index: 1,
+          reps: null,
+          weight: null,
+          rest_seconds: null,
+          duration_seconds: 1800,
+          distance_m: 5000,
+          calories: 300,
+          extra: { incline: 2 },
+        },
+      ] as never;
+      const { db, inserts } = fakeSupabase({ treeRow: withRun });
+      await new ProgramsService(db).cloneToClient("template-1", "client-9");
+
+      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
+      expect(setsInsert?.payload).toEqual([
+        expect.objectContaining({ duration_seconds: 1800, distance_m: 5000, calories: 300, extra: { incline: 2 } }),
+      ]);
+    });
+
     it("returns null without inserting when the source tree isn't visible", async () => {
       const { db, inserts } = fakeSupabase({ treeRow: null });
       const result = await new ProgramsService(db).cloneToClient("template-1", "client-9");

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import type { MeasurementType } from "./measurement";
 
 // Read shape: the base Row plus what only the exercises_visible/foods_visible
 // views add (20260805000001_library_clone.sql) — the cloned-from row's own
@@ -24,6 +25,7 @@ export type CreateExerciseInput = {
   name_ar: string;
   name_en: string;
   muscle_group?: string;
+  measurement_type?: MeasurementType;
   equipment?: string;
   video_url?: string;
   image_url?: string;

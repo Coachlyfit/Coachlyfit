@@ -75,6 +75,7 @@ import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 import { RevisionHistoryDrawer } from "./revision-history-drawer";
 import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
 import type { PickedExercise } from "./exercise-media";
+import { formatSetMeasures, measuresFromRow } from "@/domain/workouts/set-measures";
 import { VolumeSidebar } from "./volume-sidebar";
 import { Link, useRouter } from "@/i18n/navigation";
 
@@ -110,6 +111,7 @@ function SortableItem({
   onDuplicate: () => void;
 }) {
   const t = useTranslations("programs.builder");
+  const tm = useTranslations("measure");
   const readOnly = week !== 1;
   const sortable = useSortable({ id: item.id, disabled: readOnly });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
@@ -160,7 +162,7 @@ function SortableItem({
               key={i}
               className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
             >
-              {set.reps}×{set.weight != null ? `${set.weight}kg` : t("bodyweight")}
+              {formatSetMeasures(item.exercises.measurement_type, item.block, measuresFromRow(set), tm)}
             </span>
           ))}
         </div>

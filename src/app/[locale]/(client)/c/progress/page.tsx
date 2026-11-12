@@ -7,7 +7,8 @@ import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.s
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { checkinStreak, adherenceAverage, weightTrend } from "@/domain/progress/stats";
 import { metricPresetI18nKey } from "@/domain/progress/metric-presets";
-import { computePersonalRecords } from "@/domain/progress/prs";
+import { computeMeasureRecords, computePersonalRecords } from "@/domain/progress/prs";
+import { buildPrRows } from "@/domain/progress/pr-rows";
 import { pickLocale } from "@/domain/locale";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
@@ -65,25 +66,17 @@ export default async function ClientProgressPage({
 
   const setLogs = await new WorkoutsService(supabase).listSetLogsForClient(client!.id);
   const records = computePersonalRecords(setLogs);
+  const measureRecords = computeMeasureRecords(setLogs);
   let prRows: PrListRow[] = [];
-  if (records.length > 0) {
+  const prExerciseIds = [...new Set([...records, ...measureRecords].map((r) => r.exerciseId))];
+  if (prExerciseIds.length > 0) {
     const { data: exercises } = await supabase
       .from("exercises")
-      .select("id, name_ar, name_en")
-      .in(
-        "id",
-        records.map((r) => r.exerciseId)
-      );
-    const nameById = new Map((exercises ?? []).map((e) => [e.id, { name_ar: e.name_ar, name_en: e.name_en }]));
-    prRows = records
-      .filter((r) => nameById.has(r.exerciseId))
-      .map((r) => ({
-        exerciseId: r.exerciseId,
-        exerciseName: nameById.get(r.exerciseId)!,
-        maxWeight: r.maxWeight ? { weight: r.maxWeight.weight, reps: r.maxWeight.reps } : null,
-        estimatedOneRepMax: r.estimatedOneRepMax?.value ?? null,
-      }))
-      .sort((a, b) => pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale)));
+      .select("id, name_ar, name_en, measurement_type")
+      .in("id", prExerciseIds);
+    prRows = buildPrRows(records, measureRecords, exercises ?? []).sort((a, b) =>
+      pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale))
+    );
   }
 
   const signed = await progress.signMediaUrls(media.map((m) => m.storage_path));

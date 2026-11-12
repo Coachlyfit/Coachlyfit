@@ -28,7 +28,7 @@ export async function adminSearchFoodsAction(params: LibraryQuery = {}) {
 }
 
 const EXERCISE_FIELDS = [
-  "name_ar", "name_en", "muscle_group", "equipment", "video_url", "image_url",
+  "name_ar", "name_en", "muscle_group", "measurement_type", "equipment", "video_url", "image_url",
   "instructions_ar", "instructions_en", "cues_ar", "cues_en", "steps_ar", "steps_en",
   "mistakes_ar", "mistakes_en", "safety_ar", "safety_en", "tempo", "primary_muscles",
   "secondary_muscles", "difficulty", "thumbnail_url", "video_url_alt",

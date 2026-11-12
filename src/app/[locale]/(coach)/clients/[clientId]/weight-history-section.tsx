@@ -6,7 +6,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { ProgressLineChart } from "@/components/charts/progress-line-chart";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
-import { dateBounds, historyQuery, topSetsBySession, type HistoryParams } from "@/domain/workouts/weight-history";
+import { dateBounds, historyQuery, metricSeries, type HistoryParams } from "@/domain/workouts/weight-history";
+import { normalizeMeasurementType, primaryMetric, type PrimaryMetric } from "@/domain/library/measurement";
+import { formatSetMeasures, EMPTY_MEASURES, type SetMeasures } from "@/domain/workouts/set-measures";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
 import { WeightHistoryFilters } from "./weight-history-filters";
@@ -30,16 +32,19 @@ async function loadHistory(clientId: string, locale: AppLocale, params: HistoryP
   const ids = [...new Set([...bests.map((b) => b.exercise_id), ...(params.exerciseId ? [params.exerciseId] : [])])];
   const { data: exerciseRows, error } =
     ids.length > 0
-      ? await supabase.from("exercises").select("id, name_ar, name_en").in("id", ids)
+      ? await supabase.from("exercises").select("id, name_ar, name_en, measurement_type").in("id", ids)
       : { data: [], error: null };
   if (error) throw error;
   const names = new Map((exerciseRows ?? []).map((e) => [e.id, pickLocale(e, locale)]));
+  const types = new Map((exerciseRows ?? []).map((e) => [e.id, normalizeMeasurementType(e.measurement_type)]));
 
-  // Chart: the selected exercise, else the one logged most often.
+  // Chart: the selected exercise, else the one logged most often, on that
+  // exercise's headline metric (kg, reps, hold time, distance, pace, kcal).
   const chartId = params.exerciseId ?? [...bests].sort((a, b) => b.set_count - a.set_count)[0]?.exercise_id ?? null;
-  const chartData = chartId ? topSetsBySession(await workouts.listExerciseSeries(clientId, chartId, bounds)) : [];
+  const chartMetric = primaryMetric(chartId ? types.get(chartId) : undefined);
+  const chartData = chartId ? metricSeries(await workouts.listExerciseSeries(clientId, chartId, bounds), chartMetric) : [];
 
-  return { sessions, hasMore, bests, ids, names, chartId, chartData };
+  return { sessions, hasMore, bests, ids, names, types, chartId, chartData, chartMetric };
 }
 
 export async function WeightHistorySection({
@@ -52,6 +57,7 @@ export async function WeightHistorySection({
   params: HistoryParams;
 }) {
   const t = await getTranslations("clients.weightHistory");
+  const tm = await getTranslations("measure");
 
   let data: Awaited<ReturnType<typeof loadHistory>> | null = null;
   try {
@@ -79,12 +85,42 @@ export async function WeightHistorySection({
     );
   }
 
-  const { sessions, hasMore, bests, ids, names, chartId, chartData } = data;
+  const { sessions, hasMore, bests, ids, names, types, chartId, chartData, chartMetric } = data;
   const nameOf = (id: string) => names.get(id) || t("unknownExercise");
   const options = ids.map((id) => ({ id, name: nameOf(id) })).sort((a, b) => a.name.localeCompare(b.name));
+  const metricOf = (id: string): PrimaryMetric => primaryMetric(types.get(id));
+  // What each exercise's "best set" line is made of: weight × reps for load
+  // exercises, otherwise its best reps / hold / distance (+ time).
+  const bestMeasures = (b: (typeof bests)[number]): SetMeasures => {
+    switch (metricOf(b.exercise_id)) {
+      case "reps":
+        return { ...EMPTY_MEASURES, reps: b.max_reps };
+      case "duration":
+        return { ...EMPTY_MEASURES, duration_seconds: b.best_duration };
+      case "distance":
+      case "pace":
+        return { ...EMPTY_MEASURES, distance_m: b.best_distance, duration_seconds: b.best_duration };
+      default:
+        return EMPTY_MEASURES;
+    }
+  };
+  const hasBest = (b: (typeof bests)[number]) => {
+    if (metricOf(b.exercise_id) === "weight") return b.best_weight > 0;
+    const m = bestMeasures(b);
+    return m.reps != null || m.duration_seconds != null || m.distance_m != null;
+  };
   const bestRows = bests
-    .filter((b) => b.best_weight > 0 && (!params.exerciseId || b.exercise_id === params.exerciseId))
+    .filter((b) => hasBest(b) && (!params.exerciseId || b.exercise_id === params.exerciseId))
     .sort((a, b) => nameOf(a.exercise_id).localeCompare(nameOf(b.exercise_id)));
+  const chartUnit: Record<PrimaryMetric, string> = {
+    weight: "kg",
+    reps: tm("unit.reps"),
+    duration: tm("unit.seconds"),
+    distance: tm("unit.meters"),
+    pace: tm("unit.pace"),
+    calories: tm("unit.kcal"),
+    extra: "",
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,10 +140,12 @@ export async function WeightHistorySection({
                     <span className="min-w-0 flex-1 truncate text-sm">{nameOf(b.exercise_id)}</span>
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="font-mono text-sm font-semibold tabular-nums">
-                        {t("bestSetLine", {
-                          weight: formatNumber(b.best_weight, locale, { maximumFractionDigits: 1 }),
-                          reps: b.best_reps ?? "—",
-                        })}
+                        {metricOf(b.exercise_id) === "weight"
+                          ? t("bestSetLine", {
+                              weight: formatNumber(b.best_weight, locale, { maximumFractionDigits: 1 }),
+                              reps: b.best_reps ?? "—",
+                            })
+                          : formatSetMeasures(types.get(b.exercise_id), null, bestMeasures(b), tm)}
                       </span>
                       <span className="text-[11px] text-muted-foreground tabular-nums">
                         {formatDate(b.best_at, locale, { dateStyle: "medium" })} · {t("setCount", { count: b.set_count })}
@@ -125,7 +163,12 @@ export async function WeightHistorySection({
                 <CardTitle className="text-base">{t("chartTitle", { exercise: nameOf(chartId) })}</CardTitle>
               </CardHeader>
               <CardContent>
-                <ProgressLineChart data={chartData} label={nameOf(chartId)} color="var(--chart-1)" unit="kg" />
+                <ProgressLineChart
+                  data={chartData}
+                  label={nameOf(chartId)}
+                  color="var(--chart-1)"
+                  unit={chartUnit[chartMetric]}
+                />
               </CardContent>
             </Card>
           )}

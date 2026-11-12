@@ -1,6 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { computeSessionSummary } from "./summary";
+import { sanitizeExtra } from "./set-measures";
+
+/** One logged set resolved to the exercise actually performed — the input
+ * shape prs.ts (strength and non-weight records) needs. */
+export type SetLogForClient = {
+  exercise_id: string;
+  weight: number | null;
+  reps: number | null;
+  duration_seconds: number | null;
+  distance_m: number | null;
+  calories: number | null;
+  completed_at: string;
+};
 
 type WorkoutSession = Database["public"]["Tables"]["workout_sessions"]["Row"];
 type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
@@ -14,11 +27,21 @@ export type LogSetInput = {
   client_logged_at?: string;
   program_item_id: string;
   set_index: number;
+  /** Negative for assisted bodyweight work (see measurement.ts). */
   weight?: number | null;
   reps?: number | null;
-  /** Actual hold time for a duration-based set (a rehab hold, a stretch) —
-   * the logged counterpart to program_item_sets.duration_seconds. */
+  /** Actual hold/work time for a duration-based set — the logged counterpart
+   * to program_item_sets.duration_seconds. */
   duration_seconds?: number | null;
+  /** Metres, whatever unit the client typed it in. */
+  distance_m?: number | null;
+  calories?: number | null;
+  /** Reps in reserve. */
+  rir?: number | null;
+  /** Long-tail metrics: rounds, work_s, rest_s, level, incline, speed, laps,
+   * steps, plus the per-set tags side ('left'|'right') and set_type
+   * ('warmup'|'drop'|'failure'). */
+  extra?: Record<string, number | string> | null;
   /** Which exercise the client actually performed this set on, if different
    * from what program_items prescribes. null/omitted = prescribed exercise,
    * same as before this field existed. */
@@ -31,6 +54,10 @@ export type UpdateSetInput = {
   weight?: number | null;
   reps?: number | null;
   duration_seconds?: number | null;
+  distance_m?: number | null;
+  calories?: number | null;
+  rir?: number | null;
+  extra?: Record<string, number | string> | null;
   rpe?: number | null;
   notes?: string | null;
 };
@@ -39,6 +66,10 @@ export type LastPerformance = {
   weight: number | null;
   reps: number | null;
   rpe: number | null;
+  duration_seconds: number | null;
+  distance_m: number | null;
+  calories: number | null;
+  extra: Record<string, number | string> | null;
 };
 
 export type ExerciseResultInput = {
@@ -68,7 +99,10 @@ export type HistorySession = {
     set_index: number;
     weight: number | null;
     reps: number | null;
-    exercises: { name_ar: string; name_en: string } | null;
+    duration_seconds?: number | null;
+    distance_m?: number | null;
+    calories?: number | null;
+    exercises: { name_ar: string; name_en: string; measurement_type?: string | null } | null;
   }[];
 };
 
@@ -76,6 +110,9 @@ export type ExerciseSeriesPoint = {
   session_id: string;
   weight: number | null;
   reps: number | null;
+  duration_seconds?: number | null;
+  distance_m?: number | null;
+  calories?: number | null;
   completed_at: string;
 };
 
@@ -299,17 +336,28 @@ export class WorkoutsService {
 
     let q = this.db
       .from("workout_set_logs")
-      .select("weight, reps, rpe, completed_at, program_items!inner(exercise_id)")
+      .select("weight, reps, rpe, duration_seconds, distance_m, calories, extra, completed_at, program_items!inner(exercise_id)")
       .in("program_items.exercise_id", exerciseIds);
     if (excludeSessionId) q = q.neq("session_id", excludeSessionId);
     const { data, error } = await q.order("completed_at", { ascending: false }).limit(200);
     if (error) throw error;
 
     const byExercise = new Map<string, LastPerformance>();
-    for (const row of data as unknown as { weight: number | null; reps: number | null; rpe: number | null; program_items: { exercise_id: string } | null }[]) {
+    for (const row of data as unknown as (Omit<LastPerformance, "extra"> & {
+      extra: unknown;
+      program_items: { exercise_id: string } | null;
+    })[]) {
       const exerciseId = row.program_items?.exercise_id;
       if (!exerciseId || byExercise.has(exerciseId)) continue;
-      byExercise.set(exerciseId, { weight: row.weight, reps: row.reps, rpe: row.rpe });
+      byExercise.set(exerciseId, {
+        weight: row.weight,
+        reps: row.reps,
+        rpe: row.rpe,
+        duration_seconds: row.duration_seconds,
+        distance_m: row.distance_m,
+        calories: row.calories,
+        extra: sanitizeExtra(row.extra),
+      });
     }
     return byExercise;
   }
@@ -400,27 +448,29 @@ export class WorkoutsService {
    * the caller's own logs (client) or their own clients' logs (coach) — no
    * separate clientId filter needed beyond what the caller already has
    * from their session. */
-  async listSetLogsForClient(clientId: string, since?: string): Promise<{ exercise_id: string; weight: number | null; reps: number | null; completed_at: string }[]> {
+  async listSetLogsForClient(clientId: string, since?: string): Promise<SetLogForClient[]> {
     let q = this.db
       .from("workout_set_logs")
-      .select("weight, reps, completed_at, substituted_exercise_id, program_items!inner(exercise_id)")
+      .select(
+        "weight, reps, duration_seconds, distance_m, calories, completed_at, substituted_exercise_id, program_items!inner(exercise_id)"
+      )
       .eq("client_id", clientId);
     if (since) q = q.gte("completed_at", since);
     const { data, error } = await q.order("completed_at", { ascending: true });
     if (error) throw error;
 
-    return (data as unknown as {
-      weight: number | null;
-      reps: number | null;
-      completed_at: string;
+    return (data as unknown as (Omit<SetLogForClient, "exercise_id"> & {
       substituted_exercise_id: string | null;
       program_items: { exercise_id: string } | null;
-    }[])
+    })[])
       .filter((row) => row.program_items != null)
       .map((row) => ({
         exercise_id: row.substituted_exercise_id ?? row.program_items!.exercise_id,
         weight: row.weight,
         reps: row.reps,
+        duration_seconds: row.duration_seconds,
+        distance_m: row.distance_m,
+        calories: row.calories,
         completed_at: row.completed_at,
       }));
   }
@@ -503,7 +553,7 @@ export class WorkoutsService {
     let q = this.db
       .from("workout_sessions")
       .select(
-        "id, started_at, program_days(label_ar, label_en), workout_set_logs!inner(exercise_id, set_index, weight, reps, exercises!workout_set_logs_exercise_id_fkey(name_ar, name_en))"
+        "id, started_at, program_days(label_ar, label_en), workout_set_logs!inner(exercise_id, set_index, weight, reps, duration_seconds, distance_m, calories, exercises!workout_set_logs_exercise_id_fkey(name_ar, name_en, measurement_type))"
       )
       .eq("client_id", clientId);
     if (opts.fromIso) q = q.gte("started_at", opts.fromIso);
@@ -525,7 +575,7 @@ export class WorkoutsService {
   ): Promise<ExerciseSeriesPoint[]> {
     let q = this.db
       .from("workout_set_logs")
-      .select("session_id, weight, reps, completed_at")
+      .select("session_id, weight, reps, duration_seconds, distance_m, calories, completed_at")
       .eq("client_id", clientId)
       .eq("exercise_id", exerciseId);
     if (opts.fromIso) q = q.gte("completed_at", opts.fromIso);

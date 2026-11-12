@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MUSCLE_GROUPS } from "@/domain/library/taxonomy";
+import { MEASUREMENT_TYPES } from "@/domain/library/measurement";
 import type { CreateExerciseInput } from "./schemas";
 
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
@@ -36,6 +37,7 @@ export function ExerciseFields({
 }) {
   const t = useTranslations("library.exercise");
   const tGroups = useTranslations("library.muscleGroups");
+  const tTypes = useTranslations("measure.types");
   const id = (name: string) => `${idPrefix}${name}`;
 
   return (
@@ -74,6 +76,32 @@ export function ExerciseFields({
             </Select>
           )}
         />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("measurement_type")}>{t("measurementType")}</Label>
+        <Controller
+          name="measurement_type"
+          control={control}
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              items={MEASUREMENT_TYPES.map((type) => ({ value: type, label: tTypes(type) }))}
+            >
+              <SelectTrigger id={id("measurement_type")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MEASUREMENT_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {tTypes(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        <p className="text-xs text-muted-foreground">{t("measurementTypeHint")}</p>
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor={id("equipment")}>{t("equipment")}</Label>

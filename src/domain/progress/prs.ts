@@ -78,6 +78,72 @@ export function computeRecentPersonalRecords(logs: SetLogForPr[], sinceExclusive
   );
 }
 
+export type SetLogForMeasure = {
+  exercise_id: string;
+  reps?: number | null;
+  duration_seconds?: number | null;
+  distance_m?: number | null;
+  calories?: number | null;
+};
+
+/** Best non-weight results for one exercise — what a plank, a run, a row or a
+ * pull-up is judged on. `bestPace` is seconds per km (lower is better) and
+ * only counts sets that carry both a duration and a distance. */
+export type MeasureRecord = {
+  exerciseId: string;
+  maxReps: number | null;
+  maxDuration: number | null;
+  maxDistance: number | null;
+  bestPace: number | null;
+  maxCalories: number | null;
+  totalDistanceM: number;
+  totalDurationSeconds: number;
+};
+
+/** Below this a "pace" is GPS/typing noise (a 20 m set timed at 3 s is not a
+ * 2:30/km run). */
+const MIN_PACE_DISTANCE_M = 100;
+
+/** One MeasureRecord per exercise that has at least one reps/duration/
+ * distance/calories value. Complements computePersonalRecords, which only
+ * ever looks at weight × reps. */
+export function computeMeasureRecords(logs: SetLogForMeasure[]): MeasureRecord[] {
+  const byExercise = new Map<string, MeasureRecord>();
+  const best = (current: number | null, next: number | null | undefined, better: (a: number, b: number) => boolean) =>
+    next != null && next > 0 && (current == null || better(next, current)) ? next : current;
+
+  for (const log of logs) {
+    const rec =
+      byExercise.get(log.exercise_id) ??
+      ({
+        exerciseId: log.exercise_id,
+        maxReps: null,
+        maxDuration: null,
+        maxDistance: null,
+        bestPace: null,
+        maxCalories: null,
+        totalDistanceM: 0,
+        totalDurationSeconds: 0,
+      } satisfies MeasureRecord);
+
+    const more = (a: number, b: number) => a > b;
+    rec.maxReps = best(rec.maxReps, log.reps, more);
+    rec.maxDuration = best(rec.maxDuration, log.duration_seconds, more);
+    rec.maxDistance = best(rec.maxDistance, log.distance_m, more);
+    rec.maxCalories = best(rec.maxCalories, log.calories, more);
+    if (log.duration_seconds && log.duration_seconds > 0) rec.totalDurationSeconds += log.duration_seconds;
+    if (log.distance_m && log.distance_m > 0) rec.totalDistanceM += log.distance_m;
+    if (log.duration_seconds && log.distance_m && log.distance_m >= MIN_PACE_DISTANCE_M) {
+      rec.bestPace = best(rec.bestPace, log.duration_seconds / (log.distance_m / 1000), (a, b) => a < b);
+    }
+    byExercise.set(log.exercise_id, rec);
+  }
+
+  return [...byExercise.values()].filter(
+    (r) => r.maxReps != null || r.maxDuration != null || r.maxDistance != null || r.maxCalories != null
+  );
+}
+
 export type VolumePoint = { weekStart: string; volumeKg: number };
 
 // Monday-anchored ISO week, UTC-normalized — matches program-cycle.ts's
@@ -101,7 +167,8 @@ export function weeklyVolume(logs: SetLogForPr[]): VolumePoint[] {
   const byWeek = new Map<string, number>();
   for (const log of logs) {
     const week = isoWeekStart(log.completed_at.slice(0, 10));
-    const volume = log.weight != null && log.reps != null ? log.weight * log.reps : 0;
+    // Assisted sets (negative weight) are help received, not load lifted.
+    const volume = log.weight != null && log.weight > 0 && log.reps != null ? log.weight * log.reps : 0;
     byWeek.set(week, (byWeek.get(week) ?? 0) + volume);
   }
   return Array.from(byWeek.entries())
