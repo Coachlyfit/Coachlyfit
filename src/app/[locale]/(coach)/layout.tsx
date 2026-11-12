@@ -16,7 +16,7 @@ import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
 import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
-import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
+import { FeedbackWidget } from "@/components/feedback/feedback-widget";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 import { InboxRealtime } from "@/components/messages/unread-messages-badge";
 
@@ -156,7 +156,7 @@ export default async function CoachLayout({
         </main>
       </div>
       {!locked && <BottomNav locale={locale} features={features} isOwner={isOwner} />}
-      <FeedbackWidget />
+      <FeedbackWidget userId={user.id} />
     </div>
   );
 }

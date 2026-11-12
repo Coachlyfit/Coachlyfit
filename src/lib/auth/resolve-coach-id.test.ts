@@ -6,7 +6,7 @@ import { resolveCoachId } from "./resolve-coach-id";
 function fakeSupabase(opts: {
   userId: string | null;
   profileRole?: string | null;
-  coachRow: { id: string } | null;
+  coachRow: { id: string; archived_at?: string | null } | null;
   membershipRow: { coach_id: string } | null;
 }) {
   const db = {
@@ -68,6 +68,16 @@ describe("resolveCoachId", () => {
 
   it("returns the mapped coach_id when the user is an accepted team member", async () => {
     const db = fakeSupabase({ userId: "member-1", coachRow: null, membershipRow: { coach_id: "owner-1" } });
+    expect(await resolveCoachId(db)).toBe("owner-1");
+  });
+
+  it("returns the team's coach_id when the user's own workspace was archived on joining a team", async () => {
+    const db = fakeSupabase({
+      userId: "member-1",
+      profileRole: "coach",
+      coachRow: { id: "member-1", archived_at: "2026-11-12T00:00:00Z" },
+      membershipRow: { coach_id: "owner-1" },
+    });
     expect(await resolveCoachId(db)).toBe("owner-1");
   });
 

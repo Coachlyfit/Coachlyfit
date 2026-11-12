@@ -9,9 +9,70 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ConsentLine } from "@/components/legal/consent-line";
 import { joinSchema, type JoinInput } from "./schemas";
-import { acceptTeamInviteSignupAction } from "./actions";
+import { acceptTeamInviteSignupAction, acceptTeamInviteAction } from "./actions";
+import { TeamLoginForm } from "./team-login-form";
 
+/** Signed-out entry: create an account, or switch to signing in with an
+ * existing one. */
 export function TeamJoinForm({ locale, token }: { locale: string; token: string }) {
+  const tTeam = useTranslations("join.team");
+  const [mode, setMode] = useState<"signup" | "login">("signup");
+
+  return (
+    <div className="flex flex-col gap-4">
+      {mode === "login" ? (
+        <TeamLoginForm locale={locale} token={token} />
+      ) : (
+        <TeamSignupForm locale={locale} token={token} />
+      )}
+      <p className="text-center text-sm text-muted-foreground">
+        {mode === "login" ? null : `${tTeam("haveAccount")} `}
+        <button
+          type="button"
+          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+          className="font-medium text-foreground underline underline-offset-4"
+        >
+          {mode === "login" ? tTeam("newAccount") : tTeam("signIn")}
+        </button>
+      </p>
+    </div>
+  );
+}
+
+/** Signed-in entry: one click to accept as the current account. */
+export function TeamAcceptButton({ locale, token, email }: { locale: string; token: string; email: string }) {
+  const t = useTranslations("join.team");
+  const tErrors = useTranslations("clients.errors");
+  const tCommon = useTranslations("common");
+  const [pending, startTransition] = useTransition();
+  const [formError, setFormError] = useState<string | null>(null);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">{t("joinAs", { email })}</p>
+      {formError && (
+        <p role="alert" className="text-sm text-destructive">
+          {tErrors(formError)}
+        </p>
+      )}
+      <Button
+        disabled={pending}
+        className="w-full min-w-24"
+        onClick={() => {
+          setFormError(null);
+          startTransition(async () => {
+            const result = await acceptTeamInviteAction(locale, token);
+            if (result?.error) setFormError(result.error);
+          });
+        }}
+      >
+        {pending ? tCommon("pending") : t("joinButton")}
+      </Button>
+    </div>
+  );
+}
+
+function TeamSignupForm({ locale, token }: { locale: string; token: string }) {
   // ponytail: reuses join.form (fields are identical to the client-invite
   // flow) and clients.errors (error keys are generic, not client-specific)
   // rather than duplicating both namespaces under joinTeam.

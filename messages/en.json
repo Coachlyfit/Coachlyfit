@@ -815,6 +815,9 @@
       "already_your_client": "This person is already your client.",
       "subscription_inactive": "Your subscription isn't active, so you can't add clients. Reactivate it from the Subscription page.",
       "team_full": "This team is full. Ask the account owner to free a seat or upgrade their plan.",
+      "team_wrong_email": "This invite was sent to a different email. Use the email your coach invited.",
+      "team_owns_business": "This account already runs its own coaching business with data in it, so it can't join a team. Use a different email.",
+      "invalid_credentials": "Incorrect email or password.",
       "owner_only": "Only the account owner can manage client logins.",
       "already_active": "This client's account is already active.",
       "email_required": "Add an email for this client first.",
@@ -1047,7 +1050,13 @@
       "consent": "By creating an account you agree to the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>, and confirm you are 18 or older or have a parent's or guardian's consent."
     },
     "team": {
-      "heading": "You've been invited to join a coaching team"
+      "heading": "You've been invited to join a coaching team",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "submitLogin": "Sign in and join",
+      "newAccount": "New here? Create an account",
+      "joinAs": "Join this team as {email}",
+      "joinButton": "Join team"
     }
   },
   "client": {
@@ -2655,12 +2664,28 @@
       }
     },
     "feedback": {
-      "title": "Coach feedback",
+      "title": "Feedback",
       "empty": "No feedback yet.",
       "table": {
+        "author": "From",
+        "role": "Role",
+        "kind": "Type",
+        "rating": "Rating",
         "body": "Feedback",
+        "screenshot": "Screenshot",
         "date": "Date"
-      }
+      },
+      "roles": {
+        "coach": "Coach",
+        "client": "Client"
+      },
+      "kinds": {
+        "bug": "Problem",
+        "feature": "Feature",
+        "rating": "Rating"
+      },
+      "viewScreenshot": "View",
+      "unknownAuthor": "Unknown"
     },
     "emails": {
       "title": "Email coaches",
@@ -3947,13 +3972,45 @@
   },
   "feedback": {
     "trigger": "Send feedback",
-    "title": "Share your feedback",
-    "placeholder": "Write your note or suggestion here...",
+    "title": "Send feedback",
+    "kindLabel": "Type of feedback",
+    "kinds": {
+      "bug": "Report a problem",
+      "feature": "Suggest a feature",
+      "rating": "Rate Coachly Fit"
+    },
+    "ratingLabel": "Your rating",
+    "stars": "{count, plural, one {# star} other {# stars}}",
+    "description": "Description",
+    "optional": " (optional)",
+    "placeholders": {
+      "bug": "What happened, or what did you expect to see?",
+      "feature": "What would you like us to add?",
+      "rating": "Anything you'd like to add?"
+    },
+    "screenshot": {
+      "label": "Screenshot (optional)",
+      "add": "Add a screenshot",
+      "uploading": "Uploading…",
+      "remove": "Remove screenshot",
+      "alt": "Screenshot preview",
+      "hint": "JPG, PNG or WebP, up to {size} MB."
+    },
     "submit": "Send",
     "success": "Sent — thanks for your time.",
     "errors": {
       "invalid_input": "Please check your message and try again.",
-      "not_authenticated": "Please log in again."
+      "not_authenticated": "Please log in again.",
+      "forbidden": "Your account can't send feedback.",
+      "kind_required": "Pick what kind of feedback this is.",
+      "rating_required": "Tap a star to rate.",
+      "body_required": "Please describe it in a few words.",
+      "invalid_attachment": "That screenshot couldn't be attached. Remove it and try again.",
+      "too_many_today": "You've sent a lot of feedback today. Please try again tomorrow.",
+      "send_failed": "Couldn't send your feedback. Please try again.",
+      "invalid_file": "Use a JPG, PNG or WebP image.",
+      "file_too_large": "The image must be under {size} MB.",
+      "upload_failed": "Couldn't upload the image. Try again."
     }
   },
   "ledger": {
@@ -4784,6 +4841,25 @@
       "video_url": "https://example.com/bench-press",
       "instructions_ar": "استلقِ على البنش وأنزل البار ببطء",
       "instructions_en": "Lie on the bench and lower the bar slowly"
+    }
+  },
+  "offline": {
+    "offlineBanner": "You’re offline. Your workout is saved on this device and will sync when you’re back online.",
+    "pendingCount": "{count} waiting to sync",
+    "syncNow": "Sync now",
+    "syncing": "Syncing…",
+    "syncFailed": "{count} couldn’t sync.",
+    "retry": "Retry",
+    "dismiss": "Dismiss",
+    "synced": "All changes synced",
+    "noStorage": "Offline saving isn’t available in this browser (private mode?). Stay connected while you log your workout.",
+    "iosInstallHint": "To keep your offline logs safe, add this app to your Home Screen: tap Share, then Add to Home Screen.",
+    "setPending": "Pending sync",
+    "setFailed": "Sync failed",
+    "page": {
+      "title": "You’re offline",
+      "body": "Open a workout once while you’re online and it will be available here without a connection.",
+      "resume": "Resume workout"
     }
   }
 }

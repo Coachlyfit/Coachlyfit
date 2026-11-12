@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { mmss } from "@/domain/workouts/session-runner";
 import { formatNumber } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
+import { SyncStatusBar } from "@/components/offline/sync-status-bar";
 
 export type SummaryRow = { id: string; name: string; done: number; total: number; topWeight: number | null };
 
@@ -38,6 +39,7 @@ export function SessionSummary({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background text-foreground">
+      <SyncStatusBar />
       <main className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pt-[max(2rem,env(safe-area-inset-top))] pb-4">
         <div className="flex flex-col items-center gap-2.5 text-center">
           <span className="flex size-16 items-center justify-center rounded-full bg-success-tint text-success-tint-foreground">

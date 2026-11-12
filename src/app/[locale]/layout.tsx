@@ -91,6 +91,9 @@ export async function generateMetadata({
       ],
     },
     manifest: "/manifest.webmanifest",
+    // iOS Safari: lets "Add to Home Screen" open full-screen, which is also
+    // what makes its storage eviction-exempt enough for the offline outbox.
+    appleWebApp: { capable: true, title: appName, statusBarStyle: "default" },
     // No `alternates` here: every page under this layout would inherit the
     // home page as its canonical. Public pages set their own via
     // buildAlternates() (src/lib/seo.ts).

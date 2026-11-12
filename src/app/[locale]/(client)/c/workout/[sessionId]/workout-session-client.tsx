@@ -11,14 +11,13 @@ import { SetEntrySheet, type LoggedSetValues } from "@/components/workout/set-en
 import { ExerciseFeedbackSheet, type ExerciseFeedbackValues } from "@/components/workout/exercise-feedback-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
-import {
-  logSetAction,
-  updateSetAction,
-  deleteSetAction,
-  setExerciseResultAction,
-  saveSessionProgressAction,
-  completeSessionAction,
-} from "@/domain/workouts/workouts-actions";
+import { saveSessionProgressAction } from "@/domain/workouts/workouts-actions";
+import { SyncStatusBar } from "@/components/offline/sync-status-bar";
+import { LAST_WORKOUT_KEY } from "@/components/offline/resume-workout-link";
+import { Badge } from "@/components/ui/badge";
+import { submitOp } from "@/lib/offline/sync";
+import { useSetSyncStatus } from "@/lib/offline/use-offline";
+import { uuid } from "@/lib/offline/uuid";
 import { projectSetsForWeek, type BaseSet, type ProgressionRule } from "@/domain/programs/progression";
 import { useRestTimer } from "@/hooks/use-rest-timer";
 import { suggestNextWeight } from "@/domain/workouts/suggest";
@@ -131,6 +130,8 @@ export function WorkoutSessionClient({
   adjustedItemReasons: Record<string, string>;
 }) {
   const t = useTranslations("client.workout");
+  const tOffline = useTranslations("offline");
+  const syncStatus = useSetSyncStatus(sessionId);
   const tReason = useTranslations("review.reason.options");
   const tGroups = useTranslations("library.muscleGroups");
   const router = useRouter();
@@ -245,6 +246,16 @@ export function WorkoutSessionClient({
     return () => clearInterval(id);
   }, [completed]);
 
+  // The offline fallback page offers "Resume workout" from this.
+  useEffect(() => {
+    try {
+      if (completed) localStorage.removeItem(LAST_WORKOUT_KEY);
+      else localStorage.setItem(LAST_WORKOUT_KEY, window.location.pathname);
+    } catch {
+      // storage blocked: the fallback page just won't offer the shortcut
+    }
+  }, [completed]);
+
   // Persists elapsed time and the current exercise every 15s while the
   // session is active — a refresh or a killed tab resumes from here. A ref
   // for elapsedS avoids resetting this interval on every second tick.
@@ -255,7 +266,10 @@ export function WorkoutSessionClient({
   useEffect(() => {
     if (completed) return;
     const id = setInterval(() => {
-      saveSessionProgressAction(sessionId, elapsedRef.current, currentItemId);
+      // Best effort: not queued offline (the timer resumes from the next
+      // successful save), and a failed request must not surface as an
+      // unhandled rejection.
+      saveSessionProgressAction(sessionId, elapsedRef.current, currentItemId).catch(() => {});
     }, 15_000);
     return () => clearInterval(id);
   }, [completed, sessionId, currentItemId]);
@@ -290,15 +304,20 @@ export function WorkoutSessionClient({
     const substituted_exercise_id = swaps.get(item.id)?.id ?? null;
 
     const key = setKey(item.id, setIndex);
+    // The id and timestamp are minted here, before anything is saved, so a
+    // retried sync upserts the same row instead of creating a second one.
+    const id = uuid();
+    const loggedAt = new Date().toISOString();
     const optimistic: WorkoutSetLog = {
-      id: `optimistic-${key}`,
+      id,
       session_id: sessionId,
       program_item_id: item.id,
       set_index: setIndex,
       client_id: "",
       coach_id: "",
       relationship_id: null,
-      completed_at: new Date().toISOString(),
+      completed_at: loggedAt,
+      client_logged_at: loggedAt,
       prescribed_reps: prescribed.reps,
       prescribed_weight: prescribed.weight,
       weight,
@@ -336,28 +355,29 @@ export function WorkoutSessionClient({
       setCurrentItemId(item.id);
       setDraft(draftBefore);
     };
-    logSetAction(sessionId, {
-      program_item_id: item.id,
-      set_index: setIndex,
-      weight,
-      reps,
-      duration_seconds,
-      rpe: null,
-      notes: null,
-      substituted_exercise_id,
-    })
-      .then((result) => {
-        if ("error" in result) {
-          rollback();
-          toast.error(t("setEntry.saveFailed"));
-          return;
-        }
-        setLogs((prev) => new Map(prev).set(key, result.log));
-      })
-      .catch(() => {
-        rollback();
-        toast.error(t("setEntry.saveFailed"));
-      });
+    // Saved to the local outbox first (the row above is already on screen,
+    // badged "pending sync" until the server confirms). Only when there is no
+    // IndexedDB does this fall back to a direct send that can fail and roll back.
+    void submitOp({
+      kind: "set_upsert",
+      sessionId,
+      input: {
+        id,
+        client_logged_at: loggedAt,
+        program_item_id: item.id,
+        set_index: setIndex,
+        weight,
+        reps,
+        duration_seconds,
+        rpe: null,
+        notes: null,
+        substituted_exercise_id,
+      },
+    }).then((result) => {
+      if (result.status !== "error") return;
+      rollback();
+      toast.error(t("setEntry.saveFailed"));
+    });
   }
 
   function continueToNext() {
@@ -376,20 +396,19 @@ export function WorkoutSessionClient({
     setSavingSet(true);
     setLogs((prev) => new Map(prev).set(key, { ...existing, ...values }));
     setEditSet(null);
-    try {
-      const result = await updateSetAction(existing.id, values);
-      if ("error" in result) {
-        restoreRow(key, existing);
-        toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.saveFailed"));
-        return;
-      }
-      setLogs((prev) => new Map(prev).set(key, result.log));
-    } catch {
+    // An edit is an upsert of the same set (no client_logged_at, so its
+    // completed_at and 7-day lock window are untouched). If the original is
+    // still queued the two merge into one row.
+    const result = await submitOp({
+      kind: "set_upsert",
+      sessionId,
+      input: { id: existing.id, program_item_id: editSet.item.id, set_index: editSet.setIndex, ...values },
+    });
+    if (result.status === "error") {
       restoreRow(key, existing);
-      toast.error(t("setEntry.saveFailed"));
-    } finally {
-      setSavingSet(false);
+      toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.saveFailed"));
     }
+    setSavingSet(false);
   }
 
   async function deleteEditedSet() {
@@ -405,18 +424,12 @@ export function WorkoutSessionClient({
     setLogs(nextLogs);
     // The deleted set is now this exercise's open set — re-seed the dock.
     if (item.id === currentItemId) setDraft(seedDraft(item, nextLogs));
-    try {
-      const result = await deleteSetAction(existing.id);
-      if ("error" in result) {
-        restoreRow(key, existing);
-        toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.deleteFailed"));
-      }
-    } catch {
+    const result = await submitOp({ kind: "set_delete", sessionId, programItemId: item.id, setIndex: editSet.setIndex });
+    if (result.status === "error") {
       restoreRow(key, existing);
-      toast.error(t("setEntry.deleteFailed"));
-    } finally {
-      setSavingSet(false);
+      toast.error(result.error === "entry_locked" ? t("setEntry.entryLocked") : t("setEntry.deleteFailed"));
     }
+    setSavingSet(false);
   }
 
   async function saveResult(item: ProgramItem, input: { status: "done" | "skipped" } & Partial<ExerciseFeedbackValues>) {
@@ -429,13 +442,8 @@ export function WorkoutSessionClient({
       const nextItem = next && items.find((i) => i.id === next.itemId);
       if (nextItem) goTo(nextItem);
     }
-    try {
-      const result = await setExerciseResultAction(sessionId, item.id, input);
-      if ("error" in result) {
-        setExerciseResults(snapshot);
-        toast.error(t("feedback.saveFailed"));
-      }
-    } catch {
+    const result = await submitOp({ kind: "exercise_result", sessionId, programItemId: item.id, input });
+    if (result.status === "error") {
       setExerciseResults(snapshot);
       toast.error(t("feedback.saveFailed"));
     }
@@ -452,17 +460,14 @@ export function WorkoutSessionClient({
     if (finishing) return;
     setFinishing(true);
     // Reflect completion immediately — the summary doesn't depend on the
-    // server response, and completeSession is safe to retry.
+    // server response, and completeSession is safe to retry (queued behind
+    // this session's sets, so it always syncs after them).
     restTimer.skip();
     setCompleted(true);
     setView("summary");
-    try {
-      await completeSessionAction(sessionId, elapsedS);
-    } catch {
-      toast.error(t("finishSaveFailed"));
-    } finally {
-      setFinishing(false);
-    }
+    const result = await submitOp({ kind: "session_complete", sessionId, durationSeconds: elapsedS });
+    if (result.status === "error") toast.error(t("finishSaveFailed"));
+    setFinishing(false);
   }
 
   const dayLabel = day.label_ar || day.label_en ? pickLocale(day, locale, "label") : t("todayWorkout");
@@ -516,6 +521,7 @@ export function WorkoutSessionClient({
     // Fixed full-bleed overlay: a bare full-viewport session runner, not a
     // page inside the (client)/c layout's header/nav chrome.
     <div className="fixed inset-0 z-50 flex flex-col bg-background text-foreground">
+      <SyncStatusBar />
       <header className="flex shrink-0 flex-col gap-2 border-b border-border bg-card px-3 pt-[max(0.375rem,env(safe-area-inset-top))] pb-2.5">
         <div className="flex items-center gap-1.5">
           <button
@@ -661,6 +667,11 @@ export function WorkoutSessionClient({
                   <span className="min-w-0 flex-1 truncate text-end font-mono text-base font-semibold tabular-nums">
                     {setText(log)}
                   </span>
+                  {syncStatus.get(setKey(current.id, setIndex)) && (
+                    <Badge variant={syncStatus.get(setKey(current.id, setIndex)) === "failed" ? "destructive" : "warning"}>
+                      {syncStatus.get(setKey(current.id, setIndex)) === "failed" ? tOffline("setFailed") : tOffline("setPending")}
+                    </Badge>
+                  )}
                 </button>
               );
             }

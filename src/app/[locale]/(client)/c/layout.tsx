@@ -16,8 +16,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { InstallAppButton } from "@/components/install-app-button";
 import { CoachlyMark } from "@/components/brand/coachly-mark";
 import { Button } from "@/components/ui/button";
+import { FeedbackWidget } from "@/components/feedback/feedback-widget";
 import { PresenceHeartbeat } from "@/components/dashboard/presence-heartbeat";
 import { AnnouncementBanner } from "@/components/dashboard/announcement-banner";
+import { OfflineProvider } from "@/components/offline/offline-provider";
 import { ClientNav } from "./client-nav";
 
 export default async function ClientLayout({
@@ -91,6 +93,7 @@ export default async function ClientLayout({
     <div className="flex min-h-dvh flex-col">
       {branding && <BrandStyle css={branding.css} />}
       <PresenceHeartbeat />
+      <OfflineProvider userId={user.id} />
       {settings.announcement.enabled && (
         <AnnouncementBanner
           locale={locale as "ar" | "en"}
@@ -122,6 +125,7 @@ export default async function ClientLayout({
         {children}
       </main>
       <ClientNav formsDue={formsDue} unreadMessages={unreadMessages} />
+      <FeedbackWidget userId={user.id} />
     </div>
   );
 }

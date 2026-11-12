@@ -787,6 +787,7 @@ export type Database = {
       coaches: {
         Row: {
           address: string | null
+          archived_at: string | null
           brand_accent: string | null
           brand_primary: string | null
           brand_sidebar: string | null
@@ -807,6 +808,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          archived_at?: string | null
           brand_accent?: string | null
           brand_primary?: string | null
           brand_sidebar?: string | null
@@ -827,6 +829,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          archived_at?: string | null
           brand_accent?: string | null
           brand_primary?: string | null
           brand_sidebar?: string | null
@@ -1400,24 +1403,49 @@ export type Database = {
       }
       feedback: {
         Row: {
-          body: string
-          coach_id: string
+          author_id: string
+          author_name: string | null
+          author_role: string
+          body: string | null
+          coach_id: string | null
           created_at: string
           id: string
+          kind: string
+          rating: number | null
+          screenshot_path: string | null
         }
         Insert: {
-          body: string
-          coach_id: string
+          author_id: string
+          author_name?: string | null
+          author_role: string
+          body?: string | null
+          coach_id?: string | null
           created_at?: string
           id?: string
+          kind: string
+          rating?: number | null
+          screenshot_path?: string | null
         }
         Update: {
-          body?: string
-          coach_id?: string
+          author_id?: string
+          author_name?: string | null
+          author_role?: string
+          body?: string | null
+          coach_id?: string | null
           created_at?: string
           id?: string
+          kind?: string
+          rating?: number | null
+          screenshot_path?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "feedback_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "feedback_coach_id_fkey"
             columns: ["coach_id"]
@@ -4559,6 +4587,7 @@ export type Database = {
       workout_set_logs: {
         Row: {
           client_id: string
+          client_logged_at: string | null
           coach_id: string
           completed_at: string
           duration_seconds: number | null
@@ -4578,6 +4607,7 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          client_logged_at?: string | null
           coach_id: string
           completed_at?: string
           duration_seconds?: number | null
@@ -4597,6 +4627,7 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          client_logged_at?: string | null
           coach_id?: string
           completed_at?: string
           duration_seconds?: number | null
