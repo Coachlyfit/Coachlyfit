@@ -265,6 +265,7 @@ export function MealCard({
           id: `temp-${crypto.randomUUID()}`,
           coach_id: meal.coach_id,
           client_id: meal.client_id,
+          created_by: null, // server trigger stamps the real value
           meal_id: meal.id,
           food_id: food.id,
           recipe_id: null,
