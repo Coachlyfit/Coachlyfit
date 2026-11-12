@@ -9,11 +9,16 @@ import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 const setFieldsSchema = {
   weight: z.coerce.number().min(0).max(999).multipleOf(0.25).optional().nullable(),
   reps: z.coerce.number().int().min(0).max(200).optional().nullable(),
+  // The client already sends this for duration-based sets; without it here
+  // zod stripped it and the hold time was never saved.
+  duration_seconds: z.coerce.number().int().min(1).max(86_400).optional().nullable(),
   rpe: z.coerce.number().min(1).max(10).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
 };
 
 const logSetSchema = z.object({
+  id: z.string().uuid().optional(),
+  client_logged_at: z.string().datetime({ offset: true }).optional(),
   program_item_id: z.string().uuid(),
   set_index: z.coerce.number().int().min(0),
   substituted_exercise_id: z.string().uuid().optional().nullable(),
@@ -145,6 +150,68 @@ export async function saveSessionProgressAction(sessionId: string, elapsedSecond
 export async function completeSessionAction(sessionId: string, durationSeconds: number) {
   const supabase = await createClient();
   return new WorkoutsService(supabase).completeSession(sessionId, durationSeconds);
+}
+
+// One replayable write from the offline outbox (src/lib/offline). Every kind
+// is idempotent server-side: set_upsert hits the (session,item,set) unique
+// key, set_delete matches zero rows on replay, exercise_result upserts on
+// (session,item), session_complete recomputes its summary.
+const outboxOpSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("set_upsert"), sessionId: z.string().uuid(), input: logSetSchema }),
+  z.object({
+    kind: z.literal("set_delete"),
+    sessionId: z.string().uuid(),
+    programItemId: z.string().uuid(),
+    setIndex: z.coerce.number().int().min(0),
+  }),
+  z.object({
+    kind: z.literal("exercise_result"),
+    sessionId: z.string().uuid(),
+    programItemId: z.string().uuid(),
+    input: exerciseResultSchema,
+  }),
+  z.object({
+    kind: z.literal("session_complete"),
+    sessionId: z.string().uuid(),
+    durationSeconds: z.coerce.number().int().min(0).max(86_400),
+  }),
+]);
+
+export type OutboxOpInput = z.input<typeof outboxOpSchema>;
+
+/** `unauthenticated` means "keep it queued and retry after re-auth" — the
+ * sync engine must not count it as a failed attempt. */
+export async function syncOutboxOpAction(op: OutboxOpInput): Promise<{ error: string } | { ok: true }> {
+  const parsed = outboxOpSchema.safeParse(op);
+  if (!parsed.success) return { error: "invalid_input" };
+  const o = parsed.data;
+
+  const supabase = await createClient();
+  // With an expired token RLS would answer "no rows", which is
+  // indistinguishable from "not yours" — check the session first.
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { error: "unauthenticated" };
+
+  const workouts = new WorkoutsService(supabase);
+  try {
+    switch (o.kind) {
+      case "set_upsert":
+        return (await workouts.logSet(o.sessionId, o.input)) ? { ok: true } : { error: "not_found_or_forbidden" };
+      case "set_delete":
+        await workouts.deleteSetByKey(o.sessionId, o.programItemId, o.setIndex);
+        return { ok: true };
+      case "exercise_result":
+        return (await workouts.setExerciseResult(o.sessionId, o.programItemId, o.input))
+          ? { ok: true }
+          : { error: "not_found_or_forbidden" };
+      case "session_complete":
+        await workouts.completeSession(o.sessionId, o.durationSeconds);
+        return { ok: true };
+    }
+  } catch (err) {
+    if (isStaleEditError(err)) return { error: "entry_locked" };
+    throw err;
+  }
 }
 
 export async function logActivityAction(

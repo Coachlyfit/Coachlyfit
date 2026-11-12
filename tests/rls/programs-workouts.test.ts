@@ -331,3 +331,70 @@ describe("workout_set_logs: 7-day immutability window", () => {
     expect(deleteError?.code).toBe("42501");
   });
 });
+
+// Offline sync (src/lib/offline): a set is logged on-device with a
+// client-generated uuid + client_logged_at and upserted later. Retries must
+// never duplicate, and the client_own policy must still keep one client's
+// rows out of reach of another.
+describe("workout_set_logs: offline-synced rows (client-generated id)", () => {
+  let sessionId: string;
+  let otherClient: { userId: string; clientRowId: string; client: SupabaseClient<Database> };
+  const setId = crypto.randomUUID();
+  const loggedAt = new Date(Date.now() - 3_600_000).toISOString();
+
+  beforeAll(async () => {
+    const { data: session, error } = await clientOfA.client
+      .from("workout_sessions")
+      .insert({ coach_id: coachA.userId, client_id: clientOfA.clientRowId, program_day_id: tree.dayId })
+      .select("id")
+      .single();
+    if (error) throw error;
+    sessionId = session.id;
+    otherClient = await createClientOf(coachA.userId, "a2");
+  }, 60_000);
+
+  const row = () => ({
+    id: setId,
+    coach_id: coachA.userId,
+    client_id: clientOfA.clientRowId,
+    session_id: sessionId,
+    program_item_id: tree.itemId,
+    set_index: 1,
+    weight: 40,
+    reps: 10,
+    client_logged_at: loggedAt,
+    completed_at: loggedAt,
+  });
+
+  it("a client can upsert a set with their own uuid, and replaying the sync leaves exactly one row", async () => {
+    const opts = { onConflict: "session_id,program_item_id,set_index" };
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { error } = await clientOfA.client.from("workout_set_logs").upsert(row(), opts);
+      if (error) throw error;
+    }
+    const { data } = await clientOfA.client.from("workout_set_logs").select("id, client_logged_at").eq("session_id", sessionId);
+    expect(data).toHaveLength(1);
+    expect(data![0].id).toBe(setId);
+    expect(new Date(data![0].client_logged_at!).toISOString()).toBe(loggedAt);
+  });
+
+  it("another client can neither read that row nor overwrite it by reusing its id", async () => {
+    const { data: seen } = await otherClient.client.from("workout_set_logs").select("id").eq("id", setId);
+    expect(seen).toEqual([]);
+
+    const { error } = await otherClient.client
+      .from("workout_set_logs")
+      .upsert({ ...row(), client_id: otherClient.clientRowId, weight: 999 }, { onConflict: "id" });
+    expect(error).not.toBeNull();
+
+    const { data: still } = await admin.from("workout_set_logs").select("weight, client_id").eq("id", setId).single();
+    expect(still).toMatchObject({ weight: 40, client_id: clientOfA.clientRowId });
+  });
+
+  it("another client cannot attribute a set to client A's client_id", async () => {
+    const { error } = await otherClient.client
+      .from("workout_set_logs")
+      .insert({ ...row(), id: crypto.randomUUID(), set_index: 2 });
+    expect(error).not.toBeNull();
+  });
+});

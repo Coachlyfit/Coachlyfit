@@ -4833,5 +4833,24 @@
       "instructions_ar": "استلقِ على البنش وأنزل البار ببطء",
       "instructions_en": "Lie on the bench and lower the bar slowly"
     }
+  },
+  "offline": {
+    "offlineBanner": "You’re offline. Your workout is saved on this device and will sync when you’re back online.",
+    "pendingCount": "{count} waiting to sync",
+    "syncNow": "Sync now",
+    "syncing": "Syncing…",
+    "syncFailed": "{count} couldn’t sync.",
+    "retry": "Retry",
+    "dismiss": "Dismiss",
+    "synced": "All changes synced",
+    "noStorage": "Offline saving isn’t available in this browser (private mode?). Stay connected while you log your workout.",
+    "iosInstallHint": "To keep your offline logs safe, add this app to your Home Screen: tap Share, then Add to Home Screen.",
+    "setPending": "Pending sync",
+    "setFailed": "Sync failed",
+    "page": {
+      "title": "You’re offline",
+      "body": "Open a workout once while you’re online and it will be available here without a connection.",
+      "resume": "Resume workout"
+    }
   }
 }

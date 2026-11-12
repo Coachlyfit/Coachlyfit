@@ -7,6 +7,11 @@ type WorkoutSetLog = Database["public"]["Tables"]["workout_set_logs"]["Row"];
 type WorkoutExerciseResult = Database["public"]["Tables"]["workout_exercise_results"]["Row"];
 
 export type LogSetInput = {
+  /** Client-generated uuid for a set logged offline. Omitted = DB default. */
+  id?: string;
+  /** Device clock when the set was logged (ISO). Only sent on creation, never
+   * on an edit, so editing a set can't extend its 7-day lock window. */
+  client_logged_at?: string;
   program_item_id: string;
   set_index: number;
   weight?: number | null;
@@ -208,6 +213,15 @@ export class WorkoutsService {
       .eq("set_index", input.set_index)
       .maybeSingle();
 
+    // Offline-logged set: completed_at follows the device clock, clamped to
+    // now() so it can't be forward-dated. No client_logged_at (online path, or
+    // an edit) leaves completed_at to the column default / existing value.
+    const { client_logged_at, ...rest } = input;
+    const loggedAt = client_logged_at ? Math.min(Date.parse(client_logged_at), Date.now()) : NaN;
+    const offlineFields = Number.isNaN(loggedAt)
+      ? {}
+      : { client_logged_at, completed_at: new Date(loggedAt).toISOString() };
+
     const { data, error } = await this.db
       .from("workout_set_logs")
       .upsert(
@@ -215,7 +229,8 @@ export class WorkoutsService {
           coach_id: parent.coach_id,
           client_id: parent.client_id,
           session_id: sessionId,
-          ...input,
+          ...rest,
+          ...offlineFields,
           prescribed_reps: prescribed?.reps ?? null,
           prescribed_weight: prescribed?.weight ?? null,
         },
@@ -246,6 +261,19 @@ export class WorkoutsService {
     const { data, error } = await this.db.from("workout_set_logs").delete().eq("id", logId).select("id");
     if (error) throw error;
     return data.length > 0;
+  }
+
+  /** Outbox delete: keyed by the set's natural key rather than its id, and
+   * idempotent (a replay after the first delete landed matches zero rows,
+   * which is success, not an error). */
+  async deleteSetByKey(sessionId: string, programItemId: string, setIndex: number): Promise<void> {
+    const { error } = await this.db
+      .from("workout_set_logs")
+      .delete()
+      .eq("session_id", sessionId)
+      .eq("program_item_id", programItemId)
+      .eq("set_index", setIndex);
+    if (error) throw error;
   }
 
   async listSetLogs(sessionId: string): Promise<WorkoutSetLog[]> {

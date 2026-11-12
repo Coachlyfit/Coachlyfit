@@ -154,6 +154,46 @@ describe("WorkoutsService", () => {
     });
   });
 
+  it("logSet passes a client-generated id through and derives completed_at from client_logged_at", async () => {
+    const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
+    const loggedAt = new Date(Date.now() - 3_600_000).toISOString();
+    await new WorkoutsService(db).logSet("session-1", {
+      id: "11111111-1111-4111-8111-111111111111",
+      client_logged_at: loggedAt,
+      program_item_id: "item-1",
+      set_index: 1,
+    });
+
+    expect(upserts[0].onConflict).toBe("session_id,program_item_id,set_index");
+    expect(upserts[0].payload).toMatchObject({
+      id: "11111111-1111-4111-8111-111111111111",
+      client_logged_at: loggedAt,
+      completed_at: loggedAt,
+    });
+  });
+
+  it("logSet clamps a forward-dated client_logged_at to now so the 7-day lock can't be dodged", async () => {
+    const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
+    const before = Date.now();
+    await new WorkoutsService(db).logSet("session-1", {
+      client_logged_at: new Date(before + 30 * 86_400_000).toISOString(),
+      program_item_id: "item-1",
+      set_index: 1,
+    });
+
+    const completedAt = Date.parse((upserts[0].payload as { completed_at: string }).completed_at);
+    expect(completedAt).toBeGreaterThanOrEqual(before);
+    expect(completedAt).toBeLessThanOrEqual(Date.now());
+  });
+
+  it("logSet without client_logged_at (online path / an edit) never sends completed_at", async () => {
+    const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
+    await new WorkoutsService(db).logSet("session-1", { program_item_id: "item-1", set_index: 1, weight: 40 });
+
+    expect(upserts[0].payload).not.toHaveProperty("completed_at");
+    expect(upserts[0].payload).not.toHaveProperty("client_logged_at");
+  });
+
   it("logSet writes null prescribed_reps/prescribed_weight when no matching program_item_sets row exists", async () => {
     const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" }, prescribed: null });
     await new WorkoutsService(db).logSet("session-1", { program_item_id: "item-1", set_index: 0 });
