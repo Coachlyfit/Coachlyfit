@@ -51,7 +51,7 @@ export default async function ClientDetailPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, display_name, email, phone, status, created_at, profile_id, assigned_to, profiles(avatar_url)")
+    .select("id, display_name, email, phone, status, created_at, profile_id, assigned_to, profiles!profile_id(avatar_url)")
     .eq("id", clientId)
     .maybeSingle();
   if (!client) notFound();
