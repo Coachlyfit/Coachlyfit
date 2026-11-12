@@ -467,7 +467,8 @@
       "billing": "Billing",
       "packages": "Packages",
       "portal": "Portal",
-      "brand": "Brand"
+      "brand": "Brand",
+      "account": "Account & team"
     },
     "headings": {
       "identity": "Your identity",
@@ -482,7 +483,6 @@
     },
     "saved": "Saved.",
     "accountAndTeam": "Account & team",
-    "backToSettings": "Back to settings",
     "unsaved": {
       "title": "You have unsaved changes",
       "description": "If you switch now, these changes will be lost.",
