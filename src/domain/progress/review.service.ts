@@ -41,7 +41,7 @@ export class ReviewService {
   async listPendingQueue(): Promise<PendingCheckin[]> {
     const { data, error } = await this.db
       .from("checkins")
-      .select("*, clients(id, display_name, profiles(avatar_url))")
+      .select("*, clients(id, display_name, profiles!profile_id(avatar_url))")
       .is("reviewed_at", null)
       .order("checkin_date", { ascending: true });
     if (error) throw error;
