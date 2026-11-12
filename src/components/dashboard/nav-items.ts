@@ -72,7 +72,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/library", labelKey: "library", icon: Dumbbell, shortLabelKey: "shortLibrary" },
   { href: "/diets", labelKey: "diets", icon: Salad },
   { href: "/tasks", labelKey: "tasks", icon: ListTodo, feature: "task_management" },
-  { href: "/finance", labelKey: "finance", icon: Wallet },
+  { href: "/finance", labelKey: "finance", icon: Wallet, ownerOnly: true },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/messages", labelKey: "inbox", icon: MessageCircle, badge: "unreadMessages" },
   { href: "/guides", labelKey: "guides", icon: CirclePlay },

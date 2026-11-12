@@ -728,6 +728,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          assigned_to: string | null
           coach_id: string
           created_at: string
           display_name: string
@@ -739,6 +740,7 @@ export type Database = {
           status: Database["public"]["Enums"]["client_status"]
         }
         Insert: {
+          assigned_to?: string | null
           coach_id: string
           created_at?: string
           display_name: string
@@ -750,6 +752,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
         }
         Update: {
+          assigned_to?: string | null
           coach_id?: string
           created_at?: string
           display_name?: string
@@ -4730,6 +4733,7 @@ export type Database = {
       coach_client_roster: {
         Row: {
           adherence: number | null
+          assigned_to: string | null
           avatar_url: string | null
           client_id: string | null
           coach_id: string | null

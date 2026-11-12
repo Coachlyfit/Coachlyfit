@@ -26,6 +26,8 @@ export type RosterClient = {
   adherence: number | null;
   program: { id: string; name_ar: string; name_en: string } | null;
   subscription: { status: "active" | "frozen" | "canceled"; end_date: string } | null;
+  /** UUID of the team member this client is assigned to, or null (unassigned / owner sees all). */
+  assignedTo: string | null;
 };
 
 export class ClientsService {
@@ -66,6 +68,18 @@ export class ClientsService {
       })
       .eq("id", id);
     return !error;
+  }
+
+  /** Assign (or unassign) clients to a team member. Returns count of updated rows.
+   * The DB trigger enforces ownership and validates the assignee. */
+  async assign(clientIds: string[], assigneeId: string | null): Promise<number> {
+    const { data, error } = await this.db
+      .from("clients")
+      .update({ assigned_to: assigneeId })
+      .in("id", clientIds)
+      .select("id");
+    if (error) throw error;
+    return data?.length ?? 0;
   }
 
   /** Restoring an invited-but-never-joined client goes back to 'invited';
@@ -115,5 +129,6 @@ function toRosterClient(row: Database["public"]["Views"]["coach_client_roster"][
           end_date: row.subscription_end_date!,
         }
       : null,
+    assignedTo: row.assigned_to ?? null,
   };
 }

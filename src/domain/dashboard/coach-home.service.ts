@@ -70,7 +70,7 @@ export class CoachHomeService {
   async listInbox(filter: InboxFilter, limit: number): Promise<InboxRow[]> {
     let query = this.db
       .from("checkins")
-      .select("id, client_id, checkin_date, reviewed_at, clients(display_name, profiles(avatar_url))")
+      .select("id, client_id, checkin_date, reviewed_at, clients(display_name, profiles!profile_id(avatar_url))")
       .order("checkin_date", { ascending: false })
       .limit(limit);
     if (filter === "new") query = query.is("reviewed_at", null);
@@ -91,7 +91,10 @@ export class CoachHomeService {
   async listQuietClients(now: Date, limit: number): Promise<QuietClient[]> {
     const since = new Date(now.getTime() - QUIET_LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const [clients, checkins] = await Promise.all([
-      this.db.from("clients").select("id, display_name, status, profiles(avatar_url)").eq("status", "active"),
+      this.db
+        .from("clients")
+        .select("id, display_name, status, profiles!profile_id(avatar_url)")
+        .eq("status", "active"),
       this.db.from("checkins").select("client_id, checkin_date").gte("checkin_date", since),
     ]);
     if (clients.error) throw clients.error;

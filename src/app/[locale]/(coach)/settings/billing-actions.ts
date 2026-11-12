@@ -2,8 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
+import { requireOwner } from "@/lib/auth/require-coach";
 import { ClientBillingService } from "@/domain/billing/client-billing.service";
 
 type ActionResult = { error: string } | void;
@@ -29,11 +28,10 @@ export async function createPackageAction(locale: string, formData: FormData): P
   });
   if (!parsed.success) return { error: "invalid_input" };
 
-  const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  const auth = await requireOwner();
+  if ("error" in auth) return auth;
 
-  await new ClientBillingService(supabase).createPackage(coachId, parsed.data);
+  await new ClientBillingService(auth.supabase).createPackage(auth.coachId, parsed.data);
   revalidatePath(`/${locale}/settings`);
 }
 
@@ -46,23 +44,19 @@ export async function updatePackageAction(locale: string, id: string, formData: 
   });
   if (!parsed.success) return { error: "invalid_input" };
 
-  const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  const auth = await requireOwner();
+  if ("error" in auth) return auth;
 
-  await new ClientBillingService(supabase).updatePackage(id, parsed.data);
+  await new ClientBillingService(auth.supabase).updatePackage(id, parsed.data);
   revalidatePath(`/${locale}/settings`);
 }
 
 export async function deletePackageAction(locale: string, id: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const auth = await requireOwner();
+  if ("error" in auth) return auth;
 
   try {
-    const ok = await new ClientBillingService(supabase).deletePackage(id);
+    const ok = await new ClientBillingService(auth.supabase).deletePackage(id);
     if (!ok) return { error: "not_found_or_forbidden" };
   } catch {
     // Foreign key restrict from client_subscriptions.package_id — a
@@ -79,23 +73,19 @@ export async function createPaymentMethodAction(locale: string, formData: FormDa
   });
   if (!parsed.success) return { error: "invalid_input" };
 
-  const supabase = await createClient();
-  const coachId = await resolveCoachId(supabase);
-  if (!coachId) return { error: "not_authenticated" };
+  const auth = await requireOwner();
+  if ("error" in auth) return auth;
 
-  await new ClientBillingService(supabase).createPaymentMethod(coachId, parsed.data);
+  await new ClientBillingService(auth.supabase).createPaymentMethod(auth.coachId, parsed.data);
   revalidatePath(`/${locale}/settings`);
 }
 
 export async function deletePaymentMethodAction(locale: string, id: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "not_authenticated" };
+  const auth = await requireOwner();
+  if ("error" in auth) return auth;
 
   try {
-    const ok = await new ClientBillingService(supabase).deletePaymentMethod(id);
+    const ok = await new ClientBillingService(auth.supabase).deletePaymentMethod(id);
     if (!ok) return { error: "not_found_or_forbidden" };
   } catch {
     return { error: "payment_method_in_use" };

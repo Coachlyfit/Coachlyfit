@@ -23,6 +23,7 @@ import { ClientAccountDialog, type ClientAccountMode } from "./client-account-di
 import type { ClientAccountState } from "@/domain/clients/client-account";
 import { setClientArchivedAction } from "../actions";
 import { RegenerateInviteButton } from "../regenerate-invite-button";
+import { AssignClientSelect, type TeamMember } from "../assign-client-select";
 
 type Client = {
   id: string;
@@ -39,11 +40,17 @@ export function ClientHeader({
   coachId,
   client,
   account,
+  isOwner = false,
+  assignedTo = null,
+  team = [],
 }: {
   locale: AppLocale;
   coachId: string;
   client: Client;
   account: ClientAccountState;
+  isOwner?: boolean;
+  assignedTo?: string | null;
+  team?: TeamMember[];
 }) {
   const t = useTranslations("clients");
   const tProfile = useTranslations("clients.profile");
@@ -121,6 +128,14 @@ export function ClientHeader({
               </Button>
             )}
             {!archived && <ObservationDialog locale={locale} clientId={client.id} coachId={coachId} />}
+            {isOwner && (
+              <AssignClientSelect
+                locale={locale}
+                clientId={client.id}
+                assignedTo={assignedTo}
+                team={team}
+              />
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button type="button" variant="outline" size="icon-sm" />}>
                 <MoreVertical className="size-4" />

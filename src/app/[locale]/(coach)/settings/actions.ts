@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireCoach } from "@/lib/auth/require-coach";
+import { requireOwner } from "@/lib/auth/require-coach";
 import { SLUG_PATTERN } from "@/lib/tenant/portal-slug";
 import { businessProfileSchema } from "./business-profile-schema";
 import { brandSchema } from "./brand-schema";
@@ -22,7 +22,7 @@ export async function updateDefaultCheckinTemplateAction(
   locale: string,
   templateId: string | null
 ): Promise<ActionResult> {
-  const auth = await requireCoach();
+  const auth = await requireOwner();
   if ("error" in auth) return auth;
 
   const { error } = await auth.supabase
@@ -44,7 +44,7 @@ export async function updateSlugAction(locale: string, slug: string): Promise<Ac
   const parsed = slugSchema.safeParse(slug);
   if (!parsed.success) return { error: "invalid_input" };
 
-  const auth = await requireCoach();
+  const auth = await requireOwner();
   if ("error" in auth) return auth;
 
   const { error } = await auth.supabase.from("coaches").update({ slug: parsed.data }).eq("id", auth.coachId);
@@ -100,7 +100,7 @@ export async function updateBusinessProfileAction(locale: string, input: unknown
   const parsed = businessProfileSchema.safeParse(input);
   if (!parsed.success) return { error: "invalid_input" };
 
-  const auth = await requireCoach();
+  const auth = await requireOwner();
   if ("error" in auth) return auth;
 
   const { logo_path, ...fields } = parsed.data;
@@ -132,7 +132,7 @@ export async function updateBrandingAction(locale: string, input: unknown): Prom
   const parsed = brandSchema.safeParse(input);
   if (!parsed.success) return { error: "invalid_input" };
 
-  const auth = await requireCoach();
+  const auth = await requireOwner();
   if ("error" in auth) return auth;
 
   const { error } = await auth.supabase

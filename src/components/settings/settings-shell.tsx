@@ -9,8 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Segmented } from "@/components/ui/segmented";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { COACH_LOGOS_BUCKET } from "@/domain/billing/invoices.service";
@@ -34,6 +33,7 @@ import { PackagesCard, type Package, type PackageDraft } from "./packages-card";
 import { PaymentMethodsCard } from "./payment-methods-card";
 import { PortalFields } from "./portal-fields";
 import { SettingsPreview, type SettingsTab } from "./settings-preview";
+import { SettingsTabsBar, type SettingsNavTab } from "./settings-tabs-bar";
 
 const TABS = ["identity", "billing", "packages", "portal", "brand"] as const satisfies readonly SettingsTab[];
 const FORM_ID = "settings-form";
@@ -76,7 +76,8 @@ export function SettingsShell({
   const locale = useLocale();
   const [pending, startTransition] = useTransition();
   const [mode, setMode] = useState<"edit" | "preview">("edit");
-  const [pendingTab, setPendingTab] = useState<SettingsTab | null>(null);
+  const [pendingTab, setPendingTab] = useState<SettingsNavTab | null>(null);
+  const router = useRouter();
   const [packageDraft, setPackageDraft] = useState<PackageDraft | null>(null);
 
   const param = useSearchParams().get("tab");
@@ -129,11 +130,12 @@ export function SettingsShell({
 
   // replaceState, not pushState: tabs don't stack history entries, so Back
   // leaves the page instead of flipping tabs under an unsaved form.
-  function goTab(next: SettingsTab) {
-    window.history.replaceState(null, "", `?tab=${next}`);
+  function goTab(next: SettingsNavTab) {
+    if (next === "account") router.push("/settings/account");
+    else window.history.replaceState(null, "", `?tab=${next}`);
   }
 
-  function requestTab(next: SettingsTab) {
+  function requestTab(next: SettingsNavTab) {
     if (next === tab) return;
     if (dirty) setPendingTab(next);
     else goTab(next);
@@ -201,22 +203,7 @@ export function SettingsShell({
 
   return (
     <div className="flex flex-col gap-4 md:gap-5">
-      <Tabs value={tab} onValueChange={(value) => requestTab(value as SettingsTab)}>
-        <TabsList
-          aria-label={t("tabsLabel")}
-          className="w-full gap-1.5 bg-transparent p-0 group-data-horizontal/tabs:h-auto md:w-fit md:gap-1 md:bg-muted md:p-1"
-        >
-          {TABS.map((id) => (
-            <TabsTrigger
-              key={id}
-              value={id}
-              className="h-10 flex-none rounded-full border-border px-4 data-active:border-foreground data-active:bg-foreground data-active:text-background md:rounded-lg md:border-transparent md:data-active:border-transparent md:data-active:bg-background md:data-active:text-foreground dark:data-active:border-foreground dark:data-active:bg-foreground dark:data-active:text-background dark:md:data-active:border-input dark:md:data-active:bg-input/30 dark:md:data-active:text-foreground"
-            >
-              {t(`tabs.${id}`)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <SettingsTabsBar current={tab} onSelect={requestTab} />
 
       <Segmented
         label={t("view.label")}
@@ -289,12 +276,11 @@ export function SettingsShell({
 
           {hasForm && invalid && <p className="text-sm text-destructive">{tErrors("invalid_input")}</p>}
 
-          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
-            <Link href="/settings/account" className="font-medium text-primary underline-offset-4 hover:underline">
-              {t("accountAndTeam")}
-            </Link>
-            {hasForm && saveButton("max-md:hidden")}
-          </div>
+          {hasForm && (
+            <div className="mt-auto flex items-center justify-end gap-2 border-t border-border pt-4">
+              {saveButton("max-md:hidden")}
+            </div>
+          )}
         </section>
 
         <SettingsPreview
