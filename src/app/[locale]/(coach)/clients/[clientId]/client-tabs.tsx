@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-export type ClientTab = "progress" | "nutrition" | "sessions" | "history" | "decisions" | "billing" | "notes";
+export type ClientTab = "progress" | "nutrition" | "sessions" | "history" | "decisions" | "forms" | "billing" | "notes";
 
-const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "history", "decisions", "billing", "notes"];
+const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "history", "decisions", "forms", "billing", "notes"];
 
 /** Trigger bar only — the active tab's content is chosen server-side in
  * page.tsx (only that tab's Suspense subtree is rendered), so switching

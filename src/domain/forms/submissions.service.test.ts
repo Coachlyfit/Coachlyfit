@@ -56,6 +56,37 @@ describe("SubmissionsService.submit", () => {
   });
 });
 
+describe("SubmissionsService.listWithContext", () => {
+  function fakeList() {
+    const eqs: [string, unknown][] = [];
+    const builder: Record<string, unknown> = {
+      order: () => builder,
+      eq: (col: string, val: unknown) => {
+        eqs.push([col, val]);
+        return builder;
+      },
+      then: (resolve: (v: unknown) => void) => resolve({ data: [], error: null }),
+    };
+    const db = { from: () => ({ select: () => builder }) };
+    return { db: db as never, eqs };
+  }
+
+  it("applies no filter by default", async () => {
+    const { db, eqs } = fakeList();
+    await new SubmissionsService(db).listWithContext();
+    expect(eqs).toEqual([]);
+  });
+
+  it("filters by client and by template through the version join", async () => {
+    const { db, eqs } = fakeList();
+    await new SubmissionsService(db).listWithContext({ clientId: "c1", templateId: "t1" });
+    expect(eqs).toEqual([
+      ["client_id", "c1"],
+      ["form_template_versions.template_id", "t1"],
+    ]);
+  });
+});
+
 function fakeSubmissionsQuery(row: Record<string, unknown> | null) {
   const db = {
     from: () => ({

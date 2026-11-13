@@ -1029,6 +1029,7 @@
         "billing": "Billing",
         "notes": "Notes",
         "decisions": "Decisions",
+        "forms": "Forms",
         "nutrition": "Nutrition"
       },
       "activateAccount": "Activate account",
@@ -1698,8 +1699,13 @@
       "table": {
         "client": "Client",
         "form": "Form",
-        "submittedAt": "Submitted"
+        "submittedAt": "Submitted",
+        "status": "Status"
       },
+      "new": "New",
+      "filteredBy": "Form: {name}",
+      "filteredByClient": "Client: {name}",
+      "clearFilter": "Show all",
       "view": "View",
       "markReviewed": "Mark reviewed",
       "reviewed": "Reviewed"

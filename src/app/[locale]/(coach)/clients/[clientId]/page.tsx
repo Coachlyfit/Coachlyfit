@@ -29,10 +29,11 @@ import { BillingSkeleton } from "./billing-skeleton";
 import { ObservationsSection } from "./observations-section";
 import { ObservationsSkeleton } from "./observations-skeleton";
 import { NutritionSection } from "./nutrition-section";
+import { FormsSection } from "./forms-section";
 import { parseMonth } from "@/domain/nutrition/adherence";
 import { getClientAccountState } from "@/domain/clients/client-account";
 
-const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "history", "decisions", "billing", "notes"];
+const TABS: ClientTab[] = ["progress", "nutrition", "sessions", "history", "decisions", "forms", "billing", "notes"];
 
 export default async function ClientDetailPage({
   params,
@@ -135,6 +136,11 @@ export default async function ClientDetailPage({
         {tab === "decisions" && (
           <Suspense fallback={<DecisionsSkeleton />}>
             <DecisionsSection clientId={clientId} locale={locale} />
+          </Suspense>
+        )}
+        {tab === "forms" && (
+          <Suspense fallback={<ObservationsSkeleton />}>
+            <FormsSection clientId={clientId} locale={locale} />
           </Suspense>
         )}
         {tab === "billing" && (

@@ -114,18 +114,18 @@ export function FormCard({
       <div className="grid grid-cols-3 gap-2">
         <Stat value={row.questions} label={t("stats.questions", { count: row.questions })} locale={locale} />
         <Stat value={row.clients} label={t("stats.clients", { count: row.clients })} locale={locale} />
-        {row.newResponses > 0 ? (
-          <Link href="/forms/submissions" className="rounded-[10px] outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-            <Stat
-              value={row.newResponses}
-              label={t("stats.newResponses", { count: row.newResponses })}
-              locale={locale}
-              highlight
-            />
-          </Link>
-        ) : (
-          <Stat value={0} label={t("stats.newResponses", { count: 0 })} locale={locale} />
-        )}
+        {/* Always a link: with 0 new responses it still opens the form's full answer history. */}
+        <Link
+          href={`/forms/submissions?form=${row.id}`}
+          className="rounded-[10px] outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <Stat
+            value={row.newResponses}
+            label={t("stats.newResponses", { count: row.newResponses })}
+            locale={locale}
+            highlight={row.newResponses > 0}
+          />
+        </Link>
       </div>
 
       <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border pt-3">
