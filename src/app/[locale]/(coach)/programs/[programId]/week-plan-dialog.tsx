@@ -12,7 +12,7 @@ import { FIRST_PLAN_WEEK, isDeloadWeek, type WeekPlan } from "@/domain/programs/
 import { setWeekPlanAction } from "../actions";
 import { useRouter } from "@/i18n/navigation";
 
-type Row = { label: string; load: string; reps: string; deload: boolean };
+type Row = { labelEn: string; labelAr: string; load: string; reps: string; deload: boolean };
 
 const WEEKS = Array.from({ length: MAX_PROGRAM_WEEKS - FIRST_PLAN_WEEK + 1 }, (_, i) => i + FIRST_PLAN_WEEK);
 
@@ -24,7 +24,9 @@ function rowsFrom(plan: WeekPlan | null): Record<number, Row> {
   for (const week of WEEKS) {
     const m = plan?.[String(week)];
     rows[week] = {
-      label: m?.label ?? "",
+      // A legacy single label shows in both languages until the coach edits it.
+      labelEn: m?.label_en ?? m?.label ?? "",
+      labelAr: m?.label_ar ?? m?.label ?? "",
       load: m?.load_pct != null ? String(m.load_pct) : "",
       reps: m?.reps_delta ? String(m.reps_delta) : "",
       deload: isDeloadWeek(plan, week),
@@ -42,7 +44,8 @@ function planFrom(rows: Record<number, Row>): WeekPlan | null {
   for (const week of WEEKS) {
     const r = rows[week];
     const mod: NonNullable<WeekPlan[string]> = {};
-    if (r.label.trim()) mod.label = r.label.trim();
+    if (r.labelEn.trim()) mod.label_en = r.labelEn.trim();
+    if (r.labelAr.trim()) mod.label_ar = r.labelAr.trim();
     const load = Number(r.load);
     if (r.load.trim() && Number.isFinite(load) && load !== 100) mod.load_pct = Math.round(load);
     const reps = Number(r.reps);
@@ -80,7 +83,13 @@ export function WeekPlanDialog({
     const next: Record<number, Row> = {};
     for (const week of WEEKS) {
       const deload = week % 4 === 0;
-      next[week] = { label: deload ? t("deload") : t("build"), load: deload ? "60" : "", reps: "", deload };
+      next[week] = {
+        labelEn: deload ? "Deload" : "Build",
+        labelAr: deload ? "تخفيف" : "بناء",
+        load: deload ? "60" : "",
+        reps: "",
+        deload,
+      };
     }
     setRows(next);
   }
@@ -119,10 +128,11 @@ export function WeekPlanDialog({
             <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <div className="overflow-x-auto rounded-xl border border-border">
-            <div className="min-w-[34rem]">
-              <div className="grid grid-cols-[4.5rem_minmax(0,1.6fr)_5.5rem_5.5rem_4.5rem] items-center gap-2 bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+            <div className="min-w-[44rem]">
+              <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,1fr)_5rem_5rem_4rem] items-center gap-2 bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
                 <span>{t("week")}</span>
-                <span>{t("name")}</span>
+                <span>{t("nameEn")}</span>
+                <span>{t("nameAr")}</span>
                 <span>{t("loadPct")}</span>
                 <span>{t("repsDelta")}</span>
                 <span>{t("deloadShort")}</span>
@@ -130,14 +140,22 @@ export function WeekPlanDialog({
               {WEEKS.map((week) => (
                 <div
                   key={week}
-                  className="grid grid-cols-[4.5rem_minmax(0,1.6fr)_5.5rem_5.5rem_4.5rem] items-center gap-2 border-t border-border px-3 py-2"
+                  className="grid grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,1fr)_5rem_5rem_4rem] items-center gap-2 border-t border-border px-3 py-2"
                 >
                   <span className="font-mono text-sm tabular-nums">{t("weekN", { n: week })}</span>
                   <Input
+                    dir="ltr"
                     maxLength={40}
-                    value={rows[week].label}
-                    aria-label={`${t("name")} · ${t("weekN", { n: week })}`}
-                    onChange={(e) => set(week, { label: e.target.value })}
+                    value={rows[week].labelEn}
+                    aria-label={`${t("nameEn")} · ${t("weekN", { n: week })}`}
+                    onChange={(e) => set(week, { labelEn: e.target.value })}
+                  />
+                  <Input
+                    dir="rtl"
+                    maxLength={40}
+                    value={rows[week].labelAr}
+                    aria-label={`${t("nameAr")} · ${t("weekN", { n: week })}`}
+                    onChange={(e) => set(week, { labelAr: e.target.value })}
                   />
                   <Input
                     type="number"

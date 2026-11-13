@@ -62,7 +62,7 @@ import { cn } from "@/lib/utils";
 import { TimedBlock, useBlockResultText } from "@/components/workout/timed-block";
 import { isTimedKind, parseGroupConfig } from "@/domain/programs/group-config";
 import { asSetType, loadFromPct } from "@/domain/programs/set-targets";
-import { isDeloadWeek, modifierForWeek, type WeekPlan } from "@/domain/programs/week-plan";
+import { isDeloadWeek, modifierForWeek, weekLabel, type WeekPlan } from "@/domain/programs/week-plan";
 import type { BlockResult, BlockResults } from "@/domain/workouts/block-result";
 import { SessionDock, type DockField } from "./session-dock";
 import { SessionSummary } from "./session-summary";
@@ -87,12 +87,13 @@ type Draft = MeasureDraft;
  * sets (reps null — a rehab hold, a stretch) are excluded from the range; if
  * every set is duration-only, falls back to the first set's seconds. */
 function repsRangeLabel(
-  sets: { reps: number | null; reps_max?: number | null; duration_seconds: number | null }[]
+  sets: { reps: number | null; reps_max?: number | null; duration_seconds: number | null }[],
+  secondsLabel: (seconds: number) => string
 ): string {
   const reps = sets.map((s) => s.reps).filter((r): r is number => r != null);
   if (reps.length === 0) {
     const duration = sets[0]?.duration_seconds;
-    return duration != null ? `${duration}s` : "";
+    return duration != null ? secondsLabel(duration) : "";
   }
   const min = Math.min(...reps);
   const max = Math.max(...sets.map((s) => s.reps_max ?? s.reps ?? 0));
@@ -610,7 +611,7 @@ export function WorkoutSessionClient({
   const prevItem = items[currentIdx - 1];
   const groupLabel = groupLabels.get(current.id);
   // "Week 4 · Deload": shown only for a week the coach named (or the default deload).
-  const weekName = modifierForWeek(weekPlan, week)?.label ?? (isDeloadWeek(weekPlan, week) ? t("deloadWeek") : null);
+  const weekName = weekLabel(modifierForWeek(weekPlan, week), locale) ?? (isDeloadWeek(weekPlan, week) ? t("deloadWeek") : null);
   const weekChip = weekName ? t("weekChip", { n: week, name: weekName }) : null;
   const timedKind = current.group_key && isTimedKind(current.group_kind) ? current.group_kind : null;
   const timedGroup = timedKind
@@ -621,6 +622,7 @@ export function WorkoutSessionClient({
       }
     : null;
 
+  const secondsLabel = (seconds: number) => tm("seconds", { value: seconds });
   const kg = (w: number) => t("kg", { value: trimNumber(w) });
   const weightText = (w: number | null, pct?: number | null) =>
     w != null && w > 0 ? kg(w) : pct != null ? tm("pctOneRm", { value: trimNumber(pct) }) : t("bodyweight");
@@ -630,13 +632,13 @@ export function WorkoutSessionClient({
   // first set's measures ("5 km · 28 min").
   const classicTarget = measureFields.includes("reps") && !isAssisted(type);
   const targetText = classicTarget
-    ? `${repsRangeLabel(displaySets)} · ${weightText(currentPrescribed.weight, currentPrescribed.pct_1rm)}`
+    ? `${repsRangeLabel(displaySets, secondsLabel)} · ${weightText(currentPrescribed.weight, currentPrescribed.pct_1rm)}`
     : setText(currentPrescribed);
   const nextTargetText = (item: ProgramItem) => {
     const sets = projectedByItem.get(item.id) ?? [];
     const nextType = typeOf(item);
     return measurementFields(nextType, item.block).includes("reps")
-      ? repsRangeLabel(sets)
+      ? repsRangeLabel(sets, secondsLabel)
       : formatSetMeasures(nextType, item.block, measuresFromRow(sets[0]), tm);
   };
 

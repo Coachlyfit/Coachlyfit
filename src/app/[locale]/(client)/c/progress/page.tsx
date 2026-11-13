@@ -34,6 +34,7 @@ export default async function ClientProgressPage({
   const { locale } = await params;
   const t = await getTranslations("progress");
   const tChart = await getTranslations("progress.chart");
+  const tMeasure = await getTranslations("measure");
   const tMetrics = await getTranslations("progress.metrics");
   const tPhotos = await getTranslations("progress.photos");
   const tPrs = await getTranslations("progress.prs");
@@ -108,10 +109,10 @@ export default async function ClientProgressPage({
   );
 
   const series: { key: string; label: string; color: string; unit?: string; data: { date: string; value: number }[] }[] = [
-    { key: "weight", label: tChart("weightTitle"), color: "var(--chart-1)", unit: "kg", data: weightData },
+    { key: "weight", label: tChart("weightTitle"), color: "var(--chart-1)", unit: tMeasure("unit.kg"), data: weightData },
     { key: "mood", label: tChart("moodTitle"), color: "var(--chart-2)", data: moodData },
     { key: "energy", label: tChart("energyTitle"), color: "var(--chart-3)", data: energyData },
-    { key: "adherence", label: tChart("adherenceTitle"), color: "var(--chart-4)", unit: "%", data: adherenceData },
+    { key: "adherence", label: tChart("adherenceTitle"), color: "var(--chart-4)", unit: tMeasure("unit.percent"), data: adherenceData },
     ...[...grouped.entries()].map(([metric, rows]) => {
       const presetKey = metricPresetI18nKey(metric);
       return {

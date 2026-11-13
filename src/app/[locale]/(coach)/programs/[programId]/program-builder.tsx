@@ -71,7 +71,7 @@ import { ItemDialog } from "./item-dialog";
 import { GroupFormatDialog } from "./group-format-dialog";
 import { WeekPlanDialog } from "./week-plan-dialog";
 import { primaryDays, sessionsOf } from "@/domain/programs/day-sessions";
-import { isDeloadWeek, modifierForWeek, parseWeekPlan, type WeekPlan } from "@/domain/programs/week-plan";
+import { isDeloadWeek, modifierForWeek, parseWeekPlan, weekLabel, type WeekPlan } from "@/domain/programs/week-plan";
 import {
   asGroupKind,
   defaultGroupConfig,
@@ -166,7 +166,7 @@ function SortableItem({
             type="button"
             {...attributes}
             {...listeners}
-            aria-label="drag"
+            aria-label={t("dragItem")}
             className="-m-1.5 cursor-grab touch-none p-1.5 text-muted-foreground active:cursor-grabbing"
           >
             <GripVertical className="size-4" />
@@ -214,14 +214,14 @@ function SortableItem({
       </div>
       {!readOnly && (
         <>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
-            <Pencil className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit} aria-label={t("editItem")} title={t("editItem")}>
+            <Pencil className="size-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onDuplicate} title={t("duplicateItem")}>
-            <Copy className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDuplicate} aria-label={t("duplicateItem")} title={t("duplicateItem")}>
+            <Copy className="size-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
-            <Trash2 className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete} aria-label={t("deleteItem")} title={t("deleteItem")}>
+            <Trash2 className="size-4" aria-hidden="true" />
           </Button>
         </>
       )}
@@ -246,11 +246,13 @@ function ActivityRow({
   onDelete: () => void;
 }) {
   const t = useTranslations("programs.activityDialog");
+  const tb = useTranslations("programs.builder");
+  const tm = useTranslations("measure");
   const Icon = CARDIO_ICON_BY_KIND[activity.kind as "cardio" | "recovery"];
   const parts = [
     t(`modalities.${activity.modality}`),
     activity.duration_min ? `${activity.duration_min} ${t("minShort")}` : null,
-    activity.distance_km ? `${activity.distance_km}km` : null,
+    activity.distance_km ? tm("km", { value: activity.distance_km }) : null,
     activity.intensity ? t(`intensities.${activity.intensity}`) : null,
   ].filter(Boolean);
 
@@ -260,11 +262,11 @@ function ActivityRow({
       <div className="min-w-0 flex-1 text-sm">{parts.join(" · ")}</div>
       {!readOnly && (
         <>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
-            <Pencil className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit} aria-label={tb("editActivity")} title={tb("editActivity")}>
+            <Pencil className="size-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
-            <Trash2 className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete} aria-label={tb("deleteActivity")} title={tb("deleteActivity")}>
+            <Trash2 className="size-4" aria-hidden="true" />
           </Button>
         </>
       )}
@@ -1055,11 +1057,12 @@ export function ProgramBuilder({
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <select
               value={week}
+              aria-label={t("weekSelect")}
               onChange={(e) => setWeek(Number(e.target.value))}
               className="h-9 rounded-md border border-input bg-transparent px-2 text-base md:text-sm"
             >
               {Array.from({ length: MAX_PROGRAM_WEEKS }, (_, i) => i + 1).map((w) => {
-                const name = modifierForWeek(weekPlan, w)?.label ?? (isDeloadWeek(weekPlan, w) ? t("deloadWeek") : null);
+                const name = weekLabel(modifierForWeek(weekPlan, w), locale) ?? (isDeloadWeek(weekPlan, w) ? t("deloadWeek") : null);
                 return (
                   <option key={w} value={w}>
                     {name ? `${t("week", { n: w })} · ${name}` : t("week", { n: w })}
@@ -1138,7 +1141,13 @@ export function ProgramBuilder({
           )}
           {!readOnly && sidebarTab === "exercises" && <ExerciseSidebar locale={locale} programId={tree.id} days={days} />}
           {!readOnly && sidebarTab === "nutrition" && (
-            <NutritionPanel locale={locale} programId={tree.id} days={calendarDays} variants={tree.diet_variants} />
+            <NutritionPanel
+              locale={locale}
+              programId={tree.id}
+              days={calendarDays}
+              sessionCount={days.length - calendarDays.length}
+              variants={tree.diet_variants}
+            />
           )}
           {!readOnly && sidebarTab === "rehab" && (
             <RehabPanel

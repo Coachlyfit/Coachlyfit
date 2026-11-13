@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { primaryDays, sessionsOf } from "./day-sessions";
+import { daysWithSessions, primaryDays, sessionsOf } from "./day-sessions";
 
 const days = [
   { id: "a", parent_day_id: null },
@@ -18,5 +18,9 @@ describe("day sessions", () => {
     expect(sessionsOf(days, "a").map((d) => d.id)).toEqual(["a-pm", "a-eve"]);
     expect(sessionsOf(days, "b").map((d) => d.id)).toEqual(["b-pm"]);
     expect(sessionsOf(days, "a-pm")).toEqual([]);
+  });
+
+  it("reading order puts each day's sessions right after it", () => {
+    expect(daysWithSessions(days).map((d) => d.id)).toEqual(["a", "a-pm", "a-eve", "b", "b-pm"]);
   });
 });

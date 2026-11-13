@@ -54,6 +54,7 @@ export function ExerciseSidebar({ locale, programId, days }: { locale: AppLocale
       <h3 className="text-sm font-semibold">{t("title")}</h3>
       <select
         value={dayId}
+        aria-label={t("daySelect")}
         onChange={(e) => setDayId(e.target.value)}
         className="h-9 rounded-md border border-input bg-transparent px-2 text-base md:text-sm"
       >

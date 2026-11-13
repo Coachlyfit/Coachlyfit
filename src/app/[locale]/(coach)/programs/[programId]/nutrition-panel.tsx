@@ -26,11 +26,15 @@ export function NutritionPanel({
   locale,
   programId,
   days,
+  sessionCount = 0,
   variants,
 }: {
   locale: AppLocale;
   programId: string;
+  /** Calendar days only: a day's extra sessions share its meal plan. */
   days: Day[];
+  /** How many extra sessions the program has, to explain why they are not listed. */
+  sessionCount?: number;
   variants: DietVariant[];
 }) {
   const t = useTranslations("programs.nutrition");
@@ -140,6 +144,7 @@ export function NutritionPanel({
       {days.length > 0 && variants.length > 0 && (
         <div className="flex flex-col gap-1 border-t border-border pt-2">
           <p className="text-xs font-medium text-muted-foreground">{t("assignByDay")}</p>
+          {sessionCount > 0 && <p className="text-xs text-muted-foreground">{t("sessionsShareDiet")}</p>}
           {days.map((day) => (
             <div key={day.id} className="flex items-center gap-2">
               <span className="w-16 shrink-0 truncate text-xs text-muted-foreground">

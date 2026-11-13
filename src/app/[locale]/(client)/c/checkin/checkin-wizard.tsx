@@ -85,6 +85,7 @@ export function CheckinWizard({
 }) {
   const t = useTranslations("client.checkinWizard");
   const tFields = useTranslations("progress.checkin");
+  const tMeasure = useTranslations("measure");
   const tErrors = useTranslations("progress.errors");
 
   const [phase, setPhase] = useState<Phase>("intro");
@@ -203,7 +204,7 @@ export function CheckinWizard({
               key={step.id}
               value={field.value as number | undefined}
               onChange={field.onChange}
-              unit={step.unit}
+              unit={step.unit === "kg" ? tMeasure("unit.kg") : tMeasure("unit.hours")}
               delta={step.id === "weight" ? trend?.delta : undefined}
             />
           )}

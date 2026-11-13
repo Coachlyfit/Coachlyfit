@@ -20,6 +20,7 @@ export async function ProgressKpiRow({
   locale: AppLocale;
 }) {
   const t = await getTranslations("progress.stats");
+  const tm = await getTranslations("measure");
   const last = lastCheckinDate(checkins);
   const adherence = adherenceAverage(checkins);
   const trend = weightTrend(checkins);
@@ -37,7 +38,7 @@ export async function ProgressKpiRow({
       />
       <StatCard
         label={t("weightTrend")}
-        value={trend ? `${formatNumber(Math.abs(trend.delta), locale, { maximumFractionDigits: 1 })} kg` : t("noData")}
+        value={trend ? tm("kg", { value: formatNumber(Math.abs(trend.delta), locale, { maximumFractionDigits: 1 }) }) : t("noData")}
         trend={trend ? (trend.delta < 0 ? "down" : trend.delta > 0 ? "up" : "flat") : undefined}
         trendTone={trend ? (trend.delta < 0 ? "good" : trend.delta > 0 ? "bad" : "neutral") : undefined}
       />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { projectSetsForWeek, type BaseSet } from "./progression";
-import { isDeloadWeek, mesocyclePlan, parseWeekPlan } from "./week-plan";
+import { isDeloadWeek, mesocyclePlan, parseWeekPlan, weekLabel } from "./week-plan";
 
 const base = (over: Partial<BaseSet> = {}): BaseSet[] => [
   { set_index: 1, reps: 8, reps_max: 10, weight: 100, rest_seconds: 90, duration_seconds: null, ...over },
@@ -78,6 +78,31 @@ describe("mesocyclePlan", () => {
     expect(isDeloadWeek(plan, 8)).toBe(true);
     expect(isDeloadWeek(plan, 5)).toBe(false);
     // survives the defensive parse (reps_delta 0 keeps the build weeks as entries)
+    expect(parseWeekPlan(plan)).toEqual(plan);
+  });
+});
+
+describe("bilingual week labels", () => {
+  it("shows each viewer their own language, falling back to the other language, then the legacy label", () => {
+    expect(weekLabel({ label_en: "Peak", label_ar: "ذروة" }, "ar")).toBe("ذروة");
+    expect(weekLabel({ label_en: "Peak", label_ar: "ذروة" }, "en")).toBe("Peak");
+    expect(weekLabel({ label_en: "Peak" }, "ar")).toBe("Peak");
+    expect(weekLabel({ label: "Old" }, "ar")).toBe("Old");
+    expect(weekLabel({ label: "Old", label_en: "New" }, "en")).toBe("New");
+    expect(weekLabel({ load_pct: 90 }, "en")).toBeNull();
+    expect(weekLabel(null, "en")).toBeNull();
+  });
+
+  it("parseWeekPlan keeps per-language and legacy labels, trimmed and capped", () => {
+    expect(parseWeekPlan({ "2": { label_ar: "  بناء ", label_en: "Build", label: "x".repeat(60) } })).toEqual({
+      "2": { label_ar: "بناء", label_en: "Build", label: "x".repeat(40) },
+    });
+  });
+
+  it("a labelled mesocycle names build and deload weeks in both languages", () => {
+    const plan = mesocyclePlan({ build: { en: "Build", ar: "بناء" }, deload: { en: "Deload", ar: "تخفيف" } });
+    expect(plan["2"]).toEqual({ label_ar: "بناء", label_en: "Build", reps_delta: 0 });
+    expect(plan["4"]).toEqual({ label_ar: "تخفيف", label_en: "Deload", load_pct: 60, deload: true });
     expect(parseWeekPlan(plan)).toEqual(plan);
   });
 });

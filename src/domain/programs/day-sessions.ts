@@ -16,3 +16,10 @@ export function primaryDays<T extends MaybeChild>(days: readonly T[]): T[] {
 export function sessionsOf<T extends MaybeChild & { id: string }>(days: readonly T[], dayId: string): T[] {
   return days.filter((d) => d.parent_day_id === dayId);
 }
+
+/** Every day in reading order: each calendar day followed by its extra
+ * sessions. For lists that show them all (print), where a session must sit
+ * under its own day rather than wherever its row happens to be stored. */
+export function daysWithSessions<T extends MaybeChild & { id: string }>(days: readonly T[]): T[] {
+  return primaryDays(days).flatMap((day) => [day, ...sessionsOf(days, day.id)]);
+}

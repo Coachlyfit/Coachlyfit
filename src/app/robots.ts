@@ -7,7 +7,6 @@ import { SITE_URL } from "@/lib/seo";
 // which a crawler can only see if it is allowed to fetch the page.
 const PRIVATE_SEGMENTS = [
   "admin",
-  "onboarding",
   "print",
   "dashboard",
   "clients",

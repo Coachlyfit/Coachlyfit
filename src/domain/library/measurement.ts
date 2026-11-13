@@ -247,6 +247,9 @@ export function inputRule(type: unknown, field: MeasureField, block?: string | n
     case "rounds":
       return { min: 1, max: 100, step: 1, integer: true };
     case "work":
+      // A work interval of 0 s is meaningless, and the schema (extraSchema.work_s)
+      // already rejects it — keep the input's floor in step with that.
+      return { min: 1, max: 3600, step: 5, integer: true };
     case "restInterval":
       return { min: 0, max: 3600, step: 5, integer: true };
     case "level":

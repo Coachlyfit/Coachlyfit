@@ -43,6 +43,12 @@ export type Starter = {
   week_plan?: WeekPlan;
 };
 
+/** Names for the starters' 3-build + 1-deload week plan. */
+const MESOCYCLE_LABELS = {
+  build: { en: "Build", ar: "بناء" },
+  deload: { en: "Deload", ar: "تخفيف" },
+};
+
 // ---- set builders -------------------------------------------------------
 const sets = (n: number, set: SetInput): SetInput[] => Array.from({ length: n }, () => ({ ...set }));
 /** n sets of `r` reps (weight left for the coach to prescribe per client). */
@@ -69,7 +75,7 @@ export const STARTERS: Starter[] = [
     equipment: ["barbell"],
     name_en: "Strength 5×5",
     name_ar: "قوة 5×5",
-    week_plan: mesocyclePlan(),
+    week_plan: mesocyclePlan(MESOCYCLE_LABELS),
     days: [
       {
         label_en: "Workout A",
@@ -99,7 +105,7 @@ export const STARTERS: Starter[] = [
     equipment: ["barbell", "dumbbell", "cable", "machine"],
     name_en: "Push / Pull / Legs",
     name_ar: "دفع / سحب / أرجل",
-    week_plan: mesocyclePlan(),
+    week_plan: mesocyclePlan(MESOCYCLE_LABELS),
     days: [
       {
         label_en: "Push",

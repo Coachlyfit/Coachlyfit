@@ -45,6 +45,9 @@ export type CreateExerciseInput = {
   primary_muscles?: string[];
   secondary_muscles?: string[];
   difficulty?: "beginner" | "intermediate" | "advanced";
+  /** Rung of a skill ladder (see progress/skill-levels.ts); null clears it on edit. */
+  skill_group?: string | null;
+  skill_level?: number | null;
   thumbnail_url?: string;
   video_url_alt?: string;
   /** Set once at creation (the clone flow) — updateExercise strips it back

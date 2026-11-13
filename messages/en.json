@@ -1171,7 +1171,8 @@
       "doneMeta": "Done · {minutes} min",
       "exerciseCount": "{count} exercises",
       "today": "Today",
-      "historyLink": "History"
+      "historyLink": "History",
+      "sessionN": "Session {n}"
     },
     "workout": {
       "setsDone": "{done} / {total} sets",
@@ -1994,7 +1995,12 @@
       },
       "deloadWeek": "Deload",
       "addSession": "Add a second session",
-      "sessionN": "Session · day {n}"
+      "sessionN": "Session · day {n}",
+      "dragItem": "Drag to reorder",
+      "editItem": "Edit exercise",
+      "deleteItem": "Delete exercise",
+      "editActivity": "Edit activity",
+      "weekSelect": "Week to view"
     },
     "dayDialog": {
       "addTitle": "Add day",
@@ -2141,7 +2147,8 @@
       "customize": "Customize",
       "customizeHint": "Clone this plan just for this day, without affecting other days sharing it",
       "dayCount": "{count, plural, =0 {No days} one {# day} other {# days}}",
-      "duplicate": "Duplicate plan"
+      "duplicate": "Duplicate plan",
+      "sessionsShareDiet": "A day's extra sessions share that day's meal plan."
     },
     "rehab": {
       "title": "Rehab",
@@ -2176,7 +2183,8 @@
       "loading": "Searching...",
       "noResults": "No exercises match.",
       "allGroups": "All",
-      "dayFallback": "Day {n}"
+      "dayFallback": "Day {n}",
+      "daySelect": "Add exercises to day"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -2292,7 +2300,9 @@
       "build": "Build",
       "fillMesocycle": "3 build + 1 deload",
       "reset": "Reset to default",
-      "saved": "Week plan saved."
+      "saved": "Week plan saved.",
+      "nameEn": "Name (English)",
+      "nameAr": "Name (Arabic)"
     }
   },
   "library": {
@@ -2389,7 +2399,11 @@
       "videoUrlAlt": "Alternate-angle video link",
       "linesPlaceholder": "One per line",
       "measurementType": "How it's measured",
-      "measurementTypeHint": "Decides which inputs coaches and clients see for this exercise: reps, time, distance, calories..."
+      "measurementTypeHint": "Decides which inputs coaches and clients see for this exercise: reps, time, distance, calories...",
+      "skillGroup": "Skill ladder (optional)",
+      "skillNone": "Not part of a ladder",
+      "skillLevel": "Level",
+      "skillHint": "Make this exercise a rung of a skill ladder (e.g. Tuck Planche = Planche, level 2). Athletes see their highest logged rung under Skill progress."
     },
     "food": {
       "add": "Add food",
@@ -2442,7 +2456,8 @@
       "already_global": "This entry is already in the global library.",
       "already_cloned": "You already have your own version of this entry.",
       "unknown": "Something went wrong. Please try again.",
-      "upgrade_required": "Your plan doesn't include adding your own exercises and foods. Upgrade to add more."
+      "upgrade_required": "Your plan doesn't include adding your own exercises and foods. Upgrade to add more.",
+      "skill_incomplete": "Pick both a skill ladder and a level, or leave both empty."
     },
     "basedOn": "Based on: {name}",
     "clone": "Clone & Customize",
@@ -3521,7 +3536,8 @@
       "longest": "Longest {value}",
       "farthest": "Farthest {value}",
       "bestPace": "Best pace {value} /km",
-      "maxCalories": "Best {value} kcal"
+      "maxCalories": "Best {value} kcal",
+      "estimateNote": "Estimated 1RM uses sets of up to 12 reps (up to 3 for Olympic lifts). Higher-rep sets still count toward your heaviest weight."
     },
     "planStory": {
       "title": "My Plan Story",
@@ -3777,84 +3793,6 @@
         "schedule_fit": "Fitting the schedule",
         "other": "Other"
       }
-    }
-  },
-  "onboarding": {
-    "kicker": "Step {step} of {total}",
-    "steps": {
-      "trainingMode": "How you train",
-      "import": "Import clients",
-      "mapping": "Match columns",
-      "template": "Starter form",
-      "send": "First send",
-      "done": "Dashboard"
-    },
-    "trainingMode": {
-      "title": "How do you train?",
-      "subtitle": "This picks the forms and programs we set up for you. You can change it later.",
-      "options": {
-        "online": {
-          "title": "Online only",
-          "body": "All clients remote, followed up through forms and video"
-        },
-        "hybrid": {
-          "title": "Online and in-person",
-          "body": "A mix — gym and online clients together"
-        },
-        "in_person": {
-          "title": "In-person only",
-          "body": "All training happens at the gym; the app handles follow-up and billing"
-        }
-      }
-    },
-    "import": {
-      "title": "Bring your clients",
-      "subtitle": "Most coaches keep their list in Excel or Notes. Paste it exactly as it is.",
-      "placeholder": "Name\tPhone\tGoal\tFee",
-      "parsed": "Found {rows} rows · {cols} columns",
-      "empty": "No data yet"
-    },
-    "mapping": {
-      "title": "Match the columns",
-      "subtitle": "We guessed the mapping from the shape of your data. Fix anything that's wrong.",
-      "fields": {
-        "name": "Name",
-        "phone": "Mobile number",
-        "goal": "Goal",
-        "fee": "Monthly fee",
-        "skip": "Ignore column"
-      },
-      "submit": "Import {count} clients"
-    },
-    "template": {
-      "title": "Choose a starter form",
-      "subtitle": "Ready to go. You can edit it in the builder afterward.",
-      "options": {
-        "intake": "Intake form",
-        "checkin": "Weekly check-in",
-        "diet": "Diet diary"
-      }
-    },
-    "send": {
-      "title": "Send the first check-in",
-      "subtitle": "Choose who gets it now. The rest can wait until their programs are ready.",
-      "whatsapp": "Send on WhatsApp",
-      "messageBody": "Hey! This is your weekly check-in from your coach.\n\n5 questions, two minutes, no account needed:\n{joinUrl}",
-      "submit": "Send to {count} clients"
-    },
-    "done": {
-      "title": "You're live.",
-      "subtitle": "Everything else — programs, billing — you can set up at your own pace.",
-      "clients": "Clients imported",
-      "sent": "Invites sent",
-      "cta": "Go to dashboard"
-    },
-    "errors": {
-      "invalid_input": "Please check the form and try again.",
-      "not_authenticated": "Please log in again.",
-      "save_failed": "Something went wrong. Please try again.",
-      "no_rows": "No valid rows found. Check the pasted data.",
-      "template_failed": "Couldn't create the template. Please try again."
     }
   },
   "diets": {
@@ -5107,7 +5045,11 @@
       "seconds": "s",
       "meters": "m",
       "pace": "s/km",
-      "kcal": "kcal"
+      "kcal": "kcal",
+      "kg": "kg",
+      "km": "km",
+      "percent": "%",
+      "hours": "h"
     },
     "kg": "{value} kg",
     "assist": "{value} kg assist",

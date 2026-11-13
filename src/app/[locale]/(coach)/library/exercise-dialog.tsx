@@ -83,6 +83,8 @@ export function ExerciseDialog({
       primary_muscles: item?.primary_muscles?.join("\n") ?? "",
       secondary_muscles: item?.secondary_muscles?.join("\n") ?? "",
       difficulty: (item?.difficulty as CreateExerciseInput["difficulty"]) ?? undefined,
+      skill_group: (item?.skill_group as CreateExerciseInput["skill_group"]) ?? "",
+      skill_level: item?.skill_level ?? undefined,
       thumbnail_url: item?.thumbnail_url ?? "",
       video_url_alt: item?.video_url_alt ?? "",
     },
@@ -112,6 +114,8 @@ export function ExerciseDialog({
     if (data.primary_muscles) formData.set("primary_muscles", data.primary_muscles);
     if (data.secondary_muscles) formData.set("secondary_muscles", data.secondary_muscles);
     if (data.difficulty) formData.set("difficulty", data.difficulty);
+    if (data.skill_group) formData.set("skill_group", data.skill_group);
+    if (data.skill_level != null) formData.set("skill_level", String(data.skill_level));
     if (data.thumbnail_url) formData.set("thumbnail_url", data.thumbnail_url);
     if (data.video_url_alt) formData.set("video_url_alt", data.video_url_alt);
     // Provenance is set once, here — "edit" never sends this, so an edit of
@@ -162,7 +166,7 @@ export function ExerciseDialog({
           </p>
         )}
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-          <ExerciseFields idPrefix={idPrefix} register={register} control={control} errors={errors} />
+          <ExerciseFields idPrefix={idPrefix} register={register} control={control} errors={errors} showSkill />
           {formError && (
             <p className="text-sm text-destructive">
               {tErrors.has(formError) ? tErrors(formError) : tErrors("unknown")}

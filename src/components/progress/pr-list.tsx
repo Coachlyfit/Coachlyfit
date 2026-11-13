@@ -27,13 +27,14 @@ export function PrList({ rows, locale }: { rows: PrListRow[]; locale: AppLocale 
     meters >= 1000 ? tm("km", { value: trimNumber(meters / 1000) }) : tm("meters", { value: trimNumber(meters) });
 
   return (
+    <div className="flex flex-col gap-2">
     <div className="flex flex-col rounded-xl border border-border bg-card">
       {rows.map((row) => {
         const lines: { key: string; text: string; muted?: boolean }[] = [];
         if (row.maxWeight) {
           lines.push({
             key: "weight",
-            text: `${formatNumber(row.maxWeight.weight, locale, { maximumFractionDigits: 1 })}kg × ${row.maxWeight.reps}`,
+            text: `${tm("kg", { value: formatNumber(row.maxWeight.weight, locale, { maximumFractionDigits: 1 }) })} × ${row.maxWeight.reps}`,
           });
         }
         if (row.maxReps != null) lines.push({ key: "reps", text: t("maxReps", { value: row.maxReps }) });
@@ -70,6 +71,10 @@ export function PrList({ rows, locale }: { rows: PrListRow[]; locale: AppLocale 
           </div>
         );
       })}
+    </div>
+    {rows.some((r) => r.estimatedOneRepMax != null) && (
+      <p className="px-1 text-xs text-muted-foreground">{t("estimateNote")}</p>
+    )}
     </div>
   );
 }

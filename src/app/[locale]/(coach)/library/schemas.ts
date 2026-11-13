@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { MUSCLE_GROUPS, FOOD_CATEGORIES } from "@/domain/library/taxonomy";
 import { MEASUREMENT_TYPES } from "@/domain/library/measurement";
+import { SKILL_GROUPS } from "@/domain/progress/skill-levels";
 
 export const createExerciseSchema = z.object({
   name_ar: z.string().min(1).max(100),
@@ -34,6 +35,15 @@ export const createExerciseSchema = z.object({
   primary_muscles: z.string().max(500).optional(),
   secondary_muscles: z.string().max(500).optional(),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  // Optional rung of a calisthenics skill ladder (planche, front lever, ...).
+  // The two go together — the DB requires both or neither, and the actions check
+  // that (a refine here would turn this object into an effect and break callers
+  // that extend or partial it). "" is the form's "not set".
+  skill_group: z.enum(SKILL_GROUPS).optional().or(z.literal("")),
+  // A real number (no z.coerce): the form converts the input's text with
+  // setValueAs and the action converts the FormData string, so this schema's
+  // input and output types stay the same and it still works as the RHF form type.
+  skill_level: z.number().int().min(1).max(10).optional(),
   thumbnail_url: z.string().url().optional().or(z.literal("")),
   video_url_alt: z.string().url().optional().or(z.literal("")),
   // Only ever set by the clone flow (prefilled, not user-typed) and stripped

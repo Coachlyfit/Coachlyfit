@@ -1,3 +1,4 @@
+import { daysWithSessions } from "@/domain/programs/day-sessions";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
@@ -71,12 +72,12 @@ export default async function PrintProgramPage({
       </header>
 
       <div className="flex flex-col gap-6">
-        {tree.program_days.map((day) => {
+        {daysWithSessions(tree.program_days).map((day) => {
           const orderedItems = sortItemsBySections(day.program_items, day.section_order);
           return (
-          <section key={day.id} className="break-inside-avoid">
+          <section key={day.id} className={day.parent_day_id ? "ms-6 break-inside-avoid" : "break-inside-avoid"}>
             <h2 className="text-lg font-semibold">
-              {tBuilder("dayN", { n: day.day_index })}
+              {day.parent_day_id ? tBuilder("sessionN", { n: day.day_index }) : tBuilder("dayN", { n: day.day_index })}
               {(day.label_ar || day.label_en) && (
                 <span className="font-normal text-gray-700"> — {pickLocale(day, locale, "label")}</span>
               )}

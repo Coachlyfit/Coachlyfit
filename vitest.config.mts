@@ -18,6 +18,7 @@ export default defineConfig({
       "src/lib/**/*.test.ts",
       "src/content/**/*.test.ts",
       "src/components/**/*.test.tsx",
+      "src/hooks/**/*.test.tsx",
       "tests/**/*.test.ts",
     ],
     testTimeout: 20_000,

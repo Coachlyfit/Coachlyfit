@@ -113,7 +113,7 @@ export async function WeightHistorySection({
     .filter((b) => hasBest(b) && (!params.exerciseId || b.exercise_id === params.exerciseId))
     .sort((a, b) => nameOf(a.exercise_id).localeCompare(nameOf(b.exercise_id)));
   const chartUnit: Record<PrimaryMetric, string> = {
-    weight: "kg",
+    weight: tm("unit.kg"),
     reps: tm("unit.reps"),
     duration: tm("unit.seconds"),
     distance: tm("unit.meters"),

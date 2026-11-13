@@ -186,7 +186,9 @@ export const groupFormatSchema = z
 // Authored week plan: weeks 2..12, each with optional label / load % / rep delta
 // / deload flag (see domain/programs/week-plan.ts). Blank inputs are dropped.
 const weekModifierSchema = z.object({
-  label: z.string().trim().max(40).optional(),
+  label_ar: z.string().trim().max(40).optional(),
+  label_en: z.string().trim().max(40).optional(),
+  label: z.string().trim().max(40).optional(), // legacy single-language label, still accepted
   load_pct: z.number().int().min(40).max(150).optional(),
   reps_delta: z.number().int().min(-10).max(10).optional(),
   deload: z.boolean().optional(),

@@ -55,12 +55,17 @@ export default async function ClientPlanPage({
     return { date, plan, isRest, isToday };
   });
 
+  const isWorkoutItem = (i: { block: string }) => i.block !== "mobility" && i.block !== "rehab";
+  // Done-state per program_day: each calendar day with workout items, plus its
+  // extra sessions (an AM/PM split) that have any.
+  const dayIdsToCheck = days.flatMap((d) => [
+    ...(d.plan.day && d.plan.workoutItems.length > 0 ? [d.plan.day.id] : []),
+    ...d.plan.sessions.filter((s) => s.program_items.some(isWorkoutItem)).map((s) => s.id),
+  ]);
   const sessionsByDayId = new Map(
     (
       await Promise.all(
-        days
-          .filter((d) => d.plan.day && d.plan.workoutItems.length > 0)
-          .map(async (d) => [d.plan.day!.id, await workouts.getSessionForDay(d.plan.day!.id, weekStart)] as const)
+        dayIdsToCheck.map(async (id) => [id, await workouts.getSessionForDay(id, weekStart)] as const)
       )
     ).filter(([, session]) => session?.completed_at != null)
   );
@@ -79,6 +84,7 @@ export default async function ClientPlanPage({
       <div className="flex flex-col gap-3">
         {days.map(({ date, plan, isRest, isToday }) => {
           const day = plan.day;
+          const main = (() => {
           const hasWorkout = plan.workoutItems.length > 0;
           const session = hasWorkout && day ? sessionsByDayId.get(day.id) : undefined;
           const done = session != null;
@@ -160,6 +166,54 @@ export default async function ClientPlanPage({
             );
           }
           return <div key={date}>{content}</div>;
+          })();
+
+          // The day's extra sessions (an AM/PM split), tucked under it. Same rule as
+          // the day itself: today or done links into the runner; anything else expands
+          // to a read-only list, so a tap never starts a session by accident.
+          const sessionRows = plan.sessions.map((extra, i) => {
+            const items = sortItemsBySections(extra.program_items, extra.section_order);
+            const workoutCount = extra.program_items.filter(isWorkoutItem).length;
+            if (items.length === 0) return null;
+            const extraDone = sessionsByDayId.get(extra.id);
+            const label = extra.label_ar || extra.label_en ? pickLocale(extra, locale, "label") : t("sessionN", { n: i + 2 });
+            const row = (
+              <div className="flex min-h-11 items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-semibold">{label}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {extraDone
+                      ? t("doneMeta", { minutes: Math.round((extraDone.duration_seconds ?? 0) / 60) })
+                      : t("exerciseCount", { count: workoutCount || items.length })}
+                  </p>
+                </div>
+                {extraDone && <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden="true" />}
+                {isToday && !extraDone && <TodayMark className="size-4 shrink-0 text-warning-tint-foreground" aria-hidden="true" />}
+              </div>
+            );
+            if (isToday || extraDone) {
+              return (
+                <Link key={extra.id} href={`/c/workout/${extra.id}`}>
+                  {row}
+                </Link>
+              );
+            }
+            return (
+              <details key={extra.id}>
+                <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{row}</summary>
+                <div className="pt-3">
+                  <TodayExercisePreview locale={locale} items={items} />
+                </div>
+              </details>
+            );
+          });
+
+          return (
+            <div key={date} className="flex flex-col gap-2">
+              {main}
+              {sessionRows.length > 0 && <div className="ms-6 flex flex-col gap-2 border-s-2 border-border ps-3">{sessionRows}</div>}
+            </div>
+          );
         })}
       </div>
     </div>
