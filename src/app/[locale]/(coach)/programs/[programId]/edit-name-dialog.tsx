@@ -20,6 +20,7 @@ import {
 import { useRouter } from "@/i18n/navigation";
 import { renameSchema, type RenameFormInput } from "../schemas";
 import { renameProgramAction } from "../actions";
+import { PlanMetaFields, appendPlanMeta, type PlanMetaValue } from "../plan-meta-fields";
 
 /** Pencil action beside the program title: a two-field rename form (the
  * same bilingual pair the create dialog asks for). The server action
@@ -30,11 +31,13 @@ export function EditNameDialog({
   programId,
   nameAr,
   nameEn,
+  meta: initialMeta,
 }: {
   locale: string;
   programId: string;
   nameAr: string;
   nameEn: string;
+  meta: PlanMetaValue;
 }) {
   const t = useTranslations("programs.renameDialog");
   const tErrors = useTranslations("programs.errors");
@@ -43,6 +46,7 @@ export function EditNameDialog({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+  const [meta, setMeta] = useState<PlanMetaValue>(initialMeta);
 
   const {
     register,
@@ -59,6 +63,7 @@ export function EditNameDialog({
     const formData = new FormData();
     formData.set("name_ar", data.name_ar);
     formData.set("name_en", data.name_en);
+    appendPlanMeta(formData, meta);
     startTransition(async () => {
       const result = await renameProgramAction(locale, programId, formData);
       if (result?.error) {
@@ -78,6 +83,7 @@ export function EditNameDialog({
         setOpen(next);
         if (!next) {
           reset({ name_ar: nameAr, name_en: nameEn });
+          setMeta(initialMeta);
           setFormError(null);
         }
       }}
@@ -100,6 +106,7 @@ export function EditNameDialog({
             <Input id="rename_name_en" dir="ltr" maxLength={100} {...register("name_en")} />
             {errors.name_en && <p className="text-sm text-destructive">{tErrors("invalid_input")}</p>}
           </div>
+          <PlanMetaFields value={meta} onChange={setMeta} />
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
           <DialogFooter>
             <Button type="button" variant="outline" disabled={pending} onClick={() => setOpen(false)}>

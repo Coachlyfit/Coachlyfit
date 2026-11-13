@@ -19,6 +19,7 @@ import {
   toStoredWeight,
   type MeasureField,
 } from "@/domain/library/measurement";
+import { asSetType, type SetType } from "@/domain/programs/set-targets";
 import { parseDecimal, trimNumber } from "./session-runner";
 
 export type ExtraValues = Record<string, number | string>;
@@ -30,6 +31,10 @@ export type SetMeasures = {
   distance_m: number | null;
   calories: number | null;
   extra: ExtraValues | null;
+  /** Prescription-only: upper end of a rep range, and load as % of 1RM. A
+   * logged set never carries them (workout_set_logs has no such columns). */
+  reps_max?: number | null;
+  pct_1rm?: number | null;
 };
 
 export const EMPTY_MEASURES: SetMeasures = {
@@ -39,6 +44,8 @@ export const EMPTY_MEASURES: SetMeasures = {
   distance_m: null,
   calories: null,
   extra: null,
+  reps_max: null,
+  pct_1rm: null,
 };
 
 /** Strings in the *entered* unit (minutes, km, assistance as a positive
@@ -63,6 +70,8 @@ type MeasureRow = {
   distance_m?: number | null;
   calories?: number | null;
   extra?: unknown;
+  reps_max?: number | null;
+  pct_1rm?: number | null;
 };
 
 export function measuresFromRow(row: MeasureRow | null | undefined): SetMeasures {
@@ -73,6 +82,8 @@ export function measuresFromRow(row: MeasureRow | null | undefined): SetMeasures
     distance_m: row?.distance_m ?? null,
     calories: row?.calories ?? null,
     extra: sanitizeExtra(row?.extra),
+    reps_max: row?.reps_max ?? null,
+    pct_1rm: row?.pct_1rm ?? null,
   };
 }
 
@@ -160,6 +171,12 @@ export function measuresFromDraft(
   };
 }
 
+/** "8" or, for a range, "8-12". */
+export function repsLabel(reps: number | null, repsMax: number | null | undefined): string {
+  if (reps == null) return "";
+  return repsMax != null && repsMax > reps ? `${reps}-${repsMax}` : String(reps);
+}
+
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** "60 kg × 10", "5 km · 28 min", "Bodyweight × 12", "−15 kg assist × 8".
@@ -170,16 +187,21 @@ export function formatSetMeasures(type: unknown, block: string | null | undefine
   const parts: string[] = [];
 
   const entered = toEnteredWeight(type, m.weight);
+  // A %1RM prescription has no fixed kilograms: show "75%" instead of
+  // "Bodyweight" until the runner resolves it from the athlete's history.
   const weightText =
     entered != null && entered > 0
       ? t(isAssisted(type) ? "assist" : "kg", { value: trimNumber(entered) })
-      : null;
+      : m.pct_1rm != null
+        ? t("pctOneRm", { value: trimNumber(m.pct_1rm) })
+        : null;
+  const repsText = repsLabel(m.reps, m.reps_max);
 
   if (fields.includes("reps") && m.reps != null) {
     parts.push(
       fields.includes("weight")
-        ? `${weightText ?? t("bodyweight")} × ${m.reps}`
-        : t("repsCount", { value: m.reps })
+        ? `${weightText ?? t("bodyweight")} × ${repsText}`
+        : t("repsCount", { value: repsText })
     );
   } else if (weightText) {
     parts.push(weightText);
@@ -220,6 +242,12 @@ export function formatSetMeasures(type: unknown, block: string | null | undefine
 
 export type SetPayload = {
   reps?: number | null;
+  /** Set targets — passed through unchanged (no unit conversion). */
+  reps_max?: number | null;
+  set_type?: SetType;
+  pct_1rm?: number | null;
+  rpe_target?: number | null;
+  rir_target?: number | null;
   weight?: number | null;
   duration_seconds?: number | null;
   distance_m?: number | null;
@@ -238,11 +266,21 @@ function numericExtra(extra: ExtraValues | null): Record<string, number> | null 
 export function setToEntered(
   type: unknown,
   block: string | null | undefined,
-  row: MeasureRow & { rest_seconds?: number | null }
+  row: MeasureRow & {
+    rest_seconds?: number | null;
+    set_type?: string | null;
+    rpe_target?: number | null;
+    rir_target?: number | null;
+  }
 ): SetPayload {
   const m = measuresFromRow(row);
   return {
     reps: m.reps ?? undefined,
+    reps_max: m.reps_max ?? undefined,
+    set_type: asSetType(row.set_type),
+    pct_1rm: m.pct_1rm ?? undefined,
+    rpe_target: row.rpe_target ?? undefined,
+    rir_target: row.rir_target ?? undefined,
     weight: toEnteredWeight(type, m.weight) ?? undefined,
     duration_seconds: toEnteredDuration(type, m.duration_seconds, block) ?? undefined,
     distance_m: toEnteredDistance(type, m.distance_m) ?? undefined,
@@ -263,8 +301,15 @@ export function setToStored(type: unknown, block: string | null | undefined, set
     const v = set.extra?.[EXTRA_KEYS[field]];
     if (typeof v === "number") extra[EXTRA_KEYS[field]] = v;
   }
+  const hasReps = fields.has("reps");
   return {
-    reps: fields.has("reps") ? (set.reps ?? null) : null,
+    reps: hasReps ? (set.reps ?? null) : null,
+    // Range, %1RM, RPE and RIR only make sense on a lifted/rep-based set.
+    reps_max: hasReps ? (set.reps_max ?? null) : null,
+    pct_1rm: fields.has("weight") && !isAssisted(type) ? (set.pct_1rm ?? null) : null,
+    rpe_target: set.rpe_target ?? null,
+    rir_target: set.rir_target ?? null,
+    set_type: asSetType(set.set_type),
     weight: fields.has("weight") ? toStoredWeight(type, set.weight ?? null) : null,
     duration_seconds: fields.has("duration") ? toStoredDuration(type, set.duration_seconds ?? null, block) : null,
     distance_m: fields.has("distance") ? toStoredDistance(type, set.distance_m ?? null) : null,
@@ -312,4 +357,18 @@ export function defaultEnteredSet(type: unknown, block?: string | null): SetPayl
     }
   }
   return set;
+}
+
+/** Short tags for a prescribed set beyond its measures — "Warm-up", "RPE 8",
+ * "2 RIR". `t` is the `measure` namespace. A plain working set with no
+ * intensity target has none. */
+export function targetTags(
+  row: { set_type?: string | null; rpe_target?: number | null; rir_target?: number | null },
+  t: Translate
+): string[] {
+  const tags: string[] = [];
+  if (row.set_type && row.set_type !== "working") tags.push(t(`setTypes.${row.set_type}`));
+  if (row.rpe_target != null) tags.push(t("targets.rpe", { value: trimNumber(row.rpe_target) }));
+  if (row.rir_target != null) tags.push(t("targets.rir", { value: row.rir_target }));
+  return tags;
 }

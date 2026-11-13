@@ -1,7 +1,22 @@
 import { z } from "zod";
 import { DAY_SECTION_KEYS } from "@/domain/programs/day-sections";
+import { GROUP_KINDS } from "@/domain/programs/group-config";
+import { SET_TYPES } from "@/domain/programs/set-targets";
+import { PLAN_EQUIPMENT, PLAN_GOALS, PLAN_LEVELS, PLAN_TYPES } from "@/domain/programs/plan-meta";
 
 export const scheduleModeSchema = z.enum(["cycle", "weekly"]);
+
+// Plan metadata. "" is the form's "not set" state (a Select's cleared value),
+// normalized to null by the action — same idiom as client_id below.
+const optionalEnum = <T extends readonly [string, ...string[]]>(values: T) =>
+  z.enum(values).optional().or(z.literal(""));
+
+export const planMetaShape = {
+  plan_type: optionalEnum(PLAN_TYPES),
+  goal: optionalEnum(PLAN_GOALS),
+  level: optionalEnum(PLAN_LEVELS),
+  equipment: z.array(z.enum(PLAN_EQUIPMENT)).max(PLAN_EQUIPMENT.length).optional(),
+};
 
 // client_id nullable = template. z.string().uuid() alone rejects "" — RHF's
 // "no client picked" state — so the empty-string branch is explicit and the
@@ -14,6 +29,7 @@ export const createProgramSchema = z
     start_date: z.string().optional().or(z.literal("")),
     end_date: z.string().optional().or(z.literal("")),
     schedule_mode: scheduleModeSchema.default("cycle"),
+    ...planMetaShape,
   })
   .refine((v) => !v.start_date || !v.end_date || v.end_date >= v.start_date, {
     message: "end_date_before_start_date",
@@ -93,15 +109,25 @@ export const setInputSchema = z
     weight: optionalCoercedNumber(z.coerce.number().min(-1000).max(1000).nullable().optional()),
     rest_seconds: optionalCoercedNumber(z.coerce.number().int().min(0).max(900).nullable().optional()),
     extra: extraSchema,
+    // Targets (20261114000003): set type, upper rep bound, %1RM, RPE / RIR.
+    set_type: z.enum(SET_TYPES).optional(),
+    reps_max: optionalCoercedNumber(z.coerce.number().int().min(1).max(500).nullable().optional()),
+    pct_1rm: optionalCoercedNumber(z.coerce.number().min(1).max(200).nullable().optional()),
+    rpe_target: optionalCoercedNumber(z.coerce.number().min(1).max(10).multipleOf(0.5).nullable().optional()),
+    rir_target: optionalCoercedNumber(z.coerce.number().int().min(0).max(10).nullable().optional()),
   })
   .refine(
     (v) => v.reps != null || v.duration_seconds != null || v.distance_m != null || v.calories != null || v.extra != null,
     { message: "set_needs_measure", path: ["reps"] }
-  );
+  )
+  .refine((v) => v.reps_max == null || v.reps == null || v.reps_max >= v.reps, {
+    message: "reps_range_invalid",
+    path: ["reps_max"],
+  });
 
 export const progressionRuleSchema = z.enum(["none", "plus_2_5kg_week", "plus_5kg_week", "plus_1_rep_week"]);
 
-export const blockSchema = z.enum(["warmup", "main", "cooldown", "mobility", "rehab"]);
+export const blockSchema = z.enum(["warmup", "main", "accessory", "finisher", "cooldown", "mobility", "rehab"]);
 
 export const itemSchema = z.object({
   exercise_id: z.string().uuid(),
@@ -112,7 +138,46 @@ export const itemSchema = z.object({
   block: blockSchema.default("main"),
   rehab_phase_id: z.string().uuid().optional().or(z.literal("")),
   coach_note_private: z.string().max(1000).optional().or(z.literal("")),
+  // Per-exercise options (20261114000003). FormData sends per_side as "true".
+  tempo: z.string().trim().max(12).optional().or(z.literal("")),
+  per_side: z.preprocess((v) => v === true || v === "true", z.boolean()).optional(),
+  scaled_notes_ar: z.string().max(300).optional().or(z.literal("")),
+  scaled_notes_en: z.string().max(300).optional().or(z.literal("")),
 });
+
+export const groupKindSchema = z.enum(GROUP_KINDS);
+
+// Format parameters of a timed group (see GroupConfig). Blank number inputs
+// are dropped; an all-blank object becomes null (an untimed group).
+export const groupConfigSchema = z
+  .object({
+    time_cap_s: optionalCoercedNumber(z.coerce.number().int().min(10).max(14_400).optional()),
+    rounds: optionalCoercedNumber(z.coerce.number().int().min(1).max(100).optional()),
+    interval_s: optionalCoercedNumber(z.coerce.number().int().min(5).max(3600).optional()),
+    work_s: optionalCoercedNumber(z.coerce.number().int().min(1).max(3600).optional()),
+    rest_s: optionalCoercedNumber(z.coerce.number().int().min(0).max(3600).optional()),
+  })
+  .nullable()
+  .optional()
+  .transform((value) => {
+    if (!value) return null;
+    const kept = Object.fromEntries(Object.entries(value).filter(([, v]) => v != null)) as Record<string, number>;
+    return Object.keys(kept).length > 0 ? kept : null;
+  });
+
+// kind + config together so a timed kind can't be saved without the numbers
+// its clock needs (amrap needs a cap, emom interval+rounds, tabata work+rounds).
+export const groupFormatSchema = z
+  .object({ kind: groupKindSchema, config: groupConfigSchema })
+  .refine(
+    ({ kind, config }) => {
+      if (kind === "amrap") return !!config?.time_cap_s;
+      if (kind === "emom") return !!config?.interval_s && !!config?.rounds;
+      if (kind === "tabata") return !!config?.work_s && !!config?.rounds;
+      return true;
+    },
+    { message: "group_config_incomplete", path: ["config"] }
+  );
 
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });
 
@@ -182,6 +247,7 @@ export const saveAsTemplateSchema = z.object({
 export const renameSchema = z.object({
   name_ar: z.string().trim().min(1).max(100),
   name_en: z.string().trim().min(1).max(100),
+  ...planMetaShape,
 });
 
 // schedule_mode has a zod .default(), which makes RHF's input type (what the

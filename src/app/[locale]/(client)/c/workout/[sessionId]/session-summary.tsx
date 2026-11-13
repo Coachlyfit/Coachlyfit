@@ -20,6 +20,7 @@ export function SessionSummary({
   totalVolume,
   totals,
   rows,
+  blocks = [],
   onEditSets,
 }: {
   locale: AppLocale;
@@ -31,6 +32,8 @@ export function SessionSummary({
   /** Time-under-effort / distance / calories across the logged sets. */
   totals: SessionTotals;
   rows: SummaryRow[];
+  /** Scores of the timed groups (AMRAP / For Time / ...) done this session. */
+  blocks?: { id: string; label: string; text: string }[];
   onEditSets: () => void;
 }) {
   const t = useTranslations("client.workout.summary");
@@ -83,6 +86,17 @@ export function SessionSummary({
             </div>
           ))}
         </dl>
+
+        {blocks.length > 0 && (
+          <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+            {blocks.map((b) => (
+              <li key={b.id} className="flex items-center justify-between gap-3 px-3.5 py-3">
+                <span className="text-[15px] font-semibold">{b.label}</span>
+                <span className="font-mono text-base font-semibold tabular-nums">{b.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
           {rows.map((row) => (

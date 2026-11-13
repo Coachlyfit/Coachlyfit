@@ -15,7 +15,7 @@ export type ResolvedDayPlan = {
    * window below. */
   week: number;
   kind: DayKind;
-  /** block IN ('warmup','main','cooldown') — ordinary strength work. */
+  /** block NOT IN ('mobility','rehab') — warm-up, main, accessory, finisher, cool-down. */
   workoutItems: ProgramItem[];
   /** block = 'mobility' — standalone mobility work, not tied to a rehab
    * protocol/phase. */
@@ -67,7 +67,9 @@ export function resolveDayPlan(tree: ProgramTree, targetDate: string): ResolvedD
   const activePhaseIds = new Set(protocols.map((p) => p.activePhase?.id).filter((id): id is string => id != null));
 
   const items = day?.program_items ?? [];
-  const workoutItems = items.filter((i) => i.block === "warmup" || i.block === "main" || i.block === "cooldown");
+  // Everything that is not mobility/rehab is ordinary session work: warm-up,
+  // main, accessory, finisher, cool-down.
+  const workoutItems = items.filter((i) => i.block !== "mobility" && i.block !== "rehab");
   const mobilityItems = items.filter((i) => i.block === "mobility");
   const rehabItems = items.filter(
     (i) => i.block === "rehab" && (i.rehab_phase_id == null || activePhaseIds.has(i.rehab_phase_id))

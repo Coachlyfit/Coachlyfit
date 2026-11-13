@@ -26,6 +26,7 @@ import {
 import { useRouter } from "@/i18n/navigation";
 import { createProgramSchema, type CreateProgramFormInput } from "./schemas";
 import { createProgramAction } from "./actions";
+import { EMPTY_PLAN_META, PlanMetaFields, appendPlanMeta, type PlanMetaValue } from "./plan-meta-fields";
 
 const NO_CLIENT = "__template__";
 
@@ -55,6 +56,7 @@ export function CreateProgramDialog({
   const [open, setOpen] = useState(defaultOpen);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+  const [meta, setMeta] = useState<PlanMetaValue>(EMPTY_PLAN_META);
 
   const {
     register,
@@ -80,6 +82,7 @@ export function CreateProgramDialog({
     if (data.start_date) formData.set("start_date", data.start_date);
     if (data.end_date) formData.set("end_date", data.end_date);
     formData.set("schedule_mode", data.schedule_mode ?? "cycle");
+    appendPlanMeta(formData, meta);
     startTransition(async () => {
       const result = await createProgramAction(locale, formData);
       if ("error" in result) {
@@ -87,6 +90,7 @@ export function CreateProgramDialog({
         return;
       }
       reset();
+      setMeta(EMPTY_PLAN_META);
       setOpen(false);
       router.push(`/programs/${result.id}`);
     });
@@ -181,6 +185,7 @@ export function CreateProgramDialog({
             />
             <p className="text-xs text-muted-foreground">{t("scheduleModeHint")}</p>
           </div>
+          <PlanMetaFields value={meta} onChange={setMeta} />
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
           <Button type="submit" disabled={pending} className="min-w-24">
             {pending ? tCommon("pending") : t("submit")}

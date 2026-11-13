@@ -1271,6 +1271,39 @@
         "incomplete": "Incomplete",
         "editSets": "Edit sets",
         "backToProgram": "Back to program"
+      },
+      "timed": {
+        "start": "Start",
+        "enterWithoutTimer": "Enter result without the timer",
+        "finishEarly": "Stop and score",
+        "roundDone": "Round done",
+        "roundsCount": "{count, plural, one {# round} other {# rounds}}",
+        "roundsAndReps": "{rounds, plural, one {# round} other {# rounds}} + {reps, plural, one {# rep} other {# reps}}",
+        "roundOf": "Round {round} of {total}",
+        "work": "Work",
+        "rest": "Rest",
+        "capLeft": "Cap in {time}",
+        "elapsedOf": "Elapsed {elapsed}",
+        "enterScore": "Enter your score",
+        "score": "Score",
+        "editScore": "Edit score",
+        "saveScore": "Save score",
+        "minutes": "Minutes",
+        "seconds": "Seconds",
+        "rounds": "Rounds",
+        "extraReps": "Extra reps",
+        "splits": "Splits",
+        "rxLabel": "As prescribed or scaled",
+        "rx": "Rx",
+        "scaled": "Scaled",
+        "capHit": "Time cap",
+        "saveFailed": "Couldn't save your score. Try again.",
+        "hint": {
+          "amrap": "As many rounds as possible before time runs out.",
+          "emom": "Start a new round every interval.",
+          "for_time": "Finish all rounds as fast as you can.",
+          "tabata": "Work and rest on the clock."
+        }
       }
     },
     "checkin": {
@@ -1926,7 +1959,36 @@
         "6": "Sat"
       },
       "duplicateItem": "Duplicate exercise",
-      "duplicateDay": "Duplicate day"
+      "duplicateDay": "Duplicate day",
+      "makeTimedGroup": "Make timed / giant set…",
+      "groupFormat": {
+        "title": "Group format",
+        "kind": "Format",
+        "kinds": {
+          "superset": "Superset",
+          "circuit": "Circuit",
+          "giant_set": "Giant set",
+          "amrap": "AMRAP",
+          "emom": "EMOM",
+          "for_time": "For time",
+          "tabata": "Tabata"
+        },
+        "hints": {
+          "superset": "Two exercises back to back, then rest.",
+          "circuit": "Move through all exercises, then rest between rounds.",
+          "giant_set": "Three or more exercises back to back, then rest.",
+          "amrap": "As many rounds as possible before the time cap.",
+          "emom": "A new round starts every interval, for a set number of rounds.",
+          "for_time": "Finish the rounds as fast as possible; split time per round.",
+          "tabata": "Repeating work and rest intervals."
+        },
+        "timeCapMin": "Time cap (minutes)",
+        "timeCapMinOptional": "Time cap (minutes, optional)",
+        "rounds": "Rounds",
+        "intervalSec": "Interval (seconds)",
+        "workSec": "Work (seconds)",
+        "restSec": "Rest (seconds)"
+      }
     },
     "dayDialog": {
       "addTitle": "Add day",
@@ -1969,7 +2031,9 @@
         "main": "Main",
         "cooldown": "Cool-down",
         "mobility": "Mobility",
-        "rehab": "Rehab"
+        "rehab": "Rehab",
+        "accessory": "Accessory",
+        "finisher": "Finisher"
       },
       "rehabPhase": "Rehab phase",
       "rehabPhaseNone": "No specific phase — shows every week",
@@ -1993,7 +2057,21 @@
       "summaryReps": "<m>{sets}</m> {sets, plural, one {set} other {sets}} · <m>{total}</m> {total, plural, one {rep} other {reps}}",
       "summaryHolds": "<m>{sets}</m> {sets, plural, one {hold} other {holds}} · <m>{total}</m> sec",
       "close": "Close",
-      "summarySets": "<m>{sets}</m> {sets, plural, one {set} other {sets}}"
+      "summarySets": "<m>{sets}</m> {sets, plural, one {set} other {sets}}",
+      "targets": {
+        "title": "Set targets",
+        "hint": "Set type, rep range, %1RM, RPE and RIR. The athlete's load is worked out from their logged history when you use %1RM.",
+        "setType": "Set type",
+        "repsMax": "Reps to",
+        "pct1rm": "% 1RM",
+        "rpe": "RPE",
+        "rir": "RIR"
+      },
+      "tempo": "Tempo",
+      "perSide": "Prescription is per side",
+      "scaledAr": "Scaled option (Arabic)",
+      "scaledEn": "Scaled option (English)",
+      "scaledHint": "What to swap or reduce for athletes who can't do it as prescribed."
     },
     "activityDialog": {
       "addTitle": "Add cardio/recovery",
@@ -2098,7 +2176,10 @@
       "not_found_or_forbidden": "You can't change this program.",
       "end_date_before_start_date": "End date can't be before the start date.",
       "unknown": "Something went wrong. Please try again.",
-      "group_not_contiguous": "Superset/circuit items must stay next to each other."
+      "group_not_contiguous": "Superset/circuit items must stay next to each other.",
+      "group_config_incomplete": "Fill in the numbers this format needs.",
+      "reps_range_invalid": "The top of the rep range can't be lower than the starting reps.",
+      "group_selection_invalid": "Select exercises from the same day, and select a whole group or none of it."
     },
     "revisions": {
       "title": "History",
@@ -2133,6 +2214,53 @@
       "lightboxTitle": "{name} — full size",
       "noMedia": "No media",
       "loadFailed": "Couldn't load media"
+    },
+    "planMeta": {
+      "planType": "Plan type",
+      "goal": "Goal",
+      "level": "Level",
+      "equipment": "Equipment",
+      "notSet": "Not set",
+      "allTypes": "All plan types"
+    },
+    "planTypes": {
+      "strength": "Strength / powerlifting",
+      "hypertrophy": "Hypertrophy / bodybuilding",
+      "crossfit": "CrossFit / functional",
+      "hyrox": "Hyrox",
+      "combat": "Combat conditioning",
+      "calisthenics": "Calisthenics",
+      "hybrid": "Hybrid athlete",
+      "endurance": "Endurance",
+      "hiit": "HIIT / circuits",
+      "mobility": "Mobility / rehab",
+      "general": "General fitness",
+      "sport": "Sport-specific",
+      "weightlifting": "Olympic weightlifting",
+      "home": "Home / minimal equipment"
+    },
+    "goals": {
+      "strength": "Get stronger",
+      "muscle": "Build muscle",
+      "fat_loss": "Lose fat",
+      "endurance": "Build endurance",
+      "performance": "Athletic performance",
+      "mobility": "Mobility & recovery",
+      "general": "General fitness"
+    },
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "starters": {
+      "button": "Start from a template",
+      "title": "Starter templates",
+      "description": "Pick a ready-made plan. It becomes your own template that you can edit and assign to clients.",
+      "days": "{count, plural, one {# training day} other {# training days}}",
+      "use": "Use",
+      "adding": "Adding…",
+      "skipped": "Some exercises aren't in the library and were left out: {names}"
     }
   },
   "library": {
@@ -3366,6 +3494,9 @@
     "planStory": {
       "title": "My Plan Story",
       "empty": "No coaching decisions yet — they'll show up here once your coach reviews a check-in."
+    },
+    "scores": {
+      "title": "Workout scores"
     }
   },
   "billing": {
@@ -4963,13 +5094,31 @@
       "setTypes": {
         "warmup": "Warm-up",
         "drop": "Drop set",
-        "failure": "To failure"
+        "failure": "To failure",
+        "backoff": "Back-off",
+        "amrap": "AMRAP"
       },
       "side": "Side",
       "sides": {
         "left": "Left",
         "right": "Right"
       }
-    }
+    },
+    "pctOneRm": "{value}% 1RM",
+    "setTypes": {
+      "working": "Working",
+      "warmup": "Warm-up",
+      "backoff": "Back-off",
+      "drop": "Drop set",
+      "failure": "To failure",
+      "amrap": "AMRAP"
+    },
+    "targets": {
+      "rpe": "RPE {value}",
+      "rir": "{value} RIR"
+    },
+    "tempoValue": "Tempo {value}",
+    "perSide": "Each side",
+    "hasScaled": "Scaled option"
   }
 }

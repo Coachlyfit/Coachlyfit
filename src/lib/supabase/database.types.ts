@@ -3378,6 +3378,42 @@ export type Database = {
           },
         ]
       }
+      program_item_notes: {
+        Row: {
+          coach_id: string
+          note: string
+          program_item_id: string
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          note: string
+          program_item_id: string
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          note?: string
+          program_item_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_item_notes_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_item_notes_program_item_id_fkey"
+            columns: ["program_item_id"]
+            isOneToOne: true
+            referencedRelation: "program_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_item_sets: {
         Row: {
           calories: number | null
@@ -3388,10 +3424,15 @@ export type Database = {
           duration_seconds: number | null
           extra: Json | null
           id: string
+          pct_1rm: number | null
           program_item_id: string
           reps: number | null
+          reps_max: number | null
           rest_seconds: number | null
+          rir_target: number | null
+          rpe_target: number | null
           set_index: number
+          set_type: string
           weight: number | null
         }
         Insert: {
@@ -3403,10 +3444,15 @@ export type Database = {
           duration_seconds?: number | null
           extra?: Json | null
           id?: string
+          pct_1rm?: number | null
           program_item_id: string
           reps?: number | null
+          reps_max?: number | null
           rest_seconds?: number | null
+          rir_target?: number | null
+          rpe_target?: number | null
           set_index: number
+          set_type?: string
           weight?: number | null
         }
         Update: {
@@ -3418,10 +3464,15 @@ export type Database = {
           duration_seconds?: number | null
           extra?: Json | null
           id?: string
+          pct_1rm?: number | null
           program_item_id?: string
           reps?: number | null
+          reps_max?: number | null
           rest_seconds?: number | null
+          rir_target?: number | null
+          rpe_target?: number | null
           set_index?: number
+          set_type?: string
           weight?: number | null
         }
         Relationships: [
@@ -3474,61 +3525,73 @@ export type Database = {
           block: string
           client_id: string | null
           coach_id: string
-          coach_note_private: string | null
           created_by: string | null
           exercise_id: string
+          group_config: Json | null
           group_key: string | null
           group_kind: string | null
           id: string
           notes_ar: string | null
           notes_en: string | null
           order_index: number
+          per_side: boolean
           program_day_id: string
           progression_rule: string
           rehab_phase_id: string | null
           reps: string
           rest_seconds: number | null
+          scaled_notes_ar: string | null
+          scaled_notes_en: string | null
           sets: number
+          tempo: string | null
         }
         Insert: {
           block?: string
           client_id?: string | null
           coach_id: string
-          coach_note_private?: string | null
           created_by?: string | null
           exercise_id: string
+          group_config?: Json | null
           group_key?: string | null
           group_kind?: string | null
           id?: string
           notes_ar?: string | null
           notes_en?: string | null
           order_index?: number
+          per_side?: boolean
           program_day_id: string
           progression_rule?: string
           rehab_phase_id?: string | null
           reps?: string
           rest_seconds?: number | null
+          scaled_notes_ar?: string | null
+          scaled_notes_en?: string | null
           sets?: number
+          tempo?: string | null
         }
         Update: {
           block?: string
           client_id?: string | null
           coach_id?: string
-          coach_note_private?: string | null
           created_by?: string | null
           exercise_id?: string
+          group_config?: Json | null
           group_key?: string | null
           group_kind?: string | null
           id?: string
           notes_ar?: string | null
           notes_en?: string | null
           order_index?: number
+          per_side?: boolean
           program_day_id?: string
           progression_rule?: string
           rehab_phase_id?: string | null
           reps?: string
           rest_seconds?: number | null
+          scaled_notes_ar?: string | null
+          scaled_notes_en?: string | null
           sets?: number
+          tempo?: string | null
         }
         Relationships: [
           {
@@ -3653,10 +3716,16 @@ export type Database = {
           coach_id: string
           created_at: string
           created_by: string | null
+          description_ar: string | null
+          description_en: string | null
           end_date: string | null
+          equipment: string[]
+          goal: string | null
           id: string
+          level: string | null
           name_ar: string
           name_en: string
+          plan_type: string | null
           schedule_mode: string
           source_template_id: string | null
           start_date: string
@@ -3668,10 +3737,16 @@ export type Database = {
           coach_id: string
           created_at?: string
           created_by?: string | null
+          description_ar?: string | null
+          description_en?: string | null
           end_date?: string | null
+          equipment?: string[]
+          goal?: string | null
           id?: string
+          level?: string | null
           name_ar: string
           name_en: string
+          plan_type?: string | null
           schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
@@ -3683,10 +3758,16 @@ export type Database = {
           coach_id?: string
           created_at?: string
           created_by?: string | null
+          description_ar?: string | null
+          description_en?: string | null
           end_date?: string | null
+          equipment?: string[]
+          goal?: string | null
           id?: string
+          level?: string | null
           name_ar?: string
           name_en?: string
+          plan_type?: string | null
           schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
@@ -4667,6 +4748,7 @@ export type Database = {
       }
       workout_sessions: {
         Row: {
+          block_results: Json
           client_id: string
           coach_id: string
           completed_at: string | null
@@ -4683,6 +4765,7 @@ export type Database = {
           total_volume: number | null
         }
         Insert: {
+          block_results?: Json
           client_id: string
           coach_id: string
           completed_at?: string | null
@@ -4699,6 +4782,7 @@ export type Database = {
           total_volume?: number | null
         }
         Update: {
+          block_results?: Json
           client_id?: string
           coach_id?: string
           completed_at?: string | null
@@ -5519,6 +5603,10 @@ export type Database = {
       reorder_marketing_sections: {
         Args: { p_ids: string[]; p_page_id: string }
         Returns: undefined
+      }
+      replace_program_item_sets: {
+        Args: { p_item_id: string; p_legacy?: Json; p_sets: Json }
+        Returns: boolean
       }
       respond_to_coach_invite: {
         Args: {

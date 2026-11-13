@@ -23,7 +23,7 @@ export type PersonalRecord = {
   estimatedOneRepMax: { value: number; fromWeight: number; fromReps: number; completedAt: string } | null;
 };
 
-function epley(weight: number, reps: number): number {
+export function epley(weight: number, reps: number): number {
   if (reps <= 1) return weight;
   return Math.round(weight * (1 + reps / 30) * 2) / 2;
 }

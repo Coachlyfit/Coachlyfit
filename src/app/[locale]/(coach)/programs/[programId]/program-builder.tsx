@@ -62,11 +62,21 @@ import {
   reorderItemsAction,
   reorderSectionsAction,
   groupItemsAction,
+  setGroupFormatAction,
   ungroupItemsAction,
   deleteActivityAction,
 } from "../actions";
 import { AddDayDialog } from "./add-day-dialog";
 import { ItemDialog } from "./item-dialog";
+import { GroupFormatDialog } from "./group-format-dialog";
+import {
+  asGroupKind,
+  defaultGroupConfig,
+  formatGroupConfig,
+  parseGroupConfig,
+  type GroupConfig,
+  type GroupKind,
+} from "@/domain/programs/group-config";
 import { ActivityDialog } from "./activity-dialog";
 import { NutritionPanel } from "./nutrition-panel";
 import { RehabPanel } from "./rehab-panel";
@@ -75,7 +85,7 @@ import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 import { RevisionHistoryDrawer } from "./revision-history-drawer";
 import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
 import type { PickedExercise } from "./exercise-media";
-import { formatSetMeasures, measuresFromRow } from "@/domain/workouts/set-measures";
+import { formatSetMeasures, measuresFromRow, targetTags } from "@/domain/workouts/set-measures";
 import { VolumeSidebar } from "./volume-sidebar";
 import { Link, useRouter } from "@/i18n/navigation";
 
@@ -91,6 +101,7 @@ function SortableItem({
   locale,
   week,
   groupLabel,
+  groupBadge,
   selected,
   onToggleSelect,
   onEdit,
@@ -104,6 +115,10 @@ function SortableItem({
    * otherwise. Purely a display label — group membership itself is
    * item.group_key, this is just its position within the group. */
   groupLabel: string | null;
+  /** Format chip ("AMRAP 12:00", "Giant set") shown on a group's first
+   * member; clicking edits the whole group's format. Null on every other row
+   * and for plain superset/circuit groups. */
+  groupBadge: { text: string; onEdit: () => void } | null;
   selected: boolean;
   onToggleSelect: () => void;
   onEdit: () => void;
@@ -154,18 +169,39 @@ function SortableItem({
           {groupLabel}
         </span>
       )}
+      {groupBadge && (
+        <button
+          type="button"
+          onClick={groupBadge.onEdit}
+          disabled={readOnly}
+          className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary enabled:hover:bg-primary/20"
+        >
+          {groupBadge.text}
+        </button>
+      )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{pickLocale(item.exercises, locale)}</div>
         <div className="mt-1 flex flex-wrap items-center gap-1">
-          {displaySets.map((set, i) => (
-            <span
-              key={i}
-              className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
-            >
-              {formatSetMeasures(item.exercises.measurement_type, item.block, measuresFromRow(set), tm)}
-            </span>
-          ))}
+          {displaySets.map((set, i) => {
+            const tags = targetTags(set, tm);
+            return (
+              <span
+                key={i}
+                className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
+              >
+                {formatSetMeasures(item.exercises.measurement_type, item.block, measuresFromRow(set), tm)}
+                {tags.length > 0 && <span className="text-foreground/70"> · {tags.join(" · ")}</span>}
+              </span>
+            );
+          })}
         </div>
+        {(item.tempo || item.per_side || item.scaled_notes_en || item.scaled_notes_ar) && (
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+            {item.tempo && <span className="font-mono">{tm("tempoValue", { value: item.tempo })}</span>}
+            {item.per_side && <span>{tm("perSide")}</span>}
+            {(item.scaled_notes_en || item.scaled_notes_ar) && <span>{tm("hasScaled")}</span>}
+          </div>
+        )}
       </div>
       {!readOnly && (
         <>
@@ -355,8 +391,14 @@ function DayCard({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
   const [groupPending, startGroupTransition] = useTransition();
+  // null = closed; "create" groups the selected items; otherwise edits that
+  // existing group (all of its member ids).
+  const [formatDialog, setFormatDialog] = useState<
+    { mode: "create" } | { mode: "edit"; ids: string[]; kind: GroupKind; config: GroupConfig | null } | null
+  >(null);
+  const tFormat = useTranslations("programs.builder.groupFormat");
 
-  const workoutItems = items.filter((i) => i.block === "warmup" || i.block === "main" || i.block === "cooldown");
+  const workoutItems = items.filter((i) => i.block !== "mobility" && i.block !== "rehab");
   const otherItems = items.filter((i) => i.block === "mobility" || i.block === "rehab");
 
   // Only sections that actually have content render, but the persisted order
@@ -397,6 +439,30 @@ function DayCard({
     }
   }
 
+  // Per-group format info for the chips: members, kind, config — read off the
+  // first member (the config is stored identically on every member).
+  const groupInfo = new Map<string, { ids: string[]; kind: GroupKind; config: GroupConfig }>();
+  for (const item of workoutItems) {
+    if (!item.group_key) continue;
+    const kind = asGroupKind(item.group_kind);
+    if (!kind) continue;
+    const existing = groupInfo.get(item.group_key);
+    if (existing) existing.ids.push(item.id);
+    else groupInfo.set(item.group_key, { ids: [item.id], kind, config: parseGroupConfig(item.group_config) });
+  }
+  function badgeFor(item: Item): { text: string; onEdit: () => void } | null {
+    if (!item.group_key) return null;
+    const info = groupInfo.get(item.group_key);
+    // Only the first member carries the chip, and plain superset/circuit
+    // groups keep their existing A1/A2-only look.
+    if (!info || info.ids[0] !== item.id || info.kind === "superset" || info.kind === "circuit") return null;
+    const detail = formatGroupConfig(info.kind, info.config);
+    return {
+      text: detail ? `${tFormat(`kinds.${info.kind}`)} ${detail}` : tFormat(`kinds.${info.kind}`),
+      onEdit: () => setFormatDialog({ mode: "edit", ids: info.ids, kind: info.kind, config: info.config }),
+    };
+  }
+
   function toggleSelect(itemId: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -406,7 +472,7 @@ function DayCard({
     });
   }
 
-  function makeGroup(kind: "superset" | "circuit") {
+  function makeGroup(kind: GroupKind) {
     const ids = Array.from(selected);
     if (ids.length < 2) return;
     startGroupTransition(async () => {
@@ -562,6 +628,7 @@ function DayCard({
                 locale={locale}
                 week={week}
                 groupLabel={groupLabels.get(item.id) ?? null}
+                groupBadge={badgeFor(item)}
                 selected={false}
                 onToggleSelect={() => {}}
                 onEdit={() => {}}
@@ -583,6 +650,7 @@ function DayCard({
                   locale={locale}
                   week={week}
                   groupLabel={groupLabels.get(item.id) ?? null}
+                groupBadge={badgeFor(item)}
                   selected={selected.has(item.id)}
                   onToggleSelect={() => toggleSelect(item.id)}
                   onEdit={() => setItemDialog({ item })}
@@ -607,6 +675,7 @@ function DayCard({
               locale={locale}
               week={week}
               groupLabel={null}
+              groupBadge={null}
               selected={false}
               onToggleSelect={() => {}}
               onEdit={() => setItemDialog({ item })}
@@ -715,6 +784,16 @@ function DayCard({
                 <Link2 className="size-4" />
                 {t("makeCircuit")}
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={groupPending}
+                onClick={() => setFormatDialog({ mode: "create" })}
+              >
+                <Link2 className="size-4" />
+                {t("makeTimedGroup")}
+              </Button>
             </>
           )}
           <Button type="button" variant="ghost" size="sm" disabled={groupPending} onClick={ungroupSelected}>
@@ -725,6 +804,25 @@ function DayCard({
             {t("clearSelection")}
           </Button>
         </div>
+      )}
+      {formatDialog && (
+        <GroupFormatDialog
+          key={formatDialog.mode === "edit" ? formatDialog.ids.join(",") : "create"}
+          open
+          onOpenChange={(open) => !open && setFormatDialog(null)}
+          initialKind={formatDialog.mode === "edit" ? formatDialog.kind : "amrap"}
+          initialConfig={formatDialog.mode === "edit" ? formatDialog.config : defaultGroupConfig("amrap")}
+          onConfirm={async (kind, config) => {
+            const dialog = formatDialog;
+            const result =
+              dialog.mode === "edit"
+                ? await setGroupFormatAction(locale, programId, dialog.ids, kind, config)
+                : await groupItemsAction(locale, programId, Array.from(selected), kind, config);
+            if (result?.error) return result;
+            if (dialog.mode === "create") setSelected(new Set());
+            router.refresh();
+          }}
+        />
       )}
       <CardContent className="flex flex-col gap-4">
         {items.length === 0 && day.program_activities.length === 0 && !hasNote ? (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ProgramsService, CLIENT_SAFE_ITEM_COLUMNS } from "./programs.service";
+import { ProgramsService, CLIENT_SAFE_ITEM_COLUMNS, planGroupOrder } from "./programs.service";
 
 /** Same hand-rolled thenable-chain fake as library.service.test.ts — no
  * mocking library. `parentRow` seeds what a parent-lookup select() resolves
@@ -10,6 +10,11 @@ function fakeSupabase(opts: {
   affected?: unknown[];
   itemsRow?: unknown[];
   ownClientRow?: Record<string, unknown> | null;
+  /** groupItems' lookups: the selected rows, and the whole day in order. */
+  pickedRows?: unknown[];
+  dayRows?: unknown[];
+  /** addItem's "last order_index of the day" lookup. */
+  lastOrderRows?: unknown[];
 } = {}) {
   const {
     parentRow = null,
@@ -17,16 +22,35 @@ function fakeSupabase(opts: {
     affected = [{ id: "1" }],
     itemsRow = [],
     ownClientRow = { id: "client-1" },
+    pickedRows = [
+      { id: "a", program_day_id: "day-1", group_key: null },
+      { id: "b", program_day_id: "day-1", group_key: null },
+    ],
+    dayRows = [
+      { id: "a", group_key: null, order_index: 0 },
+      { id: "b", group_key: null, order_index: 1 },
+    ],
+    lastOrderRows = [],
   } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
+  const upserts: { table: string; payload: unknown }[] = [];
+  const rpcs: { fn: string; args: Record<string, unknown> }[] = [];
   const updates: { table: string; payload: unknown; eqs: [string, unknown][]; ins: [string, unknown[]][] }[] = [];
   const deletes: { table: string; eqs: [string, unknown][] }[] = [];
   const affectedRows = async () => ({ data: affected, error: null });
 
   const db = {
+    rpc: async (fn: string, args: Record<string, unknown>) => {
+      rpcs.push({ fn, args });
+      return { data: true, error: null };
+    },
     from(table: string) {
       return {
+        upsert: async (payload: unknown) => {
+          upserts.push({ table, payload });
+          return { error: null };
+        },
         select: (cols?: string) => {
           // Parent-derivation lookups: select("coach_id, client_id").eq(...).maybeSingle()
           if (cols === "coach_id, client_id") {
@@ -35,6 +59,17 @@ function fakeSupabase(opts: {
           // reorderItems' pre-check: select("id, group_key").eq(...).in(...)
           if (cols === "id, group_key") {
             return { eq: () => ({ in: async () => ({ data: itemsRow, error: null }) }) };
+          }
+          // groupItems: the selected rows, then the whole day in order.
+          if (cols === "id, program_day_id, group_key") {
+            return { in: async () => ({ data: pickedRows, error: null }) };
+          }
+          if (cols === "id, group_key, order_index") {
+            return { eq: () => ({ order: () => ({ order: async () => ({ data: dayRows, error: null }) }) }) };
+          }
+          // addItem: the day's current last order_index.
+          if (cols === "order_index") {
+            return { eq: () => ({ order: () => ({ limit: async () => ({ data: lastOrderRows, error: null }) }) }) };
           }
           // assertOwnClient: select("id").eq(...).maybeSingle()
           if (cols === "id" && table === "clients") {
@@ -86,6 +121,10 @@ function fakeSupabase(opts: {
               eqs.push([col, val]);
               return chain;
             },
+            not: (col: string, _op: string, val: unknown) => {
+              eqs.push([col, val]);
+              return chain;
+            },
             in: (col: string, vals: unknown[]) => {
               ins.push([col, vals]);
               return chain;
@@ -115,7 +154,7 @@ function fakeSupabase(opts: {
     },
   };
 
-  return { db: db as never, inserts, updates, deletes };
+  return { db: db as never, inserts, upserts, rpcs, updates, deletes };
 }
 
 describe("ProgramsService", () => {
@@ -188,6 +227,7 @@ describe("ProgramsService", () => {
         "progression_rule",
         "group_key",
         "group_kind",
+        "group_config",
         "block",
       ]) {
         expect(CLIENT_SAFE_ITEM_COLUMNS).toContain(col);
@@ -217,21 +257,47 @@ describe("ProgramsService", () => {
       ]);
     });
 
-    it("updateItem replaces program_item_sets (delete-then-reinsert) when sets are provided", async () => {
-      const { db, deletes, inserts } = fakeSupabase({
+    it("updateItem replaces the sets through one atomic RPC (with the legacy snapshot), never delete-then-insert", async () => {
+      const { db, deletes, inserts, rpcs } = fakeSupabase({
         affected: [{ id: "item-1", coach_id: "coach-1", client_id: "client-9" }],
       });
-      const ok = await new ProgramsService(db).updateItem("item-1", { sets: [{ reps: 5, weight: 60 }] });
+      const ok = await new ProgramsService(db).updateItem("item-1", { sets: [{ reps: 5, weight: 60, set_type: "backoff" }] });
 
       expect(ok).toBe(true);
-      expect(deletes).toContainEqual({
-        table: "program_item_sets",
-        eqs: [["program_item_id", "item-1"]],
+      expect(rpcs).toHaveLength(1);
+      expect(rpcs[0].fn).toBe("replace_program_item_sets");
+      expect(rpcs[0].args).toMatchObject({
+        p_item_id: "item-1",
+        p_sets: [expect.objectContaining({ reps: 5, weight: 60, set_type: "backoff" })],
+        p_legacy: { sets: 1, reps: "5" },
       });
-      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
-      expect(setsInsert?.payload).toEqual([
-        expect.objectContaining({ set_index: 1, reps: 5, weight: 60, program_item_id: "item-1" }),
-      ]);
+      // The non-atomic path is gone: no separate delete of the sets, no re-insert.
+      expect(deletes.find((d) => d.table === "program_item_sets")).toBeUndefined();
+      expect(inserts.find((i) => i.table === "program_item_sets")).toBeUndefined();
+    });
+
+    it("updateItem reports false (and writes nothing more) when the RPC finds no visible item", async () => {
+      const { db, rpcs } = fakeSupabase();
+      (db as unknown as { rpc: unknown }).rpc = async () => ({ data: false, error: null });
+      expect(await new ProgramsService(db).updateItem("item-1", { sets: [{ reps: 5 }] })).toBe(false);
+      expect(rpcs).toHaveLength(0);
+    });
+
+    it("updateItem stores the coach-only note in program_item_notes, and clears it when blank", async () => {
+      const set = fakeSupabase({ affected: [{ id: "item-1", coach_id: "coach-1", client_id: "c" }] });
+      await new ProgramsService(set.db).updateItem("item-1", { notes_ar: "x", coach_note_private: " watch her knee " });
+      expect(set.upserts.find((u) => u.table === "program_item_notes")?.payload).toMatchObject({
+        program_item_id: "item-1",
+        coach_id: "coach-1",
+        note: "watch her knee",
+      });
+      // The note never goes onto program_items any more.
+      expect(JSON.stringify(set.updates.find((u) => u.table === "program_items")?.payload)).not.toContain("coach_note_private");
+
+      const clear = fakeSupabase({ affected: [{ id: "item-1", coach_id: "coach-1", client_id: "c" }] });
+      await new ProgramsService(clear.db).updateItem("item-1", { notes_ar: "x", coach_note_private: "" });
+      expect(clear.deletes).toContainEqual({ table: "program_item_notes", eqs: [["program_item_id", "item-1"]] });
+      expect(clear.upserts.find((u) => u.table === "program_item_notes")).toBeUndefined();
     });
 
     it("updateItem leaves program_item_sets untouched when sets aren't provided", async () => {
@@ -378,11 +444,48 @@ describe("ProgramsService", () => {
       const count = await new ProgramsService(db).groupItems(["a", "b"], "superset");
 
       expect(count).toBe(2);
+      // Already adjacent and tie-free: no order rewrites, just the group stamp.
       expect(updates).toHaveLength(1);
       expect(updates[0].table).toBe("program_items");
       expect(updates[0].payload).toMatchObject({ group_kind: "superset" });
       expect(typeof (updates[0].payload as { group_key: string }).group_key).toBe("string");
       expect(updates[0].ins).toEqual([["id", ["a", "b"]]]);
+    });
+
+    it("groupItems gathers non-adjacent items and rewrites the day's order before stamping the group", async () => {
+      const { db, updates } = fakeSupabase({
+        affected: [{ id: "a" }, { id: "c" }],
+        pickedRows: [
+          { id: "a", program_day_id: "day-1", group_key: null },
+          { id: "c", program_day_id: "day-1", group_key: null },
+        ],
+        dayRows: [
+          { id: "a", group_key: null, order_index: 0 },
+          { id: "b", group_key: null, order_index: 1 },
+          { id: "c", group_key: null, order_index: 2 },
+        ],
+      });
+      await new ProgramsService(db).groupItems(["a", "c"], "superset");
+      // order becomes a, c, b -> only c (2 -> 1) and b (1 -> 2) change
+      const orderWrites = updates.filter((u) => "order_index" in (u.payload as object));
+      expect(orderWrites.map((u) => [u.eqs[0][1], (u.payload as { order_index: number }).order_index])).toEqual([
+        ["c", 1],
+        ["b", 2],
+      ]);
+      expect(updates[updates.length - 1].payload).toMatchObject({ group_kind: "superset" });
+    });
+
+    it("groupItems rejects a selection that spans days or does not match what was found", async () => {
+      const { db, updates } = fakeSupabase({
+        pickedRows: [
+          { id: "a", program_day_id: "day-1", group_key: null },
+          { id: "b", program_day_id: "day-2", group_key: null },
+        ],
+      });
+      await expect(new ProgramsService(db).groupItems(["a", "b"], "superset")).rejects.toThrow("group_selection_invalid");
+      expect(updates).toHaveLength(0);
+      const missing = fakeSupabase({ pickedRows: [{ id: "a", program_day_id: "day-1", group_key: null }] });
+      await expect(new ProgramsService(missing.db).groupItems(["a", "b"], "superset")).rejects.toThrow("group_selection_invalid");
     });
 
     it("groupItems is a no-op for fewer than 2 items", async () => {
@@ -397,7 +500,21 @@ describe("ProgramsService", () => {
       const count = await new ProgramsService(db).ungroupItems(["a", "b"]);
 
       expect(count).toBe(2);
-      expect(updates[0].payload).toEqual({ group_key: null, group_kind: null });
+      expect(updates[0].payload).toEqual({ group_key: null, group_kind: null, group_config: null });
+      expect(updates[0].ins).toEqual([["id", ["a", "b"]]]);
+    });
+
+    it("groupItems stores a timed format's config alongside the kind", async () => {
+      const { db, updates } = fakeSupabase({ affected: [{ id: "a" }, { id: "b" }] });
+      await new ProgramsService(db).groupItems(["a", "b"], "amrap", { time_cap_s: 720 });
+      expect(updates[0].payload).toMatchObject({ group_kind: "amrap", group_config: { time_cap_s: 720 } });
+    });
+
+    it("setGroupFormat rewrites kind + config on every member without touching group_key", async () => {
+      const { db, updates } = fakeSupabase({ affected: [{ id: "a" }, { id: "b" }] });
+      const count = await new ProgramsService(db).setGroupFormat(["a", "b"], "emom", { interval_s: 60, rounds: 8 });
+      expect(count).toBe(2);
+      expect(updates[0].payload).toEqual({ group_kind: "emom", group_config: { interval_s: 60, rounds: 8 } });
       expect(updates[0].ins).toEqual([["id", ["a", "b"]]]);
     });
   });
@@ -454,7 +571,7 @@ describe("ProgramsService", () => {
     };
 
     it("stamps the new client_id + source_template_id, and clones schedule_mode/weekday/block/group/progression/per-set data", async () => {
-      const { db, inserts } = fakeSupabase({ treeRow: tree });
+      const { db, inserts, upserts } = fakeSupabase({ treeRow: tree });
       const result = await new ProgramsService(db).cloneToClient("template-1", "client-9");
 
       expect(result).not.toBeNull();
@@ -481,9 +598,14 @@ describe("ProgramsService", () => {
         exercise_id: "ex-1",
         progression_rule: "plus_2_5kg_week",
         block: "warmup",
-        coach_note_private: "watch the knee",
         group_key: "g1",
         group_kind: "superset",
+      });
+      expect(JSON.stringify(itemInsert?.payload)).not.toContain("coach_note_private");
+      expect(upserts.find((u) => u.table === "program_item_notes")?.payload).toMatchObject({
+        program_item_id: "new-program_items",
+        coach_id: "coach-1",
+        note: "watch the knee",
       });
       expect(setsInsert?.payload).toEqual([
         expect.objectContaining({ client_id: "client-9", coach_id: "coach-1", set_index: 1, reps: 8, weight: 50 }),
@@ -610,109 +732,142 @@ describe("ProgramsService", () => {
   });
 
   describe("restoreRevision", () => {
-    it("clears the program's current days and re-inserts the snapshotted tree", async () => {
-      const snapshot = {
-        coach_id: "coach-1",
-        client_id: "client-9",
-        program_days: [
-          {
-            day_index: 1,
-            order_index: 0,
-            label_ar: null,
-            label_en: null,
-            weekday: null,
-            notes_ar: null,
-            notes_en: null,
-            diet_plan_id: null,
-            program_items: [
-              {
-                exercise_id: "ex-1",
-                sets: 1,
-                reps: "10",
-                rest_seconds: 60,
-                progression_rule: "none",
-                notes_ar: null,
-                notes_en: null,
-                order_index: 0,
-                block: "main",
-                rehab_phase_id: null,
-                coach_note_private: null,
-                group_key: null,
-                group_kind: null,
-                program_item_sets: [
-                  { set_index: 1, reps: 10, weight: 40, rest_seconds: 60, duration_seconds: null },
-                ],
-              },
-            ],
-            program_activities: [],
-          },
-        ],
-      };
+    const snapshot = {
+      coach_id: "coach-1",
+      client_id: "client-9",
+      program_days: [
+        {
+          id: "day-1",
+          day_index: 1,
+          order_index: 0,
+          section_order: ["workout"],
+          label_ar: null,
+          label_en: null,
+          weekday: null,
+          notes_ar: null,
+          notes_en: null,
+          diet_plan_id: "diet-gone",
+          program_items: [
+            {
+              id: "item-1",
+              exercise_id: "ex-1",
+              sets: 1,
+              reps: "10",
+              rest_seconds: 60,
+              progression_rule: "none",
+              notes_ar: null,
+              notes_en: null,
+              order_index: 0,
+              block: "main",
+              rehab_phase_id: "phase-gone",
+              coach_note_private: null,
+              tempo: null,
+              per_side: false,
+              scaled_notes_ar: null,
+              scaled_notes_en: null,
+              group_key: null,
+              group_kind: null,
+              group_config: null,
+              program_item_sets: [
+                { set_index: 1, reps: 10, weight: 40, rest_seconds: 60, duration_seconds: null, set_type: "working" },
+              ],
+            },
+          ],
+          program_activities: [{ id: "act-1", kind: "cardio", modality: "running", order_index: 0, log_required: true }],
+        },
+      ],
+    };
 
+    /** Records every write; `live` is what the existence checks find. */
+    function restoreDb(live: Record<string, string[]> = {}) {
+      const upserts: { table: string; payload: Record<string, unknown>; opts: unknown }[] = [];
       const inserts: { table: string; payload: unknown }[] = [];
-      const deletes: { table: string; eqs: [string, unknown][] }[] = [];
+      const deletes: { table: string; eqs: [string, unknown][]; notIn: unknown[] }[] = [];
       const db = {
         from: (table: string) => ({
-          select: () => ({
-            eq: () => ({
-              maybeSingle: async () => ({
-                data: { program_id: "program-1", snapshot },
-                error: null,
-              }),
-            }),
-          }),
+          select: (cols?: string) => {
+            if (cols === "program_id, snapshot") {
+              return { eq: () => ({ maybeSingle: async () => ({ data: { program_id: "program-1", snapshot }, error: null }) }) };
+            }
+            // existingIds: select("id").in("id", wanted)
+            return { in: async () => ({ data: (live[table] ?? []).map((id) => ({ id })), error: null }) };
+          },
+          upsert: async (payload: Record<string, unknown>, opts: unknown) => {
+            upserts.push({ table, payload, opts });
+            return { error: null };
+          },
+          insert: async (payload: unknown) => {
+            inserts.push({ table, payload });
+            return { error: null };
+          },
           delete: () => {
-            const eqs: [string, unknown][] = [];
-            const chain = {
+            const rec = { table, eqs: [] as [string, unknown][], notIn: [] as unknown[] };
+            deletes.push(rec);
+            const chain: Record<string, unknown> = {
               eq: (col: string, val: unknown) => {
-                eqs.push([col, val]);
-                deletes.push({ table, eqs });
-                return { error: null };
+                rec.eqs.push([col, val]);
+                return chain;
               },
+              not: (_col: string, _op: string, val: unknown) => {
+                rec.notIn.push(val);
+                return chain;
+              },
+              then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
             };
             return chain;
           },
-          insert: (payload: unknown) => {
-            inserts.push({ table, payload });
-            return {
-              select: () => ({
-                single: async () => ({ data: { id: `new-${table}`, ...(payload as object) }, error: null }),
-              }),
-            };
-          },
         }),
       };
+      return { db: db as never, upserts, inserts, deletes };
+    }
 
-      const ok = await new ProgramsService(db as never).restoreRevision("revision-1");
+    it("upserts the snapshot under its original ids instead of deleting the tree (client logs cascade off these ids)", async () => {
+      const { db, upserts, inserts, deletes } = restoreDb();
+      const ok = await new ProgramsService(db).restoreRevision("revision-1");
       expect(ok).toBe(true);
-      expect(deletes).toContainEqual({ table: "program_days", eqs: [["program_id", "program-1"]] });
 
-      const dayInsert = inserts.find((i) => i.table === "program_days");
-      expect(dayInsert?.payload).toMatchObject({ coach_id: "coach-1", client_id: "client-9", day_index: 1 });
-
-      const itemInsert = inserts.find((i) => i.table === "program_items");
-      expect(itemInsert?.payload).toMatchObject({ exercise_id: "ex-1", block: "main" });
-
-      const setsInsert = inserts.find((i) => i.table === "program_item_sets");
-      expect(setsInsert?.payload).toEqual([
-        expect.objectContaining({ set_index: 1, reps: 10, weight: 40 }),
+      expect(upserts.find((u) => u.table === "program_days")).toMatchObject({
+        payload: { id: "day-1", program_id: "program-1", coach_id: "coach-1", client_id: "client-9", day_index: 1 },
+        opts: { onConflict: "id" },
+      });
+      expect(upserts.find((u) => u.table === "program_items")?.payload).toMatchObject({ id: "item-1", program_day_id: "day-1", exercise_id: "ex-1" });
+      expect(upserts.find((u) => u.table === "program_activities")?.payload).toMatchObject({ id: "act-1", program_day_id: "day-1" });
+      expect(inserts.find((i) => i.table === "program_item_sets")?.payload).toEqual([
+        expect.objectContaining({ program_item_id: "item-1", set_index: 1, reps: 10, weight: 40 }),
       ]);
+
+      // Nothing is ever deleted wholesale: every day/item/activity delete excludes the snapshot's ids.
+      for (const d of deletes.filter((d) => !["program_item_sets", "program_item_notes"].includes(d.table))) {
+        expect(d.notIn.length).toBe(1);
+      }
+      expect(deletes.find((d) => d.table === "program_days")).toMatchObject({ eqs: [["program_id", "program-1"]], notIn: ["(day-1)"] });
+      expect(deletes.find((d) => d.table === "program_items")).toMatchObject({ eqs: [["program_day_id", "day-1"]], notIn: ["(item-1)"] });
+    });
+
+    it("restores a vanished rehab phase / diet plan reference as null, keeps one that still exists", async () => {
+      const gone = restoreDb();
+      await new ProgramsService(gone.db).restoreRevision("revision-1");
+      expect(gone.upserts.find((u) => u.table === "program_days")?.payload.diet_plan_id).toBeNull();
+      expect(gone.upserts.find((u) => u.table === "program_items")?.payload.rehab_phase_id).toBeNull();
+
+      const kept = restoreDb({ diet_plans: ["diet-gone"], rehab_phases: ["phase-gone"] });
+      await new ProgramsService(kept.db).restoreRevision("revision-1");
+      expect(kept.upserts.find((u) => u.table === "program_days")?.payload.diet_plan_id).toBe("diet-gone");
+      expect(kept.upserts.find((u) => u.table === "program_items")?.payload.rehab_phase_id).toBe("phase-gone");
     });
 
     it("returns false without touching anything when the revision isn't visible", async () => {
-      const inserts: unknown[] = [];
+      const writes: unknown[] = [];
       const db = {
         from: () => ({
           select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
-          insert: (payload: unknown) => {
-            inserts.push(payload);
-            return { select: () => ({ single: async () => ({ data: null, error: null }) }) };
-          },
+          upsert: async (p: unknown) => writes.push(p),
+          insert: async (p: unknown) => writes.push(p),
+          delete: () => writes.push("delete"),
         }),
       };
-      const ok = await new ProgramsService(db as never).restoreRevision("revision-1");
-      expect(ok).toBe(false);
-      expect(inserts).toHaveLength(0);
+      expect(await new ProgramsService(db as never).restoreRevision("revision-1")).toBe(false);
+      expect(writes).toHaveLength(0);
     });
   });
 
@@ -731,15 +886,20 @@ describe("ProgramsService", () => {
         notes_ar: null,
         notes_en: null,
         block: "main",
-        coach_note_private: "watch her knees",
+        private_note: { note: "watch her knees" },
         program_item_sets: [
           { set_index: 1, reps: 8, weight: 50, rest_seconds: 60 },
           { set_index: 2, reps: 12, weight: 45, rest_seconds: 60 },
         ],
       };
       const inserts: { table: string; payload: unknown }[] = [];
+      const upserts: { table: string; payload: unknown }[] = [];
       const db = {
         from: (table: string) => ({
+          upsert: async (payload: unknown) => {
+            upserts.push({ table, payload });
+            return { error: null };
+          },
           select: (cols?: string) => ({
             eq: () => {
               if (cols === "order_index") {
@@ -766,7 +926,11 @@ describe("ProgramsService", () => {
       expect(itemInsert?.payload).toMatchObject({
         exercise_id: "ex-1",
         order_index: 3,
-        coach_note_private: "watch her knees",
+      });
+      expect(JSON.stringify(itemInsert?.payload)).not.toContain("coach_note_private");
+      expect(upserts.find((u) => u.table === "program_item_notes")?.payload).toMatchObject({
+        program_item_id: "new-program_items",
+        note: "watch her knees",
       });
 
       const setsInsert = inserts.find((i) => i.table === "program_item_sets");
@@ -884,5 +1048,45 @@ describe("ProgramsService", () => {
       expect(calls).toContainEqual(["gte", "program_days.workout_sessions.started_at", "2026-10-03"]);
       expect(calls).toContainEqual(["lt", "program_days.workout_sessions.started_at", "2026-10-10"]);
     });
+  });
+});
+
+describe("planGroupOrder", () => {
+  const day = (...keys: (string | null)[]) => keys.map((group_key, i) => ({ id: String.fromCharCode(97 + i), group_key }));
+
+  it("keeps an already-adjacent selection where it is", () => {
+    expect(planGroupOrder(day(null, null, null), ["b", "c"])).toEqual(["a", "b", "c"]);
+  });
+
+  it("gathers a split selection at the first selected position", () => {
+    expect(planGroupOrder(day(null, null, null, null), ["a", "c"])).toEqual(["a", "c", "b", "d"]);
+    expect(planGroupOrder(day(null, null, null, null), ["d", "b"])).toEqual(["a", "b", "d", "c"]);
+  });
+
+  it("allows regrouping a whole existing group but refuses to split one", () => {
+    expect(planGroupOrder(day("g", "g", null), ["a", "b", "c"])).toEqual(["a", "b", "c"]);
+    expect(planGroupOrder(day("g", "g", null), ["a", "c"])).toBeNull();
+  });
+
+  it("is null for an empty match", () => {
+    expect(planGroupOrder(day(null), ["zz"])).toBeNull();
+  });
+});
+
+describe("addItem ordering", () => {
+  it("appends after the day's last order_index instead of defaulting every item to 0", async () => {
+    const { db, inserts } = fakeSupabase({
+      parentRow: { coach_id: "coach-1", client_id: null },
+      lastOrderRows: [{ order_index: 4 }],
+    });
+    await new ProgramsService(db).addItem("day-1", { exercise_id: "ex-1", sets: [{ reps: 8 }] });
+    const item = inserts.find((i) => i.table === "program_items")!.payload as { order_index: number };
+    expect(item.order_index).toBe(5);
+  });
+
+  it("starts an empty day at 0", async () => {
+    const { db, inserts } = fakeSupabase({ parentRow: { coach_id: "coach-1", client_id: null } });
+    await new ProgramsService(db).addItem("day-1", { exercise_id: "ex-1", sets: [{ reps: 8 }] });
+    expect((inserts.find((i) => i.table === "program_items")!.payload as { order_index: number }).order_index).toBe(0);
   });
 });

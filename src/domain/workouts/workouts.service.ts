@@ -2,6 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { computeSessionSummary } from "./summary";
 import { sanitizeExtra } from "./set-measures";
+import { parseBlockResults, toBlockScoreRows, type BlockResult, type BlockScoreRow } from "./block-result";
+import { isTimedKind } from "@/domain/programs/group-config";
+import { epley } from "@/domain/progress/prs";
+
+type Json = Database["public"]["Tables"]["workout_sessions"]["Row"]["block_results"];
 
 /** One logged set resolved to the exercise actually performed — the input
  * shape prs.ts (strength and non-weight records) needs. */
@@ -70,6 +75,9 @@ export type LastPerformance = {
   distance_m: number | null;
   calories: number | null;
   extra: Record<string, number | string> | null;
+  /** Best estimated one-rep max (Epley) across the recent logged sets for this
+   * exercise, warm-ups excluded — what a %1RM prescription is resolved from. */
+  best_e1rm?: number | null;
 };
 
 export type ExerciseResultInput = {
@@ -343,12 +351,21 @@ export class WorkoutsService {
     if (error) throw error;
 
     const byExercise = new Map<string, LastPerformance>();
+    const bestE1rm = new Map<string, number>();
     for (const row of data as unknown as (Omit<LastPerformance, "extra"> & {
       extra: unknown;
       program_items: { exercise_id: string } | null;
     })[]) {
       const exerciseId = row.program_items?.exercise_id;
-      if (!exerciseId || byExercise.has(exerciseId)) continue;
+      if (!exerciseId) continue;
+      // Best 1RM estimate over every row seen (not just the latest set); a
+      // warm-up is far from a max effort, so it never counts.
+      const extra = sanitizeExtra(row.extra);
+      if (row.weight != null && row.weight > 0 && row.reps != null && row.reps > 0 && extra?.set_type !== "warmup") {
+        const e1rm = epley(row.weight, row.reps);
+        if (e1rm > (bestE1rm.get(exerciseId) ?? 0)) bestE1rm.set(exerciseId, e1rm);
+      }
+      if (byExercise.has(exerciseId)) continue;
       byExercise.set(exerciseId, {
         weight: row.weight,
         reps: row.reps,
@@ -356,9 +373,10 @@ export class WorkoutsService {
         duration_seconds: row.duration_seconds,
         distance_m: row.distance_m,
         calories: row.calories,
-        extra: sanitizeExtra(row.extra),
+        extra,
       });
     }
+    for (const [exerciseId, value] of bestE1rm) byExercise.get(exerciseId)!.best_e1rm = value;
     return byExercise;
   }
 
@@ -452,7 +470,7 @@ export class WorkoutsService {
     let q = this.db
       .from("workout_set_logs")
       .select(
-        "weight, reps, duration_seconds, distance_m, calories, completed_at, substituted_exercise_id, program_items!inner(exercise_id)"
+        "weight, reps, duration_seconds, distance_m, calories, extra, completed_at, substituted_exercise_id, program_items!inner(exercise_id)"
       )
       .eq("client_id", clientId);
     if (since) q = q.gte("completed_at", since);
@@ -461,9 +479,13 @@ export class WorkoutsService {
 
     return (data as unknown as (Omit<SetLogForClient, "exercise_id"> & {
       substituted_exercise_id: string | null;
+      extra: unknown;
       program_items: { exercise_id: string } | null;
     })[])
-      .filter((row) => row.program_items != null)
+      // Warm-up sets (the coach's set type, carried onto the log) are not a
+      // measure of what the athlete can do: they never count toward PRs or
+      // volume.
+      .filter((row) => row.program_items != null && sanitizeExtra(row.extra)?.set_type !== "warmup")
       .map((row) => ({
         exercise_id: row.substituted_exercise_id ?? row.program_items!.exercise_id,
         weight: row.weight,
@@ -475,6 +497,20 @@ export class WorkoutsService {
       }));
   }
 
+  /** Recent timed-block scores (AMRAP / For Time / EMOM / Tabata), newest
+   * first. Reads the latest sessions and keeps those with a score — the
+   * jsonb is small and a client has few sessions, so no SQL-side jsonb filter. */
+  async listBlockScores(clientId: string, limit = 20): Promise<BlockScoreRow[]> {
+    const { data, error } = await this.db
+      .from("workout_sessions")
+      .select("id, started_at, block_results, program_days(label_ar, label_en)")
+      .eq("client_id", clientId)
+      .order("started_at", { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    return toBlockScoreRows(data ?? [], limit);
+  }
+
   /** Computes and persists the session summary (total volume, sets
    * completed/prescribed) alongside marking it done — a cheap read for
    * every future history-list render instead of re-aggregating
@@ -482,6 +518,30 @@ export class WorkoutsService {
    * program_day (via program_items -> program_item_sets), not from the
    * logs themselves, so a client who skipped exercises still shows the
    * true prescribed count relative to what they actually did. */
+  /** Stores one timed group's result under its group_key in the session's
+   * block_results jsonb (read-merge-write: a session belongs to one athlete on
+   * one device, and the outbox replays in order, so there is no concurrent
+   * writer). False = RLS hid the session. Idempotent: replaying overwrites the
+   * same key with the same value. */
+  async saveBlockResult(sessionId: string, groupKey: string, result: BlockResult): Promise<boolean> {
+    const { data: session, error: readError } = await this.db
+      .from("workout_sessions")
+      .select("block_results")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (readError) throw readError;
+    if (!session) return false;
+
+    const merged = { ...parseBlockResults(session.block_results), [groupKey]: result };
+    const { data, error } = await this.db
+      .from("workout_sessions")
+      .update({ block_results: merged as unknown as Json })
+      .eq("id", sessionId)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
   async completeSession(sessionId: string, durationSeconds: number): Promise<boolean> {
     const { data: session, error: sessionError } = await this.db
       .from("workout_sessions")
@@ -499,13 +559,18 @@ export class WorkoutsService {
         this.db.from("workout_set_logs").select("weight, reps").eq("session_id", sessionId),
         this.db
           .from("program_items")
-          .select("program_item_sets(id)")
+          .select("group_kind, program_item_sets(id)")
           .eq("program_day_id", session.program_day_id),
       ]);
       const summary = computeSessionSummary(logs ?? []);
       totalVolume = summary.totalVolume;
       setsCompleted = summary.setsCompleted;
-      setsPrescribed = (items ?? []).reduce((sum, item) => sum + item.program_item_sets.length, 0);
+      // Timed groups (AMRAP / EMOM / ...) are scored as one block result and
+      // never produce per-set logs, so counting their sets as "prescribed"
+      // would make every such session look unfinished.
+      setsPrescribed = (items ?? [])
+        .filter((item) => !isTimedKind(item.group_kind))
+        .reduce((sum, item) => sum + item.program_item_sets.length, 0);
     }
 
     const { data, error } = await this.db

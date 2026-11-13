@@ -7,7 +7,7 @@ import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, Play, Timer } from "l
 import { toast } from "sonner";
 import { ExerciseVideoSheet } from "@/components/workout/exercise-video-sheet";
 import { ExerciseSwapSheet, type SwapExercise } from "@/components/workout/exercise-swap-sheet";
-import { SetEntrySheet, type LoggedSetValues } from "@/components/workout/set-entry-sheet";
+import { SetEntrySheet, SET_KINDS, type LoggedSetValues } from "@/components/workout/set-entry-sheet";
 import { ExerciseFeedbackSheet, type ExerciseFeedbackValues } from "@/components/workout/exercise-feedback-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { Database } from "@/lib/supabase/database.types";
@@ -50,13 +50,19 @@ import {
   formatSetMeasures,
   measuresFromDraft,
   measuresFromRow,
+  repsLabel,
   sanitizeExtra,
+  targetTags,
   type MeasureDraft,
   type SetMeasures,
 } from "@/domain/workouts/set-measures";
 import type { LastPerformance } from "@/domain/workouts/workouts.service";
 import { isKnownMuscleGroup } from "@/domain/library/taxonomy";
 import { cn } from "@/lib/utils";
+import { TimedBlock, useBlockResultText } from "@/components/workout/timed-block";
+import { isTimedKind, parseGroupConfig } from "@/domain/programs/group-config";
+import { asSetType, loadFromPct } from "@/domain/programs/set-targets";
+import type { BlockResult, BlockResults } from "@/domain/workouts/block-result";
 import { SessionDock, type DockField } from "./session-dock";
 import { SessionSummary } from "./session-summary";
 
@@ -79,15 +85,17 @@ type Draft = MeasureDraft;
 /** min-max reps across a projected set list ("8-12" or "10"). Duration-only
  * sets (reps null — a rehab hold, a stretch) are excluded from the range; if
  * every set is duration-only, falls back to the first set's seconds. */
-function repsRangeLabel(sets: { reps: number | null; duration_seconds: number | null }[]): string {
+function repsRangeLabel(
+  sets: { reps: number | null; reps_max?: number | null; duration_seconds: number | null }[]
+): string {
   const reps = sets.map((s) => s.reps).filter((r): r is number => r != null);
   if (reps.length === 0) {
     const duration = sets[0]?.duration_seconds;
     return duration != null ? `${duration}s` : "";
   }
   const min = Math.min(...reps);
-  const max = Math.max(...reps);
-  return min === max ? String(min) : `${min}-${max}`;
+  const max = Math.max(...sets.map((s) => s.reps_max ?? s.reps ?? 0));
+  return repsLabel(min, max);
 }
 
 /** side / set_type tags live in the set's `extra` jsonb next to the numeric
@@ -134,6 +142,7 @@ export function WorkoutSessionClient({
   initialElapsedSeconds,
   initialItemId,
   adjustedItemReasons,
+  initialBlockResults,
 }: {
   locale: AppLocale;
   day: ProgramDay;
@@ -157,6 +166,8 @@ export function WorkoutSessionClient({
   /** program_item_id -> reason_key for items an applied Coaching Ledger
    * decision touched recently (LedgerService.listActiveAdjustedItemIds). */
   adjustedItemReasons: Record<string, string>;
+  /** workout_sessions.block_results — scores already saved for this session's timed groups. */
+  initialBlockResults: BlockResults;
 }) {
   const t = useTranslations("client.workout");
   const tm = useTranslations("measure");
@@ -195,6 +206,14 @@ export function WorkoutSessionClient({
     for (const r of initialExerciseResults) map.set(r.program_item_id, r.status as "done" | "skipped");
     return map;
   });
+  // Timed groups (AMRAP / EMOM / For Time / Tabata) are scored as one block
+  // result keyed by group_key, not logged set by set. A block with a result is
+  // closed for every one of its members.
+  const [blockResults, setBlockResults] = useState<BlockResults>(initialBlockResults);
+  const timedItemIds = new Set(items.filter((i) => i.group_key && isTimedKind(i.group_kind)).map((i) => i.id));
+  const blockClosed = new Set(items.filter((i) => i.group_key && blockResults[i.group_key]).map((i) => i.id));
+  const blockText = useBlockResultText();
+  const tKinds = useTranslations("programs.builder.groupFormat.kinds");
   const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(new Map());
   const [elapsedS, setElapsedS] = useState(initialElapsedSeconds);
   const restTimer = useRestTimer();
@@ -211,7 +230,8 @@ export function WorkoutSessionClient({
 
   /** Logged, or its exercise was skipped — either way nothing left to do. */
   function closedIn(logMap: Map<string, WorkoutSetLog>, results: Map<string, "done" | "skipped">) {
-    return (itemId: string, setIndex: number) => logMap.has(setKey(itemId, setIndex)) || results.get(itemId) === "skipped";
+    return (itemId: string, setIndex: number) =>
+      logMap.has(setKey(itemId, setIndex)) || results.get(itemId) === "skipped" || blockClosed.has(itemId);
   }
   const isClosed = closedIn(logs, exerciseResults);
 
@@ -238,6 +258,12 @@ export function WorkoutSessionClient({
    * a suggestion never bleeds across a mid-session substitution. */
   function suggestedWeight(item: ProgramItem, prescribed: Prescribed, swapMap = swaps): number | null {
     const history = lastPerformance[activeExercise(item, swapMap).id];
+    // A %1RM prescription wins over progression-from-history: resolve it from
+    // the athlete's best estimated max (null = no history yet; weight stays
+    // blank and the target line still shows the percentage).
+    if (prescribed.weight == null && prescribed.pct_1rm != null) {
+      return loadFromPct(prescribed.pct_1rm, history?.best_e1rm);
+    }
     // Assisted work is stored negative; "progress" there is less help, which
     // the coach sets — don't second-guess it from history.
     if (!history || prescribed.reps == null || isAssisted(typeOf(item, swapMap))) return prescribed.weight;
@@ -334,6 +360,10 @@ export function WorkoutSessionClient({
     // Typed values -> stored units (minutes -> s, km -> m, assistance -> negative
     // weight); a blank field logs the target, except weight (blank = bodyweight).
     const measures = measuresFromDraft(typeOf(item), item.block, draft, prescribed);
+    // The coach's set type (warm-up, back-off, drop, ...) rides along on the
+    // logged set so history and PRs can tell a warm-up from a working set.
+    const prescribedKind = asSetType(projectedByItem.get(item.id)?.[setIndex - 1]?.set_type);
+    if (prescribedKind !== "working") measures.extra = { ...(measures.extra ?? {}), set_type: prescribedKind };
     const substituted_exercise_id = swaps.get(item.id)?.id ?? null;
 
     const key = setKey(item.id, setIndex);
@@ -507,6 +537,17 @@ export function WorkoutSessionClient({
     }
   }
 
+  /** Saves a timed group's score: optimistic, queued offline like a set. */
+  async function saveBlock(groupKey: string, result: BlockResult) {
+    const snapshot = blockResults;
+    setBlockResults({ ...blockResults, [groupKey]: result });
+    const outcome = await submitOp({ kind: "block_result", sessionId, groupKey, result });
+    if (outcome.status === "error") {
+      setBlockResults(snapshot);
+      toast.error(t("timed.saveFailed"));
+    }
+  }
+
   function closeFeedback(values?: ExerciseFeedbackValues) {
     if (!feedbackItem) return;
     const item = feedbackItem;
@@ -529,7 +570,8 @@ export function WorkoutSessionClient({
   }
 
   const dayLabel = day.label_ar || day.label_en ? pickLocale(day, locale, "label") : t("todayWorkout");
-  const totalSets = orderItems.reduce((sum, i) => sum + i.setCount, 0);
+  // Timed blocks have no per-set logs, so they stay out of the set counter.
+  const totalSets = orderItems.filter((i) => !timedItemIds.has(i.id)).reduce((sum, i) => sum + i.setCount, 0);
   const allLogs = [...logs.values()];
 
   if (view === "summary" || !current) {
@@ -543,7 +585,10 @@ export function WorkoutSessionClient({
         setsTotal={totalSets}
         totalVolume={computeSessionSummary(allLogs).totalVolume}
         totals={computeSessionTotals(allLogs)}
-        rows={items.map((item, i) => ({ ...perItem[i], id: item.id, name: pickLocale(activeExercise(item), locale) }))}
+        rows={items
+          .map((item, i) => ({ ...perItem[i], id: item.id, name: pickLocale(activeExercise(item), locale) }))
+          .filter((row) => !timedItemIds.has(row.id))}
+        blocks={Object.entries(blockResults).map(([key, r]) => ({ id: key, label: tKinds(r.kind), text: blockText(r) }))}
         onEditSets={() => setView("run")}
       />
     );
@@ -560,16 +605,25 @@ export function WorkoutSessionClient({
   const nextItem = items[currentIdx + 1];
   const prevItem = items[currentIdx - 1];
   const groupLabel = groupLabels.get(current.id);
+  const timedKind = current.group_key && isTimedKind(current.group_kind) ? current.group_kind : null;
+  const timedGroup = timedKind
+    ? {
+        kind: timedKind,
+        config: parseGroupConfig(current.group_config),
+        members: items.filter((i) => i.group_key === current.group_key),
+      }
+    : null;
 
   const kg = (w: number) => t("kg", { value: trimNumber(w) });
-  const weightText = (w: number | null) => (w != null && w > 0 ? kg(w) : t("bodyweight"));
+  const weightText = (w: number | null, pct?: number | null) =>
+    w != null && w > 0 ? kg(w) : pct != null ? tm("pctOneRm", { value: trimNumber(pct) }) : t("bodyweight");
   const setText = (s: Parameters<typeof measuresFromRow>[0]) =>
     formatSetMeasures(type, current.block, measuresFromRow(s), tm);
   // "3 × 8-12 · 60 kg" for classic strength; anything else reads from the
   // first set's measures ("5 km · 28 min").
   const classicTarget = measureFields.includes("reps") && !isAssisted(type);
   const targetText = classicTarget
-    ? `${repsRangeLabel(displaySets)} · ${weightText(currentPrescribed.weight)}`
+    ? `${repsRangeLabel(displaySets)} · ${weightText(currentPrescribed.weight, currentPrescribed.pct_1rm)}`
     : setText(currentPrescribed);
   const nextTargetText = (item: ProgramItem) => {
     const sets = projectedByItem.get(item.id) ?? [];
@@ -634,7 +688,9 @@ export function WorkoutSessionClient({
         <div aria-hidden="true" className="flex gap-1">
           {items.map((item) => {
             const total = item.program_item_sets.length;
-            const done = [...Array(total).keys()].filter((s) => logs.has(setKey(item.id, s + 1))).length;
+            const done = blockClosed.has(item.id)
+              ? total
+              : [...Array(total).keys()].filter((s) => logs.has(setKey(item.id, s + 1))).length;
             const isCurrent = item.id === current.id;
             return (
               <div
@@ -653,6 +709,26 @@ export function WorkoutSessionClient({
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+        {timedGroup ? (
+          <TimedBlock
+            // Remount when moving between groups so the clock/score state is per block.
+            key={current.group_key!}
+            kind={timedGroup.kind}
+            config={timedGroup.config}
+            members={timedGroup.members.map((m) => ({
+              id: m.id,
+              name: pickLocale(activeExercise(m), locale),
+              target: nextTargetText(m),
+            }))}
+            result={blockResults[current.group_key!]}
+            onSave={(result) => saveBlock(current.group_key!, result)}
+            onOpenExercise={(id) => {
+              const m = items.find((x) => x.id === id);
+              if (m) setVideoExercise(activeExercise(m));
+            }}
+          />
+        ) : (
+          <>
         <section className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <button
@@ -682,6 +758,21 @@ export function WorkoutSessionClient({
               {swaps.has(current.id) && (
                 <p className="max-w-full truncate text-xs text-muted-foreground">
                   {t("insteadOf", { name: pickLocale(current.exercises, locale) })}
+                </p>
+              )}
+              {(current.tempo || current.per_side) && (
+                <p className="max-w-full text-xs text-muted-foreground">
+                  {[current.tempo ? tm("tempoValue", { value: current.tempo }) : null, current.per_side ? tm("perSide") : null]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
+              {(locale === "ar" ? current.scaled_notes_ar || current.scaled_notes_en : current.scaled_notes_en || current.scaled_notes_ar) && (
+                <p className="max-w-full text-xs text-muted-foreground">
+                  <span className="font-semibold">{t("timed.scaled")}:</span>{" "}
+                  {locale === "ar"
+                    ? current.scaled_notes_ar || current.scaled_notes_en
+                    : current.scaled_notes_en || current.scaled_notes_ar}
                 </p>
               )}
               {adjustedItemReasons[current.id] && (
@@ -788,11 +879,15 @@ export function WorkoutSessionClient({
                 )}
                 <span className="min-w-0 flex-1 truncate text-end font-mono text-sm text-muted-foreground tabular-nums">
                   {setText(set)}
+                  {targetTags(set, tm).length > 0 && ` · ${targetTags(set, tm).join(" · ")}`}
                 </span>
               </div>
             );
           })}
         </section>
+
+          </>
+        )}
 
         <nav aria-label={t("exerciseNav")} className="flex items-stretch gap-2">
           {prevItem && (
@@ -836,6 +931,7 @@ export function WorkoutSessionClient({
           {skipped ? (
             <span className="text-sm font-medium text-muted-foreground">{t("exerciseSkipped")}</span>
           ) : (
+            !timedGroup &&
             !exerciseResults.has(current.id) &&
             openSet != null && (
               <button
@@ -858,6 +954,7 @@ export function WorkoutSessionClient({
         </div>
       </main>
 
+      {!timedGroup && (
       <SessionDock
         rest={restTimer}
         upNext={upNextLabel}
@@ -876,6 +973,7 @@ export function WorkoutSessionClient({
         onFinish={onFinish}
         finishing={finishing}
       />
+      )}
 
       <ExerciseVideoSheet
         locale={locale}
@@ -924,7 +1022,7 @@ export function WorkoutSessionClient({
                 rir: existing.rir,
                 notes: existing.notes,
                 side: existingTag(existing, "side", ["left", "right"]),
-                set_type: existingTag(existing, "set_type", ["warmup", "drop", "failure"]),
+                set_type: existingTag(existing, "set_type", SET_KINDS),
               }}
               type={typeOf(editSet.item)}
               block={editSet.item.block}

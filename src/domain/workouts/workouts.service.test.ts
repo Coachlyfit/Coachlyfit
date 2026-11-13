@@ -392,6 +392,8 @@ describe("WorkoutsService", () => {
       { weight: 60, reps: 8, completed_at: "2026-01-01T10:00:00Z", substituted_exercise_id: null, program_items: { exercise_id: "ex-1" } },
       { weight: 40, reps: 10, completed_at: "2026-01-02T10:00:00Z", substituted_exercise_id: "ex-swap", program_items: { exercise_id: "ex-2" } },
       { weight: 20, reps: 12, completed_at: "2026-01-03T10:00:00Z", substituted_exercise_id: null, program_items: null },
+      // a prescribed warm-up set is tagged on the log and must never reach PR/volume maths
+      { weight: 30, reps: 5, completed_at: "2026-01-04T10:00:00Z", substituted_exercise_id: null, extra: { set_type: "warmup" }, program_items: { exercise_id: "ex-1" } },
     ];
     const db = {
       from: () => ({

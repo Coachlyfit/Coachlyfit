@@ -7,7 +7,7 @@
 // program tree, leaks a client's entire training history across tenants.
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Database, Json } from "@/lib/supabase/database.types";
 import { rlsAdmin as admin, createRlsUser } from "./rls-test-helpers";
 
 async function createCoach(tag: string) {
@@ -396,5 +396,82 @@ describe("workout_set_logs: offline-synced rows (client-generated id)", () => {
       .from("workout_set_logs")
       .insert({ ...row(), id: crypto.randomUUID(), set_index: 2 });
     expect(error).not.toBeNull();
+  });
+});
+
+// 20261114000004: the coach-only note lives in its own table because RLS can
+// hide rows but not a column — a client could `select coach_note_private`
+// straight off program_items. Needs that migration applied.
+describe("program_item_notes: coach-only private note", () => {
+  const note = "watch the left knee";
+
+  it("the owning coach can write and read their note", async () => {
+    const { error } = await coachA.client
+      .from("program_item_notes")
+      .upsert({ program_item_id: tree.itemId, coach_id: coachA.userId, note }, { onConflict: "program_item_id" });
+    expect(error).toBeNull();
+    const { data } = await coachA.client.from("program_item_notes").select("note").eq("program_item_id", tree.itemId);
+    expect(data).toEqual([{ note }]);
+  });
+
+  it("the assigned client sees the item but can never read the note", async () => {
+    const { data: items } = await clientOfA.client.from("program_items").select("id").eq("id", tree.itemId);
+    expect(items).toHaveLength(1);
+    const { data } = await clientOfA.client.from("program_item_notes").select("note").eq("program_item_id", tree.itemId);
+    expect(data ?? []).toEqual([]);
+  });
+
+  it("a foreign coach can neither read the note nor write one onto someone else's item", async () => {
+    const { data } = await coachB.client.from("program_item_notes").select("note").eq("program_item_id", tree.itemId);
+    expect(data ?? []).toEqual([]);
+    const { error } = await coachB.client
+      .from("program_item_notes")
+      .upsert({ program_item_id: tree.itemId, coach_id: coachB.userId, note: "hijack" }, { onConflict: "program_item_id" });
+    expect(error).not.toBeNull();
+  });
+
+  it("a client cannot write a note either", async () => {
+    const { error } = await clientOfA.client
+      .from("program_item_notes")
+      .upsert({ program_item_id: tree.itemId, coach_id: coachA.userId, note: "client note" }, { onConflict: "program_item_id" });
+    expect(error).not.toBeNull();
+  });
+});
+
+describe("replace_program_item_sets: atomic, RLS-scoped", () => {
+  const rpc = (c: SupabaseClient<Database>, sets: object[]) =>
+    c.rpc("replace_program_item_sets", {
+      p_item_id: tree.itemId,
+      p_sets: sets as Json,
+      p_legacy: { sets: sets.length, reps: "8", rest_seconds: null },
+    });
+
+  it("replaces the owner's sets in order and updates the legacy snapshot", async () => {
+    const { data, error } = await rpc(coachA.client, [
+      { reps: 8, weight: 60, set_type: "warmup" },
+      { reps: 5, reps_max: 6, pct_1rm: 80, rpe_target: 8, set_type: "working" },
+    ]);
+    expect(error).toBeNull();
+    expect(data).toBe(true);
+    const { data: sets } = await admin
+      .from("program_item_sets")
+      .select("set_index, reps, set_type, pct_1rm, coach_id, client_id")
+      .eq("program_item_id", tree.itemId)
+      .order("set_index");
+    expect(sets).toEqual([
+      expect.objectContaining({ set_index: 1, reps: 8, set_type: "warmup", coach_id: coachA.userId, client_id: clientOfA.clientRowId }),
+      expect.objectContaining({ set_index: 2, reps: 5, set_type: "working", pct_1rm: 80 }),
+    ]);
+  });
+
+  it("a foreign coach gets false, and the client is refused by RLS — either way nothing changes", async () => {
+    // The item is invisible to a foreign coach: a clean `false`.
+    expect((await rpc(coachB.client, [{ reps: 99 }])).data).toBe(false);
+    // The client can see the item but has no write policy: the insert is
+    // rejected and the whole call (including its earlier delete) rolls back.
+    expect((await rpc(clientOfA.client, [{ reps: 99 }])).error).not.toBeNull();
+    const { data: sets } = await admin.from("program_item_sets").select("reps").eq("program_item_id", tree.itemId);
+    expect(sets).toHaveLength(2);
+    expect(sets!.every((s) => s.reps !== 99)).toBe(true);
   });
 });

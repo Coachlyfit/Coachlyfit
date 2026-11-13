@@ -17,6 +17,13 @@ export type BaseSet = {
   distance_m?: number | null;
   calories?: number | null;
   extra?: unknown;
+  /** Set targets: upper end of a rep range, %1RM, set type, RPE/RIR. All pass
+   * through unchanged except reps_max, which moves with reps. */
+  reps_max?: number | null;
+  pct_1rm?: number | null;
+  set_type?: string;
+  rpe_target?: number | null;
+  rir_target?: number | null;
 };
 
 export const MAX_PROGRAM_WEEKS = 12;
@@ -44,7 +51,12 @@ function projectSet(set: BaseSet, rule: ProgressionRule, steps: number): BaseSet
     case "plus_5kg_week":
       return { ...set, weight: set.weight == null ? null : set.weight + 5 * steps };
     case "plus_1_rep_week":
-      return { ...set, reps: set.reps == null ? null : set.reps + steps };
+      return {
+        ...set,
+        reps: set.reps == null ? null : set.reps + steps,
+        // A range slides as a whole: 8-12 becomes 9-13.
+        reps_max: set.reps_max == null ? set.reps_max : set.reps_max + steps,
+      };
     default:
       return { ...set };
   }

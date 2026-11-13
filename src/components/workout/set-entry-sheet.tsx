@@ -21,9 +21,9 @@ import type { MeasureDraft } from "@/domain/workouts/set-measures";
 import { cn } from "@/lib/utils";
 
 export type SetSide = "left" | "right";
-export type SetKind = "warmup" | "drop" | "failure";
+export type SetKind = "warmup" | "backoff" | "drop" | "failure" | "amrap";
 
-export const SET_KINDS: SetKind[] = ["warmup", "drop", "failure"];
+export const SET_KINDS: SetKind[] = ["warmup", "backoff", "drop", "failure", "amrap"];
 export const SET_SIDES: SetSide[] = ["left", "right"];
 
 /** Everything the sheet edits. `draft` holds the measures as the client types

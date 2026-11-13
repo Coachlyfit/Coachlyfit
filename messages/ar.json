@@ -814,7 +814,7 @@
       "emptyDescription": "وسّع المدى الزمني أو اختار تمرين تاني. المجموعات بتظهر هنا أول ما العميل يسجّل تمرينة.",
       "error": "معرفناش نحمّل سجل الأوزان.",
       "errorDescription": "حصل خطأ أثناء التحميل. جرّب تاني.",
-       "retry": "جرّب تاني",
+      "retry": "جرّب تاني",
       "groupLine": "{sets} × {value}"
     },
     "errors": {
@@ -1271,6 +1271,39 @@
         "incomplete": "ناقص",
         "editSets": "عدّل المجموعات",
         "backToProgram": "رجوع للبرنامج"
+      },
+      "timed": {
+        "start": "ابدأ",
+        "enterWithoutTimer": "سجّل النتيجة من غير المؤقت",
+        "finishEarly": "وقّف وسجّل النتيجة",
+        "roundDone": "خلّصت جولة",
+        "roundsCount": "{count, plural, one {جولة} two {جولتين} few {# جولات} other {# جولة}}",
+        "roundsAndReps": "{rounds, plural, one {جولة} two {جولتين} few {# جولات} other {# جولة}} + {reps, plural, one {عدّة} two {عدّتين} few {# عدّات} other {# عدّة}}",
+        "roundOf": "الجولة {round} من {total}",
+        "work": "شغل",
+        "rest": "راحة",
+        "capLeft": "الحد الأقصى بعد {time}",
+        "elapsedOf": "عدّى {elapsed}",
+        "enterScore": "اكتب نتيجتك",
+        "score": "النتيجة",
+        "editScore": "عدّل النتيجة",
+        "saveScore": "احفظ النتيجة",
+        "minutes": "دقائق",
+        "seconds": "ثواني",
+        "rounds": "الجولات",
+        "extraReps": "عدّات زيادة",
+        "splits": "أوقات الجولات",
+        "rxLabel": "حسب المطلوب أو مخفّف",
+        "rx": "حسب المطلوب",
+        "scaled": "مخفّف",
+        "capHit": "وصلت للحد الأقصى",
+        "saveFailed": "معرفناش نحفظ نتيجتك. جرّب تاني.",
+        "hint": {
+          "amrap": "أكبر عدد ممكن من الجولات قبل ما الوقت يخلص.",
+          "emom": "ابدأ جولة جديدة كل فترة.",
+          "for_time": "خلّص كل الجولات بأسرع ما تقدر.",
+          "tabata": "شغل وراحة على الوقت."
+        }
       }
     },
     "checkin": {
@@ -1926,7 +1959,36 @@
         "6": "سبت"
       },
       "duplicateItem": "تكرار التمرين",
-      "duplicateDay": "تكرار اليوم"
+      "duplicateDay": "تكرار اليوم",
+      "makeTimedGroup": "اعمل مجموعة بتوقيت / جاينت سيت…",
+      "groupFormat": {
+        "title": "نمط المجموعة",
+        "kind": "النمط",
+        "kinds": {
+          "superset": "سوبرسيت",
+          "circuit": "دائرة",
+          "giant_set": "جاينت سيت",
+          "amrap": "أمراب",
+          "emom": "إيموم",
+          "for_time": "ضد الوقت",
+          "tabata": "تاباتا"
+        },
+        "hints": {
+          "superset": "تمرينين ورا بعض، وبعدين راحة.",
+          "circuit": "عدّي على كل التمارين، وبعدين راحة بين الجولات.",
+          "giant_set": "تلات تمارين أو أكتر ورا بعض، وبعدين راحة.",
+          "amrap": "أكبر عدد ممكن من الجولات قبل انتهاء الوقت.",
+          "emom": "جولة جديدة تبدأ كل فترة، لعدد جولات محدد.",
+          "for_time": "خلّص الجولات بأسرع وقت، مع تسجيل وقت كل جولة.",
+          "tabata": "فترات شغل وراحة متكررة."
+        },
+        "timeCapMin": "الحد الأقصى للوقت (دقائق)",
+        "timeCapMinOptional": "الحد الأقصى للوقت (دقائق، اختياري)",
+        "rounds": "عدد الجولات",
+        "intervalSec": "الفترة (ثواني)",
+        "workSec": "الشغل (ثواني)",
+        "restSec": "الراحة (ثواني)"
+      }
     },
     "dayDialog": {
       "addTitle": "ضيف يوم",
@@ -1969,7 +2031,9 @@
         "main": "أساسي",
         "cooldown": "تهدئة",
         "mobility": "حركة",
-        "rehab": "تأهيل"
+        "rehab": "تأهيل",
+        "accessory": "تمارين مساعدة",
+        "finisher": "ختامي"
       },
       "rehabPhase": "مرحلة التأهيل",
       "rehabPhaseNone": "بدون مرحلة محددة — يظهر كل أسبوع",
@@ -1993,7 +2057,21 @@
       "summaryReps": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> تكرار",
       "summaryHolds": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}} · <m>{total}</m> ثانية",
       "close": "إغلاق",
-      "summarySets": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}}"
+      "summarySets": "<m>{sets}</m> {sets, plural, one {مجموعة} two {مجموعة} few {مجموعات} many {مجموعة} other {مجموعة}}",
+      "targets": {
+        "title": "أهداف المجموعات",
+        "hint": "نوع المجموعة ونطاق العدّات والنسبة من الحد الأقصى ومستوى المجهود. الوزن بيتحسب من سجل العميل لما تستخدم النسبة.",
+        "setType": "نوع المجموعة",
+        "repsMax": "العدّات حتى",
+        "pct1rm": "% من الحد الأقصى",
+        "rpe": "المجهود",
+        "rir": "عدّات احتياطية"
+      },
+      "tempo": "الإيقاع",
+      "perSide": "التمرين لكل جانب",
+      "scaledAr": "الخيار المخفّف (عربي)",
+      "scaledEn": "الخيار المخفّف (إنجليزي)",
+      "scaledHint": "إيه اللي يتبدّل أو يتقلّل لو العميل مش قادر ينفّذه زي المطلوب."
     },
     "activityDialog": {
       "addTitle": "ضيف كارديو/استشفاء",
@@ -2098,7 +2176,10 @@
       "not_found_or_forbidden": "مينفعش تعدّل البرنامج ده.",
       "end_date_before_start_date": "تاريخ النهاية لازم يكون بعد تاريخ البداية.",
       "unknown": "حصل خطأ. جرّب تاني.",
-      "group_not_contiguous": "يجب أن تبقى تمارين السوبرسيت/الدائرة متجاورة."
+      "group_not_contiguous": "يجب أن تبقى تمارين السوبرسيت/الدائرة متجاورة.",
+      "group_config_incomplete": "اكتب الأرقام اللي النمط ده محتاجها.",
+      "reps_range_invalid": "آخر نطاق العدّات مينفعش يكون أقل من العدّات الأولى.",
+      "group_selection_invalid": "اختار تمارين من نفس اليوم، واختار المجموعة كلها أو سيبها كلها."
     },
     "revisions": {
       "title": "السجل",
@@ -2133,6 +2214,53 @@
       "lightboxTitle": "{name} — عرض كامل",
       "noMedia": "من غير وسائط",
       "loadFailed": "تعذّر تحميل الوسائط"
+    },
+    "planMeta": {
+      "planType": "نوع الخطة",
+      "goal": "الهدف",
+      "level": "المستوى",
+      "equipment": "الأدوات",
+      "notSet": "غير محدد",
+      "allTypes": "كل أنواع الخطط"
+    },
+    "planTypes": {
+      "strength": "قوة / رفع القوة",
+      "hypertrophy": "تضخيم / كمال أجسام",
+      "crossfit": "كروس فت / وظيفي",
+      "hyrox": "هايروكس",
+      "combat": "لياقة الرياضات القتالية",
+      "calisthenics": "كاليسثينكس",
+      "hybrid": "رياضي هجين",
+      "endurance": "تحمل",
+      "hiit": "هيت / دوائر",
+      "mobility": "مرونة / تأهيل",
+      "general": "لياقة عامة",
+      "sport": "خاص برياضة معينة",
+      "weightlifting": "رفع الأثقال الأولمبي",
+      "home": "منزلي / أدوات قليلة"
+    },
+    "goals": {
+      "strength": "زيادة القوة",
+      "muscle": "بناء العضل",
+      "fat_loss": "حرق الدهون",
+      "endurance": "زيادة التحمل",
+      "performance": "أداء رياضي",
+      "mobility": "مرونة واستشفاء",
+      "general": "لياقة عامة"
+    },
+    "levels": {
+      "beginner": "مبتدئ",
+      "intermediate": "متوسط",
+      "advanced": "متقدم"
+    },
+    "starters": {
+      "button": "ابدأ من قالب جاهز",
+      "title": "قوالب جاهزة",
+      "description": "اختار خطة جاهزة. هتبقى قالب خاص بيك تقدر تعدّله وتديه للعملاء.",
+      "days": "{count, plural, one {يوم تمرين} two {يومين تمرين} few {# أيام تمرين} other {# يوم تمرين}}",
+      "use": "استخدم",
+      "adding": "جاري الإضافة…",
+      "skipped": "بعض التمارين مش موجودة في المكتبة وتم استبعادها: {names}"
     }
   },
   "library": {
@@ -3366,6 +3494,9 @@
     "planStory": {
       "title": "قصة خطتي",
       "empty": "لسه مفيش قرارات من الكوتش — هتظهر هنا أول ما يراجع تشيك إن."
+    },
+    "scores": {
+      "title": "نتائج التمارين"
     }
   },
   "billing": {
@@ -4963,13 +5094,31 @@
       "setTypes": {
         "warmup": "إحماء",
         "drop": "مجموعة تنازلية",
-        "failure": "حتى الفشل"
+        "failure": "حتى الفشل",
+        "backoff": "تخفيف",
+        "amrap": "أمراب"
       },
       "side": "الجانب",
       "sides": {
         "left": "يسار",
         "right": "يمين"
       }
-    }
+    },
+    "pctOneRm": "{value}% من الحد الأقصى",
+    "setTypes": {
+      "working": "أساسية",
+      "warmup": "إحماء",
+      "backoff": "تخفيف",
+      "drop": "دروب سيت",
+      "failure": "حتى الفشل",
+      "amrap": "أمراب"
+    },
+    "targets": {
+      "rpe": "مجهود {value}",
+      "rir": "{value} عدّات احتياطية"
+    },
+    "tempoValue": "الإيقاع {value}",
+    "perSide": "لكل جانب",
+    "hasScaled": "فيه خيار مخفّف"
   }
 }

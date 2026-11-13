@@ -12,6 +12,7 @@ import { activePhase } from "@/domain/programs/day-plan";
 import { sortItemsBySections } from "@/domain/programs/day-sections";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import type { AppLocale } from "@/domain/locale";
+import { parseBlockResults } from "@/domain/workouts/block-result";
 import { WorkoutSessionClient } from "./workout-session-client";
 
 // Route param is a program_day id — the "session" is started/resumed
@@ -89,6 +90,7 @@ export default async function WorkoutSessionPage({
       alreadyCompleted={session.completed_at != null}
       initialElapsedSeconds={session.elapsed_seconds}
       initialItemId={session.current_item_id}
+      initialBlockResults={parseBlockResults(session.block_results)}
       adjustedItemReasons={Object.fromEntries(adjustedItemReasons)}
     />
   );

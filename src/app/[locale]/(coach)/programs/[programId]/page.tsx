@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/format";
 import { Link } from "@/i18n/navigation";
 import { ProgramBuilder } from "./program-builder";
 import { EditNameDialog } from "./edit-name-dialog";
+import { PlanMetaBadges } from "../plan-meta-badges";
 import { PendingAdjustmentsBanner, type PendingAdjustmentCheckin } from "./pending-adjustments-banner";
 
 export default async function ProgramDetailPage({
@@ -52,6 +53,12 @@ export default async function ProgramDetailPage({
                 programId={tree.id}
                 nameAr={tree.name_ar}
                 nameEn={tree.name_en}
+                meta={{
+                  plan_type: tree.plan_type ?? "",
+                  goal: tree.goal ?? "",
+                  level: tree.level ?? "",
+                  equipment: tree.equipment,
+                }}
               />
             </div>
             <p className="text-sm text-muted-foreground">
@@ -64,6 +71,9 @@ export default async function ProgramDetailPage({
                     })
                   : `${formatDate(tree.start_date, locale)} · ${t("ongoing")}`}
             </p>
+            <div className="mt-1.5">
+              <PlanMetaBadges planType={tree.plan_type} goal={tree.goal} level={tree.level} />
+            </div>
           </div>
           {isTemplate && <Badge variant="secondary">{t("template")}</Badge>}
         </div>

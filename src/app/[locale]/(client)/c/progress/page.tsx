@@ -12,6 +12,7 @@ import { buildPrRows } from "@/domain/progress/pr-rows";
 import { pickLocale } from "@/domain/locale";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
+import { BlockScores } from "@/components/progress/block-scores";
 import { PlanStory } from "@/components/ledger/plan-story";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import { toPlanStoryEntry } from "@/domain/ledger/view";
@@ -64,7 +65,11 @@ export default async function ClientProgressPage({
   const planStoryDecisions = await new LedgerService(supabase).listForClient(client!.id);
   const planStoryEntries = planStoryDecisions.map((d) => toPlanStoryEntry(d));
 
-  const setLogs = await new WorkoutsService(supabase).listSetLogsForClient(client!.id);
+  const workouts = new WorkoutsService(supabase);
+  const [setLogs, blockScores] = await Promise.all([
+    workouts.listSetLogsForClient(client!.id),
+    workouts.listBlockScores(client!.id),
+  ]);
   const records = computePersonalRecords(setLogs);
   const measureRecords = computeMeasureRecords(setLogs);
   let prRows: PrListRow[] = [];
@@ -180,6 +185,8 @@ export default async function ClientProgressPage({
         <h2 className="text-lg font-semibold tracking-tight">{tPrs("title")}</h2>
         <PrList rows={prRows} locale={locale} />
       </div>
+
+      <BlockScores rows={blockScores} locale={locale} />
 
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-tight">{tPhotos("title")}</h2>

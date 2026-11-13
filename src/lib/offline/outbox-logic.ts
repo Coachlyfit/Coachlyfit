@@ -1,4 +1,5 @@
 import type { ExerciseResultInput, LogSetInput } from "@/domain/workouts/workouts.service";
+import type { BlockResult } from "@/domain/workouts/block-result";
 
 // Pure outbox rules (ordering, backoff, coalescing). No IndexedDB here so it
 // runs under plain vitest; db.ts / outbox.ts / sync.ts do the I/O.
@@ -7,6 +8,7 @@ export type OutboxPayload =
   | { kind: "set_upsert"; sessionId: string; input: LogSetInput }
   | { kind: "set_delete"; sessionId: string; programItemId: string; setIndex: number }
   | { kind: "exercise_result"; sessionId: string; programItemId: string; input: ExerciseResultInput }
+  | { kind: "block_result"; sessionId: string; groupKey: string; result: BlockResult }
   | { kind: "session_complete"; sessionId: string; durationSeconds: number };
 
 export type OutboxStatus = "pending" | "syncing" | "failed";
@@ -80,6 +82,8 @@ function slotOf(op: OutboxPayload): string | null {
       return setKey(op.sessionId, op.programItemId, op.setIndex);
     case "exercise_result":
       return `result:${op.sessionId}:${op.programItemId}`;
+    case "block_result":
+      return `block:${op.sessionId}:${op.groupKey}`;
     case "session_complete":
       return `complete:${op.sessionId}`;
   }
@@ -129,7 +133,7 @@ export function planEnqueue(rows: OutboxRow[], op: OutboxPayload, now: number): 
     };
   }
 
-  // exercise_result / session_complete: latest wins, queue position of the first.
+  // exercise_result / block_result / session_complete: latest wins, queue position of the first.
   const queued = same[0];
   if (queued) return { removeSeqs: [], put: { ...queued, status: "pending", attempts: 0, nextAttemptAt: 0, lastError: null, op } };
   return { removeSeqs: [], put: fresh() };

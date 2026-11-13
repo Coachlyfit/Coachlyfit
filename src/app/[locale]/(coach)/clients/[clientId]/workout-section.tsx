@@ -7,6 +7,7 @@ import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { computeMeasureRecords, computePersonalRecords } from "@/domain/progress/prs";
 import { buildPrRows } from "@/domain/progress/pr-rows";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
+import { BlockScores } from "@/components/progress/block-scores";
 import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 
@@ -20,9 +21,10 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
   const tPrs = await getTranslations("progress.prs");
   const supabase = await createClient();
   const workouts = new WorkoutsService(supabase);
-  const [sessions, logs] = await Promise.all([
+  const [sessions, logs, blockScores] = await Promise.all([
     workouts.listRecentSessions(clientId),
     workouts.listSetLogsForClient(clientId),
+    workouts.listBlockScores(clientId),
   ]);
 
   const records = computePersonalRecords(logs);
@@ -91,6 +93,7 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
 
       <h2 className="text-lg font-semibold tracking-tight">{tPrs("title")}</h2>
       <PrList rows={prRows} locale={locale} />
+      <BlockScores rows={blockScores} locale={locale} />
     </div>
   );
 }
