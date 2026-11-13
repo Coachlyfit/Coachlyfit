@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { WorkoutsService, type HistorySession } from "./workouts.service";
 import {
   compareSessions,
+  epley1rm,
+  exerciseTimelines,
+  metricValue,
   dateBounds,
   historyQuery,
   metricSeries,
@@ -198,5 +201,50 @@ describe("sessionExercises for non-weight sets", () => {
     const [ex] = sessionExercises(s);
     expect(ex.measurementType).toBe("duration");
     expect(ex.groups).toEqual([{ sets: 3, reps: null, weight: null, duration_seconds: 45 }]);
+  });
+});
+
+describe("exerciseTimelines", () => {
+  const at = (s: HistorySession, started_at: string): HistorySession => ({ ...s, started_at });
+  // Newest first, like listHistorySessions returns them.
+  const sessions = [
+    at(session("s3", [[EX, 0, 140, 8]]), "2026-11-03T10:00:00Z"),
+    at(session("s2", [[EX, 0, 140, 6], [EX, 1, 140, 10]]), "2026-11-02T10:00:00Z"),
+    at(session("s1", [[EX, 0, 130, 10], [EX, 1, 100, 12], [EX2, 0, null, 15]]), "2026-11-01T10:00:00Z"),
+  ];
+
+  it("returns nothing for no sessions", () => {
+    expect(exerciseTimelines([], true)).toEqual([]);
+  });
+
+  it("orders points oldest first and marks the first session as new only when nothing older exists", () => {
+    const [ex] = exerciseTimelines(sessions, true);
+    expect(ex.points.map((p) => p.sessionId)).toEqual(["s1", "s2", "s3"]);
+    expect(ex.points[0].delta).toBe("new");
+    expect(exerciseTimelines(sessions, false)[0].points[0].delta).toBeNull();
+  });
+
+  it("picks the heaviest set, ties broken by reps, and a tie in weight is a 0 delta", () => {
+    const [ex] = exerciseTimelines(sessions, true);
+    expect(ex.points[1].top).toEqual({ weight: 140, reps: 10 });
+    expect(ex.points[1].delta).toBe(10);
+    expect(ex.points[2].delta).toBe(0);
+  });
+
+  it("computes Epley 1RM from the best set and volume as Σ weight × reps", () => {
+    const [ex] = exerciseTimelines(sessions, true);
+    const s1 = ex.points[0];
+    expect(s1.e1rm).toBeCloseTo(Math.max(epley1rm(130, 10), epley1rm(100, 12)));
+    expect(s1.volume).toBe(130 * 10 + 100 * 12);
+    expect(metricValue(s1, "e1rm")).toBe(173.3);
+    expect(metricValue(s1, "volume")).toBe(2500);
+  });
+
+  it("keeps unweighted sessions as points with no top set, delta or metric", () => {
+    const bw = exerciseTimelines(sessions, true).find((t) => t.exerciseId === EX2)!;
+    expect(bw.points).toHaveLength(1);
+    expect(bw.points[0]).toMatchObject({ top: null, e1rm: null, volume: 0, delta: null });
+    expect(metricValue(bw.points[0], "top")).toBeNull();
+    expect(metricValue(bw.points[0], "volume")).toBeNull();
   });
 });

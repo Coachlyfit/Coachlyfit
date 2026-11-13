@@ -18,6 +18,7 @@ export function ProgressLineChart({
   color,
   unit,
   compact = false,
+  highlight,
 }: {
   data: { date: string; value: number }[];
   dataKey?: string;
@@ -27,6 +28,8 @@ export function ProgressLineChart({
   /** Sparkline: short, no grid or axes, y-range fitted to the data (a weight
    * line against a 0-based axis would be flat). Tooltip stays. */
   compact?: boolean;
+  /** Index of a point to draw enlarged (the selected session). */
+  highlight?: number;
 }) {
   const locale = useLocale() as AppLocale;
   const t = useTranslations("progress.chart");
@@ -85,7 +88,26 @@ export function ProgressLineChart({
           strokeWidth={2.5}
           fill={color}
           fillOpacity={0.08}
-          dot={compact ? false : { r: 3 }}
+          dot={
+            highlight == null
+              ? compact
+                ? false
+                : { r: 3 }
+              : ({ cx, cy, index }: { cx?: number; cy?: number; index?: number }) => {
+                  const on = index === highlight;
+                  return (
+                    <circle
+                      key={index}
+                      cx={cx}
+                      cy={cy}
+                      r={on ? 6 : compact ? 0 : 3}
+                      fill={color}
+                      stroke="var(--background)"
+                      strokeWidth={on ? 2 : 0}
+                    />
+                  );
+                }
+          }
           isAnimationActive={!reduceMotion}
         />
       </AreaChart>

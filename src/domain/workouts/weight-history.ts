@@ -178,3 +178,96 @@ export function compareSessions(a: HistorySession, b: HistorySession): Compariso
     return { exerciseId, name: (ea ?? eb)!.name, a: wa, b: wb, diffKg, diffPct };
   });
 }
+
+export type TopSet = { weight: number; reps: number | null };
+
+export type TimelinePoint = {
+  sessionId: string;
+  date: string;
+  /** Heaviest set, ties broken by more reps; null when no weighted set. */
+  top: TopSet | null;
+  /** Best Epley estimate over the session's sets; null without weight × reps. */
+  e1rm: number | null;
+  /** Σ weight × reps over the session's sets of this exercise. */
+  volume: number;
+  /** Top weight vs the previous session of this exercise (kg). "new" = no
+   * earlier session exists; null = no weighted set, or earlier sessions
+   * aren't loaded yet so the comparison is unknown. */
+  delta: number | "new" | null;
+};
+
+export type ExerciseTimeline = {
+  exerciseId: string;
+  name: SessionExercise["name"];
+  measurementType: MeasurementType;
+  /** Oldest first. */
+  points: TimelinePoint[];
+};
+
+export type HistoryMetric = "top" | "e1rm" | "volume";
+
+/** Epley: weight × (1 + reps / 30). */
+export const epley1rm = (weight: number, reps: number) => weight * (1 + reps / 30);
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** One timeline per exercise across the loaded sessions. `complete` = no
+ * older sessions exist beyond `sessions` (no "load more"), which is the only
+ * case where a first appearance can honestly be called "new". */
+export function exerciseTimelines(sessions: HistorySession[], complete: boolean): ExerciseTimeline[] {
+  const byId = new Map<string, ExerciseTimeline>();
+  const oldestFirst = [...sessions].sort((a, b) => a.started_at.localeCompare(b.started_at));
+  for (const session of oldestFirst) {
+    const points = new Map<string, TimelinePoint>();
+    for (const log of session.workout_set_logs) {
+      if (!log.exercise_id) continue;
+      let timeline = byId.get(log.exercise_id);
+      if (!timeline) {
+        timeline = {
+          exerciseId: log.exercise_id,
+          name: log.exercises ? { ar: log.exercises.name_ar, en: log.exercises.name_en } : null,
+          measurementType: normalizeMeasurementType(log.exercises?.measurement_type),
+          points: [],
+        };
+        byId.set(log.exercise_id, timeline);
+      }
+      let point = points.get(log.exercise_id);
+      if (!point) {
+        point = { sessionId: session.id, date: session.started_at, top: null, e1rm: null, volume: 0, delta: null };
+        points.set(log.exercise_id, point);
+        timeline.points.push(point);
+      }
+      const { weight, reps } = log;
+      if (weight == null || weight <= 0) continue;
+      if (!point.top || weight > point.top.weight || (weight === point.top.weight && (reps ?? 0) > (point.top.reps ?? 0))) {
+        point.top = { weight, reps };
+      }
+      if (reps != null && reps > 0) {
+        point.volume += weight * reps;
+        const e = epley1rm(weight, reps);
+        if (point.e1rm == null || e > point.e1rm) point.e1rm = e;
+      }
+    }
+  }
+  for (const timeline of byId.values()) {
+    let prev: TopSet | null = null;
+    for (const point of timeline.points) {
+      if (!point.top) continue;
+      point.delta = prev ? round2(point.top.weight - prev.weight) : complete ? "new" : null;
+      prev = point.top;
+    }
+  }
+  return [...byId.values()];
+}
+
+/** The detail chart's value for one point, null = nothing to plot. */
+export function metricValue(point: TimelinePoint, metric: HistoryMetric): number | null {
+  switch (metric) {
+    case "top":
+      return point.top?.weight ?? null;
+    case "e1rm":
+      return point.e1rm == null ? null : Math.round(point.e1rm * 10) / 10;
+    case "volume":
+      return point.volume > 0 ? round2(point.volume) : null;
+  }
+}

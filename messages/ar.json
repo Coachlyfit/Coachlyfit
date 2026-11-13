@@ -815,7 +815,21 @@
       "error": "معرفناش نحمّل سجل الأوزان.",
       "errorDescription": "حصل خطأ أثناء التحميل. جرّب تاني.",
       "retry": "جرّب تاني",
-      "groupLine": "{sets} × {value}"
+      "groupLine": "{sets} × {value}",
+      "view": "طريقة العرض",
+      "viewBySession": "حسب الجلسة",
+      "viewByExercise": "حسب التمرين",
+      "viewTable": "جدول",
+      "sessionMeta": "{sets} سِت · {exercises, plural, one {تمرين واحد} two {تمرينين} few {# تمارين} other {# تمرين}}",
+      "deltaNew": "جديد",
+      "deltaKg": "{delta} كجم",
+      "metric": "المقياس",
+      "metricTop": "أعلى وزن",
+      "metricE1rm": "1RM تقديري",
+      "metricVolume": "الحجم",
+      "history": "السجل",
+      "searchExercises": "دوّر على تمرين",
+      "noMatches": "مفيش تمارين مطابقة."
     },
     "errors": {
       "invalid_input": "راجع البيانات وجرّب تاني.",

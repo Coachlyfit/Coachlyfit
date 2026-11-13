@@ -815,7 +815,21 @@
       "error": "Couldn't load the weight history.",
       "errorDescription": "Something went wrong while loading. Try again.",
       "retry": "Try again",
-      "groupLine": "{sets} × {value}"
+      "groupLine": "{sets} × {value}",
+      "view": "View",
+      "viewBySession": "By session",
+      "viewByExercise": "By exercise",
+      "viewTable": "Table",
+      "sessionMeta": "{sets, plural, one {# set} other {# sets}} · {exercises, plural, one {# exercise} other {# exercises}}",
+      "deltaNew": "New",
+      "deltaKg": "{delta} kg",
+      "metric": "Metric",
+      "metricTop": "Top weight",
+      "metricE1rm": "Estimated 1RM",
+      "metricVolume": "Volume",
+      "history": "History",
+      "searchExercises": "Search exercises",
+      "noMatches": "No exercises match."
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",

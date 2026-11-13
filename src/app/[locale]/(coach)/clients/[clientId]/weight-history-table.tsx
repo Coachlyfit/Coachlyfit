@@ -1,56 +1,27 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { pickBilingual, pickLocale, type AppLocale } from "@/domain/locale";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import type { HistorySession } from "@/domain/workouts/workouts.service";
 import { measurementFields, type MeasurementType } from "@/domain/library/measurement";
 import { formatSetMeasures } from "@/domain/workouts/set-measures";
-import {
-  compareSessions,
-  historyQuery,
-  MAX_PAGE,
-  PAGE_SIZE,
-  sessionExercises,
-  type HistoryParams,
-  type SetGroup,
-} from "@/domain/workouts/weight-history";
+import { compareSessions, sessionExercises, type SetGroup } from "@/domain/workouts/weight-history";
 
 const MAX_COMPARE = 2;
 
-/** Sessions with per-exercise sets × reps × weight, plus an A/B compare.
- * Selection is UI-only state; the session list itself comes from the server
- * and "load more" re-queries it with a larger `n`. */
-export function WeightHistoryTable({
-  sessions,
-  hasMore,
-  params,
-  locale,
-}: {
-  sessions: HistorySession[];
-  hasMore: boolean;
-  params: HistoryParams;
-  locale: AppLocale;
-}) {
+/** "3 × 8 × 60 kg" / "3 × 45 s" for one collapsed set group. Shared with the
+ * By session / By exercise views for exercises without a weighted top set. */
+export function useGroupText(locale: AppLocale) {
   const t = useTranslations("clients.weightHistory");
   const tm = useTranslations("measure");
-  const router = useRouter();
-  const pathname = usePathname();
-  const [pending, startTransition] = useTransition();
-  const [selected, setSelected] = useState<string[]>([]);
-
   const num = (v: number) => formatNumber(v, locale, { maximumFractionDigits: 1 });
-  const signed = (v: number) => formatNumber(v, locale, { maximumFractionDigits: 1, signDisplay: "exceptZero" });
-  const exerciseName = (name: { ar: string; en: string } | null) => (name ? pickBilingual(name, locale) : t("unknownExercise"));
   const dash = "—";
-
-  const groupText = (g: SetGroup, type: MeasurementType) => {
+  return (g: SetGroup, type: MeasurementType) => {
     const repBased =
       g.duration_seconds == null &&
       g.distance_m == null &&
@@ -76,6 +47,29 @@ export function WeightHistoryTable({
     );
     return t("groupLine", { sets: g.sets, value });
   };
+}
+
+/** Sessions with per-exercise sets × reps × weight, plus an A/B compare.
+ * Selection is UI-only state. `dates` are the session dates formatted on the
+ * server, so server and browser render identical text (no time-zone
+ * hydration mismatch). */
+export function WeightHistoryTable({
+  sessions,
+  dates,
+  locale,
+}: {
+  sessions: HistorySession[];
+  dates: Record<string, string>;
+  locale: AppLocale;
+}) {
+  const t = useTranslations("clients.weightHistory");
+  const groupText = useGroupText(locale);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const num = (v: number) => formatNumber(v, locale, { maximumFractionDigits: 1 });
+  const signed = (v: number) => formatNumber(v, locale, { maximumFractionDigits: 1, signDisplay: "exceptZero" });
+  const exerciseName = (name: { ar: string; en: string } | null) => (name ? pickBilingual(name, locale) : t("unknownExercise"));
+  const dash = "—";
 
   const toggle = (id: string, on: boolean) =>
     setSelected((cur) => (on ? (cur.includes(id) || cur.length >= MAX_COMPARE ? cur : [...cur, id]) : cur.filter((x) => x !== id)));
@@ -87,11 +81,10 @@ export function WeightHistoryTable({
     .sort((a, b) => a.started_at.localeCompare(b.started_at));
   const comparison = picked.length === 2 ? compareSessions(picked[0], picked[1]) : null;
   const sessionLabel = (s: HistorySession) =>
-    `${formatDate(s.started_at, locale, { dateStyle: "medium" })} · ${pickLocale(s.program_days, locale, "label") || t("workoutFallback")}`;
+    `${dates[s.id]} · ${pickLocale(s.program_days, locale, "label") || t("workoutFallback")}`;
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold tracking-tight">{t("sessions")}</h3>
       <p className="text-sm text-muted-foreground">{t("compareHint")}</p>
 
       {comparison && (
@@ -142,9 +135,7 @@ export function WeightHistoryTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10">
-                <span className="sr-only">{t("compare")}</span>
-              </TableHead>
+              <TableHead className="text-start">{t("compare")}</TableHead>
               <TableHead className="text-start">{t("colDate")}</TableHead>
               <TableHead className="text-start">{t("colWorkout")}</TableHead>
               <TableHead className="text-start">{t("colExercises")}</TableHead>
@@ -164,7 +155,7 @@ export function WeightHistoryTable({
                     />
                   </TableCell>
                   <TableCell className="align-top whitespace-nowrap">
-                    {formatDate(session.started_at, locale, { dateStyle: "medium" })}
+                    {dates[session.id]}
                   </TableCell>
                   <TableCell className="align-top">
                     {pickLocale(session.program_days, locale, "label") || t("workoutFallback")}
@@ -188,21 +179,6 @@ export function WeightHistoryTable({
         </Table>
       </div>
 
-      {hasMore && params.limit < MAX_PAGE && (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            disabled={pending}
-            onClick={() =>
-              startTransition(() =>
-                router.replace(`${pathname}${historyQuery({ ...params, limit: params.limit + PAGE_SIZE })}`, { scroll: false })
-              )
-            }
-          >
-            {pending ? t("loading") : t("loadMore")}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
