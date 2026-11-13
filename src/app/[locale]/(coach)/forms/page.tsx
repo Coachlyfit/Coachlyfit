@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
+import { Inbox, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -51,20 +51,26 @@ export default async function FormsPage({
         </div>
         {/* Pinned above the bottom nav on mobile (end-20 clears the feedback
             widget), inline from md up. */}
-        {canCreate ? (
-          <Link
-            href="/forms/new"
-            className={cn(
-              buttonVariants(),
-              "max-md:fixed max-md:start-4 max-md:end-20 max-md:bottom-[calc(var(--bottom-nav-h)+0.75rem)] max-md:z-30 max-md:h-13 max-md:text-base max-md:shadow-lg"
-            )}
-          >
-            <Plus className="size-4" aria-hidden="true" />
-            {t("newTemplate")}
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/forms/submissions" className={buttonVariants({ variant: "outline" })}>
+            <Inbox className="size-4" aria-hidden="true" />
+            {t("submissions.title")}
           </Link>
-        ) : (
-          <UpgradePrompt feature="forms_builder" />
-        )}
+          {canCreate ? (
+            <Link
+              href="/forms/new"
+              className={cn(
+                buttonVariants(),
+                "max-md:fixed max-md:start-4 max-md:end-20 max-md:bottom-[calc(var(--bottom-nav-h)+0.75rem)] max-md:z-30 max-md:h-13 max-md:text-base max-md:shadow-lg"
+              )}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              {t("newTemplate")}
+            </Link>
+          ) : (
+            <UpgradePrompt feature="forms_builder" />
+          )}
+        </div>
       </header>
 
       {templates.length === 0 ? (

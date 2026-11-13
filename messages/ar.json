@@ -1029,6 +1029,7 @@
         "billing": "الفواتير",
         "notes": "الملاحظات",
         "decisions": "القرارات",
+        "forms": "النماذج",
         "nutrition": "التغذية"
       },
       "activateAccount": "تفعيل الحساب",
@@ -1698,8 +1699,13 @@
       "table": {
         "client": "العميل",
         "form": "النموذج",
-        "submittedAt": "تاريخ الإرسال"
+        "submittedAt": "تاريخ الإرسال",
+        "status": "الحالة"
       },
+      "new": "جديد",
+      "filteredBy": "النموذج: {name}",
+      "filteredByClient": "العميل: {name}",
+      "clearFilter": "اعرض الكل",
       "view": "شوف",
       "markReviewed": "تمت المراجعة",
       "reviewed": "تمت المراجعة"

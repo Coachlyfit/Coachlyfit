@@ -100,6 +100,24 @@ export class SubmissionsService {
     return data;
   }
 
+  /** Coach-facing history list with client + form names, newest first. Both
+   * filters are optional; reviewed and unreviewed rows are both returned so
+   * the coach can look back at old answers. `!inner` is what lets the
+   * template filter apply to the parent row instead of just nulling the join. */
+  async listWithContext(filter: { clientId?: string; templateId?: string } = {}) {
+    let query = this.db
+      .from("form_submissions")
+      .select(
+        "id, client_id, submitted_at, reviewed_at, clients(display_name), form_template_versions!inner(version, form_templates!form_template_versions_template_id_fkey(name_ar, name_en))"
+      )
+      .order("submitted_at", { ascending: false });
+    if (filter.clientId) query = query.eq("client_id", filter.clientId);
+    if (filter.templateId) query = query.eq("form_template_versions.template_id", filter.templateId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
   async listAllSubmissions(): Promise<Submission[]> {
     const { data, error } = await this.db
       .from("form_submissions")
