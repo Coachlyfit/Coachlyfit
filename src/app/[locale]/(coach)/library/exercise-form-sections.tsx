@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Segmented } from "@/components/ui/segmented";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { MUSCLE_GROUPS } from "@/domain/library/taxonomy";
@@ -35,6 +34,12 @@ const INPUT = "h-11 md:h-11";
 const HINT = "text-[13px] leading-snug text-muted-foreground";
 const dirOf = (lang: ContentLang) => (lang === "ar" ? "rtl" : "ltr");
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
+// Selected fill per level: green / orange / red.
+const DIFFICULTY_ON: Record<(typeof DIFFICULTIES)[number], string> = {
+  beginner: "bg-success text-success-foreground",
+  intermediate: "bg-primary text-primary-foreground",
+  advanced: "bg-destructive text-destructive-foreground",
+};
 const NO_SKILL = "__none__";
 
 function FieldError({ error, id }: { error: unknown; id?: string }) {
@@ -172,21 +177,37 @@ export function BasicsSection({ form, lang, idp }: SectionProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-1.5">
           <span id={id("difficulty_label")} className="text-sm font-medium">{t("difficulty")}</span>
           <Controller
             name="difficulty"
             control={control}
             render={({ field }) => (
-              <Segmented
-                label={t("difficulty")}
-                value={(field.value ?? "") as (typeof DIFFICULTIES)[number]}
-                // Tapping the active level clears it — difficulty is optional.
-                onChange={(v) => field.onChange(v === field.value ? undefined : v)}
-                options={DIFFICULTIES.map((d) => ({ value: d, label: t(`difficultyLevel.${d}`) }))}
-                className="w-full bg-muted [&>button]:h-11 [&>button]:flex-1"
-              />
+              <div
+                role="group"
+                aria-labelledby={id("difficulty_label")}
+                className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-0.5"
+              >
+                {DIFFICULTIES.map((d) => {
+                  const on = field.value === d;
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      aria-pressed={on}
+                      // Tapping the active level clears it — difficulty is optional.
+                      onClick={() => field.onChange(on ? undefined : d)}
+                      className={cn(
+                        "h-11 min-w-0 truncate rounded-md px-2 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50",
+                        on ? DIFFICULTY_ON[d] : "text-foreground hover:bg-background/60"
+                      )}
+                    >
+                      {t(`difficultyLevel.${d}`)}
+                    </button>
+                  );
+                })}
+              </div>
             )}
           />
         </div>

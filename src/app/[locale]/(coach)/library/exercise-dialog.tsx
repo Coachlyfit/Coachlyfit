@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import { Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Segmented } from "@/components/ui/segmented";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
@@ -28,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { createExerciseAction, updateExerciseAction, type searchExercisesAction } from "./actions";
 import { BasicsSection, ExtraSection, InstructionsSection, MediaSection } from "./exercise-form-sections";
 import { ExercisePreview } from "./exercise-form-preview";
+import { DiscardChangesDialog } from "./discard-changes-dialog";
 
 type Exercise = Awaited<ReturnType<typeof searchExercisesAction>>["rows"][number];
 
@@ -295,7 +295,7 @@ export function ExerciseDialog({
                 { value: "ar", label: tf("langAr") },
                 { value: "en", label: tf("langEn") },
               ]}
-              className="bg-muted [&>button]:h-11 md:[&>button]:h-9"
+              className="[&>button]:h-11 md:[&>button]:h-9"
             />
             <Button
               type="button"
@@ -349,12 +349,9 @@ export function ExerciseDialog({
           </footer>
         </form>
 
-        <ConfirmDialog
+        <DiscardChangesDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title={tf("discard.title")}
-          description={tf("discard.description")}
-          confirmLabel={tf("discard.confirm")}
           onConfirm={() => {
             setConfirmOpen(false);
             resetAll();
