@@ -256,11 +256,10 @@ export function ExerciseDialog({
     <Dialog
       open={isOpen}
       onOpenChange={(next) => {
-        if (next) {
-          setOpen(true);
-        } else {
-          requestClose();
-        }
+        if (next) setOpen(true);
+        // Esc / outside click while the discard prompt is up cancels the prompt only.
+        else if (confirmOpen) setConfirmOpen(false);
+        else requestClose();
       }}
     >
       {mode === "create" && (
@@ -278,7 +277,7 @@ export function ExerciseDialog({
           "md:h-[min(880px,92dvh)] md:max-w-[min(1080px,calc(100%-2rem))]"
         )}
       >
-        <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+        <form onSubmit={onSubmit} noValidate inert={confirmOpen} className="flex min-h-0 flex-1 flex-col">
           <header className="flex shrink-0 items-center gap-3 border-b px-3 py-2 md:min-h-17 md:px-5">
             <div className="flex min-w-0 flex-1 flex-col leading-snug">
               <DialogTitle className="truncate text-[17px] leading-snug font-bold md:text-lg">{title}</DialogTitle>
@@ -351,7 +350,7 @@ export function ExerciseDialog({
 
         <DiscardChangesDialog
           open={confirmOpen}
-          onOpenChange={setConfirmOpen}
+          onCancel={() => setConfirmOpen(false)}
           onConfirm={() => {
             setConfirmOpen(false);
             resetAll();
