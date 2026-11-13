@@ -13,6 +13,7 @@ import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 import {
   createProgramSchema,
   daySchema,
+  sessionSchema,
   itemSchema,
   reorderSchema,
   renameSchema,
@@ -23,7 +24,9 @@ import {
   rehabPhaseSchema,
   setDayNutritionSchema,
   groupFormatSchema,
+  weekPlanSchema,
 } from "./schemas";
+import { parseWeekPlan } from "@/domain/programs/week-plan";
 import type { GroupKind } from "@/domain/programs/group-config";
 import { asPlanGoal, asPlanLevel, asPlanType } from "@/domain/programs/plan-meta";
 import { getStarter } from "@/domain/programs/starters";
@@ -89,6 +92,24 @@ export async function createProgramAction(locale: string, formData: FormData): P
   });
   revalidatePath(`/${locale}/programs`);
   return { id: program.id };
+}
+
+/** Saves the program's authored week plan (null = back to the default deload
+ * every 4th week). The plan is re-parsed through parseWeekPlan so what is stored
+ * is exactly what the projection will read. */
+export async function setWeekPlanAction(locale: string, programId: string, plan: unknown): Promise<ActionResult> {
+  const parsed = weekPlanSchema.safeParse(plan);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const saved = await new ProgramsService(supabase).setWeekPlan(programId, parseWeekPlan(parsed.data));
+  if (!saved) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
 }
 
 /** Creates a template program from one of the built-in starters (one per plan
@@ -227,6 +248,33 @@ export async function cloneProgramAction(
   return { id: cloned.id };
 }
 
+/** Replaces one client's copy of a template with a fresh copy of the template as
+ * it is now (same dates; the old copy is archived, not deleted). */
+export async function updateFromTemplateAction(
+  locale: string,
+  templateId: string,
+  clientProgramId: string
+): Promise<CreateResult> {
+  const ids = z.object({ templateId: z.string().uuid(), clientProgramId: z.string().uuid() }).safeParse({
+    templateId,
+    clientProgramId,
+  });
+  if (!ids.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const updated = await new ProgramsService(supabase).updateFromTemplate(templateId, clientProgramId);
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+  revalidatePath(`/${locale}/programs/${templateId}`);
+  if (updated.client_id) revalidatePath(`/${locale}/clients/${updated.client_id}`);
+  return { id: updated.id };
+}
+
 // Reverse of cloneProgramAction: saves an assigned program back out as a
 // template. Same id-returning deviation, for the same reason — the dialog
 // redirects into the new template right after saving.
@@ -278,6 +326,39 @@ export async function addDayAction(locale: string, programId: string, formData: 
   await programs.snapshotIfAssigned(programId, "add_day");
   const added = await programs.addDay(programId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+/** Adds an extra session (AM/PM split) to a day. */
+export async function addSessionAction(
+  locale: string,
+  programId: string,
+  parentDayId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = sessionSchema.safeParse({
+    label_ar: formData.get("label_ar") || "",
+    label_en: formData.get("label_en") || "",
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
+  });
+  if (!parsed.success || !z.string().uuid().safeParse(parentDayId).success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "add_session");
+  try {
+    const added = await programs.addSession(parentDayId, parsed.data);
+    if (!added) return { error: "not_found_or_forbidden" };
+  } catch (err) {
+    if (err instanceof Error && err.message === "session_parent_invalid") return { error: "session_parent_invalid" };
+    throw err;
+  }
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 

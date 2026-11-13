@@ -8,6 +8,8 @@ import { computeMeasureRecords, computePersonalRecords } from "@/domain/progress
 import { buildPrRows } from "@/domain/progress/pr-rows";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
 import { BlockScores } from "@/components/progress/block-scores";
+import { SkillLadders } from "@/components/progress/skill-ladders";
+import { computeSkillLadders, hasLoggedEffort } from "@/domain/progress/skill-levels";
 import { pickLocale, pickBilingual, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 
@@ -21,11 +23,13 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
   const tPrs = await getTranslations("progress.prs");
   const supabase = await createClient();
   const workouts = new WorkoutsService(supabase);
-  const [sessions, logs, blockScores] = await Promise.all([
+  const [sessions, logs, blockScores, skillRungs] = await Promise.all([
     workouts.listRecentSessions(clientId),
     workouts.listSetLogsForClient(clientId),
     workouts.listBlockScores(clientId),
+    workouts.listSkillRungs(),
   ]);
+  const skillLadders = computeSkillLadders(skillRungs, new Set(logs.filter(hasLoggedEffort).map((l) => l.exercise_id)));
 
   const records = computePersonalRecords(logs);
   const measureRecords = computeMeasureRecords(logs);
@@ -94,6 +98,7 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
       <h2 className="text-lg font-semibold tracking-tight">{tPrs("title")}</h2>
       <PrList rows={prRows} locale={locale} />
       <BlockScores rows={blockScores} locale={locale} />
+      <SkillLadders ladders={skillLadders} locale={locale} />
     </div>
   );
 }

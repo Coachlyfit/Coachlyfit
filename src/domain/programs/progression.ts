@@ -1,3 +1,5 @@
+import { isDeloadWeek, modifierForWeek, type WeekModifier, type WeekPlan } from "./week-plan";
+
 export type ProgressionRule = "none" | "plus_2_5kg_week" | "plus_5kg_week" | "plus_1_rep_week";
 
 export type BaseSet = {
@@ -27,21 +29,44 @@ export type BaseSet = {
 };
 
 export const MAX_PROGRAM_WEEKS = 12;
-const DELOAD_INTERVAL = 4;
 
-/** Projects week 1's base sets onto `week`. Week 1 and every 4th week (4, 8,
- * 12) always return the base unmodified — a deload is a display-time reset,
- * not a stored state, so it never shifts later weeks' trend: week 5 still
- * progresses as `base + 4 steps`, exactly as if week 4 had never deloaded.
- * `weight: null` (bodyweight exercises) stays null under weight-based rules
- * — there's nothing to add a delta to. */
-export function projectSetsForWeek(baseSets: BaseSet[], rule: ProgressionRule, week: number): BaseSet[] {
+/** Projects week 1's base sets onto `week`. Week 1 always returns the base. A
+ * deload week (see isDeloadWeek: authored in `plan`, else every 4th week) also
+ * returns the base — a deload is a display-time reset, not a stored state, so
+ * it never shifts later weeks' trend: week 5 still progresses as `base + 4
+ * steps`, exactly as if week 4 had never deloaded. The week's authored
+ * modifiers (load %, rep delta) then apply on top, deload or not.
+ * `weight: null` (bodyweight exercises) stays null under weight-based rules and
+ * load % — there's nothing to scale. */
+export function projectSetsForWeek(
+  baseSets: BaseSet[],
+  rule: ProgressionRule,
+  week: number,
+  plan: WeekPlan | null = null
+): BaseSet[] {
   const clamped = Math.min(Math.max(Math.round(week), 1), MAX_PROGRAM_WEEKS);
-  if (clamped === 1 || rule === "none" || clamped % DELOAD_INTERVAL === 0) {
-    return baseSets.map((set) => ({ ...set }));
+  const progressed =
+    clamped === 1 || rule === "none" || isDeloadWeek(plan, clamped)
+      ? baseSets.map((set) => ({ ...set }))
+      : baseSets.map((set) => projectSet(set, rule, clamped - 1));
+
+  const mod = clamped === 1 ? null : modifierForWeek(plan, clamped);
+  return mod ? progressed.map((set) => applyModifier(set, mod)) : progressed;
+}
+
+/** Load % scales a real (positive) weight to the nearest 0.5 kg — assisted
+ * (negative) weights are left alone, since "60% of the help" is not a lighter
+ * week. A rep delta never takes a target below 1. */
+function applyModifier(set: BaseSet, mod: WeekModifier): BaseSet {
+  const next = { ...set };
+  if (mod.load_pct != null && next.weight != null && next.weight > 0) {
+    next.weight = Math.round(((next.weight * mod.load_pct) / 100) * 2) / 2;
   }
-  const steps = clamped - 1;
-  return baseSets.map((set) => projectSet(set, rule, steps));
+  if (mod.reps_delta) {
+    if (next.reps != null) next.reps = Math.max(1, next.reps + mod.reps_delta);
+    if (next.reps_max != null) next.reps_max = Math.max(next.reps ?? 1, next.reps_max + mod.reps_delta);
+  }
+  return next;
 }
 
 function projectSet(set: BaseSet, rule: ProgressionRule, steps: number): BaseSet {

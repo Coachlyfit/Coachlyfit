@@ -53,6 +53,7 @@ export async function createFromStarter(
     goal: starter.goal,
     level: starter.level,
     equipment: starter.equipment,
+    week_plan: starter.week_plan ?? null,
   });
 
   const skipped = new Set<string>();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { createContext, useContext, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -69,6 +69,9 @@ import {
 import { AddDayDialog } from "./add-day-dialog";
 import { ItemDialog } from "./item-dialog";
 import { GroupFormatDialog } from "./group-format-dialog";
+import { WeekPlanDialog } from "./week-plan-dialog";
+import { primaryDays, sessionsOf } from "@/domain/programs/day-sessions";
+import { isDeloadWeek, modifierForWeek, parseWeekPlan, type WeekPlan } from "@/domain/programs/week-plan";
 import {
   asGroupKind,
   defaultGroupConfig,
@@ -92,6 +95,11 @@ import { Link, useRouter } from "@/i18n/navigation";
 type Day = ProgramTree["program_days"][number];
 type Item = Day["program_items"][number];
 type Activity = Day["program_activities"][number];
+
+/** The program's authored week plan, for the week-N projection each row shows.
+ * A context rather than a prop: it is read two components down (DayCard ->
+ * SortableItem) and never changes while the builder is mounted. */
+const WeekPlanContext = createContext<WeekPlan | null>(null);
 
 /** Week 1 is the editable base; week 2-12 is a read-only projection
  * (progression.ts) — no drag handle, no edit/delete, and week>1 never mounts
@@ -128,10 +136,11 @@ function SortableItem({
   const t = useTranslations("programs.builder");
   const tm = useTranslations("measure");
   const readOnly = week !== 1;
+  const weekPlan = useContext(WeekPlanContext);
   const sortable = useSortable({ id: item.id, disabled: readOnly });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
   const displaySets = readOnly
-    ? projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week)
+    ? projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week, weekPlan)
     : item.program_item_sets;
 
   return (
@@ -357,6 +366,7 @@ function DayCard({
   dietVariant,
   onEditDay,
   onDeleteDay,
+  onAddSession,
 }: {
   locale: AppLocale;
   programId: string;
@@ -369,11 +379,14 @@ function DayCard({
   dietVariant?: { id: string; name_ar: string; name_en: string; target_kcal: number | null };
   onEditDay: () => void;
   onDeleteDay: () => void;
+  /** Adds an extra session (AM/PM split) under this day; absent on a session itself. */
+  onAddSession?: () => void;
 }) {
   const t = useTranslations("programs.builder");
   const tErrors = useTranslations("programs.errors");
   const router = useRouter();
   const readOnly = week !== 1;
+  const isSession = day.parent_day_id != null;
   const [items, setItems] = useState(day.program_items);
   const [sectionOrder, setSectionOrder] = useState(() => normalizeSectionOrder(day.section_order));
   const [activityDialog, setActivityDialog] = useState<{
@@ -715,7 +728,7 @@ function DayCard({
     >
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
         <CardTitle className="flex min-w-0 flex-wrap items-center gap-2 text-base">
-          {t("dayN", { n: day.day_index })}
+          {isSession ? t("sessionN", { n: day.day_index }) : t("dayN", { n: day.day_index })}
           {(day.label_ar || day.label_en) && (
             <span className="font-normal text-muted-foreground">— {pickLocale(day, locale, "label")}</span>
           )}
@@ -763,7 +776,8 @@ function DayCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEditDay}>{t("editDay")}</DropdownMenuItem>
-              <DropdownMenuItem onClick={duplicateDay}>{t("duplicateDay")}</DropdownMenuItem>
+              {!isSession && <DropdownMenuItem onClick={duplicateDay}>{t("duplicateDay")}</DropdownMenuItem>}
+              {onAddSession && !readOnly && <DropdownMenuItem onClick={onAddSession}>{t("addSession")}</DropdownMenuItem>}
               <DropdownMenuItem variant="destructive" onClick={onDeleteDay}>
                 {t("deleteDay")}
               </DropdownMenuItem>
@@ -932,9 +946,10 @@ export function ProgramBuilder({
   const tErrors = useTranslations("programs.errors");
   const router = useRouter();
   const [days, setDays] = useState(tree.program_days);
+  const weekPlan = parseWeekPlan(tree.week_plan);
   const [week, setWeek] = useState(1);
   const readOnly = week !== 1;
-  const [dayDialog, setDayDialog] = useState<{ day?: Day } | null>(null);
+  const [dayDialog, setDayDialog] = useState<{ day?: Day; parentDayId?: string } | null>(null);
   const [pendingDeleteDay, setPendingDeleteDay] = useState<string | null>(null);
   const [pendingDeleteProgram, setPendingDeleteProgram] = useState(false);
   const [deletePending, startDeleteTransition] = useTransition();
@@ -945,15 +960,17 @@ export function ProgramBuilder({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const fromIndex = days.findIndex((d) => d.id === active.id);
-    const toIndex = days.findIndex((d) => d.id === over.id);
+    // Only calendar days are reordered; a day's extra sessions stay attached to it.
+    const calendar = primaryDays(days);
+    const fromIndex = calendar.findIndex((d) => d.id === active.id);
+    const toIndex = calendar.findIndex((d) => d.id === over.id);
     if (fromIndex === -1 || toIndex === -1) return;
 
     const previous = days;
-    const reordered = [...days];
+    const reordered = [...calendar];
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
-    setDays(reordered);
+    setDays([...reordered, ...days.filter((d) => d.parent_day_id != null)]);
 
     startReorderTransition(async () => {
       const result = await reorderDaysAction(
@@ -987,11 +1004,46 @@ export function ProgramBuilder({
     });
   }
 
+  const calendarDays = primaryDays(days);
+
+  /** One calendar day's card, with its extra sessions nested beneath it. */
+  function renderDay(day: Day) {
+    return (
+      <div key={day.id} className="flex flex-col gap-3">
+        <DayCard
+          locale={locale}
+          programId={tree.id}
+          day={day}
+          week={week}
+          rehabPhases={rehabPhases}
+          dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
+          onEditDay={() => setDayDialog({ day })}
+          onDeleteDay={() => setPendingDeleteDay(day.id)}
+          onAddSession={() => setDayDialog({ parentDayId: day.id })}
+        />
+        {sessionsOf(days, day.id).map((session) => (
+          <div key={session.id} className="ms-6 border-s-2 border-border ps-3">
+            <DayCard
+              locale={locale}
+              programId={tree.id}
+              day={session}
+              week={week}
+              rehabPhases={rehabPhases}
+              onEditDay={() => setDayDialog({ day: session })}
+              onDeleteDay={() => setPendingDeleteDay(session.id)}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const nextDayIndex = days.length === 0 ? 1 : Math.max(...days.map((d) => d.day_index)) + 1;
   const rehabPhases = tree.rehab_protocols.flatMap((p) => p.rehab_phases);
   const [sidebarTab, setSidebarTab] = useState<"exercises" | "nutrition" | "rehab">("exercises");
 
   return (
+    <WeekPlanContext.Provider value={weekPlan}>
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -1006,13 +1058,17 @@ export function ProgramBuilder({
               onChange={(e) => setWeek(Number(e.target.value))}
               className="h-9 rounded-md border border-input bg-transparent px-2 text-base md:text-sm"
             >
-              {Array.from({ length: MAX_PROGRAM_WEEKS }, (_, i) => i + 1).map((w) => (
-                <option key={w} value={w}>
-                  {t("week", { n: w })}
-                </option>
-              ))}
+              {Array.from({ length: MAX_PROGRAM_WEEKS }, (_, i) => i + 1).map((w) => {
+                const name = modifierForWeek(weekPlan, w)?.label ?? (isDeloadWeek(weekPlan, w) ? t("deloadWeek") : null);
+                return (
+                  <option key={w} value={w}>
+                    {name ? `${t("week", { n: w })} · ${name}` : t("week", { n: w })}
+                  </option>
+                );
+              })}
             </select>
           </label>
+          <WeekPlanDialog locale={locale} programId={tree.id} plan={weekPlan} />
           {readOnly && <span className="text-xs text-muted-foreground">{t("weekReadOnlyHint")}</span>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -1050,37 +1106,13 @@ export function ProgramBuilder({
             </Card>
           ) : readOnly ? (
             <div className="flex flex-col gap-4">
-              {days.map((day) => (
-                <DayCard
-                  key={day.id}
-                  locale={locale}
-                  programId={tree.id}
-                  day={day}
-                  week={week}
-                  rehabPhases={rehabPhases}
-                  dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
-                  onEditDay={() => setDayDialog({ day })}
-                  onDeleteDay={() => setPendingDeleteDay(day.id)}
-                />
-              ))}
+              {calendarDays.map(renderDay)}
             </div>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={days.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={calendarDays.map((d) => d.id)} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-col gap-4">
-                  {days.map((day) => (
-                    <DayCard
-                      key={day.id}
-                      locale={locale}
-                      programId={tree.id}
-                      day={day}
-                      week={week}
-                      rehabPhases={rehabPhases}
-                      dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
-                      onEditDay={() => setDayDialog({ day })}
-                      onDeleteDay={() => setPendingDeleteDay(day.id)}
-                    />
-                  ))}
+                  {calendarDays.map(renderDay)}
                 </div>
               </SortableContext>
             </DndContext>
@@ -1106,7 +1138,7 @@ export function ProgramBuilder({
           )}
           {!readOnly && sidebarTab === "exercises" && <ExerciseSidebar locale={locale} programId={tree.id} days={days} />}
           {!readOnly && sidebarTab === "nutrition" && (
-            <NutritionPanel locale={locale} programId={tree.id} days={days} variants={tree.diet_variants} />
+            <NutritionPanel locale={locale} programId={tree.id} days={calendarDays} variants={tree.diet_variants} />
           )}
           {!readOnly && sidebarTab === "rehab" && (
             <RehabPanel
@@ -1126,6 +1158,7 @@ export function ProgramBuilder({
           programId={tree.id}
           nextDayIndex={nextDayIndex}
           day={dayDialog.day}
+          parentDayId={dayDialog.parentDayId}
           scheduleMode={tree.schedule_mode as "cycle" | "weekly"}
           open={!!dayDialog}
           onOpenChange={(open) => !open && setDayDialog(null)}
@@ -1149,5 +1182,6 @@ export function ProgramBuilder({
         pending={deletePending}
       />
     </div>
+    </WeekPlanContext.Provider>
   );
 }

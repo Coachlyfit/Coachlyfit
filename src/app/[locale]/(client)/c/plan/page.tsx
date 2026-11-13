@@ -42,7 +42,6 @@ export default async function ClientPlanPage({
 
   const todayIso = new Date().toISOString().slice(0, 10);
   const weekStart = startOfWeekSaturday(todayIso);
-  const cycleLength = tree.program_days.length;
 
   // resolveDayPlan per date, not dayIndicesForWeek/WithMode directly — it's
   // the one place workoutItems/rehabItems/activities/kind are all derived

@@ -4,7 +4,8 @@ import { computeSessionSummary } from "./summary";
 import { sanitizeExtra } from "./set-measures";
 import { parseBlockResults, toBlockScoreRows, type BlockResult, type BlockScoreRow } from "./block-result";
 import { isTimedKind } from "@/domain/programs/group-config";
-import { epley } from "@/domain/progress/prs";
+import { estimateOneRepMax, liftKindFromName, type LiftKind } from "@/domain/progress/prs";
+import { toSkillRung, type SkillRung } from "@/domain/progress/skill-levels";
 
 type Json = Database["public"]["Tables"]["workout_sessions"]["Row"]["block_results"];
 
@@ -18,6 +19,8 @@ export type SetLogForClient = {
   distance_m: number | null;
   calories: number | null;
   completed_at: string;
+  /** Only set for an Olympic lift; absent = standard (see prs.ts LiftKind). */
+  lift?: LiftKind;
 };
 
 type WorkoutSession = Database["public"]["Tables"]["workout_sessions"]["Row"];
@@ -344,7 +347,7 @@ export class WorkoutsService {
 
     let q = this.db
       .from("workout_set_logs")
-      .select("weight, reps, rpe, duration_seconds, distance_m, calories, extra, completed_at, program_items!inner(exercise_id)")
+      .select("weight, reps, rpe, duration_seconds, distance_m, calories, extra, completed_at, program_items!inner(exercise_id, exercises(name_en))")
       .in("program_items.exercise_id", exerciseIds);
     if (excludeSessionId) q = q.neq("session_id", excludeSessionId);
     const { data, error } = await q.order("completed_at", { ascending: false }).limit(200);
@@ -354,16 +357,17 @@ export class WorkoutsService {
     const bestE1rm = new Map<string, number>();
     for (const row of data as unknown as (Omit<LastPerformance, "extra"> & {
       extra: unknown;
-      program_items: { exercise_id: string } | null;
+      program_items: { exercise_id: string; exercises: { name_en: string } | null } | null;
     })[]) {
       const exerciseId = row.program_items?.exercise_id;
       if (!exerciseId) continue;
       // Best 1RM estimate over every row seen (not just the latest set); a
       // warm-up is far from a max effort, so it never counts.
       const extra = sanitizeExtra(row.extra);
-      if (row.weight != null && row.weight > 0 && row.reps != null && row.reps > 0 && extra?.set_type !== "warmup") {
-        const e1rm = epley(row.weight, row.reps);
-        if (e1rm > (bestE1rm.get(exerciseId) ?? 0)) bestE1rm.set(exerciseId, e1rm);
+      if (row.weight != null && row.reps != null && extra?.set_type !== "warmup") {
+        // null = too far from a max effort to estimate from (see estimateOneRepMax)
+        const e1rm = estimateOneRepMax(row.weight, row.reps, liftKindFromName(row.program_items?.exercises?.name_en));
+        if (e1rm != null && e1rm > (bestE1rm.get(exerciseId) ?? 0)) bestE1rm.set(exerciseId, e1rm);
       }
       if (byExercise.has(exerciseId)) continue;
       byExercise.set(exerciseId, {
@@ -470,7 +474,7 @@ export class WorkoutsService {
     let q = this.db
       .from("workout_set_logs")
       .select(
-        "weight, reps, duration_seconds, distance_m, calories, extra, completed_at, substituted_exercise_id, program_items!inner(exercise_id)"
+        "weight, reps, duration_seconds, distance_m, calories, extra, completed_at, substituted_exercise_id, program_items!inner(exercise_id, exercises(name_en))"
       )
       .eq("client_id", clientId);
     if (since) q = q.gte("completed_at", since);
@@ -480,7 +484,7 @@ export class WorkoutsService {
     return (data as unknown as (Omit<SetLogForClient, "exercise_id"> & {
       substituted_exercise_id: string | null;
       extra: unknown;
-      program_items: { exercise_id: string } | null;
+      program_items: { exercise_id: string; exercises?: { name_en: string } | null } | null;
     })[])
       // Warm-up sets (the coach's set type, carried onto the log) are not a
       // measure of what the athlete can do: they never count toward PRs or
@@ -494,7 +498,22 @@ export class WorkoutsService {
         distance_m: row.distance_m,
         calories: row.calories,
         completed_at: row.completed_at,
+        // Only Olympic lifts carry a kind (they use a stricter 1RM rule); omitted otherwise.
+        ...(liftKindFromName(row.program_items?.exercises?.name_en) === "olympic" ? { lift: "olympic" as const } : {}),
       }));
+  }
+
+  /** Every rung of every skill ladder in the library (exercises with a
+   * skill_group), for the athlete's skill-progress view. Globals are readable by
+   * any signed-in user, so this works from the client and the coach side. */
+  async listSkillRungs(): Promise<SkillRung[]> {
+    const { data, error } = await this.db
+      .from("exercises")
+      .select("id, name_ar, name_en, skill_group, skill_level")
+      .not("skill_group", "is", null)
+      .is("archived_at", null);
+    if (error) throw error;
+    return (data ?? []).map(toSkillRung).filter((r): r is SkillRung => r != null);
   }
 
   /** Recent timed-block scores (AMRAP / For Time / EMOM / Tabata), newest

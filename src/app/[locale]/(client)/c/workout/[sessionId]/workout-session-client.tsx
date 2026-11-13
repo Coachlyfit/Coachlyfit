@@ -62,6 +62,7 @@ import { cn } from "@/lib/utils";
 import { TimedBlock, useBlockResultText } from "@/components/workout/timed-block";
 import { isTimedKind, parseGroupConfig } from "@/domain/programs/group-config";
 import { asSetType, loadFromPct } from "@/domain/programs/set-targets";
+import { isDeloadWeek, modifierForWeek, type WeekPlan } from "@/domain/programs/week-plan";
 import type { BlockResult, BlockResults } from "@/domain/workouts/block-result";
 import { SessionDock, type DockField } from "./session-dock";
 import { SessionSummary } from "./session-summary";
@@ -134,6 +135,7 @@ export function WorkoutSessionClient({
   locale,
   day,
   week,
+  weekPlan,
   sessionId,
   initialSetLogs,
   initialExerciseResults,
@@ -149,6 +151,8 @@ export function WorkoutSessionClient({
   /** Which week's progression to project — see program-cycle.ts's
    * weekIndexForDate, resolved server-side from the program's start_date. */
   week: number;
+  /** The program's authored week plan (load %, rep delta, deload per week), or null. */
+  weekPlan: WeekPlan | null;
   sessionId: string;
   initialSetLogs: WorkoutSetLog[];
   initialExerciseResults: { program_item_id: string; status: string }[];
@@ -183,7 +187,7 @@ export function WorkoutSessionClient({
   const projectedByItem = new Map(
     items.map((item) => [
       item.id,
-      projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week) as BaseSet[],
+      projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week, weekPlan) as BaseSet[],
     ])
   );
   const orderItems = items.map((item) => ({
@@ -605,6 +609,9 @@ export function WorkoutSessionClient({
   const nextItem = items[currentIdx + 1];
   const prevItem = items[currentIdx - 1];
   const groupLabel = groupLabels.get(current.id);
+  // "Week 4 · Deload": shown only for a week the coach named (or the default deload).
+  const weekName = modifierForWeek(weekPlan, week)?.label ?? (isDeloadWeek(weekPlan, week) ? t("deloadWeek") : null);
+  const weekChip = weekName ? t("weekChip", { n: week, name: weekName }) : null;
   const timedKind = current.group_key && isTimedKind(current.group_kind) ? current.group_kind : null;
   const timedGroup = timedKind
     ? {
@@ -709,6 +716,11 @@ export function WorkoutSessionClient({
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+        {weekChip && (
+          <p className="w-fit rounded-md bg-accent-tint px-2 py-0.5 text-xs font-medium text-accent-tint-foreground">
+            {weekChip}
+          </p>
+        )}
         {timedGroup ? (
           <TimedBlock
             // Remount when moving between groups so the clock/score state is per block.

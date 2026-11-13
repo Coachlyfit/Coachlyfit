@@ -1,9 +1,11 @@
 import { dayIndicesForWeekWithMode, type ScheduleMode } from "./program-cycle";
 import { addDays } from "@/domain/nutrition/adherence";
+import { primaryDays } from "./day-sessions";
 
 type TrainingDay = {
   id: string;
   day_index: number;
+  parent_day_id?: string | null;
   weekday: number | null;
   program_items: { block: string }[];
 };
@@ -14,7 +16,9 @@ type WeekProgram = {
   program_days: TrainingDay[];
 };
 
-const WORKOUT_BLOCKS = ["warmup", "main", "cooldown"];
+/** Ordinary session work: warm-up, main, accessory, finisher, cool-down —
+ * everything except mobility/rehab blocks (same rule as day-plan.ts). */
+const isWorkoutBlock = (block: string) => block !== "mobility" && block !== "rehab";
 
 /** Workouts planned vs. done in the 7-day (Saturday-start) week at weekStart.
  * Planned = scheduled days that carry strength work (same "workout" blocks as
@@ -26,21 +30,26 @@ export function weekWorkoutCounts(
   weekStart: string,
   completedStartedAt: string[]
 ): { planned: number; done: number } {
+  const calendarDays = primaryDays(program.program_days);
   const weekdayToDayIndex = new Map<number, number>();
-  for (const d of program.program_days) {
+  for (const d of calendarDays) {
     if (d.weekday != null) weekdayToDayIndex.set(d.weekday, d.day_index);
   }
   const indices = dayIndicesForWeekWithMode(
     program.schedule_mode as ScheduleMode,
     program.start_date,
-    program.program_days.length,
+    calendarDays.length,
     weekStart,
     weekdayToDayIndex
   );
-  const trainingIndices = new Set(
-    program.program_days.filter((d) => d.program_items.some((i) => WORKOUT_BLOCKS.includes(i.block))).map((d) => d.day_index)
-  );
-  const planned = indices.filter((i) => i != null && trainingIndices.has(i)).length;
+  // Workouts a calendar day carries: itself, plus each extra session that has
+  // strength work (an AM/PM split is two planned workouts that day).
+  const workoutsOnIndex = new Map<number, number>();
+  for (const d of program.program_days) {
+    if (!d.program_items.some((i) => isWorkoutBlock(i.block))) continue;
+    workoutsOnIndex.set(d.day_index, (workoutsOnIndex.get(d.day_index) ?? 0) + 1);
+  }
+  const planned = indices.reduce<number>((sum, i) => sum + (i != null ? (workoutsOnIndex.get(i) ?? 0) : 0), 0);
 
   const weekEnd = addDays(weekStart, 7);
   const inWeek = completedStartedAt.filter((s) => s.slice(0, 10) >= weekStart && s.slice(0, 10) < weekEnd).length;

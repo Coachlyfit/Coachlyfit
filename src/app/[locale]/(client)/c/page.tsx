@@ -18,7 +18,7 @@ import { HomeHeader } from "@/components/client-home/home-header";
 import { CheckinBanner } from "@/components/client-home/checkin-banner";
 import { WeightCard } from "@/components/client-home/weight-card";
 import { StatTiles } from "@/components/client-home/stat-tiles";
-import { TodaySection, type NutritionToday } from "@/components/client-home/today-section";
+import { TodaySection, type NutritionToday, type TodaySession } from "@/components/client-home/today-section";
 import { CoachRow } from "@/components/client-home/coach-row";
 import { CoachDecisionCard } from "./coach-decision-card";
 import { CoachInviteCard } from "./coach-invite-card";
@@ -74,10 +74,24 @@ export default async function ClientHomePage({
 
   // Today's diet: the program day's linked variant, else the client's
   // standalone active plan (same resolution as the Nutrition tab).
-  const [session, activityLogs, variantDiet] = await Promise.all([
+  const [session, activityLogs, variantDiet, sessionRows] = await Promise.all([
     plan?.day ? workouts.getSessionForDay(plan.day.id, weekStart) : null,
     clientRow ? new ActivityLogsService(supabase).listForDate(clientRow.id, todayIso) : [],
     plan?.dietPlanId && plan.dietPlanId !== standaloneDiet?.id ? dietPlans.getTree(plan.dietPlanId) : null,
+    // The day's extra sessions (an AM/PM split), each with its own done/resume state.
+    Promise.all(
+      (plan?.sessions ?? []).map(async (day): Promise<TodaySession> => {
+        const logged = await workouts.getSessionForDay(day.id, weekStart);
+        const workout = day.program_items.filter((i) => i.block !== "mobility" && i.block !== "rehab");
+        return {
+          id: day.id,
+          label: day.label_ar || day.label_en ? pickLocale(day, locale, "label") : null,
+          exercises: workout.length,
+          sets: workout.reduce((sum, i) => sum + i.sets, 0),
+          state: logged?.completed_at != null ? "done" : logged ? "resume" : "new",
+        };
+      })
+    ),
   ]);
   const diet = variantDiet ?? standaloneDiet;
 
@@ -150,6 +164,7 @@ export default async function ClientHomePage({
             locale={locale}
             plan={plan}
             workoutState={workoutState}
+            sessions={sessionRows}
             loggedActivityIds={activityLogs.map((l) => l.program_activity_id)}
             nutrition={nutrition}
           />

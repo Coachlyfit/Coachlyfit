@@ -13,6 +13,8 @@ import { pickLocale } from "@/domain/locale";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
 import { BlockScores } from "@/components/progress/block-scores";
+import { SkillLadders } from "@/components/progress/skill-ladders";
+import { computeSkillLadders, hasLoggedEffort } from "@/domain/progress/skill-levels";
 import { PlanStory } from "@/components/ledger/plan-story";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import { toPlanStoryEntry } from "@/domain/ledger/view";
@@ -66,10 +68,15 @@ export default async function ClientProgressPage({
   const planStoryEntries = planStoryDecisions.map((d) => toPlanStoryEntry(d));
 
   const workouts = new WorkoutsService(supabase);
-  const [setLogs, blockScores] = await Promise.all([
+  const [setLogs, blockScores, skillRungs] = await Promise.all([
     workouts.listSetLogsForClient(client!.id),
     workouts.listBlockScores(client!.id),
+    workouts.listSkillRungs(),
   ]);
+  const skillLadders = computeSkillLadders(
+    skillRungs,
+    new Set(setLogs.filter(hasLoggedEffort).map((l) => l.exercise_id))
+  );
   const records = computePersonalRecords(setLogs);
   const measureRecords = computeMeasureRecords(setLogs);
   let prRows: PrListRow[] = [];
@@ -187,6 +194,7 @@ export default async function ClientProgressPage({
       </div>
 
       <BlockScores rows={blockScores} locale={locale} />
+      <SkillLadders ladders={skillLadders} locale={locale} />
 
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-tight">{tPhotos("title")}</h2>

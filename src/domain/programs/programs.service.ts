@@ -5,6 +5,7 @@ import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 import { normalizeSectionOrder } from "./day-sections";
 import type { GroupConfig, GroupKind } from "./group-config";
 import type { PlanGoal, PlanLevel, PlanType } from "./plan-meta";
+import type { WeekPlan } from "./week-plan";
 
 type Json = Database["public"]["Tables"]["program_items"]["Row"]["group_config"];
 
@@ -41,6 +42,8 @@ export type CreateProgramInput = {
   equipment?: string[];
   description_ar?: string | null;
   description_en?: string | null;
+  /** Authored week plan (see week-plan.ts); null = default deload every 4th week. */
+  week_plan?: WeekPlan | null;
 };
 
 export type CreateDayInput = {
@@ -387,7 +390,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select(
-        "*, clients(display_name), program_days(id, day_index, weekday, label_ar, label_en, program_items(count), workout_sessions(started_at, completed_at))"
+        "*, clients(display_name), program_days(id, day_index, parent_day_id, weekday, label_ar, label_en, program_items(count), workout_sessions(started_at, completed_at))"
       )
       .is("archived_at", null)
       .gte("program_days.workout_sessions.started_at", fromIso)
@@ -538,6 +541,17 @@ export class ProgramsService {
     return data.length > 0;
   }
 
+  /** Sets (or, with null, clears) the program's authored week plan. */
+  async setWeekPlan(id: string, plan: WeekPlan | null): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("programs")
+      .update({ week_plan: (plan && Object.keys(plan).length > 0 ? plan : null) as Json })
+      .eq("id", id)
+      .select("id");
+    if (error) throw error;
+    return data.length > 0;
+  }
+
   async remove(id: string): Promise<boolean> {
     const { data, error } = await this.db.from("programs").delete().eq("id", id).select("id");
     if (error) throw error;
@@ -576,6 +590,7 @@ export class ProgramsService {
         equipment: tree.equipment,
         description_ar: tree.description_ar,
         description_en: tree.description_en,
+        week_plan: tree.week_plan,
         source_template_id: clientId ? tree.id : null,
         ...overrides,
       })
@@ -645,13 +660,19 @@ export class ProgramsService {
       if (clonedVariant) dietPlanIdMap.set(variant.id, clonedVariant.id);
     }
 
-    for (const day of tree.program_days) {
+    // Parents before their sessions, so a session's parent already has its new id.
+    const dayIdMap = new Map<string, string>();
+    const daysParentsFirst = [...tree.program_days].sort(
+      (a, b) => Number(a.parent_day_id != null) - Number(b.parent_day_id != null)
+    );
+    for (const day of daysParentsFirst) {
       const { data: clonedDay, error: dayError } = await this.db
         .from("program_days")
         .insert({
           coach_id: tree.coach_id,
           client_id: clientId,
           program_id: cloned.id,
+          parent_day_id: day.parent_day_id ? (dayIdMap.get(day.parent_day_id) ?? null) : null,
           day_index: day.day_index,
           order_index: day.order_index,
           section_order: day.section_order,
@@ -665,6 +686,7 @@ export class ProgramsService {
         .select()
         .single();
       if (dayError) throw dayError;
+      dayIdMap.set(day.id, clonedDay.id);
 
       for (const item of day.program_items) {
         const { data: clonedItem, error: itemError } = await this.db
@@ -756,6 +778,38 @@ export class ProgramsService {
     return cloned;
   }
 
+  /** Brings one client's copy up to date with its template: a fresh clone of
+   * the template's CURRENT tree replaces the client's program, keeping that
+   * program's start and end dates so the client stays on the same week of the
+   * plan. The old program is archived (restorable from Trash), never deleted,
+   * so the client's logged history stays attached to it. Only the program it
+   * replaces is archived — the client's other programs are left alone.
+   * Null when the program is not visible, is a template, or was not cloned from
+   * `templateId`. */
+  async updateFromTemplate(templateId: string, clientProgramId: string): Promise<Program | null> {
+    const { data: old, error } = await this.db
+      .from("programs")
+      .select("id, client_id, start_date, end_date, source_template_id")
+      .eq("id", clientProgramId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!old || !old.client_id || old.source_template_id !== templateId) return null;
+
+    await this.assertOwnClient(old.client_id);
+    const cloned = await this.cloneTree(templateId, old.client_id, {
+      start_date: old.start_date,
+      end_date: old.end_date,
+    });
+    if (!cloned) return null;
+
+    const { error: archiveError } = await this.db
+      .from("programs")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", old.id);
+    if (archiveError) throw archiveError;
+    return cloned;
+  }
+
   /** The reverse of cloneToClient: copies an assigned program back out as a
    * reusable template. `end_date` is dropped — a template's dates are
    * placeholders that cloneToClient overwrites on assignment anyway, and
@@ -784,6 +838,51 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("program_days")
       .insert({ coach_id: parent.coach_id, client_id: parent.client_id, program_id: programId, ...input })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  /** Adds an extra session (AM/PM split) to a day: a program_day that points at
+   * `parentDayId` and shares its day_index, so the calendar logic — which only
+   * looks at days without a parent — never sees it. The parent must itself be a
+   * calendar day (sessions do not nest). Same parent-derivation rule as addDay:
+   * coach_id/client_id/program_id come from the RLS-scoped parent row. Null when
+   * the parent is not visible; throws `session_parent_invalid` for a nested one. */
+  async addSession(
+    parentDayId: string,
+    input: { label_ar?: string; label_en?: string; notes_ar?: string; notes_en?: string }
+  ): Promise<ProgramDay | null> {
+    const { data: parent, error: parentError } = await this.db
+      .from("program_days")
+      .select("coach_id, client_id, program_id, day_index, parent_day_id")
+      .eq("id", parentDayId)
+      .maybeSingle();
+    if (parentError) throw parentError;
+    if (!parent) return null;
+    if (parent.parent_day_id) throw new Error("session_parent_invalid");
+
+    // After the parent's existing sessions.
+    const { data: last, error: lastError } = await this.db
+      .from("program_days")
+      .select("order_index")
+      .eq("parent_day_id", parentDayId)
+      .order("order_index", { ascending: false })
+      .limit(1);
+    if (lastError) throw lastError;
+
+    const { data, error } = await this.db
+      .from("program_days")
+      .insert({
+        coach_id: parent.coach_id,
+        client_id: parent.client_id,
+        program_id: parent.program_id,
+        parent_day_id: parentDayId,
+        day_index: parent.day_index,
+        order_index: (last?.[0]?.order_index ?? -1) + 1,
+        ...input,
+      })
       .select()
       .single();
     if (error) throw error;
@@ -983,6 +1082,9 @@ export class ProgramsService {
       .maybeSingle();
     if (sourceError) throw sourceError;
     if (!source) return null;
+    // An extra session belongs to its day; duplicating one is not offered, and a
+    // copy would land on the calendar as a day of its own.
+    if (source.parent_day_id) return null;
 
     const { data: siblingDays, error: siblingDaysError } = await this.db
       .from("program_days")
@@ -1372,13 +1474,18 @@ export class ProgramsService {
       snapshot.program_days.map((d) => d.diet_plan_id)
     );
 
-    for (const day of snapshot.program_days) {
+    // A session's parent row must exist before the session is upserted.
+    const daysParentsFirst = [...snapshot.program_days].sort(
+      (a, b) => Number(a.parent_day_id != null) - Number(b.parent_day_id != null)
+    );
+    for (const day of daysParentsFirst) {
       const { error: dayError } = await this.db.from("program_days").upsert(
         {
           id: day.id,
           coach_id: snapshot.coach_id,
           client_id: snapshot.client_id,
           program_id: revision.program_id,
+          parent_day_id: day.parent_day_id ?? null,
           day_index: day.day_index,
           order_index: day.order_index,
           section_order: day.section_order,

@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Link } from "@/i18n/navigation";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
+import { primaryDays } from "@/domain/programs/day-sessions";
 import { dayIndexForDate, dayIndexForDateWithMode, dayIndicesForWeek, dayIndicesForWeekWithMode, startOfWeekSaturday, weekIndexForDate } from "@/domain/programs/program-cycle";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { ProgramsService } from "@/domain/programs/programs.service";
@@ -51,7 +52,9 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
   }
 
   const todayIso = new Date().toISOString().slice(0, 10);
-  const cycleLength = program.program_days.length;
+  // Extra sessions share their day's calendar slot; only primary days count.
+  const calendarDays = primaryDays(program.program_days);
+  const cycleLength = calendarDays.length;
   const todayIndex =
     program.schedule_mode === "weekly"
       ? dayIndexForDateWithMode(
@@ -59,10 +62,10 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
           program.start_date,
           cycleLength,
           todayIso,
-          new Map(program.program_days.filter((d) => d.weekday != null).map((d) => [d.weekday as number, d.day_index]))
+          new Map(calendarDays.filter((d) => d.weekday != null).map((d) => [d.weekday as number, d.day_index]))
         )
       : dayIndexForDate(program.start_date, cycleLength, todayIso);
-  const todayDay = program.program_days.find((d) => d.day_index === todayIndex) ?? null;
+  const todayDay = calendarDays.find((d) => d.day_index === todayIndex) ?? null;
   const isRestDay = todayIndex != null && (!todayDay || todayDay.program_items.length === 0);
   const week = weekIndexForDate(program.start_date, todayIso);
 
@@ -85,11 +88,11 @@ export async function TrainingCard({ clientId, locale }: { clientId: string; loc
           program.start_date,
           cycleLength,
           weekStart,
-          new Map(program.program_days.filter((d) => d.weekday != null).map((d) => [d.weekday as number, d.day_index]))
+          new Map(calendarDays.filter((d) => d.weekday != null).map((d) => [d.weekday as number, d.day_index]))
         )
       : dayIndicesForWeek(program.start_date, cycleLength, weekStart);
   const weekDates = Array.from({ length: 7 }, (_, i) => new Date(new Date(weekStart).getTime() + i * 86_400_000).toISOString().slice(0, 10));
-  const weekDays = weekIndices.map((idx) => (idx != null ? program.program_days.find((d) => d.day_index === idx) : null));
+  const weekDays = weekIndices.map((idx) => (idx != null ? calendarDays.find((d) => d.day_index === idx) : null));
   const activityLogs = new ActivityLogsService(supabase);
   const cardioByDate = await Promise.all(
     weekDays.map(async (d, i) => {

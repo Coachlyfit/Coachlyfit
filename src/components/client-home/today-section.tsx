@@ -14,6 +14,15 @@ import { num } from "./num";
 const ROW = "flex min-h-11 items-center gap-3 rounded-[14px] bg-card px-3.5 py-3 text-start ring-1 ring-foreground/10";
 const PILL = "flex h-9 shrink-0 items-center rounded-[9px] bg-primary px-3.5 font-semibold text-primary-foreground";
 
+/** An extra session of today's day (an AM/PM split), ready to render. */
+export type TodaySession = {
+  id: string;
+  label: string | null;
+  exercises: number;
+  sets: number;
+  state: "new" | "resume" | "done";
+};
+
 export type NutritionToday = {
   targetKcal: number | null;
   /** From today's nutrition_logs row; null when the client hasn't logged. */
@@ -28,6 +37,7 @@ export async function TodaySection({
   locale,
   plan,
   workoutState,
+  sessions = [],
   loggedActivityIds,
   nutrition,
 }: {
@@ -35,6 +45,8 @@ export async function TodaySection({
   /** null = no active program. */
   plan: ResolvedDayPlan | null;
   workoutState: "new" | "resume" | "done";
+  /** Extra sessions of today's day; the first workout row above is session 1. */
+  sessions?: TodaySession[];
   loggedActivityIds: string[];
   /** null = no nutrition plan. */
   nutrition: NutritionToday | null;
@@ -148,6 +160,29 @@ export async function TodaySection({
           );
         })
       )}
+
+      {sessions.map((session, i) => (
+        <Link key={session.id} href={`/c/workout/${session.id}`} className={ROW}>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sidebar text-sidebar-foreground">
+            <Dumbbell className="size-5" aria-hidden="true" />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col leading-snug">
+            <span className="truncate font-semibold">{session.label ?? tToday("sessionN", { n: i + 2 })}</span>
+            <span className="text-sm text-muted-foreground">
+              {t.rich("workoutMeta", {
+                exercises: formatNumber(session.exercises, locale),
+                sets: formatNumber(session.sets, locale),
+                num,
+              })}
+            </span>
+          </span>
+          {session.state === "done" ? (
+            <Badge variant="success">{t("doneBadge")}</Badge>
+          ) : (
+            <span className={PILL}>{session.state === "resume" ? t("resume") : t("start")}</span>
+          )}
+        </Link>
+      ))}
 
       <Link href="/c/diet" className={`${ROW} flex-col items-stretch gap-2`}>
         {nutrition ? (

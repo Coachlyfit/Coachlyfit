@@ -15,6 +15,10 @@ function fakeSupabase(opts: {
   dayRows?: unknown[];
   /** addItem's "last order_index of the day" lookup. */
   lastOrderRows?: unknown[];
+  /** updateFromTemplate's lookup of the client's existing program. */
+  oldProgramRow?: Record<string, unknown> | null;
+  /** addSession's lookup of the day the session hangs off. */
+  sessionParentRow?: Record<string, unknown> | null;
 } = {}) {
   const {
     parentRow = null,
@@ -31,6 +35,8 @@ function fakeSupabase(opts: {
       { id: "b", group_key: null, order_index: 1 },
     ],
     lastOrderRows = [],
+    oldProgramRow = null,
+    sessionParentRow = null,
   } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
@@ -66,6 +72,14 @@ function fakeSupabase(opts: {
           }
           if (cols === "id, group_key, order_index") {
             return { eq: () => ({ order: () => ({ order: async () => ({ data: dayRows, error: null }) }) }) };
+          }
+          // addSession: the day the new session belongs to.
+          if (cols === "coach_id, client_id, program_id, day_index, parent_day_id") {
+            return { eq: () => ({ maybeSingle: async () => ({ data: sessionParentRow, error: null }) }) };
+          }
+          // updateFromTemplate: the client's program being replaced.
+          if (cols === "id, client_id, start_date, end_date, source_template_id") {
+            return { eq: () => ({ maybeSingle: async () => ({ data: oldProgramRow, error: null }) }) };
           }
           // addItem: the day's current last order_index.
           if (cols === "order_index") {
@@ -1088,5 +1102,126 @@ describe("addItem ordering", () => {
     const { db, inserts } = fakeSupabase({ parentRow: { coach_id: "coach-1", client_id: null } });
     await new ProgramsService(db).addItem("day-1", { exercise_id: "ex-1", sets: [{ reps: 8 }] });
     expect((inserts.find((i) => i.table === "program_items")!.payload as { order_index: number }).order_index).toBe(0);
+  });
+});
+
+describe("updateFromTemplate", () => {
+  const template = {
+    id: "template-1",
+    coach_id: "coach-1",
+    client_id: null,
+    name_ar: "قالب",
+    name_en: "Template",
+    start_date: "2026-01-01",
+    end_date: null,
+    schedule_mode: "cycle",
+    program_days: [],
+    rehab_protocols: [],
+    diet_variants: [],
+  };
+  const old = { id: "old-1", client_id: "client-9", start_date: "2026-10-01", end_date: "2026-12-31", source_template_id: "template-1" };
+
+  it("clones the template's current tree onto the client on the SAME dates and archives only the old copy", async () => {
+    const { db, inserts, updates } = fakeSupabase({ treeRow: template, oldProgramRow: old });
+    const result = await new ProgramsService(db).updateFromTemplate("template-1", "old-1");
+
+    expect(result).not.toBeNull();
+    expect(inserts.find((i) => i.table === "programs")?.payload).toMatchObject({
+      client_id: "client-9",
+      source_template_id: "template-1",
+      start_date: "2026-10-01",
+      end_date: "2026-12-31",
+    });
+    const archive = updates.find((u) => u.table === "programs");
+    expect(archive?.payload).toHaveProperty("archived_at");
+    expect(archive?.eqs).toEqual([["id", "old-1"]]);
+  });
+
+  it("refuses a program that is a template, invisible, or came from a different template", async () => {
+    for (const row of [null, { ...old, client_id: null }, { ...old, source_template_id: "other" }]) {
+      const { db, inserts } = fakeSupabase({ treeRow: template, oldProgramRow: row });
+      expect(await new ProgramsService(db).updateFromTemplate("template-1", "old-1")).toBeNull();
+      expect(inserts).toHaveLength(0);
+    }
+  });
+});
+
+describe("extra sessions", () => {
+  const parent = { coach_id: "coach-1", client_id: "client-9", program_id: "program-1", day_index: 3, parent_day_id: null };
+
+  it("addSession creates a day that points at its parent and shares its day_index, ordered after existing sessions", async () => {
+    const { db, inserts } = fakeSupabase({ sessionParentRow: parent, lastOrderRows: [{ order_index: 1 }] });
+    const result = await new ProgramsService(db).addSession("day-3", { label_en: "Evening", notes_en: "easy" });
+
+    expect(result).not.toBeNull();
+    expect(inserts.find((i) => i.table === "program_days")?.payload).toMatchObject({
+      coach_id: "coach-1",
+      client_id: "client-9",
+      program_id: "program-1",
+      parent_day_id: "day-3",
+      day_index: 3,
+      order_index: 2,
+      label_en: "Evening",
+    });
+  });
+
+  it("addSession returns null for an invisible parent and refuses to nest a session under a session", async () => {
+    const none = fakeSupabase({ sessionParentRow: null });
+    expect(await new ProgramsService(none.db).addSession("day-x", {})).toBeNull();
+    expect(none.inserts).toHaveLength(0);
+
+    const nested = fakeSupabase({ sessionParentRow: { ...parent, parent_day_id: "day-1" } });
+    await expect(new ProgramsService(nested.db).addSession("day-3-pm", {})).rejects.toThrow("session_parent_invalid");
+    expect(nested.inserts).toHaveLength(0);
+  });
+
+  it("clone inserts a session after its parent (even if listed first) and remaps parent_day_id to the new day", async () => {
+    const day = (id: string, parent: string | null) => ({
+      id,
+      day_index: 1,
+      order_index: 0,
+      section_order: ["workout"],
+      label_ar: null,
+      label_en: null,
+      weekday: null,
+      notes_ar: null,
+      notes_en: null,
+      diet_plan_id: null,
+      parent_day_id: parent,
+      program_items: [],
+      program_activities: [],
+    });
+    const tree = {
+      id: "template-1",
+      coach_id: "coach-1",
+      client_id: null,
+      name_ar: "ق",
+      name_en: "T",
+      start_date: "2026-01-01",
+      end_date: null,
+      schedule_mode: "cycle",
+      // the session is listed BEFORE its parent on purpose
+      program_days: [day("day-1-pm", "day-1"), day("day-1", null)],
+      rehab_protocols: [],
+      diet_variants: [],
+    };
+    const { db, inserts } = fakeSupabase({ treeRow: tree });
+    await new ProgramsService(db).cloneToClient("template-1", "client-9");
+
+    const dayInserts = inserts.filter((i) => i.table === "program_days").map((i) => i.payload as { parent_day_id: string | null });
+    expect(dayInserts).toHaveLength(2);
+    expect(dayInserts[0].parent_day_id).toBeNull();
+    expect(dayInserts[1].parent_day_id).toBe("new-program_days"); // the parent's NEW id
+  });
+
+  it("duplicateDay does not duplicate a session on its own", async () => {
+    const db = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({ maybeSingle: async () => ({ data: { id: "d-pm", parent_day_id: "d", program_items: [], program_activities: [] }, error: null }) }),
+        }),
+      }),
+    };
+    expect(await new ProgramsService(db as never).duplicateDay("d-pm")).toBeNull();
   });
 });

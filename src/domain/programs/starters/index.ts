@@ -1,5 +1,6 @@
 import type { GroupConfig, GroupKind } from "../group-config";
 import type { PlanGoal, PlanLevel, PlanType } from "../plan-meta";
+import { mesocyclePlan, type WeekPlan } from "../week-plan";
 import type { SetInput } from "../programs.service";
 
 /** Ready-made program templates, one per plan type. Pure data: the coach picks
@@ -38,6 +39,8 @@ export type Starter = {
   name_en: string;
   name_ar: string;
   days: StarterDay[];
+  /** Periodization authored into the template (see week-plan.ts). */
+  week_plan?: WeekPlan;
 };
 
 // ---- set builders -------------------------------------------------------
@@ -66,6 +69,7 @@ export const STARTERS: Starter[] = [
     equipment: ["barbell"],
     name_en: "Strength 5×5",
     name_ar: "قوة 5×5",
+    week_plan: mesocyclePlan(),
     days: [
       {
         label_en: "Workout A",
@@ -95,6 +99,7 @@ export const STARTERS: Starter[] = [
     equipment: ["barbell", "dumbbell", "cable", "machine"],
     name_en: "Push / Pull / Legs",
     name_ar: "دفع / سحب / أرجل",
+    week_plan: mesocyclePlan(),
     days: [
       {
         label_en: "Push",

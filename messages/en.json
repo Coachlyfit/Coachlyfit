@@ -1158,7 +1158,8 @@
         "kcal": "Calories (kcal)",
         "avgHr": "Avg heart rate (bpm)",
         "rpe": "How hard was it? (RPE)"
-      }
+      },
+      "sessionN": "Session {n}"
     },
     "plan": {
       "title": "Plan",
@@ -1304,7 +1305,9 @@
           "for_time": "Finish all rounds as fast as you can.",
           "tabata": "Work and rest on the clock."
         }
-      }
+      },
+      "weekChip": "Week {n} · {name}",
+      "deloadWeek": "Deload"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -1988,7 +1991,10 @@
         "intervalSec": "Interval (seconds)",
         "workSec": "Work (seconds)",
         "restSec": "Rest (seconds)"
-      }
+      },
+      "deloadWeek": "Deload",
+      "addSession": "Add a second session",
+      "sessionN": "Session · day {n}"
     },
     "dayDialog": {
       "addTitle": "Add day",
@@ -1999,7 +2005,9 @@
       "weekday": "Weekday",
       "weekdayPlaceholder": "Select a weekday",
       "notesAr": "Coach note (Arabic, optional)",
-      "notesEn": "Coach note (English, optional)"
+      "notesEn": "Coach note (English, optional)",
+      "addSessionTitle": "Add a session to this day",
+      "editSessionTitle": "Edit session"
     },
     "itemDialog": {
       "addTitle": "Add exercise",
@@ -2179,7 +2187,8 @@
       "group_not_contiguous": "Superset/circuit items must stay next to each other.",
       "group_config_incomplete": "Fill in the numbers this format needs.",
       "reps_range_invalid": "The top of the rep range can't be lower than the starting reps.",
-      "group_selection_invalid": "Select exercises from the same day, and select a whole group or none of it."
+      "group_selection_invalid": "Select exercises from the same day, and select a whole group or none of it.",
+      "session_parent_invalid": "A session can only be added to a day, not to another session."
     },
     "revisions": {
       "title": "History",
@@ -2261,6 +2270,29 @@
       "use": "Use",
       "adding": "Adding…",
       "skipped": "Some exercises aren't in the library and were left out: {names}"
+    },
+    "propagate": {
+      "button": "Update from template",
+      "title": "Update this client's plan?",
+      "description": "Replaces their copy with the template as it is now, on the same dates. The old copy moves to Trash and their logged workouts stay with it.",
+      "confirm": "Update",
+      "success": "Plan updated from the template."
+    },
+    "weekPlan": {
+      "button": "Plan weeks",
+      "title": "Week plan",
+      "description": "Name each week and shape its load. Load % and rep change apply on top of each exercise's progression; a deload week resets to week 1's sets first. Week 1 is the base you edit.",
+      "week": "Week",
+      "weekN": "Wk {n}",
+      "name": "Name",
+      "loadPct": "Load %",
+      "repsDelta": "Reps ±",
+      "deload": "Deload",
+      "deloadShort": "Deload",
+      "build": "Build",
+      "fillMesocycle": "3 build + 1 deload",
+      "reset": "Reset to default",
+      "saved": "Week plan saved."
     }
   },
   "library": {
@@ -3497,6 +3529,22 @@
     },
     "scores": {
       "title": "Workout scores"
+    },
+    "skills": {
+      "title": "Skill progress",
+      "level": "Level {level} of {total}",
+      "next": "Next: {name}",
+      "top": "Top of the ladder reached.",
+      "groups": {
+        "push_up": "Push-up",
+        "pull_up": "Pull-up",
+        "muscle_up": "Muscle-up",
+        "planche": "Planche",
+        "front_lever": "Front lever",
+        "handstand": "Handstand",
+        "pistol_squat": "Pistol squat",
+        "l_sit": "L-sit"
+      }
     }
   },
   "billing": {

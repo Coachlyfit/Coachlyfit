@@ -1,5 +1,6 @@
 import { addDays } from "@/domain/nutrition/adherence";
 import { dayIndexForDateWithMode, type ScheduleMode } from "./program-cycle";
+import { primaryDays } from "./day-sessions";
 
 export type CellStatus = "done" | "missed" | "upcoming" | "rest";
 export type ProgramStatus = "ongoing" | "behind" | "notStarted";
@@ -11,6 +12,8 @@ export type OverviewProgram = {
   program_days: {
     id: string;
     day_index: number;
+    /** Set on an extra session of a day; those never sit on the calendar. */
+    parent_day_id?: string | null;
     weekday: number | null;
     label_ar: string | null;
     label_en: string | null;
@@ -47,7 +50,8 @@ export function weekCells(program: OverviewProgram, weekStart: string, todayIso:
   const weekdayToDayIndex = new Map<number, number>();
   const byIndex = new Map<number, OverviewProgram["program_days"][number]>();
   const completed = new Map<string, string[]>();
-  for (const day of program.program_days) {
+  const calendarDays = primaryDays(program.program_days);
+  for (const day of calendarDays) {
     if (day.weekday != null) weekdayToDayIndex.set(day.weekday, day.day_index);
     byIndex.set(day.day_index, day);
     completed.set(
@@ -65,7 +69,7 @@ export function weekCells(program: OverviewProgram, weekStart: string, todayIso:
     const dayIndex = dayIndexForDateWithMode(
       program.schedule_mode as ScheduleMode,
       program.start_date,
-      program.program_days.length,
+      calendarDays.length,
       date,
       weekdayToDayIndex
     );

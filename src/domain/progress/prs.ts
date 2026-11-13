@@ -3,12 +3,25 @@
  * same "compute from history, don't cache a running total" approach as
  * checkinStreak/weightTrend in stats.ts. */
 
+/** How a lift's one-rep max can be estimated. Olympic lifts (snatch, clean,
+ * jerk) are explosive and technical: a 5-rep set says little about a max, so
+ * only sets of 1-3 reps are used. Everything else uses sets of up to 12 reps. */
+export type LiftKind = "standard" | "olympic";
+
 export type SetLogForPr = {
   exercise_id: string;
   weight: number | null;
   reps: number | null;
   completed_at: string;
+  /** Absent = standard. */
+  lift?: LiftKind;
 };
+
+/** Exercise name -> LiftKind. Name-based on purpose: it keeps the PR maths free
+ * of a schema column for what is a small, stable set of lifts. */
+export function liftKindFromName(name: string | null | undefined): LiftKind {
+  return /\b(snatch|clean|jerk)\b/i.test(name ?? "") ? "olympic" : "standard";
+}
 
 export type PersonalRecord = {
   exerciseId: string;
@@ -26,6 +39,17 @@ export type PersonalRecord = {
 export function epley(weight: number, reps: number): number {
   if (reps <= 1) return weight;
   return Math.round(weight * (1 + reps / 30) * 2) / 2;
+}
+
+const MAX_REPS_FOR_ESTIMATE = { standard: 12, olympic: 3 } as const;
+
+/** One-rep-max estimate for a set, or null when the set is too far from a max
+ * effort to say anything (a 20-rep set, or 5 reps of a snatch). Epley within the
+ * usable range. Such sets still count for "heaviest weight" and volume — they
+ * just do not feed the 1RM estimate. */
+export function estimateOneRepMax(weight: number, reps: number, lift: LiftKind = "standard"): number | null {
+  if (weight <= 0 || reps <= 0 || reps > MAX_REPS_FOR_ESTIMATE[lift]) return null;
+  return epley(weight, reps);
 }
 
 /** One PersonalRecord per distinct exercise_id present in `logs`. Only sets
@@ -53,8 +77,8 @@ export function computePersonalRecords(logs: SetLogForPr[]): PersonalRecord[] {
         maxWeight = { weight, reps, completedAt: set.completed_at };
       }
 
-      const oneRm = epley(weight, reps);
-      if (!bestOneRm || oneRm > bestOneRm.value) {
+      const oneRm = estimateOneRepMax(weight, reps, set.lift);
+      if (oneRm != null && (!bestOneRm || oneRm > bestOneRm.value)) {
         bestOneRm = { value: oneRm, fromWeight: weight, fromReps: reps, completedAt: set.completed_at };
       }
     }

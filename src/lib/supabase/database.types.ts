@@ -1320,6 +1320,8 @@ export type Database = {
           safety_ar: string | null
           safety_en: string | null
           secondary_muscles: string[] | null
+          skill_group: string | null
+          skill_level: number | null
           source_exercise_id: string | null
           steps_ar: string[] | null
           steps_en: string[] | null
@@ -1354,6 +1356,8 @@ export type Database = {
           safety_ar?: string | null
           safety_en?: string | null
           secondary_muscles?: string[] | null
+          skill_group?: string | null
+          skill_level?: number | null
           source_exercise_id?: string | null
           steps_ar?: string[] | null
           steps_en?: string[] | null
@@ -1388,6 +1392,8 @@ export type Database = {
           safety_ar?: string | null
           safety_en?: string | null
           secondary_muscles?: string[] | null
+          skill_group?: string | null
+          skill_level?: number | null
           source_exercise_id?: string | null
           steps_ar?: string[] | null
           steps_en?: string[] | null
@@ -3283,6 +3289,7 @@ export type Database = {
           notes_ar: string | null
           notes_en: string | null
           order_index: number
+          parent_day_id: string | null
           program_id: string
           section_order: string[]
           weekday: number | null
@@ -3299,6 +3306,7 @@ export type Database = {
           notes_ar?: string | null
           notes_en?: string | null
           order_index?: number
+          parent_day_id?: string | null
           program_id: string
           section_order?: string[]
           weekday?: number | null
@@ -3315,6 +3323,7 @@ export type Database = {
           notes_ar?: string | null
           notes_en?: string | null
           order_index?: number
+          parent_day_id?: string | null
           program_id?: string
           section_order?: string[]
           weekday?: number | null
@@ -3360,6 +3369,13 @@ export type Database = {
             columns: ["diet_plan_id"]
             isOneToOne: false
             referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_days_parent_day_id_fkey"
+            columns: ["parent_day_id"]
+            isOneToOne: false
+            referencedRelation: "program_days"
             referencedColumns: ["id"]
           },
           {
@@ -3729,6 +3745,7 @@ export type Database = {
           schedule_mode: string
           source_template_id: string | null
           start_date: string
+          week_plan: Json | null
         }
         Insert: {
           archived_at?: string | null
@@ -3750,6 +3767,7 @@ export type Database = {
           schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
+          week_plan?: Json | null
         }
         Update: {
           archived_at?: string | null
@@ -3771,6 +3789,7 @@ export type Database = {
           schedule_mode?: string
           source_template_id?: string | null
           start_date?: string
+          week_plan?: Json | null
         }
         Relationships: [
           {

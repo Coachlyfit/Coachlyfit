@@ -3,6 +3,8 @@ import {
   computeMeasureRecords,
   computePersonalRecords,
   computeRecentPersonalRecords,
+  estimateOneRepMax,
+  liftKindFromName,
   weeklyVolume,
   type SetLogForMeasure,
   type SetLogForPr,
@@ -164,5 +166,38 @@ describe("assisted sets (negative weight)", () => {
     expect(weeklyVolume([log({ weight: -20, reps: 8, completed_at: "2026-01-05T10:00:00Z" })])).toEqual([
       { weekStart: "2026-01-05", volumeKg: 0 },
     ]);
+  });
+});
+
+describe("1RM estimate rules", () => {
+  it("ignores sets too far from a max effort: over 12 reps, or over 3 reps of an Olympic lift", () => {
+    expect(estimateOneRepMax(60, 15)).toBeNull();
+    expect(estimateOneRepMax(100, 12)).toBe(140);
+    expect(estimateOneRepMax(80, 5, "olympic")).toBeNull();
+    expect(estimateOneRepMax(80, 3, "olympic")).toBe(88);
+    expect(estimateOneRepMax(100, 1)).toBe(100);
+    expect(estimateOneRepMax(0, 5)).toBeNull();
+  });
+
+  it("recognises Olympic lifts by name and nothing else", () => {
+    expect(["Clean and Jerk", "power clean", "Snatch Pull", "barbell snatch"].map(liftKindFromName)).toEqual(Array(4).fill("olympic"));
+    expect(["Barbell Squat", "Cleaner Bench", "Jerky Row", null].map(liftKindFromName)).toEqual(Array(4).fill("standard"));
+  });
+
+  it("a high-rep set still sets the heaviest-weight record but not the 1RM estimate", () => {
+    const [pr] = computePersonalRecords([
+      { exercise_id: "ex", weight: 60, reps: 20, completed_at: "2026-01-01T10:00:00Z" },
+      { exercise_id: "ex", weight: 50, reps: 5, completed_at: "2026-01-02T10:00:00Z" },
+    ]);
+    expect(pr.maxWeight).toMatchObject({ weight: 60, reps: 20 });
+    expect(pr.estimatedOneRepMax).toMatchObject({ fromWeight: 50, fromReps: 5 });
+  });
+
+  it("an Olympic lift only estimates from sets of 3 or fewer", () => {
+    const [pr] = computePersonalRecords([
+      { exercise_id: "ex", weight: 90, reps: 5, completed_at: "2026-01-01T10:00:00Z", lift: "olympic" },
+      { exercise_id: "ex", weight: 80, reps: 2, completed_at: "2026-01-02T10:00:00Z", lift: "olympic" },
+    ]);
+    expect(pr.estimatedOneRepMax).toMatchObject({ fromWeight: 80, fromReps: 2 });
   });
 });

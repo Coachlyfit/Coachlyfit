@@ -61,11 +61,13 @@ export default async function ProgramsPage({
 
   for (const program of programs) {
     const trainingDays = program.program_days.filter(isTrainingDay);
+    // Extra sessions of a day are not extra days of the split.
+    const splitDays = trainingDays.filter((d) => d.parent_day_id == null);
     if (!program.client_id) {
       templates.push({
         id: program.id,
         name: pickLocale(program, locale),
-        split: trainingDays.map((d) => pickLocale(d, locale, "label") || formatNumber(d.day_index, locale)),
+        split: splitDays.map((d) => pickLocale(d, locale, "label") || formatNumber(d.day_index, locale)),
         exercises: trainingDays.reduce((sum, d) => sum + d.program_items[0].count, 0),
         usedBy: 0,
         planType: program.plan_type,
@@ -97,7 +99,7 @@ export default async function ProgramsPage({
       startDate: program.start_date,
       // Uncapped: the 12-week default is progression.ts's ceiling, not the calendar's.
       weekNo: weekIndexForDate(program.start_date, today, Infinity),
-      trainingDays: trainingDays.length,
+      trainingDays: splitDays.length,
       cells: cells.map(cell),
       viewCells: (weekStart === currentWeek ? cells : weekCells(program, weekStart, today)).map(cell),
     });

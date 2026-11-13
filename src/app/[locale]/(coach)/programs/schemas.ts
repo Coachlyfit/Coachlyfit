@@ -59,6 +59,10 @@ export const daySchema = z.object({
   notes_en: z.string().max(500).optional().or(z.literal("")),
 });
 
+// An extra session of a day carries only a label and notes: the day it belongs to
+// decides where it sits on the calendar.
+export const sessionSchema = daySchema.pick({ label_ar: true, label_en: true, notes_ar: true, notes_en: true });
+
 // z.coerce.number() runs Number(value) BEFORE the nullable/optional checks,
 // and Number("") is 0, not NaN — so an empty number input silently coerces
 // to 0 instead of "unset". That's wrong for weight (0kg reads as a real
@@ -178,6 +182,19 @@ export const groupFormatSchema = z
     },
     { message: "group_config_incomplete", path: ["config"] }
   );
+
+// Authored week plan: weeks 2..12, each with optional label / load % / rep delta
+// / deload flag (see domain/programs/week-plan.ts). Blank inputs are dropped.
+const weekModifierSchema = z.object({
+  label: z.string().trim().max(40).optional(),
+  load_pct: z.number().int().min(40).max(150).optional(),
+  reps_delta: z.number().int().min(-10).max(10).optional(),
+  deload: z.boolean().optional(),
+});
+
+export const weekPlanSchema = z
+  .record(z.string().regex(/^(?:[2-9]|1[0-2])$/), weekModifierSchema)
+  .nullable();
 
 export const reorderSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(200) });
 
