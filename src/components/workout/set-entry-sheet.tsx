@@ -7,65 +7,119 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScaleButtons } from "@/components/ui/scale-buttons";
+import {
+  dockOrder,
+  dockStep,
+  fieldLabelKey,
+  fieldSnap,
+  inputRule,
+  measurementFields,
+  type MeasureField,
+} from "@/domain/library/measurement";
+import { stepValue } from "@/domain/workouts/session-runner";
+import type { MeasureDraft } from "@/domain/workouts/set-measures";
+import { cn } from "@/lib/utils";
 
+export type SetSide = "left" | "right";
+export type SetKind = "warmup" | "backoff" | "drop" | "failure" | "amrap";
+
+export const SET_KINDS: SetKind[] = ["warmup", "backoff", "drop", "failure", "amrap"];
+export const SET_SIDES: SetSide[] = ["left", "right"];
+
+/** Everything the sheet edits. `draft` holds the measures as the client types
+ * them (entered units — minutes, km, positive assistance); the caller turns it
+ * into stored units with measuresFromDraft. */
 export type LoggedSetValues = {
-  weight: number | null;
-  reps: number | null;
-  duration_seconds: number | null;
+  draft: MeasureDraft;
   rpe: number | null;
+  rir: number | null;
   notes: string | null;
+  side: SetSide | null;
+  set_type: SetKind | null;
 };
 
+/** A single-choice chip row where tapping the selected chip clears it. */
+function ChipRow<T extends string>({
+  options,
+  value,
+  onChange,
+  label,
+}: {
+  options: { value: T; label: string }[];
+  value: T | null;
+  onChange: (value: T | null) => void;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            aria-pressed={value === o.value}
+            onClick={() => onChange(value === o.value ? null : o.value)}
+            className={cn(
+              "h-11 flex-1 rounded-[9px] border px-3 text-sm font-medium transition-colors",
+              value === o.value
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-background text-muted-foreground hover:bg-muted"
+            )}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Body of the sheet, remounted (via the parent's `key`) each time the
- * client opens a different set — that's what re-seeds weight/reps/rpe/notes
- * from `initial` without an effect syncing external state into local state
- * on every open. `mode` picks reps vs a duration (seconds) counter for a
- * rehab hold/stretch — never both, same xor the DB enforces on
- * program_item_sets. Weight stays available either way: a duration hold
- * can still be weighted (e.g. a weighted plank). */
+ * client opens a different set — that's what re-seeds the fields from
+ * `initial` without an effect syncing external state into local state on
+ * every open. Which inputs appear comes from the exercise's measurement
+ * type (reps, a hold time, a distance, calories...); weight stays available
+ * wherever the type has it, including a weighted hold. */
 function SetEntryForm({
   initial,
-  mode,
+  type,
+  block,
+  weightLabel,
   onSave,
   onDelete,
   saving,
 }: {
   initial: LoggedSetValues;
-  mode: "reps" | "duration";
+  type: unknown;
+  block: string | null | undefined;
+  /** Overrides the weight field's label (e.g. "Extra weight (kg)" for a
+   * bodyweight exercise). */
+  weightLabel?: string;
   onSave: (values: LoggedSetValues) => void;
   onDelete?: () => void;
   saving?: boolean;
 }) {
   const t = useTranslations("client.workout.setEntry");
-  const [weight, setWeight] = useState(initial.weight != null ? String(initial.weight) : "");
-  const [reps, setReps] = useState(initial.reps != null ? String(initial.reps) : "");
-  const [durationSeconds, setDurationSeconds] = useState(
-    initial.duration_seconds != null ? String(initial.duration_seconds) : ""
-  );
+  const tm = useTranslations("measure");
+  const fields = dockOrder(measurementFields(type, block));
+  const [draft, setDraft] = useState<MeasureDraft>(initial.draft);
   const [rpe, setRpe] = useState<number | null>(initial.rpe);
+  const [rir, setRir] = useState<number | null>(initial.rir);
+  const [side, setSide] = useState<SetSide | null>(initial.side);
+  const [setType, setSetType] = useState<SetKind | null>(initial.set_type);
   const [notes, setNotes] = useState(initial.notes ?? "");
 
-  function adjustWeight(delta: number) {
-    const current = Number(weight) || 0;
-    setWeight(String(Math.max(0, current + delta)));
-  }
-
-  function adjustReps(delta: number) {
-    const current = Number(reps) || 0;
-    setReps(String(Math.max(0, current + delta)));
-  }
-
-  function adjustDuration(delta: number) {
-    const current = Number(durationSeconds) || 0;
-    setDurationSeconds(String(Math.max(0, current + delta)));
-  }
+  const labelOf = (f: MeasureField) =>
+    f === "weight" && weightLabel ? weightLabel : tm(`fields.${fieldLabelKey(type, f, block)}`);
 
   function handleSave() {
     onSave({
-      weight: weight.trim() === "" ? null : Number(weight),
-      reps: mode === "reps" ? (reps.trim() === "" ? null : Number(reps)) : null,
-      duration_seconds: mode === "duration" ? (durationSeconds.trim() === "" ? null : Number(durationSeconds)) : null,
+      draft,
       rpe,
+      rir,
+      side,
+      set_type: setType,
       notes: notes.trim() === "" ? null : notes.trim(),
     });
   }
@@ -75,67 +129,66 @@ function SetEntryForm({
       <SheetTitle>{t("title")}</SheetTitle>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-xs font-medium text-muted-foreground">{t("weight")}</p>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="icon" onClick={() => adjustWeight(-2.5)} aria-label={t("decrease")}>
-              <Minus className="size-4" />
-            </Button>
-            <Input
-              inputMode="decimal"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              className="h-12 w-20 text-center text-lg font-semibold"
-            />
-            <Button type="button" variant="outline" size="icon" onClick={() => adjustWeight(2.5)} aria-label={t("increase")}>
-              <Plus className="size-4" />
-            </Button>
-          </div>
-        </div>
-
-        {mode === "duration" ? (
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-xs font-medium text-muted-foreground">{t("durationSeconds")}</p>
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="icon" onClick={() => adjustDuration(-5)} aria-label={t("decrease")}>
-                <Minus className="size-4" />
-              </Button>
-              <Input
-                inputMode="numeric"
-                value={durationSeconds}
-                onChange={(e) => setDurationSeconds(e.target.value)}
-                className="h-12 w-20 text-center text-lg font-semibold"
-              />
-              <Button type="button" variant="outline" size="icon" onClick={() => adjustDuration(5)} aria-label={t("increase")}>
-                <Plus className="size-4" />
-              </Button>
+        {fields.map((f) => {
+          const rule = inputRule(type, f, block);
+          const step = dockStep(type, f, block);
+          const snap = fieldSnap(type, f, block);
+          return (
+            <div key={f} className="flex flex-col items-center gap-2">
+              <p className="text-xs font-medium text-muted-foreground">{labelOf(f)}</p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setDraft((d) => ({ ...d, [f]: stepValue(d[f] ?? "", -step, snap) }))}
+                  aria-label={t("decrease")}
+                >
+                  <Minus className="size-4" />
+                </Button>
+                <Input
+                  inputMode={rule.integer ? "numeric" : "decimal"}
+                  value={draft[f] ?? ""}
+                  onChange={(e) => setDraft((d) => ({ ...d, [f]: e.target.value }))}
+                  className="h-12 w-20 text-center text-lg font-semibold"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setDraft((d) => ({ ...d, [f]: stepValue(d[f] ?? "", step, snap) }))}
+                  aria-label={t("increase")}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-xs font-medium text-muted-foreground">{t("reps")}</p>
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="icon" onClick={() => adjustReps(-1)} aria-label={t("decrease")}>
-                <Minus className="size-4" />
-              </Button>
-              <Input
-                inputMode="numeric"
-                value={reps}
-                onChange={(e) => setReps(e.target.value)}
-                className="h-12 w-20 text-center text-lg font-semibold"
-              />
-              <Button type="button" variant="outline" size="icon" onClick={() => adjustReps(1)} aria-label={t("increase")}>
-                <Plus className="size-4" />
-              </Button>
-            </div>
-          </div>
-        )}
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-2">
         <p className="text-xs font-medium text-muted-foreground">{t("rpe")}</p>
         <ScaleButtons value={rpe ?? undefined} onChange={(v) => setRpe(rpe === v ? null : v)} min={6} max={10} />
       </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-medium text-muted-foreground">{tm("sheet.rir")}</p>
+        <ScaleButtons value={rir ?? undefined} onChange={(v) => setRir(rir === v ? null : v)} min={0} max={5} />
+      </div>
+
+      <ChipRow
+        label={tm("sheet.setType")}
+        value={setType}
+        onChange={setSetType}
+        options={SET_KINDS.map((k) => ({ value: k, label: tm(`sheet.setTypes.${k}`) }))}
+      />
+      <ChipRow
+        label={tm("sheet.side")}
+        value={side}
+        onChange={setSide}
+        options={SET_SIDES.map((s) => ({ value: s, label: tm(`sheet.sides.${s}`) }))}
+      />
 
       <Input
         value={notes}
@@ -171,7 +224,9 @@ export function SetEntrySheet({
   onOpenChange,
   formKey,
   initial,
-  mode = "reps",
+  type,
+  block,
+  weightLabel,
   onSave,
   onDelete,
   saving,
@@ -180,15 +235,26 @@ export function SetEntrySheet({
   onOpenChange: (open: boolean) => void;
   formKey: string;
   initial: LoggedSetValues;
-  mode?: "reps" | "duration";
+  type: unknown;
+  block: string | null | undefined;
+  weightLabel?: string;
   onSave: (values: LoggedSetValues) => void;
   onDelete?: () => void;
   saving?: boolean;
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex flex-col gap-5 rounded-t-2xl p-5">
-        <SetEntryForm key={formKey} initial={initial} mode={mode} onSave={onSave} onDelete={onDelete} saving={saving} />
+      <SheetContent side="bottom" className="flex max-h-[92dvh] flex-col gap-5 overflow-y-auto rounded-t-2xl p-5">
+        <SetEntryForm
+          key={formKey}
+          initial={initial}
+          type={type}
+          block={block}
+          weightLabel={weightLabel}
+          onSave={onSave}
+          onDelete={onDelete}
+          saving={saving}
+        />
       </SheetContent>
     </Sheet>
   );

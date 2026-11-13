@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { daySchema, type DayFormInput } from "../schemas";
-import { addDayAction, updateDayAction } from "../actions";
+import { addDayAction, addSessionAction, updateDayAction } from "../actions";
 
 type ExistingDay = {
   id: string;
@@ -26,6 +26,8 @@ type ExistingDay = {
   weekday: number | null;
   notes_ar: string | null;
   notes_en: string | null;
+  /** Set on an extra session of a day. */
+  parent_day_id?: string | null;
 };
 
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6] as const;
@@ -35,6 +37,7 @@ export function AddDayDialog({
   programId,
   nextDayIndex,
   day,
+  parentDayId,
   scheduleMode,
   open,
   onOpenChange,
@@ -43,6 +46,8 @@ export function AddDayDialog({
   programId: string;
   nextDayIndex: number;
   day?: ExistingDay;
+  /** Adds an extra session (AM/PM split) under this day instead of a new day. */
+  parentDayId?: string;
   /** Only weekly-mode programs show the weekday picker — a cycle-mode
    * program has no calendar meaning to attach a weekday to (see
    * program-cycle.ts's header comment). */
@@ -56,6 +61,8 @@ export function AddDayDialog({
   const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+  // A session has no schedule position of its own, so no weekday to pick.
+  const isSession = !!parentDayId || !!day?.parent_day_id;
 
   const {
     register,
@@ -90,7 +97,9 @@ export function AddDayDialog({
     startTransition(async () => {
       const result = day
         ? await updateDayAction(locale, programId, day.id, formData)
-        : await addDayAction(locale, programId, formData);
+        : parentDayId
+          ? await addSessionAction(locale, programId, parentDayId, formData)
+          : await addDayAction(locale, programId, formData);
       if (result?.error) {
         setFormError(result.error);
         return;
@@ -104,11 +113,15 @@ export function AddDayDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{day ? t("editTitle") : t("addTitle")}</DialogTitle>
+          <DialogTitle>
+            {isSession ? (day ? t("editSessionTitle") : t("addSessionTitle")) : day ? t("editTitle") : t("addTitle")}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
           <p className="text-sm text-muted-foreground">
-            {tBuilder("dayN", { n: day?.day_index ?? nextDayIndex })}
+            {isSession
+              ? tBuilder("sessionN", { n: day?.day_index ?? nextDayIndex })
+              : tBuilder("dayN", { n: day?.day_index ?? nextDayIndex })}
           </p>
           <div className="flex flex-col gap-2">
             <Label htmlFor="label_ar">{t("labelAr")}</Label>
@@ -118,7 +131,7 @@ export function AddDayDialog({
             <Label htmlFor="label_en">{t("labelEn")}</Label>
             <Input id="label_en" dir="ltr" {...register("label_en")} />
           </div>
-          {scheduleMode === "weekly" && (
+          {scheduleMode === "weekly" && !isSession && (
             <div className="flex flex-col gap-2">
               <Label htmlFor="weekday">{t("weekday")}</Label>
               <Controller

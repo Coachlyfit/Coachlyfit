@@ -18,6 +18,7 @@ import {
   type CreateExerciseInput,
 } from "@/app/[locale]/(coach)/library/schemas";
 import { ExerciseFields } from "@/app/[locale]/(coach)/library/exercise-fields";
+import { normalizeMeasurementType } from "@/domain/library/measurement";
 import {
   type adminSearchExercisesAction,
   createGlobalExerciseAction,
@@ -71,6 +72,7 @@ export function GlobalExerciseDialog({
       name_en: exercise?.name_en ?? "",
       muscle_group:
         (exercise?.muscle_group as CreateExerciseInput["muscle_group"]) ?? "other",
+      measurement_type: normalizeMeasurementType(exercise?.measurement_type),
       equipment: exercise?.equipment ?? "",
       video_url: exercise?.video_url ?? "",
       image_url: exercise?.image_url ?? "",

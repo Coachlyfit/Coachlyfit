@@ -2,6 +2,7 @@
  * grouping a session's sets per exercise, chart points and the A/B session
  * comparison. Weights are kg, same as everywhere else in the app. */
 
+import { normalizeMeasurementType, type MeasurementType, type PrimaryMetric } from "@/domain/library/measurement";
 import type { ExerciseSeriesPoint, HistorySession } from "./workouts.service";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -44,11 +45,21 @@ export function dateBounds(from?: string, to?: string): { fromIso?: string; toIs
   };
 }
 
-export type SetGroup = { sets: number; reps: number | null; weight: number | null };
+export type SetGroup = {
+  sets: number;
+  reps: number | null;
+  weight: number | null;
+  /** Only present when the set carried it (undefined, not null, so a plain
+   * weight × reps group stays {sets, reps, weight}). */
+  duration_seconds?: number;
+  distance_m?: number;
+  calories?: number;
+};
 
 export type SessionExercise = {
   exerciseId: string;
   name: { ar: string; en: string } | null;
+  measurementType: MeasurementType;
   groups: SetGroup[];
   /** Heaviest weight lifted in this session, null when no weighted set. */
   topWeight: number | null;
@@ -66,14 +77,28 @@ export function sessionExercises(session: HistorySession): SessionExercise[] {
       entry = {
         exerciseId: log.exercise_id,
         name: log.exercises ? { ar: log.exercises.name_ar, en: log.exercises.name_en } : null,
+        measurementType: normalizeMeasurementType(log.exercises?.measurement_type),
         groups: [],
         topWeight: null,
       };
       byExercise.set(log.exercise_id, entry);
     }
+    const duration_seconds = log.duration_seconds ?? undefined;
+    const distance_m = log.distance_m ?? undefined;
+    const calories = log.calories ?? undefined;
     const last = entry.groups[entry.groups.length - 1];
-    if (last && last.reps === log.reps && last.weight === log.weight) last.sets += 1;
-    else entry.groups.push({ sets: 1, reps: log.reps, weight: log.weight });
+    if (
+      last &&
+      last.reps === log.reps &&
+      last.weight === log.weight &&
+      last.duration_seconds === duration_seconds &&
+      last.distance_m === distance_m &&
+      last.calories === calories
+    ) {
+      last.sets += 1;
+    } else {
+      entry.groups.push({ sets: 1, reps: log.reps, weight: log.weight, duration_seconds, distance_m, calories });
+    }
     if (log.weight != null && (entry.topWeight == null || log.weight > entry.topWeight)) entry.topWeight = log.weight;
   }
   return [...byExercise.values()];
@@ -86,6 +111,42 @@ export function topSetsBySession(series: ExerciseSeriesPoint[]): { date: string;
     if (p.weight == null || p.weight <= 0) continue;
     const cur = best.get(p.session_id);
     if (!cur || p.weight > cur.value) best.set(p.session_id, { date: p.completed_at, value: p.weight });
+  }
+  return [...best.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** Chart input for any measurement type: the best set of each session on the
+ * exercise's headline metric, oldest first. Values: kg, reps, seconds,
+ * metres, seconds-per-km (pace — lower is better, so the *fastest* set wins)
+ * or kcal. Types with no single number to chart (intervals, laps/steps)
+ * return []. */
+export function metricSeries(series: ExerciseSeriesPoint[], metric: PrimaryMetric): { date: string; value: number }[] {
+  const valueOf = (p: ExerciseSeriesPoint): number | null => {
+    switch (metric) {
+      case "weight":
+        return p.weight != null && p.weight > 0 ? p.weight : null;
+      case "reps":
+        return p.reps != null && p.reps > 0 ? p.reps : null;
+      case "duration":
+        return p.duration_seconds ?? null;
+      case "distance":
+        return p.distance_m ?? null;
+      case "calories":
+        return p.calories ?? null;
+      case "pace":
+        // Under 100 m a "pace" is noise (see prs.ts MIN_PACE_DISTANCE_M).
+        return p.duration_seconds && p.distance_m && p.distance_m >= 100 ? p.duration_seconds / (p.distance_m / 1000) : null;
+      case "extra":
+        return null;
+    }
+  };
+  const lowerIsBetter = metric === "pace";
+  const best = new Map<string, { date: string; value: number }>();
+  for (const p of series) {
+    const v = valueOf(p);
+    if (v == null) continue;
+    const cur = best.get(p.session_id);
+    if (!cur || (lowerIsBetter ? v < cur.value : v > cur.value)) best.set(p.session_id, { date: p.completed_at, value: v });
   }
   return [...best.values()].sort((a, b) => a.date.localeCompare(b.date));
 }

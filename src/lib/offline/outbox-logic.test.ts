@@ -90,6 +90,14 @@ describe("planEnqueue", () => {
     expect(plan.put?.op.kind).toBe("set_delete");
   });
 
+  it("a re-saved block result replaces the queued copy for that group only", () => {
+    const first = row(3, { kind: "block_result", sessionId: S, groupKey: "g1", result: { kind: "amrap", rounds: 4 } });
+    const other = row(4, { kind: "block_result", sessionId: S, groupKey: "g2", result: { kind: "emom", rounds: 8 } });
+    const plan = planEnqueue([first, other], { kind: "block_result", sessionId: S, groupKey: "g1", result: { kind: "amrap", rounds: 5 } }, 9);
+    expect(plan.put).toMatchObject({ seq: 3, op: { groupKey: "g1", result: { rounds: 5 } } });
+    expect(planEnqueue([other], { kind: "block_result", sessionId: S, groupKey: "g1", result: { kind: "amrap" } }, 9).put?.seq).toBeUndefined();
+  });
+
   it("latest exercise_result / session_complete replaces the queued copy in place", () => {
     const first = row(2, { kind: "session_complete", sessionId: S, durationSeconds: 100 });
     const plan = planEnqueue([first], { kind: "session_complete", sessionId: S, durationSeconds: 120 }, 9);

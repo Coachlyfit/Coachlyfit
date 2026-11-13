@@ -13,6 +13,7 @@ import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 import {
   createProgramSchema,
   daySchema,
+  sessionSchema,
   itemSchema,
   reorderSchema,
   renameSchema,
@@ -22,10 +23,43 @@ import {
   rehabProtocolSchema,
   rehabPhaseSchema,
   setDayNutritionSchema,
+  groupFormatSchema,
+  weekPlanSchema,
 } from "./schemas";
+import { parseWeekPlan } from "@/domain/programs/week-plan";
+import type { GroupKind } from "@/domain/programs/group-config";
+import { asPlanGoal, asPlanLevel, asPlanType } from "@/domain/programs/plan-meta";
+import { getStarter } from "@/domain/programs/starters";
+import { createFromStarter } from "@/domain/programs/starters/starters.service";
 
 type ActionResult = { error: string } | void;
 type CreateResult = { error: string } | { id: string };
+
+/** Plan metadata off a FormData (selects send "", equipment is a repeated
+ * field). Fed to the same zod shape the forms use. */
+function planMetaFromForm(formData: FormData) {
+  return {
+    plan_type: formData.get("plan_type") || "",
+    goal: formData.get("goal") || "",
+    level: formData.get("level") || "",
+    equipment: formData.getAll("equipment").map(String),
+  };
+}
+
+/** Parsed metadata -> DB columns: "" (not set) becomes null. */
+function planMetaToDb(v: {
+  plan_type?: string;
+  goal?: string;
+  level?: string;
+  equipment?: string[];
+}) {
+  return {
+    plan_type: asPlanType(v.plan_type),
+    goal: asPlanGoal(v.goal),
+    level: asPlanLevel(v.level),
+    equipment: v.equipment ?? [],
+  };
+}
 
 // Server actions are individually addressable POST endpoints — they do NOT
 // inherit the (coach) layout's guard, so each one re-checks auth itself.
@@ -40,6 +74,7 @@ export async function createProgramAction(locale: string, formData: FormData): P
     start_date: formData.get("start_date") || "",
     end_date: formData.get("end_date") || "",
     schedule_mode: formData.get("schedule_mode") || undefined,
+    ...planMetaFromForm(formData),
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -47,15 +82,53 @@ export async function createProgramAction(locale: string, formData: FormData): P
   const coachId = await resolveCoachId(supabase);
   if (!coachId) return { error: "not_authenticated" };
 
-  const { client_id, start_date, end_date, ...rest } = parsed.data;
+  const { client_id, start_date, end_date, plan_type, goal, level, equipment, ...rest } = parsed.data;
   const program = await new ProgramsService(supabase).create(coachId, {
     ...rest,
+    ...planMetaToDb({ plan_type, goal, level, equipment }),
     client_id: client_id || null,
     start_date: start_date || undefined,
     end_date: end_date || null,
   });
   revalidatePath(`/${locale}/programs`);
   return { id: program.id };
+}
+
+/** Saves the program's authored week plan (null = back to the default deload
+ * every 4th week). The plan is re-parsed through parseWeekPlan so what is stored
+ * is exactly what the projection will read. */
+export async function setWeekPlanAction(locale: string, programId: string, plan: unknown): Promise<ActionResult> {
+  const parsed = weekPlanSchema.safeParse(plan);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const saved = await new ProgramsService(supabase).setWeekPlan(programId, parseWeekPlan(parsed.data));
+  if (!saved) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+/** Creates a template program from one of the built-in starters (one per plan
+ * type) — an ordinary template the coach then edits and assigns. `skipped`
+ * lists exercises the library did not have, so the UI can say so. */
+export async function createFromStarterAction(
+  locale: string,
+  starterId: string
+): Promise<{ error: string } | { id: string; skipped: string[] }> {
+  const starter = getStarter(starterId);
+  if (!starter) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  const { programId, skipped } = await createFromStarter(supabase, coachId, starter);
+  revalidatePath(`/${locale}/programs`);
+  return { id: programId, skipped };
 }
 
 export async function updateProgramAction(locale: string, id: string, formData: FormData): Promise<ActionResult> {
@@ -66,6 +139,7 @@ export async function updateProgramAction(locale: string, id: string, formData: 
     start_date: formData.get("start_date") || "",
     end_date: formData.get("end_date") || "",
     schedule_mode: formData.get("schedule_mode") || undefined,
+    ...planMetaFromForm(formData),
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -75,13 +149,14 @@ export async function updateProgramAction(locale: string, id: string, formData: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const { start_date, end_date, name_ar, name_en, schedule_mode } = parsed.data;
+  const { start_date, end_date, name_ar, name_en, schedule_mode, plan_type, goal, level, equipment } = parsed.data;
   const updated = await new ProgramsService(supabase).update(id, {
     name_ar,
     name_en,
     start_date: start_date || undefined,
     end_date: end_date || null,
     schedule_mode,
+    ...planMetaToDb({ plan_type, goal, level, equipment }),
   });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
@@ -95,6 +170,7 @@ export async function renameProgramAction(locale: string, id: string, formData: 
   const parsed = renameSchema.safeParse({
     name_ar: formData.get("name_ar"),
     name_en: formData.get("name_en"),
+    ...planMetaFromForm(formData),
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -104,7 +180,12 @@ export async function renameProgramAction(locale: string, id: string, formData: 
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const renamed = await new ProgramsService(supabase).renameProgram(id, parsed.data);
+  const { name_ar, name_en, plan_type, goal, level, equipment } = parsed.data;
+  const renamed = await new ProgramsService(supabase).renameProgram(id, {
+    name_ar,
+    name_en,
+    ...planMetaToDb({ plan_type, goal, level, equipment }),
+  });
   if (!renamed) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
   revalidatePath(`/${locale}/programs/${id}`);
@@ -167,6 +248,33 @@ export async function cloneProgramAction(
   return { id: cloned.id };
 }
 
+/** Replaces one client's copy of a template with a fresh copy of the template as
+ * it is now (same dates; the old copy is archived, not deleted). */
+export async function updateFromTemplateAction(
+  locale: string,
+  templateId: string,
+  clientProgramId: string
+): Promise<CreateResult> {
+  const ids = z.object({ templateId: z.string().uuid(), clientProgramId: z.string().uuid() }).safeParse({
+    templateId,
+    clientProgramId,
+  });
+  if (!ids.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const updated = await new ProgramsService(supabase).updateFromTemplate(templateId, clientProgramId);
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+  revalidatePath(`/${locale}/programs/${templateId}`);
+  if (updated.client_id) revalidatePath(`/${locale}/clients/${updated.client_id}`);
+  return { id: updated.id };
+}
+
 // Reverse of cloneProgramAction: saves an assigned program back out as a
 // template. Same id-returning deviation, for the same reason — the dialog
 // redirects into the new template right after saving.
@@ -218,6 +326,39 @@ export async function addDayAction(locale: string, programId: string, formData: 
   await programs.snapshotIfAssigned(programId, "add_day");
   const added = await programs.addDay(programId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+/** Adds an extra session (AM/PM split) to a day. */
+export async function addSessionAction(
+  locale: string,
+  programId: string,
+  parentDayId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = sessionSchema.safeParse({
+    label_ar: formData.get("label_ar") || "",
+    label_en: formData.get("label_en") || "",
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
+  });
+  if (!parsed.success || !z.string().uuid().safeParse(parentDayId).success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "add_session");
+  try {
+    const added = await programs.addSession(parentDayId, parsed.data);
+    if (!added) return { error: "not_found_or_forbidden" };
+  } catch (err) {
+    if (err instanceof Error && err.message === "session_parent_invalid") return { error: "session_parent_invalid" };
+    throw err;
+  }
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
@@ -291,6 +432,10 @@ export async function addItemAction(
     block: formData.get("block") || undefined,
     rehab_phase_id: formData.get("rehab_phase_id") || "",
     coach_note_private: formData.get("coach_note_private") || "",
+    tempo: formData.get("tempo") || "",
+    per_side: formData.get("per_side") === "true",
+    scaled_notes_ar: formData.get("scaled_notes_ar") || "",
+    scaled_notes_en: formData.get("scaled_notes_en") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -323,6 +468,10 @@ export async function updateItemAction(
     block: formData.get("block") || undefined,
     rehab_phase_id: formData.get("rehab_phase_id") || "",
     coach_note_private: formData.get("coach_note_private") || "",
+    tempo: formData.get("tempo") || "",
+    per_side: formData.get("per_side") === "true",
+    scaled_notes_ar: formData.get("scaled_notes_ar") || "",
+    scaled_notes_en: formData.get("scaled_notes_en") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -474,10 +623,12 @@ export async function groupItemsAction(
   locale: string,
   programId: string,
   itemIds: string[],
-  kind: "superset" | "circuit"
+  kind: GroupKind,
+  config: unknown = null
 ): Promise<ActionResult> {
   const parsed = reorderSchema.safeParse({ ids: itemIds });
-  if (!parsed.success || parsed.data.ids.length < 2) return { error: "invalid_input" };
+  const format = groupFormatSchema.safeParse({ kind, config });
+  if (!parsed.success || parsed.data.ids.length < 2 || !format.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
   const {
@@ -487,7 +638,40 @@ export async function groupItemsAction(
 
   const programs = new ProgramsService(supabase);
   await programs.snapshotIfAssigned(programId, "group_items");
-  await programs.groupItems(parsed.data.ids, kind);
+  try {
+    await programs.groupItems(parsed.data.ids, format.data.kind, format.data.config);
+  } catch (err) {
+    // Selection spans days or splits an existing group — the builder only
+    // offers valid selections, so this is the server-side backstop.
+    if (err instanceof Error && err.message === "group_selection_invalid") return { error: "group_selection_invalid" };
+    throw err;
+  }
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+/** Changes the format (kind + timed parameters) of an existing group; `itemIds`
+ * are all of its members. */
+export async function setGroupFormatAction(
+  locale: string,
+  programId: string,
+  itemIds: string[],
+  kind: GroupKind,
+  config: unknown
+): Promise<ActionResult> {
+  const parsed = reorderSchema.safeParse({ ids: itemIds });
+  const format = groupFormatSchema.safeParse({ kind, config });
+  if (!parsed.success || !format.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const programs = new ProgramsService(supabase);
+  await programs.snapshotIfAssigned(programId, "set_group_format");
+  const updated = await programs.setGroupFormat(parsed.data.ids, format.data.kind, format.data.config);
+  if (updated === 0) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 

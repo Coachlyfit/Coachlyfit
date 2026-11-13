@@ -11,10 +11,14 @@ import type { AppLocale } from "@/domain/locale";
 import type { CellStatus, ProgramStatus } from "@/domain/programs/week-status";
 import { ClientAvatar } from "../dashboard/client-avatar";
 import { AssignTemplateDialog } from "./[programId]/assign-template-dialog";
+import { PlanMetaBadges } from "./plan-meta-badges";
 
 export type Cell = { date: string; status: CellStatus; label: string | null };
 
-export type AssignedRow = {
+/** Plan metadata shown as chips and used by the list's type filter. */
+export type PlanMetaRow = { planType: string | null; goal: string | null; level: string | null };
+
+export type AssignedRow = PlanMetaRow & {
   id: string;
   clientId: string;
   client: string;
@@ -29,7 +33,7 @@ export type AssignedRow = {
   viewCells: Cell[];
 };
 
-export type TemplateRow = {
+export type TemplateRow = PlanMetaRow & {
   id: string;
   name: string;
   split: string[];
@@ -116,6 +120,7 @@ export function ProgramCard({
         <div className="flex min-w-0 flex-1 flex-col leading-snug">
           <span className="truncate font-semibold">{row.client}</span>
           <span className="truncate text-muted-foreground">{row.name}</span>
+          <PlanMetaBadges planType={row.planType} goal={row.goal} level={row.level} />
         </div>
         <StatusBadge tone={STATUS_TONE[row.status]} className="shrink-0">
           {t(`status.${row.status}`)}
@@ -269,6 +274,7 @@ export function TemplateCard({
       ) : (
         <>
           {days > 0 && <span className="text-muted-foreground">{row.split.join(" · ")}</span>}
+          <PlanMetaBadges planType={row.planType} goal={row.goal} level={row.level} />
           <div className="flex flex-wrap gap-1.5">
             <Chip>
               {t.rich("chips.daysPerWeek", { value: formatNumber(days, locale), count: days, num: mono })}

@@ -7,10 +7,14 @@ import { MetricDefinitionsService } from "@/domain/progress/metric-definitions.s
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
 import { checkinStreak, adherenceAverage, weightTrend } from "@/domain/progress/stats";
 import { metricPresetI18nKey } from "@/domain/progress/metric-presets";
-import { computePersonalRecords } from "@/domain/progress/prs";
+import { computeMeasureRecords, computePersonalRecords } from "@/domain/progress/prs";
+import { buildPrRows } from "@/domain/progress/pr-rows";
 import { pickLocale } from "@/domain/locale";
 import { PhotoTimeline } from "@/components/progress/photo-timeline";
 import { PrList, type PrListRow } from "@/components/progress/pr-list";
+import { BlockScores } from "@/components/progress/block-scores";
+import { SkillLadders } from "@/components/progress/skill-ladders";
+import { computeSkillLadders, hasLoggedEffort } from "@/domain/progress/skill-levels";
 import { PlanStory } from "@/components/ledger/plan-story";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import { toPlanStoryEntry } from "@/domain/ledger/view";
@@ -30,6 +34,7 @@ export default async function ClientProgressPage({
   const { locale } = await params;
   const t = await getTranslations("progress");
   const tChart = await getTranslations("progress.chart");
+  const tMeasure = await getTranslations("measure");
   const tMetrics = await getTranslations("progress.metrics");
   const tPhotos = await getTranslations("progress.photos");
   const tPrs = await getTranslations("progress.prs");
@@ -63,27 +68,28 @@ export default async function ClientProgressPage({
   const planStoryDecisions = await new LedgerService(supabase).listForClient(client!.id);
   const planStoryEntries = planStoryDecisions.map((d) => toPlanStoryEntry(d));
 
-  const setLogs = await new WorkoutsService(supabase).listSetLogsForClient(client!.id);
+  const workouts = new WorkoutsService(supabase);
+  const [setLogs, blockScores, skillRungs] = await Promise.all([
+    workouts.listSetLogsForClient(client!.id),
+    workouts.listBlockScores(client!.id),
+    workouts.listSkillRungs(),
+  ]);
+  const skillLadders = computeSkillLadders(
+    skillRungs,
+    new Set(setLogs.filter(hasLoggedEffort).map((l) => l.exercise_id))
+  );
   const records = computePersonalRecords(setLogs);
+  const measureRecords = computeMeasureRecords(setLogs);
   let prRows: PrListRow[] = [];
-  if (records.length > 0) {
+  const prExerciseIds = [...new Set([...records, ...measureRecords].map((r) => r.exerciseId))];
+  if (prExerciseIds.length > 0) {
     const { data: exercises } = await supabase
       .from("exercises")
-      .select("id, name_ar, name_en")
-      .in(
-        "id",
-        records.map((r) => r.exerciseId)
-      );
-    const nameById = new Map((exercises ?? []).map((e) => [e.id, { name_ar: e.name_ar, name_en: e.name_en }]));
-    prRows = records
-      .filter((r) => nameById.has(r.exerciseId))
-      .map((r) => ({
-        exerciseId: r.exerciseId,
-        exerciseName: nameById.get(r.exerciseId)!,
-        maxWeight: r.maxWeight ? { weight: r.maxWeight.weight, reps: r.maxWeight.reps } : null,
-        estimatedOneRepMax: r.estimatedOneRepMax?.value ?? null,
-      }))
-      .sort((a, b) => pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale)));
+      .select("id, name_ar, name_en, measurement_type")
+      .in("id", prExerciseIds);
+    prRows = buildPrRows(records, measureRecords, exercises ?? []).sort((a, b) =>
+      pickLocale(a.exerciseName, locale).localeCompare(pickLocale(b.exerciseName, locale))
+    );
   }
 
   const signed = await progress.signMediaUrls(media.map((m) => m.storage_path));
@@ -103,10 +109,10 @@ export default async function ClientProgressPage({
   );
 
   const series: { key: string; label: string; color: string; unit?: string; data: { date: string; value: number }[] }[] = [
-    { key: "weight", label: tChart("weightTitle"), color: "var(--chart-1)", unit: "kg", data: weightData },
+    { key: "weight", label: tChart("weightTitle"), color: "var(--chart-1)", unit: tMeasure("unit.kg"), data: weightData },
     { key: "mood", label: tChart("moodTitle"), color: "var(--chart-2)", data: moodData },
     { key: "energy", label: tChart("energyTitle"), color: "var(--chart-3)", data: energyData },
-    { key: "adherence", label: tChart("adherenceTitle"), color: "var(--chart-4)", unit: "%", data: adherenceData },
+    { key: "adherence", label: tChart("adherenceTitle"), color: "var(--chart-4)", unit: tMeasure("unit.percent"), data: adherenceData },
     ...[...grouped.entries()].map(([metric, rows]) => {
       const presetKey = metricPresetI18nKey(metric);
       return {
@@ -187,6 +193,9 @@ export default async function ClientProgressPage({
         <h2 className="text-lg font-semibold tracking-tight">{tPrs("title")}</h2>
         <PrList rows={prRows} locale={locale} />
       </div>
+
+      <BlockScores rows={blockScores} locale={locale} />
+      <SkillLadders ladders={skillLadders} locale={locale} />
 
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-tight">{tPhotos("title")}</h2>

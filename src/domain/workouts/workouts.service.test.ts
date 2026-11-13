@@ -154,6 +154,27 @@ describe("WorkoutsService", () => {
     });
   });
 
+  it("logSet carries distance, calories, RIR and the extra metrics/tags through to the row", async () => {
+    const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
+    await new WorkoutsService(db).logSet("session-1", {
+      program_item_id: "item-1",
+      set_index: 1,
+      distance_m: 5000,
+      duration_seconds: 1680,
+      calories: 320,
+      rir: 2,
+      extra: { incline: 2.5, side: "left", set_type: "warmup" },
+    });
+
+    expect(upserts[0].payload).toMatchObject({
+      distance_m: 5000,
+      duration_seconds: 1680,
+      calories: 320,
+      rir: 2,
+      extra: { incline: 2.5, side: "left", set_type: "warmup" },
+    });
+  });
+
   it("logSet passes a client-generated id through and derives completed_at from client_logged_at", async () => {
     const { db, upserts } = fakeSupabase({ parent: { coach_id: "coach-1", client_id: "client-1" } });
     const loggedAt = new Date(Date.now() - 3_600_000).toISOString();
@@ -371,6 +392,8 @@ describe("WorkoutsService", () => {
       { weight: 60, reps: 8, completed_at: "2026-01-01T10:00:00Z", substituted_exercise_id: null, program_items: { exercise_id: "ex-1" } },
       { weight: 40, reps: 10, completed_at: "2026-01-02T10:00:00Z", substituted_exercise_id: "ex-swap", program_items: { exercise_id: "ex-2" } },
       { weight: 20, reps: 12, completed_at: "2026-01-03T10:00:00Z", substituted_exercise_id: null, program_items: null },
+      // a prescribed warm-up set is tagged on the log and must never reach PR/volume maths
+      { weight: 30, reps: 5, completed_at: "2026-01-04T10:00:00Z", substituted_exercise_id: null, extra: { set_type: "warmup" }, program_items: { exercise_id: "ex-1" } },
     ];
     const db = {
       from: () => ({
@@ -459,7 +482,7 @@ describe("WorkoutsService.getLastPerformance", () => {
   it("keeps only the latest set per exercise", async () => {
     const { db } = fakeLogsDb(rows);
     const map = await new WorkoutsService(db).getLastPerformance(["ex-1"]);
-    expect(map.get("ex-1")).toEqual({ weight: 70, reps: 8, rpe: 8 });
+    expect(map.get("ex-1")).toMatchObject({ weight: 70, reps: 8, rpe: 8 });
   });
 
   it("excludes the current session's own sets when asked", async () => {

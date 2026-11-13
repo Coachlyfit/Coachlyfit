@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import type { MeasurementType } from "./measurement";
 
 // Read shape: the base Row plus what only the exercises_visible/foods_visible
 // views add (20260805000001_library_clone.sql) — the cloned-from row's own
@@ -24,6 +25,7 @@ export type CreateExerciseInput = {
   name_ar: string;
   name_en: string;
   muscle_group?: string;
+  measurement_type?: MeasurementType;
   equipment?: string;
   video_url?: string;
   image_url?: string;
@@ -43,6 +45,9 @@ export type CreateExerciseInput = {
   primary_muscles?: string[];
   secondary_muscles?: string[];
   difficulty?: "beginner" | "intermediate" | "advanced";
+  /** Rung of a skill ladder (see progress/skill-levels.ts); null clears it on edit. */
+  skill_group?: string | null;
+  skill_level?: number | null;
   thumbnail_url?: string;
   video_url_alt?: string;
   /** Set once at creation (the clone flow) — updateExercise strips it back

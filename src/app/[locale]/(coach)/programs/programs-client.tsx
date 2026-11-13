@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PLAN_TYPES } from "@/domain/programs/plan-meta";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -25,6 +27,7 @@ import { WeekView } from "./week-view";
 export type ProgramsView = "cards" | "week";
 
 const SCOPES = ["all", "assigned", "templates"] as const satisfies readonly ProgramScope[];
+const ALL_TYPES = "__all__";
 const SCOPE_LABEL = { all: "allTab", assigned: "assignedTab", templates: "templatesTab" } as const;
 
 export function ProgramsClient({
@@ -57,6 +60,9 @@ export function ProgramsClient({
   // on click instead of after the server round trip.
   const [state, setState] = useOptimistic({ view, scope });
   const [query, setQuery] = useState("");
+  // Client-side like the text search: the whole (small) program list is already here.
+  const [planType, setPlanType] = useState<string>(ALL_TYPES);
+  const tTypes = useTranslations("programs.planTypes");
 
   function href(next: { view?: ProgramsView; scope?: ProgramScope; week?: string | null }) {
     const merged = { ...state, week, ...next };
@@ -78,12 +84,17 @@ export function ProgramsClient({
 
   const q = query.trim().toLowerCase();
   const shownAssigned = useMemo(
-    () => assigned.filter((p) => !q || p.name.toLowerCase().includes(q) || p.client.toLowerCase().includes(q)),
-    [assigned, q]
+    () =>
+      assigned.filter(
+        (p) =>
+          (planType === ALL_TYPES || p.planType === planType) &&
+          (!q || p.name.toLowerCase().includes(q) || p.client.toLowerCase().includes(q))
+      ),
+    [assigned, q, planType]
   );
   const shownTemplates = useMemo(
-    () => templates.filter((p) => !q || p.name.toLowerCase().includes(q)),
-    [templates, q]
+    () => templates.filter((p) => (planType === ALL_TYPES || p.planType === planType) && (!q || p.name.toLowerCase().includes(q))),
+    [templates, q, planType]
   );
   // Same "latest program is the active one" rule as getActiveTreeForClient;
   // `assigned` arrives newest first.
@@ -142,6 +153,28 @@ export function ProgramsClient({
                 className="ps-9"
               />
             </div>
+          )}
+          {state.view === "cards" && (
+            <Select
+              value={planType}
+              onValueChange={(v) => setPlanType(v ?? ALL_TYPES)}
+              items={[
+                { value: ALL_TYPES, label: t("planMeta.allTypes") },
+                ...PLAN_TYPES.map((p) => ({ value: p, label: tTypes(p) })),
+              ]}
+            >
+              <SelectTrigger aria-label={t("planMeta.planType")} className="sm:w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_TYPES}>{t("planMeta.allTypes")}</SelectItem>
+                {PLAN_TYPES.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {tTypes(p)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
           <Segmented
             value={state.view}

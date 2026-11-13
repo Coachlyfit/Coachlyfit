@@ -7,9 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MUSCLE_GROUPS } from "@/domain/library/taxonomy";
+import { MEASUREMENT_TYPES } from "@/domain/library/measurement";
+import { SKILL_GROUPS } from "@/domain/progress/skill-levels";
 import type { CreateExerciseInput } from "./schemas";
 
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
+const NO_SKILL = "__none__";
 
 /** The exercise form fields, shared by the coach's create/clone/edit dialog
  * (exercise-dialog.tsx) and the admin global-exercise-dialog — pulled out
@@ -23,6 +26,7 @@ export function ExerciseFields({
   control,
   errors,
   showCoachNotes = true,
+  showSkill = false,
 }: {
   idPrefix?: string;
   register: UseFormRegister<CreateExerciseInput>;
@@ -33,9 +37,14 @@ export function ExerciseFields({
    * offering the field there would read as admin notes with nowhere
    * meaningful to attach to. */
   showCoachNotes?: boolean;
+  /** The skill-ladder rung fields. On for a coach's own exercises; off for the
+   * admin global dialog, whose action does not save them. */
+  showSkill?: boolean;
 }) {
   const t = useTranslations("library.exercise");
   const tGroups = useTranslations("library.muscleGroups");
+  const tTypes = useTranslations("measure.types");
+  const tSkills = useTranslations("progress.skills.groups");
   const id = (name: string) => `${idPrefix}${name}`;
 
   return (
@@ -75,6 +84,75 @@ export function ExerciseFields({
           )}
         />
       </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={id("measurement_type")}>{t("measurementType")}</Label>
+        <Controller
+          name="measurement_type"
+          control={control}
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              items={MEASUREMENT_TYPES.map((type) => ({ value: type, label: tTypes(type) }))}
+            >
+              <SelectTrigger id={id("measurement_type")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MEASUREMENT_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {tTypes(type)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        <p className="text-xs text-muted-foreground">{t("measurementTypeHint")}</p>
+      </div>
+      {showSkill && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={id("skill_group")}>{t("skillGroup")}</Label>
+          <div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-2">
+            <Controller
+              name="skill_group"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value || NO_SKILL}
+                  onValueChange={(v) => field.onChange(v === NO_SKILL ? "" : v)}
+                  items={[
+                    { value: NO_SKILL, label: t("skillNone") },
+                    ...SKILL_GROUPS.map((g) => ({ value: g, label: tSkills(g) })),
+                  ]}
+                >
+                  <SelectTrigger id={id("skill_group")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_SKILL}>{t("skillNone")}</SelectItem>
+                    {SKILL_GROUPS.map((g) => (
+                      <SelectItem key={g} value={g}>
+                        {tSkills(g)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={10}
+              placeholder={t("skillLevel")}
+              aria-label={t("skillLevel")}
+              {...register("skill_level", { setValueAs: (v) => (v === "" || v == null ? undefined : Number(v)) })}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">{t("skillHint")}</p>
+        </div>
+      )}
       <div className="flex flex-col gap-2">
         <Label htmlFor={id("equipment")}>{t("equipment")}</Label>
         <Input id={id("equipment")} {...register("equipment")} />

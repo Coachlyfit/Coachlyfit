@@ -25,6 +25,7 @@ export async function CheckinHero({
   locale: AppLocale;
 }) {
   const t = await getTranslations("progress.hero");
+  const tm = await getTranslations("measure");
   const TrendIcon = trend ? TREND_ICON[trend.delta < 0 ? "down" : trend.delta > 0 ? "up" : "flat"] : null;
 
   return (
@@ -47,7 +48,7 @@ export async function CheckinHero({
             {trend ? (
               <div className="flex items-baseline gap-2">
                 <p className="text-3xl font-semibold tabular-nums">
-                  {formatNumber(trend.latest, locale, { maximumFractionDigits: 1 })} kg
+                  {tm("kg", { value: formatNumber(trend.latest, locale, { maximumFractionDigits: 1 }) })}
                 </p>
                 {trend.delta !== 0 && TrendIcon && (
                   <span
@@ -57,7 +58,7 @@ export async function CheckinHero({
                     }
                   >
                     <TrendIcon className="size-3.5" aria-hidden="true" />
-                    {formatNumber(Math.abs(trend.delta), locale, { maximumFractionDigits: 1 })} kg
+                    {tm("kg", { value: formatNumber(Math.abs(trend.delta), locale, { maximumFractionDigits: 1 }) })}
                   </span>
                 )}
               </div>

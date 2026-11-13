@@ -10,6 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { pickBilingual, pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
 import type { HistorySession } from "@/domain/workouts/workouts.service";
+import { measurementFields, type MeasurementType } from "@/domain/library/measurement";
+import { formatSetMeasures } from "@/domain/workouts/set-measures";
 import {
   compareSessions,
   historyQuery,
@@ -37,6 +39,7 @@ export function WeightHistoryTable({
   locale: AppLocale;
 }) {
   const t = useTranslations("clients.weightHistory");
+  const tm = useTranslations("measure");
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
@@ -47,10 +50,32 @@ export function WeightHistoryTable({
   const exerciseName = (name: { ar: string; en: string } | null) => (name ? pickBilingual(name, locale) : t("unknownExercise"));
   const dash = "—";
 
-  const groupText = (g: SetGroup) =>
-    g.weight != null
-      ? t("setLine", { sets: g.sets, reps: g.reps ?? dash, weight: num(g.weight) })
-      : t("setLineBodyweight", { sets: g.sets, reps: g.reps ?? dash });
+  const groupText = (g: SetGroup, type: MeasurementType) => {
+    const repBased =
+      g.duration_seconds == null &&
+      g.distance_m == null &&
+      g.calories == null &&
+      measurementFields(type).includes("reps");
+    if (repBased) {
+      return g.weight != null
+        ? t("setLine", { sets: g.sets, reps: g.reps ?? dash, weight: num(g.weight) })
+        : t("setLineBodyweight", { sets: g.sets, reps: g.reps ?? dash });
+    }
+    const value = formatSetMeasures(
+      type,
+      null,
+      {
+        weight: g.weight,
+        reps: g.reps,
+        duration_seconds: g.duration_seconds ?? null,
+        distance_m: g.distance_m ?? null,
+        calories: g.calories ?? null,
+        extra: null,
+      },
+      tm
+    );
+    return t("groupLine", { sets: g.sets, value });
+  };
 
   const toggle = (id: string, on: boolean) =>
     setSelected((cur) => (on ? (cur.includes(id) || cur.length >= MAX_COMPARE ? cur : [...cur, id]) : cur.filter((x) => x !== id)));
@@ -150,7 +175,7 @@ export function WeightHistoryTable({
                         <li key={ex.exerciseId} className="text-sm">
                           <span className="font-medium">{exerciseName(ex.name)}</span>
                           <span className="ms-2 text-muted-foreground tabular-nums">
-                            {ex.groups.map(groupText).join(" · ")}
+                            {ex.groups.map((g) => groupText(g, ex.measurementType)).join(" · ")}
                           </span>
                         </li>
                       ))}

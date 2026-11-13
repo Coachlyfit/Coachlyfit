@@ -7,6 +7,7 @@ import { mmss } from "@/domain/workouts/session-runner";
 import { formatNumber } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import { SyncStatusBar } from "@/components/offline/sync-status-bar";
+import type { SessionTotals } from "@/domain/workouts/summary";
 
 export type SummaryRow = { id: string; name: string; done: number; total: number; topWeight: number | null };
 
@@ -17,7 +18,9 @@ export function SessionSummary({
   setsDone,
   setsTotal,
   totalVolume,
+  totals,
   rows,
+  blocks = [],
   onEditSets,
 }: {
   locale: AppLocale;
@@ -26,15 +29,41 @@ export function SessionSummary({
   setsDone: number;
   setsTotal: number;
   totalVolume: number;
+  /** Time-under-effort / distance / calories across the logged sets. */
+  totals: SessionTotals;
   rows: SummaryRow[];
+  /** Scores of the timed groups (AMRAP / For Time / ...) done this session. */
+  blocks?: { id: string; label: string; text: string }[];
   onEditSets: () => void;
 }) {
   const t = useTranslations("client.workout.summary");
+  const tm = useTranslations("measure");
 
+  // Volume only when something was lifted; a run or a plank session reports
+  // what it did instead of "0 kg".
   const stats = [
     { label: t("duration"), value: mmss(elapsedSeconds) },
     { label: t("sets"), value: `${setsDone}/${setsTotal}` },
-    { label: t("volumeKg"), value: formatNumber(Math.round(totalVolume), locale) },
+    ...(totalVolume > 0 || (totals.totalDistanceM === 0 && totals.totalDurationSeconds === 0 && totals.totalCalories === 0)
+      ? [{ label: t("volumeKg"), value: formatNumber(Math.round(totalVolume), locale) }]
+      : []),
+    ...(totals.totalDistanceM > 0
+      ? [
+          {
+            label: tm("summary.distance"),
+            value:
+              totals.totalDistanceM >= 1000
+                ? tm("km", { value: formatNumber(totals.totalDistanceM / 1000, locale, { maximumFractionDigits: 2 }) })
+                : tm("meters", { value: formatNumber(totals.totalDistanceM, locale, { maximumFractionDigits: 0 }) }),
+          },
+        ]
+      : []),
+    ...(totals.totalDurationSeconds > 0
+      ? [{ label: tm("summary.timeUnderEffort"), value: mmss(totals.totalDurationSeconds) }]
+      : []),
+    ...(totals.totalCalories > 0
+      ? [{ label: tm("summary.calories"), value: tm("kcal", { value: formatNumber(totals.totalCalories, locale) }) }]
+      : []),
   ];
 
   return (
@@ -57,6 +86,17 @@ export function SessionSummary({
             </div>
           ))}
         </dl>
+
+        {blocks.length > 0 && (
+          <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+            {blocks.map((b) => (
+              <li key={b.id} className="flex items-center justify-between gap-3 px-3.5 py-3">
+                <span className="text-[15px] font-semibold">{b.label}</span>
+                <span className="font-mono text-base font-semibold tabular-nums">{b.text}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
           {rows.map((row) => (

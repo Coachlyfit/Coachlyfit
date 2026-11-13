@@ -12,6 +12,8 @@ import { activePhase } from "@/domain/programs/day-plan";
 import { sortItemsBySections } from "@/domain/programs/day-sections";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import type { AppLocale } from "@/domain/locale";
+import { parseBlockResults } from "@/domain/workouts/block-result";
+import { parseWeekPlan } from "@/domain/programs/week-plan";
 import { WorkoutSessionClient } from "./workout-session-client";
 
 // Route param is a program_day id — the "session" is started/resumed
@@ -32,7 +34,7 @@ export default async function WorkoutSessionPage({
       // include coach_note_private (a coach-only prescription annotation)
       // on a route the client's browser directly receives the response
       // for. See CLIENT_SAFE_ITEM_COLUMNS's doc comment.
-      `*, programs(start_date, id), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo), program_item_sets(*))`
+      `*, programs(start_date, id, week_plan), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, measurement_type), program_item_sets(*))`
     )
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })
@@ -82,6 +84,7 @@ export default async function WorkoutSessionPage({
       locale={locale}
       day={visibleDay}
       week={week}
+      weekPlan={parseWeekPlan(day.programs?.week_plan)}
       sessionId={session.id}
       initialSetLogs={setLogs}
       initialExerciseResults={exerciseResults}
@@ -89,6 +92,7 @@ export default async function WorkoutSessionPage({
       alreadyCompleted={session.completed_at != null}
       initialElapsedSeconds={session.elapsed_seconds}
       initialItemId={session.current_item_id}
+      initialBlockResults={parseBlockResults(session.block_results)}
       adjustedItemReasons={Object.fromEntries(adjustedItemReasons)}
     />
   );

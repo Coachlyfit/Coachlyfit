@@ -56,23 +56,6 @@ export default async function CoachLayout({
   if (profile.suspended_at) redirect(`/${locale}/suspended`);
   if (settings.platform.maintenance_mode) redirect(`/${locale}/maintenance`);
 
-  if (coachId === user.id) {
-    // The tenant owner -- unchanged existing gate.
-    const { data: coach } = await supabase
-      .from("coaches")
-      .select("onboarding_completed_at")
-      .eq("id", user.id)
-      .single();
-    if (!coach?.onboarding_completed_at) redirect(`/${locale}/onboarding`);
-  }
-  // Else: an accepted team member (coachId is someone else's tenant id, or
-  // null). Team members never go through onboarding, so the gate simply
-  // doesn't apply to them. If coachId is null here despite role === "coach"
-  // that's a broken/incomplete signup state; let them through to the
-  // dashboard rather than trap them in a redirect loop -- the dashboard's
-  // own queries will just come back empty, which is a saner failure mode
-  // than an infinite bounce.
-
   // Display-only: this cookie drives nothing but whether the banner
   // renders. The actual authorization boundary is begin_impersonation()
   // (admin-checked, writes impersonation_log atomically with that check —

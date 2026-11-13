@@ -4,6 +4,7 @@ import {
   compareSessions,
   dateBounds,
   historyQuery,
+  metricSeries,
   parseHistoryParams,
   sessionExercises,
   topSetsBySession,
@@ -145,5 +146,57 @@ describe("WorkoutsService.listHistorySessions", () => {
     expect(calls).toContainEqual(["gte", ["started_at", "2026-01-01T00:00:00.000Z"]]);
     expect(calls).toContainEqual(["lt", ["started_at", "2026-02-01T00:00:00.000Z"]]);
     expect(calls).toContainEqual(["limit", [3]]);
+  });
+});
+
+describe("metricSeries", () => {
+  const pts = [
+    { session_id: "a", weight: null, reps: null, duration_seconds: 45, distance_m: null, completed_at: "2026-01-01T10:00:00Z" },
+    { session_id: "a", weight: null, reps: null, duration_seconds: 60, distance_m: null, completed_at: "2026-01-01T10:05:00Z" },
+    { session_id: "b", weight: null, reps: null, duration_seconds: 90, distance_m: null, completed_at: "2026-01-08T10:00:00Z" },
+  ];
+
+  it("charts the longest hold per session, oldest first", () => {
+    expect(metricSeries(pts, "duration")).toEqual([
+      { date: "2026-01-01T10:05:00Z", value: 60 },
+      { date: "2026-01-08T10:00:00Z", value: 90 },
+    ]);
+  });
+
+  it("charts pace as seconds per km and keeps the FASTEST set per session", () => {
+    const runs = [
+      { session_id: "a", weight: null, reps: null, duration_seconds: 1800, distance_m: 5000, completed_at: "2026-01-01T10:00:00Z" },
+      { session_id: "a", weight: null, reps: null, duration_seconds: 1500, distance_m: 5000, completed_at: "2026-01-01T10:40:00Z" },
+    ];
+    expect(metricSeries(runs, "pace")).toEqual([{ date: "2026-01-01T10:40:00Z", value: 300 }]);
+  });
+
+  it("charts max reps, distance and calories; types with no single number chart nothing", () => {
+    const sets = [{ session_id: "a", weight: null, reps: 12, distance_m: 400, calories: 90, completed_at: "2026-01-01T10:00:00Z" }];
+    expect(metricSeries(sets, "reps")[0].value).toBe(12);
+    expect(metricSeries(sets, "distance")[0].value).toBe(400);
+    expect(metricSeries(sets, "calories")[0].value).toBe(90);
+    expect(metricSeries(sets, "extra")).toEqual([]);
+  });
+});
+
+describe("sessionExercises for non-weight sets", () => {
+  it("groups identical holds and carries the exercise's measurement type", () => {
+    const s: HistorySession = {
+      id: "s",
+      started_at: "2026-11-01T10:00:00Z",
+      program_days: null,
+      workout_set_logs: [0, 1, 2].map((i) => ({
+        exercise_id: EX,
+        set_index: i,
+        weight: null,
+        reps: null,
+        duration_seconds: 45,
+        exercises: { name_ar: "ت", name_en: "Plank", measurement_type: "duration" },
+      })),
+    };
+    const [ex] = sessionExercises(s);
+    expect(ex.measurementType).toBe("duration");
+    expect(ex.groups).toEqual([{ sets: 3, reps: null, weight: null, duration_seconds: 45 }]);
   });
 });

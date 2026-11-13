@@ -1,7 +1,10 @@
+import { daysWithSessions } from "@/domain/programs/day-sessions";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { ProgramsService } from "@/domain/programs/programs.service";
+import { ProgramsService, type ProgramTree } from "@/domain/programs/programs.service";
+import { isAssisted, measurementFields } from "@/domain/library/measurement";
+import { formatSetMeasures, measuresFromRow } from "@/domain/workouts/set-measures";
 import { sortItemsBySections } from "@/domain/programs/day-sections";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
@@ -16,6 +19,7 @@ export default async function PrintProgramPage({
   const t = await getTranslations("print");
   const tPrograms = await getTranslations("programs");
   const tBuilder = await getTranslations("programs.builder");
+  const tMeasure = await getTranslations("measure");
   const supabase = await createClient();
 
   const tree = await new ProgramsService(supabase).getTree(programId);
@@ -30,6 +34,26 @@ export default async function PrintProgramPage({
   const tNutrition = await getTranslations("programs.nutrition");
   const tRehab = await getTranslations("programs.rehab");
   const variantById = new Map(tree.diet_variants.map((v) => [v.id, v]));
+
+  type PrintItem = ProgramTree["program_days"][number]["program_items"][number];
+  /** The two value cells of a set row: what is measured (reps, a hold, a
+   * distance...) and the load, if the exercise has one. */
+  const setCells = (item: PrintItem, set: PrintItem["program_item_sets"][number]) => {
+    const type = item.exercises.measurement_type;
+    const fields = measurementFields(type, item.block);
+    const measure =
+      fields.includes("reps") && set.reps != null
+        ? set.reps
+        : formatSetMeasures(type, item.block, { ...measuresFromRow(set), weight: null }, tMeasure);
+    const load = !fields.includes("weight")
+      ? "—"
+      : set.weight == null
+        ? tBuilder("bodyweight")
+        : isAssisted(type)
+          ? tMeasure("assist", { value: Math.abs(set.weight) })
+          : `${set.weight}kg`;
+    return { measure, load };
+  };
 
   return (
     <>
@@ -48,12 +72,12 @@ export default async function PrintProgramPage({
       </header>
 
       <div className="flex flex-col gap-6">
-        {tree.program_days.map((day) => {
+        {daysWithSessions(tree.program_days).map((day) => {
           const orderedItems = sortItemsBySections(day.program_items, day.section_order);
           return (
-          <section key={day.id} className="break-inside-avoid">
+          <section key={day.id} className={day.parent_day_id ? "ms-6 break-inside-avoid" : "break-inside-avoid"}>
             <h2 className="text-lg font-semibold">
-              {tBuilder("dayN", { n: day.day_index })}
+              {day.parent_day_id ? tBuilder("sessionN", { n: day.day_index }) : tBuilder("dayN", { n: day.day_index })}
               {(day.label_ar || day.label_en) && (
                 <span className="font-normal text-gray-700"> — {pickLocale(day, locale, "label")}</span>
               )}
@@ -117,10 +141,10 @@ export default async function PrintProgramPage({
                             )}
                             <td className="py-1.5 tabular-nums">{set.set_index}</td>
                             <td className="py-1.5 tabular-nums">
-                              {set.reps != null ? set.reps : set.duration_seconds != null ? `${set.duration_seconds}s` : "—"}
+                              {setCells(item, set).measure}
                             </td>
                             <td className="py-1.5 tabular-nums">
-                              {set.weight != null ? `${set.weight}kg` : tBuilder("bodyweight")}
+                              {setCells(item, set).load}
                             </td>
                             <td className="py-1.5 tabular-nums">{set.rest_seconds ? `${set.rest_seconds}s` : "—"}</td>
                           </tr>

@@ -117,3 +117,26 @@ describe("resolveDayPlan", () => {
     expect(plan.kind).toBe("rest");
   });
 });
+
+describe("resolveDayPlan with extra sessions", () => {
+  it("resolves the calendar day by primary days only and returns the day's sessions", () => {
+    const base = buildTree();
+    const tree = buildTree({
+      program_days: [
+        ...base.program_days,
+        // an AM/PM split on day 1: shares day_index 1, hangs off day-1
+        { id: "day-1-pm", day_index: 1, parent_day_id: "day-1", weekday: null, diet_plan_id: null, program_items: [{ id: "item-9", block: "main", rehab_phase_id: null }], program_activities: [] },
+      ] as ProgramTree["program_days"],
+    });
+
+    // 2026-08-01 is day 1 of a 3-day cycle; the extra session must not make it a 4-day cycle
+    const day1 = resolveDayPlan(tree, "2026-08-01");
+    expect(day1.day?.id).toBe("day-1");
+    expect(day1.sessions.map((s) => s.id)).toEqual(["day-1-pm"]);
+    // day 2 is next calendar day: still the rest day, not the session
+    expect(resolveDayPlan(tree, "2026-08-02").day?.id).toBe("day-2");
+    expect(resolveDayPlan(tree, "2026-08-02").sessions).toEqual([]);
+    // the cycle repeats after 3 days, not 4
+    expect(resolveDayPlan(tree, "2026-08-04").day?.id).toBe("day-1");
+  });
+});

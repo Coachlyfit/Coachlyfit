@@ -22,6 +22,8 @@ export type PickedExercise = {
   name_en: string;
   muscle_group?: string | null;
   equipment?: string | null;
+  /** How the exercise is measured — decides the builder's set inputs. */
+  measurement_type?: string | null;
   thumbnail_url?: string | null;
   image_url?: string | null;
   video_url?: string | null;

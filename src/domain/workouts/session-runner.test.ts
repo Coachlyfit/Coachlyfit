@@ -5,7 +5,7 @@ import {
   mmss,
   nextOpenStep,
   parseDecimal,
-  prefillDraft,
+  prefillMeasures,
   previousSetLog,
   shouldRest,
   stepValue,
@@ -68,7 +68,7 @@ describe("shouldRest", () => {
 });
 
 describe("prefill", () => {
-  const target = { weight: 60, reps: 10, duration_seconds: null };
+  const target = { weight: 60, reps: 10, duration_seconds: null, distance_m: null, calories: null, extra: null };
 
   it("picks the latest earlier set logged in this workout", () => {
     const logs = [
@@ -81,11 +81,19 @@ describe("prefill", () => {
   });
 
   it("uses the previous set when there is one, else the target", () => {
-    expect(prefillDraft(null, target)).toEqual(target);
-    expect(prefillDraft({ weight: 62.5, reps: 8, duration_seconds: null }, target)).toEqual({
+    expect(prefillMeasures(null, target)).toEqual(target);
+    expect(prefillMeasures({ ...target, weight: 62.5, reps: 8 }, target)).toEqual({
+      ...target,
       weight: 62.5,
       reps: 8,
-      duration_seconds: null,
+    });
+  });
+
+  it("falls back to the target for a measure the previous set did not have", () => {
+    const run = { ...target, weight: null, reps: null, distance_m: 5000, duration_seconds: 1800 };
+    expect(prefillMeasures({ ...run, distance_m: null, duration_seconds: 1500 }, run)).toMatchObject({
+      distance_m: 5000,
+      duration_seconds: 1500,
     });
   });
 });

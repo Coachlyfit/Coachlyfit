@@ -8,6 +8,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { pickLocale, type AppLocale } from "@/domain/locale";
+import { normalizeMeasurementType } from "@/domain/library/measurement";
 import { createExerciseSchema, type CreateExerciseInput } from "./schemas";
 import { createExerciseAction, updateExerciseAction, type searchExercisesAction } from "./actions";
 import { ExerciseFields } from "./exercise-fields";
@@ -64,6 +65,7 @@ export function ExerciseDialog({
       name_ar: item?.name_ar ?? "",
       name_en: item?.name_en ?? "",
       muscle_group: (item?.muscle_group as CreateExerciseInput["muscle_group"]) ?? "other",
+      measurement_type: normalizeMeasurementType(item?.measurement_type),
       equipment: item?.equipment ?? "",
       video_url: item?.video_url ?? "",
       image_url: item?.image_url ?? "",
@@ -81,6 +83,8 @@ export function ExerciseDialog({
       primary_muscles: item?.primary_muscles?.join("\n") ?? "",
       secondary_muscles: item?.secondary_muscles?.join("\n") ?? "",
       difficulty: (item?.difficulty as CreateExerciseInput["difficulty"]) ?? undefined,
+      skill_group: (item?.skill_group as CreateExerciseInput["skill_group"]) ?? "",
+      skill_level: item?.skill_level ?? undefined,
       thumbnail_url: item?.thumbnail_url ?? "",
       video_url_alt: item?.video_url_alt ?? "",
     },
@@ -92,6 +96,7 @@ export function ExerciseDialog({
     formData.set("name_ar", data.name_ar);
     formData.set("name_en", data.name_en);
     if (data.muscle_group) formData.set("muscle_group", data.muscle_group);
+    if (data.measurement_type) formData.set("measurement_type", data.measurement_type);
     if (data.equipment) formData.set("equipment", data.equipment);
     if (data.video_url) formData.set("video_url", data.video_url);
     if (data.image_url) formData.set("image_url", data.image_url);
@@ -109,6 +114,8 @@ export function ExerciseDialog({
     if (data.primary_muscles) formData.set("primary_muscles", data.primary_muscles);
     if (data.secondary_muscles) formData.set("secondary_muscles", data.secondary_muscles);
     if (data.difficulty) formData.set("difficulty", data.difficulty);
+    if (data.skill_group) formData.set("skill_group", data.skill_group);
+    if (data.skill_level != null) formData.set("skill_level", String(data.skill_level));
     if (data.thumbnail_url) formData.set("thumbnail_url", data.thumbnail_url);
     if (data.video_url_alt) formData.set("video_url_alt", data.video_url_alt);
     // Provenance is set once, here — "edit" never sends this, so an edit of
@@ -159,7 +166,7 @@ export function ExerciseDialog({
           </p>
         )}
         <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-          <ExerciseFields idPrefix={idPrefix} register={register} control={control} errors={errors} />
+          <ExerciseFields idPrefix={idPrefix} register={register} control={control} errors={errors} showSkill />
           {formError && (
             <p className="text-sm text-destructive">
               {tErrors.has(formError) ? tErrors(formError) : tErrors("unknown")}

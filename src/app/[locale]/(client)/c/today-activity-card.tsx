@@ -38,13 +38,14 @@ export function TodayActivityCard({
 }) {
   const t = useTranslations("client.today");
   const tActivity = useTranslations("programs.activityDialog");
+  const tm = useTranslations("measure");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const Icon = ICON_BY_KIND[activity.kind as "cardio" | "recovery"];
   const parts = [
     tActivity(`modalities.${activity.modality}`),
     activity.duration_min ? `${activity.duration_min} ${tActivity("minShort")}` : null,
-    activity.distance_km ? `${activity.distance_km}km` : null,
+    activity.distance_km ? tm("km", { value: activity.distance_km }) : null,
   ].filter(Boolean);
 
   return (

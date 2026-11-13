@@ -1,5 +1,6 @@
 import { dayIndexForDateWithMode, weekIndexForDate, type ScheduleMode } from "./program-cycle";
 import type { ProgramTree } from "./programs.service";
+import { primaryDays, sessionsOf } from "./day-sessions";
 
 type ProgramDay = ProgramTree["program_days"][number];
 type ProgramItem = ProgramDay["program_items"][number];
@@ -10,12 +11,15 @@ export type DayKind = "training" | "rest" | "cardio" | "rehab";
 
 export type ResolvedDayPlan = {
   day: ProgramDay | null;
+  /** The day's extra sessions (an AM/PM split): other program_days that point at
+   * `day`. Empty for a rest day or a one-session day. */
+  sessions: ProgramDay[];
   /** 1-based training week (program-cycle.ts's weekIndexForDate), used to
    * both project sets (progression.ts) and pick each rehab phase's active
    * window below. */
   week: number;
   kind: DayKind;
-  /** block IN ('warmup','main','cooldown') — ordinary strength work. */
+  /** block NOT IN ('mobility','rehab') — warm-up, main, accessory, finisher, cool-down. */
   workoutItems: ProgramItem[];
   /** block = 'mobility' — standalone mobility work, not tied to a rehab
    * protocol/phase. */
@@ -50,24 +54,28 @@ export function activePhase(protocol: RehabProtocol, week: number): RehabPhase |
 export function resolveDayPlan(tree: ProgramTree, targetDate: string): ResolvedDayPlan {
   const week = weekIndexForDate(tree.start_date, targetDate);
 
+  // Only primary days sit on the calendar; extra sessions hang off them.
+  const calendarDays = primaryDays(tree.program_days);
   const weekdayToDayIndex = new Map<number, number>();
-  for (const d of tree.program_days) {
+  for (const d of calendarDays) {
     if (d.weekday != null) weekdayToDayIndex.set(d.weekday, d.day_index);
   }
   const dayIndex = dayIndexForDateWithMode(
     tree.schedule_mode as ScheduleMode,
     tree.start_date,
-    tree.program_days.length,
+    calendarDays.length,
     targetDate,
     weekdayToDayIndex
   );
-  const day = dayIndex == null ? null : (tree.program_days.find((d) => d.day_index === dayIndex) ?? null);
+  const day = dayIndex == null ? null : (calendarDays.find((d) => d.day_index === dayIndex) ?? null);
 
   const protocols = tree.rehab_protocols.map((protocol) => ({ ...protocol, activePhase: activePhase(protocol, week) }));
   const activePhaseIds = new Set(protocols.map((p) => p.activePhase?.id).filter((id): id is string => id != null));
 
   const items = day?.program_items ?? [];
-  const workoutItems = items.filter((i) => i.block === "warmup" || i.block === "main" || i.block === "cooldown");
+  // Everything that is not mobility/rehab is ordinary session work: warm-up,
+  // main, accessory, finisher, cool-down.
+  const workoutItems = items.filter((i) => i.block !== "mobility" && i.block !== "rehab");
   const mobilityItems = items.filter((i) => i.block === "mobility");
   const rehabItems = items.filter(
     (i) => i.block === "rehab" && (i.rehab_phase_id == null || activePhaseIds.has(i.rehab_phase_id))
@@ -81,6 +89,7 @@ export function resolveDayPlan(tree: ProgramTree, targetDate: string): ResolvedD
 
   return {
     day,
+    sessions: day ? sessionsOf(tree.program_days, day.id) : [],
     week,
     kind,
     workoutItems,

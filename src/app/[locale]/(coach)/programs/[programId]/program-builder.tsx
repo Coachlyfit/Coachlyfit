@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { createContext, useContext, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -62,11 +62,24 @@ import {
   reorderItemsAction,
   reorderSectionsAction,
   groupItemsAction,
+  setGroupFormatAction,
   ungroupItemsAction,
   deleteActivityAction,
 } from "../actions";
 import { AddDayDialog } from "./add-day-dialog";
 import { ItemDialog } from "./item-dialog";
+import { GroupFormatDialog } from "./group-format-dialog";
+import { WeekPlanDialog } from "./week-plan-dialog";
+import { primaryDays, sessionsOf } from "@/domain/programs/day-sessions";
+import { isDeloadWeek, modifierForWeek, parseWeekPlan, weekLabel, type WeekPlan } from "@/domain/programs/week-plan";
+import {
+  asGroupKind,
+  defaultGroupConfig,
+  formatGroupConfig,
+  parseGroupConfig,
+  type GroupConfig,
+  type GroupKind,
+} from "@/domain/programs/group-config";
 import { ActivityDialog } from "./activity-dialog";
 import { NutritionPanel } from "./nutrition-panel";
 import { RehabPanel } from "./rehab-panel";
@@ -75,12 +88,18 @@ import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 import { RevisionHistoryDrawer } from "./revision-history-drawer";
 import { ExerciseSidebar, EXERCISE_DRAG_MIME } from "./exercise-sidebar";
 import type { PickedExercise } from "./exercise-media";
+import { formatSetMeasures, measuresFromRow, targetTags } from "@/domain/workouts/set-measures";
 import { VolumeSidebar } from "./volume-sidebar";
 import { Link, useRouter } from "@/i18n/navigation";
 
 type Day = ProgramTree["program_days"][number];
 type Item = Day["program_items"][number];
 type Activity = Day["program_activities"][number];
+
+/** The program's authored week plan, for the week-N projection each row shows.
+ * A context rather than a prop: it is read two components down (DayCard ->
+ * SortableItem) and never changes while the builder is mounted. */
+const WeekPlanContext = createContext<WeekPlan | null>(null);
 
 /** Week 1 is the editable base; week 2-12 is a read-only projection
  * (progression.ts) — no drag handle, no edit/delete, and week>1 never mounts
@@ -90,6 +109,7 @@ function SortableItem({
   locale,
   week,
   groupLabel,
+  groupBadge,
   selected,
   onToggleSelect,
   onEdit,
@@ -103,6 +123,10 @@ function SortableItem({
    * otherwise. Purely a display label — group membership itself is
    * item.group_key, this is just its position within the group. */
   groupLabel: string | null;
+  /** Format chip ("AMRAP 12:00", "Giant set") shown on a group's first
+   * member; clicking edits the whole group's format. Null on every other row
+   * and for plain superset/circuit groups. */
+  groupBadge: { text: string; onEdit: () => void } | null;
   selected: boolean;
   onToggleSelect: () => void;
   onEdit: () => void;
@@ -110,11 +134,13 @@ function SortableItem({
   onDuplicate: () => void;
 }) {
   const t = useTranslations("programs.builder");
+  const tm = useTranslations("measure");
   const readOnly = week !== 1;
+  const weekPlan = useContext(WeekPlanContext);
   const sortable = useSortable({ id: item.id, disabled: readOnly });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
   const displaySets = readOnly
-    ? projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week)
+    ? projectSetsForWeek(item.program_item_sets, item.progression_rule as ProgressionRule, week, weekPlan)
     : item.program_item_sets;
 
   return (
@@ -140,7 +166,7 @@ function SortableItem({
             type="button"
             {...attributes}
             {...listeners}
-            aria-label="drag"
+            aria-label={t("dragItem")}
             className="-m-1.5 cursor-grab touch-none p-1.5 text-muted-foreground active:cursor-grabbing"
           >
             <GripVertical className="size-4" />
@@ -152,29 +178,50 @@ function SortableItem({
           {groupLabel}
         </span>
       )}
+      {groupBadge && (
+        <button
+          type="button"
+          onClick={groupBadge.onEdit}
+          disabled={readOnly}
+          className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary enabled:hover:bg-primary/20"
+        >
+          {groupBadge.text}
+        </button>
+      )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{pickLocale(item.exercises, locale)}</div>
         <div className="mt-1 flex flex-wrap items-center gap-1">
-          {displaySets.map((set, i) => (
-            <span
-              key={i}
-              className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
-            >
-              {set.reps}×{set.weight != null ? `${set.weight}kg` : t("bodyweight")}
-            </span>
-          ))}
+          {displaySets.map((set, i) => {
+            const tags = targetTags(set, tm);
+            return (
+              <span
+                key={i}
+                className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
+              >
+                {formatSetMeasures(item.exercises.measurement_type, item.block, measuresFromRow(set), tm)}
+                {tags.length > 0 && <span className="text-foreground/70"> · {tags.join(" · ")}</span>}
+              </span>
+            );
+          })}
         </div>
+        {(item.tempo || item.per_side || item.scaled_notes_en || item.scaled_notes_ar) && (
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+            {item.tempo && <span className="font-mono">{tm("tempoValue", { value: item.tempo })}</span>}
+            {item.per_side && <span>{tm("perSide")}</span>}
+            {(item.scaled_notes_en || item.scaled_notes_ar) && <span>{tm("hasScaled")}</span>}
+          </div>
+        )}
       </div>
       {!readOnly && (
         <>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
-            <Pencil className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit} aria-label={t("editItem")} title={t("editItem")}>
+            <Pencil className="size-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onDuplicate} title={t("duplicateItem")}>
-            <Copy className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDuplicate} aria-label={t("duplicateItem")} title={t("duplicateItem")}>
+            <Copy className="size-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
-            <Trash2 className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete} aria-label={t("deleteItem")} title={t("deleteItem")}>
+            <Trash2 className="size-4" aria-hidden="true" />
           </Button>
         </>
       )}
@@ -199,11 +246,13 @@ function ActivityRow({
   onDelete: () => void;
 }) {
   const t = useTranslations("programs.activityDialog");
+  const tb = useTranslations("programs.builder");
+  const tm = useTranslations("measure");
   const Icon = CARDIO_ICON_BY_KIND[activity.kind as "cardio" | "recovery"];
   const parts = [
     t(`modalities.${activity.modality}`),
     activity.duration_min ? `${activity.duration_min} ${t("minShort")}` : null,
-    activity.distance_km ? `${activity.distance_km}km` : null,
+    activity.distance_km ? tm("km", { value: activity.distance_km }) : null,
     activity.intensity ? t(`intensities.${activity.intensity}`) : null,
   ].filter(Boolean);
 
@@ -213,11 +262,11 @@ function ActivityRow({
       <div className="min-w-0 flex-1 text-sm">{parts.join(" · ")}</div>
       {!readOnly && (
         <>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit}>
-            <Pencil className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onEdit} aria-label={tb("editActivity")} title={tb("editActivity")}>
+            <Pencil className="size-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete}>
-            <Trash2 className="size-4" />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onDelete} aria-label={tb("deleteActivity")} title={tb("deleteActivity")}>
+            <Trash2 className="size-4" aria-hidden="true" />
           </Button>
         </>
       )}
@@ -319,6 +368,7 @@ function DayCard({
   dietVariant,
   onEditDay,
   onDeleteDay,
+  onAddSession,
 }: {
   locale: AppLocale;
   programId: string;
@@ -331,11 +381,14 @@ function DayCard({
   dietVariant?: { id: string; name_ar: string; name_en: string; target_kcal: number | null };
   onEditDay: () => void;
   onDeleteDay: () => void;
+  /** Adds an extra session (AM/PM split) under this day; absent on a session itself. */
+  onAddSession?: () => void;
 }) {
   const t = useTranslations("programs.builder");
   const tErrors = useTranslations("programs.errors");
   const router = useRouter();
   const readOnly = week !== 1;
+  const isSession = day.parent_day_id != null;
   const [items, setItems] = useState(day.program_items);
   const [sectionOrder, setSectionOrder] = useState(() => normalizeSectionOrder(day.section_order));
   const [activityDialog, setActivityDialog] = useState<{
@@ -353,8 +406,14 @@ function DayCard({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
   const [groupPending, startGroupTransition] = useTransition();
+  // null = closed; "create" groups the selected items; otherwise edits that
+  // existing group (all of its member ids).
+  const [formatDialog, setFormatDialog] = useState<
+    { mode: "create" } | { mode: "edit"; ids: string[]; kind: GroupKind; config: GroupConfig | null } | null
+  >(null);
+  const tFormat = useTranslations("programs.builder.groupFormat");
 
-  const workoutItems = items.filter((i) => i.block === "warmup" || i.block === "main" || i.block === "cooldown");
+  const workoutItems = items.filter((i) => i.block !== "mobility" && i.block !== "rehab");
   const otherItems = items.filter((i) => i.block === "mobility" || i.block === "rehab");
 
   // Only sections that actually have content render, but the persisted order
@@ -395,6 +454,30 @@ function DayCard({
     }
   }
 
+  // Per-group format info for the chips: members, kind, config — read off the
+  // first member (the config is stored identically on every member).
+  const groupInfo = new Map<string, { ids: string[]; kind: GroupKind; config: GroupConfig }>();
+  for (const item of workoutItems) {
+    if (!item.group_key) continue;
+    const kind = asGroupKind(item.group_kind);
+    if (!kind) continue;
+    const existing = groupInfo.get(item.group_key);
+    if (existing) existing.ids.push(item.id);
+    else groupInfo.set(item.group_key, { ids: [item.id], kind, config: parseGroupConfig(item.group_config) });
+  }
+  function badgeFor(item: Item): { text: string; onEdit: () => void } | null {
+    if (!item.group_key) return null;
+    const info = groupInfo.get(item.group_key);
+    // Only the first member carries the chip, and plain superset/circuit
+    // groups keep their existing A1/A2-only look.
+    if (!info || info.ids[0] !== item.id || info.kind === "superset" || info.kind === "circuit") return null;
+    const detail = formatGroupConfig(info.kind, info.config);
+    return {
+      text: detail ? `${tFormat(`kinds.${info.kind}`)} ${detail}` : tFormat(`kinds.${info.kind}`),
+      onEdit: () => setFormatDialog({ mode: "edit", ids: info.ids, kind: info.kind, config: info.config }),
+    };
+  }
+
   function toggleSelect(itemId: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -404,7 +487,7 @@ function DayCard({
     });
   }
 
-  function makeGroup(kind: "superset" | "circuit") {
+  function makeGroup(kind: GroupKind) {
     const ids = Array.from(selected);
     if (ids.length < 2) return;
     startGroupTransition(async () => {
@@ -560,6 +643,7 @@ function DayCard({
                 locale={locale}
                 week={week}
                 groupLabel={groupLabels.get(item.id) ?? null}
+                groupBadge={badgeFor(item)}
                 selected={false}
                 onToggleSelect={() => {}}
                 onEdit={() => {}}
@@ -581,6 +665,7 @@ function DayCard({
                   locale={locale}
                   week={week}
                   groupLabel={groupLabels.get(item.id) ?? null}
+                groupBadge={badgeFor(item)}
                   selected={selected.has(item.id)}
                   onToggleSelect={() => toggleSelect(item.id)}
                   onEdit={() => setItemDialog({ item })}
@@ -605,6 +690,7 @@ function DayCard({
               locale={locale}
               week={week}
               groupLabel={null}
+              groupBadge={null}
               selected={false}
               onToggleSelect={() => {}}
               onEdit={() => setItemDialog({ item })}
@@ -644,7 +730,7 @@ function DayCard({
     >
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
         <CardTitle className="flex min-w-0 flex-wrap items-center gap-2 text-base">
-          {t("dayN", { n: day.day_index })}
+          {isSession ? t("sessionN", { n: day.day_index }) : t("dayN", { n: day.day_index })}
           {(day.label_ar || day.label_en) && (
             <span className="font-normal text-muted-foreground">— {pickLocale(day, locale, "label")}</span>
           )}
@@ -692,7 +778,8 @@ function DayCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEditDay}>{t("editDay")}</DropdownMenuItem>
-              <DropdownMenuItem onClick={duplicateDay}>{t("duplicateDay")}</DropdownMenuItem>
+              {!isSession && <DropdownMenuItem onClick={duplicateDay}>{t("duplicateDay")}</DropdownMenuItem>}
+              {onAddSession && !readOnly && <DropdownMenuItem onClick={onAddSession}>{t("addSession")}</DropdownMenuItem>}
               <DropdownMenuItem variant="destructive" onClick={onDeleteDay}>
                 {t("deleteDay")}
               </DropdownMenuItem>
@@ -713,6 +800,16 @@ function DayCard({
                 <Link2 className="size-4" />
                 {t("makeCircuit")}
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={groupPending}
+                onClick={() => setFormatDialog({ mode: "create" })}
+              >
+                <Link2 className="size-4" />
+                {t("makeTimedGroup")}
+              </Button>
             </>
           )}
           <Button type="button" variant="ghost" size="sm" disabled={groupPending} onClick={ungroupSelected}>
@@ -723,6 +820,25 @@ function DayCard({
             {t("clearSelection")}
           </Button>
         </div>
+      )}
+      {formatDialog && (
+        <GroupFormatDialog
+          key={formatDialog.mode === "edit" ? formatDialog.ids.join(",") : "create"}
+          open
+          onOpenChange={(open) => !open && setFormatDialog(null)}
+          initialKind={formatDialog.mode === "edit" ? formatDialog.kind : "amrap"}
+          initialConfig={formatDialog.mode === "edit" ? formatDialog.config : defaultGroupConfig("amrap")}
+          onConfirm={async (kind, config) => {
+            const dialog = formatDialog;
+            const result =
+              dialog.mode === "edit"
+                ? await setGroupFormatAction(locale, programId, dialog.ids, kind, config)
+                : await groupItemsAction(locale, programId, Array.from(selected), kind, config);
+            if (result?.error) return result;
+            if (dialog.mode === "create") setSelected(new Set());
+            router.refresh();
+          }}
+        />
       )}
       <CardContent className="flex flex-col gap-4">
         {items.length === 0 && day.program_activities.length === 0 && !hasNote ? (
@@ -832,9 +948,10 @@ export function ProgramBuilder({
   const tErrors = useTranslations("programs.errors");
   const router = useRouter();
   const [days, setDays] = useState(tree.program_days);
+  const weekPlan = parseWeekPlan(tree.week_plan);
   const [week, setWeek] = useState(1);
   const readOnly = week !== 1;
-  const [dayDialog, setDayDialog] = useState<{ day?: Day } | null>(null);
+  const [dayDialog, setDayDialog] = useState<{ day?: Day; parentDayId?: string } | null>(null);
   const [pendingDeleteDay, setPendingDeleteDay] = useState<string | null>(null);
   const [pendingDeleteProgram, setPendingDeleteProgram] = useState(false);
   const [deletePending, startDeleteTransition] = useTransition();
@@ -845,15 +962,17 @@ export function ProgramBuilder({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const fromIndex = days.findIndex((d) => d.id === active.id);
-    const toIndex = days.findIndex((d) => d.id === over.id);
+    // Only calendar days are reordered; a day's extra sessions stay attached to it.
+    const calendar = primaryDays(days);
+    const fromIndex = calendar.findIndex((d) => d.id === active.id);
+    const toIndex = calendar.findIndex((d) => d.id === over.id);
     if (fromIndex === -1 || toIndex === -1) return;
 
     const previous = days;
-    const reordered = [...days];
+    const reordered = [...calendar];
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
-    setDays(reordered);
+    setDays([...reordered, ...days.filter((d) => d.parent_day_id != null)]);
 
     startReorderTransition(async () => {
       const result = await reorderDaysAction(
@@ -887,11 +1006,46 @@ export function ProgramBuilder({
     });
   }
 
+  const calendarDays = primaryDays(days);
+
+  /** One calendar day's card, with its extra sessions nested beneath it. */
+  function renderDay(day: Day) {
+    return (
+      <div key={day.id} className="flex flex-col gap-3">
+        <DayCard
+          locale={locale}
+          programId={tree.id}
+          day={day}
+          week={week}
+          rehabPhases={rehabPhases}
+          dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
+          onEditDay={() => setDayDialog({ day })}
+          onDeleteDay={() => setPendingDeleteDay(day.id)}
+          onAddSession={() => setDayDialog({ parentDayId: day.id })}
+        />
+        {sessionsOf(days, day.id).map((session) => (
+          <div key={session.id} className="ms-6 border-s-2 border-border ps-3">
+            <DayCard
+              locale={locale}
+              programId={tree.id}
+              day={session}
+              week={week}
+              rehabPhases={rehabPhases}
+              onEditDay={() => setDayDialog({ day: session })}
+              onDeleteDay={() => setPendingDeleteDay(session.id)}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const nextDayIndex = days.length === 0 ? 1 : Math.max(...days.map((d) => d.day_index)) + 1;
   const rehabPhases = tree.rehab_protocols.flatMap((p) => p.rehab_phases);
   const [sidebarTab, setSidebarTab] = useState<"exercises" | "nutrition" | "rehab">("exercises");
 
   return (
+    <WeekPlanContext.Provider value={weekPlan}>
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -903,16 +1057,21 @@ export function ProgramBuilder({
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <select
               value={week}
+              aria-label={t("weekSelect")}
               onChange={(e) => setWeek(Number(e.target.value))}
               className="h-9 rounded-md border border-input bg-transparent px-2 text-base md:text-sm"
             >
-              {Array.from({ length: MAX_PROGRAM_WEEKS }, (_, i) => i + 1).map((w) => (
-                <option key={w} value={w}>
-                  {t("week", { n: w })}
-                </option>
-              ))}
+              {Array.from({ length: MAX_PROGRAM_WEEKS }, (_, i) => i + 1).map((w) => {
+                const name = weekLabel(modifierForWeek(weekPlan, w), locale) ?? (isDeloadWeek(weekPlan, w) ? t("deloadWeek") : null);
+                return (
+                  <option key={w} value={w}>
+                    {name ? `${t("week", { n: w })} · ${name}` : t("week", { n: w })}
+                  </option>
+                );
+              })}
             </select>
           </label>
+          <WeekPlanDialog locale={locale} programId={tree.id} plan={weekPlan} />
           {readOnly && <span className="text-xs text-muted-foreground">{t("weekReadOnlyHint")}</span>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -950,37 +1109,13 @@ export function ProgramBuilder({
             </Card>
           ) : readOnly ? (
             <div className="flex flex-col gap-4">
-              {days.map((day) => (
-                <DayCard
-                  key={day.id}
-                  locale={locale}
-                  programId={tree.id}
-                  day={day}
-                  week={week}
-                  rehabPhases={rehabPhases}
-                  dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
-                  onEditDay={() => setDayDialog({ day })}
-                  onDeleteDay={() => setPendingDeleteDay(day.id)}
-                />
-              ))}
+              {calendarDays.map(renderDay)}
             </div>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={days.map((d) => d.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={calendarDays.map((d) => d.id)} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-col gap-4">
-                  {days.map((day) => (
-                    <DayCard
-                      key={day.id}
-                      locale={locale}
-                      programId={tree.id}
-                      day={day}
-                      week={week}
-                      rehabPhases={rehabPhases}
-                      dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
-                      onEditDay={() => setDayDialog({ day })}
-                      onDeleteDay={() => setPendingDeleteDay(day.id)}
-                    />
-                  ))}
+                  {calendarDays.map(renderDay)}
                 </div>
               </SortableContext>
             </DndContext>
@@ -1006,7 +1141,13 @@ export function ProgramBuilder({
           )}
           {!readOnly && sidebarTab === "exercises" && <ExerciseSidebar locale={locale} programId={tree.id} days={days} />}
           {!readOnly && sidebarTab === "nutrition" && (
-            <NutritionPanel locale={locale} programId={tree.id} days={days} variants={tree.diet_variants} />
+            <NutritionPanel
+              locale={locale}
+              programId={tree.id}
+              days={calendarDays}
+              sessionCount={days.length - calendarDays.length}
+              variants={tree.diet_variants}
+            />
           )}
           {!readOnly && sidebarTab === "rehab" && (
             <RehabPanel
@@ -1026,6 +1167,7 @@ export function ProgramBuilder({
           programId={tree.id}
           nextDayIndex={nextDayIndex}
           day={dayDialog.day}
+          parentDayId={dayDialog.parentDayId}
           scheduleMode={tree.schedule_mode as "cycle" | "weekly"}
           open={!!dayDialog}
           onOpenChange={(open) => !open && setDayDialog(null)}
@@ -1049,5 +1191,6 @@ export function ProgramBuilder({
         pending={deletePending}
       />
     </div>
+    </WeekPlanContext.Provider>
   );
 }

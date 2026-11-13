@@ -814,7 +814,8 @@
       "emptyDescription": "Widen the date range or pick another exercise. Sets appear here once the client logs a workout.",
       "error": "Couldn't load the weight history.",
       "errorDescription": "Something went wrong while loading. Try again.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "groupLine": "{sets} × {value}"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -1153,8 +1154,12 @@
         "notes": "Notes (optional)",
         "save": "Save",
         "saveFailed": "Couldn't save — try again.",
-        "entryLocked": "This entry is more than 7 days old and can no longer be changed."
-      }
+        "entryLocked": "This entry is more than 7 days old and can no longer be changed.",
+        "kcal": "Calories (kcal)",
+        "avgHr": "Avg heart rate (bpm)",
+        "rpe": "How hard was it? (RPE)"
+      },
+      "sessionN": "Session {n}"
     },
     "plan": {
       "title": "Plan",
@@ -1166,7 +1171,8 @@
       "doneMeta": "Done · {minutes} min",
       "exerciseCount": "{count} exercises",
       "today": "Today",
-      "historyLink": "History"
+      "historyLink": "History",
+      "sessionN": "Session {n}"
     },
     "workout": {
       "setsDone": "{done} / {total} sets",
@@ -1267,7 +1273,42 @@
         "incomplete": "Incomplete",
         "editSets": "Edit sets",
         "backToProgram": "Back to program"
-      }
+      },
+      "timed": {
+        "start": "Start",
+        "enterWithoutTimer": "Enter result without the timer",
+        "finishEarly": "Stop and score",
+        "roundDone": "Round done",
+        "roundsCount": "{count, plural, one {# round} other {# rounds}}",
+        "roundsAndReps": "{rounds, plural, one {# round} other {# rounds}} + {reps, plural, one {# rep} other {# reps}}",
+        "roundOf": "Round {round} of {total}",
+        "work": "Work",
+        "rest": "Rest",
+        "capLeft": "Cap in {time}",
+        "elapsedOf": "Elapsed {elapsed}",
+        "enterScore": "Enter your score",
+        "score": "Score",
+        "editScore": "Edit score",
+        "saveScore": "Save score",
+        "minutes": "Minutes",
+        "seconds": "Seconds",
+        "rounds": "Rounds",
+        "extraReps": "Extra reps",
+        "splits": "Splits",
+        "rxLabel": "As prescribed or scaled",
+        "rx": "Rx",
+        "scaled": "Scaled",
+        "capHit": "Time cap",
+        "saveFailed": "Couldn't save your score. Try again.",
+        "hint": {
+          "amrap": "As many rounds as possible before time runs out.",
+          "emom": "Start a new round every interval.",
+          "for_time": "Finish all rounds as fast as you can.",
+          "tabata": "Work and rest on the clock."
+        }
+      },
+      "weekChip": "Week {n} · {name}",
+      "deloadWeek": "Deload"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -1922,7 +1963,44 @@
         "6": "Sat"
       },
       "duplicateItem": "Duplicate exercise",
-      "duplicateDay": "Duplicate day"
+      "duplicateDay": "Duplicate day",
+      "makeTimedGroup": "Make timed / giant set…",
+      "groupFormat": {
+        "title": "Group format",
+        "kind": "Format",
+        "kinds": {
+          "superset": "Superset",
+          "circuit": "Circuit",
+          "giant_set": "Giant set",
+          "amrap": "AMRAP",
+          "emom": "EMOM",
+          "for_time": "For time",
+          "tabata": "Tabata"
+        },
+        "hints": {
+          "superset": "Two exercises back to back, then rest.",
+          "circuit": "Move through all exercises, then rest between rounds.",
+          "giant_set": "Three or more exercises back to back, then rest.",
+          "amrap": "As many rounds as possible before the time cap.",
+          "emom": "A new round starts every interval, for a set number of rounds.",
+          "for_time": "Finish the rounds as fast as possible; split time per round.",
+          "tabata": "Repeating work and rest intervals."
+        },
+        "timeCapMin": "Time cap (minutes)",
+        "timeCapMinOptional": "Time cap (minutes, optional)",
+        "rounds": "Rounds",
+        "intervalSec": "Interval (seconds)",
+        "workSec": "Work (seconds)",
+        "restSec": "Rest (seconds)"
+      },
+      "deloadWeek": "Deload",
+      "addSession": "Add a second session",
+      "sessionN": "Session · day {n}",
+      "dragItem": "Drag to reorder",
+      "editItem": "Edit exercise",
+      "deleteItem": "Delete exercise",
+      "editActivity": "Edit activity",
+      "weekSelect": "Week to view"
     },
     "dayDialog": {
       "addTitle": "Add day",
@@ -1933,7 +2011,9 @@
       "weekday": "Weekday",
       "weekdayPlaceholder": "Select a weekday",
       "notesAr": "Coach note (Arabic, optional)",
-      "notesEn": "Coach note (English, optional)"
+      "notesEn": "Coach note (English, optional)",
+      "addSessionTitle": "Add a session to this day",
+      "editSessionTitle": "Edit session"
     },
     "itemDialog": {
       "addTitle": "Add exercise",
@@ -1965,7 +2045,9 @@
         "main": "Main",
         "cooldown": "Cool-down",
         "mobility": "Mobility",
-        "rehab": "Rehab"
+        "rehab": "Rehab",
+        "accessory": "Accessory",
+        "finisher": "Finisher"
       },
       "rehabPhase": "Rehab phase",
       "rehabPhaseNone": "No specific phase — shows every week",
@@ -1988,7 +2070,22 @@
       "duplicateSet": "Add set",
       "summaryReps": "<m>{sets}</m> {sets, plural, one {set} other {sets}} · <m>{total}</m> {total, plural, one {rep} other {reps}}",
       "summaryHolds": "<m>{sets}</m> {sets, plural, one {hold} other {holds}} · <m>{total}</m> sec",
-      "close": "Close"
+      "close": "Close",
+      "summarySets": "<m>{sets}</m> {sets, plural, one {set} other {sets}}",
+      "targets": {
+        "title": "Set targets",
+        "hint": "Set type, rep range, %1RM, RPE and RIR. The athlete's load is worked out from their logged history when you use %1RM.",
+        "setType": "Set type",
+        "repsMax": "Reps to",
+        "pct1rm": "% 1RM",
+        "rpe": "RPE",
+        "rir": "RIR"
+      },
+      "tempo": "Tempo",
+      "perSide": "Prescription is per side",
+      "scaledAr": "Scaled option (Arabic)",
+      "scaledEn": "Scaled option (English)",
+      "scaledHint": "What to swap or reduce for athletes who can't do it as prescribed."
     },
     "activityDialog": {
       "addTitle": "Add cardio/recovery",
@@ -2050,7 +2147,8 @@
       "customize": "Customize",
       "customizeHint": "Clone this plan just for this day, without affecting other days sharing it",
       "dayCount": "{count, plural, =0 {No days} one {# day} other {# days}}",
-      "duplicate": "Duplicate plan"
+      "duplicate": "Duplicate plan",
+      "sessionsShareDiet": "A day's extra sessions share that day's meal plan."
     },
     "rehab": {
       "title": "Rehab",
@@ -2085,7 +2183,8 @@
       "loading": "Searching...",
       "noResults": "No exercises match.",
       "allGroups": "All",
-      "dayFallback": "Day {n}"
+      "dayFallback": "Day {n}",
+      "daySelect": "Add exercises to day"
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -2093,7 +2192,11 @@
       "not_found_or_forbidden": "You can't change this program.",
       "end_date_before_start_date": "End date can't be before the start date.",
       "unknown": "Something went wrong. Please try again.",
-      "group_not_contiguous": "Superset/circuit items must stay next to each other."
+      "group_not_contiguous": "Superset/circuit items must stay next to each other.",
+      "group_config_incomplete": "Fill in the numbers this format needs.",
+      "reps_range_invalid": "The top of the rep range can't be lower than the starting reps.",
+      "group_selection_invalid": "Select exercises from the same day, and select a whole group or none of it.",
+      "session_parent_invalid": "A session can only be added to a day, not to another session."
     },
     "revisions": {
       "title": "History",
@@ -2128,6 +2231,78 @@
       "lightboxTitle": "{name} — full size",
       "noMedia": "No media",
       "loadFailed": "Couldn't load media"
+    },
+    "planMeta": {
+      "planType": "Plan type",
+      "goal": "Goal",
+      "level": "Level",
+      "equipment": "Equipment",
+      "notSet": "Not set",
+      "allTypes": "All plan types"
+    },
+    "planTypes": {
+      "strength": "Strength / powerlifting",
+      "hypertrophy": "Hypertrophy / bodybuilding",
+      "crossfit": "CrossFit / functional",
+      "hyrox": "Hyrox",
+      "combat": "Combat conditioning",
+      "calisthenics": "Calisthenics",
+      "hybrid": "Hybrid athlete",
+      "endurance": "Endurance",
+      "hiit": "HIIT / circuits",
+      "mobility": "Mobility / rehab",
+      "general": "General fitness",
+      "sport": "Sport-specific",
+      "weightlifting": "Olympic weightlifting",
+      "home": "Home / minimal equipment"
+    },
+    "goals": {
+      "strength": "Get stronger",
+      "muscle": "Build muscle",
+      "fat_loss": "Lose fat",
+      "endurance": "Build endurance",
+      "performance": "Athletic performance",
+      "mobility": "Mobility & recovery",
+      "general": "General fitness"
+    },
+    "levels": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "starters": {
+      "button": "Start from a template",
+      "title": "Starter templates",
+      "description": "Pick a ready-made plan. It becomes your own template that you can edit and assign to clients.",
+      "days": "{count, plural, one {# training day} other {# training days}}",
+      "use": "Use",
+      "adding": "Adding…",
+      "skipped": "Some exercises aren't in the library and were left out: {names}"
+    },
+    "propagate": {
+      "button": "Update from template",
+      "title": "Update this client's plan?",
+      "description": "Replaces their copy with the template as it is now, on the same dates. The old copy moves to Trash and their logged workouts stay with it.",
+      "confirm": "Update",
+      "success": "Plan updated from the template."
+    },
+    "weekPlan": {
+      "button": "Plan weeks",
+      "title": "Week plan",
+      "description": "Name each week and shape its load. Load % and rep change apply on top of each exercise's progression; a deload week resets to week 1's sets first. Week 1 is the base you edit.",
+      "week": "Week",
+      "weekN": "Wk {n}",
+      "name": "Name",
+      "loadPct": "Load %",
+      "repsDelta": "Reps ±",
+      "deload": "Deload",
+      "deloadShort": "Deload",
+      "build": "Build",
+      "fillMesocycle": "3 build + 1 deload",
+      "reset": "Reset to default",
+      "saved": "Week plan saved.",
+      "nameEn": "Name (English)",
+      "nameAr": "Name (Arabic)"
     }
   },
   "library": {
@@ -2222,7 +2397,13 @@
       },
       "thumbnailUrl": "Thumbnail URL",
       "videoUrlAlt": "Alternate-angle video link",
-      "linesPlaceholder": "One per line"
+      "linesPlaceholder": "One per line",
+      "measurementType": "How it's measured",
+      "measurementTypeHint": "Decides which inputs coaches and clients see for this exercise: reps, time, distance, calories...",
+      "skillGroup": "Skill ladder (optional)",
+      "skillNone": "Not part of a ladder",
+      "skillLevel": "Level",
+      "skillHint": "Make this exercise a rung of a skill ladder (e.g. Tuck Planche = Planche, level 2). Athletes see their highest logged rung under Skill progress."
     },
     "food": {
       "add": "Add food",
@@ -2275,7 +2456,8 @@
       "already_global": "This entry is already in the global library.",
       "already_cloned": "You already have your own version of this entry.",
       "unknown": "Something went wrong. Please try again.",
-      "upgrade_required": "Your plan doesn't include adding your own exercises and foods. Upgrade to add more."
+      "upgrade_required": "Your plan doesn't include adding your own exercises and foods. Upgrade to add more.",
+      "skill_incomplete": "Pick both a skill ladder and a level, or leave both empty."
     },
     "basedOn": "Based on: {name}",
     "clone": "Clone & Customize",
@@ -3349,11 +3531,36 @@
       "title": "Personal records",
       "emptyTitle": "No PRs yet",
       "emptyDescription": "Log weight and reps during a session to start tracking personal records.",
-      "estimated1rm": "Est. 1RM {value}kg"
+      "estimated1rm": "Est. 1RM {value}kg",
+      "maxReps": "Max {value} reps",
+      "longest": "Longest {value}",
+      "farthest": "Farthest {value}",
+      "bestPace": "Best pace {value} /km",
+      "maxCalories": "Best {value} kcal",
+      "estimateNote": "Estimated 1RM uses sets of up to 12 reps (up to 3 for Olympic lifts). Higher-rep sets still count toward your heaviest weight."
     },
     "planStory": {
       "title": "My Plan Story",
       "empty": "No coaching decisions yet — they'll show up here once your coach reviews a check-in."
+    },
+    "scores": {
+      "title": "Workout scores"
+    },
+    "skills": {
+      "title": "Skill progress",
+      "level": "Level {level} of {total}",
+      "next": "Next: {name}",
+      "top": "Top of the ladder reached.",
+      "groups": {
+        "push_up": "Push-up",
+        "pull_up": "Pull-up",
+        "muscle_up": "Muscle-up",
+        "planche": "Planche",
+        "front_lever": "Front lever",
+        "handstand": "Handstand",
+        "pistol_squat": "Pistol squat",
+        "l_sit": "L-sit"
+      }
     }
   },
   "billing": {
@@ -3586,84 +3793,6 @@
         "schedule_fit": "Fitting the schedule",
         "other": "Other"
       }
-    }
-  },
-  "onboarding": {
-    "kicker": "Step {step} of {total}",
-    "steps": {
-      "trainingMode": "How you train",
-      "import": "Import clients",
-      "mapping": "Match columns",
-      "template": "Starter form",
-      "send": "First send",
-      "done": "Dashboard"
-    },
-    "trainingMode": {
-      "title": "How do you train?",
-      "subtitle": "This picks the forms and programs we set up for you. You can change it later.",
-      "options": {
-        "online": {
-          "title": "Online only",
-          "body": "All clients remote, followed up through forms and video"
-        },
-        "hybrid": {
-          "title": "Online and in-person",
-          "body": "A mix — gym and online clients together"
-        },
-        "in_person": {
-          "title": "In-person only",
-          "body": "All training happens at the gym; the app handles follow-up and billing"
-        }
-      }
-    },
-    "import": {
-      "title": "Bring your clients",
-      "subtitle": "Most coaches keep their list in Excel or Notes. Paste it exactly as it is.",
-      "placeholder": "Name\tPhone\tGoal\tFee",
-      "parsed": "Found {rows} rows · {cols} columns",
-      "empty": "No data yet"
-    },
-    "mapping": {
-      "title": "Match the columns",
-      "subtitle": "We guessed the mapping from the shape of your data. Fix anything that's wrong.",
-      "fields": {
-        "name": "Name",
-        "phone": "Mobile number",
-        "goal": "Goal",
-        "fee": "Monthly fee",
-        "skip": "Ignore column"
-      },
-      "submit": "Import {count} clients"
-    },
-    "template": {
-      "title": "Choose a starter form",
-      "subtitle": "Ready to go. You can edit it in the builder afterward.",
-      "options": {
-        "intake": "Intake form",
-        "checkin": "Weekly check-in",
-        "diet": "Diet diary"
-      }
-    },
-    "send": {
-      "title": "Send the first check-in",
-      "subtitle": "Choose who gets it now. The rest can wait until their programs are ready.",
-      "whatsapp": "Send on WhatsApp",
-      "messageBody": "Hey! This is your weekly check-in from your coach.\n\n5 questions, two minutes, no account needed:\n{joinUrl}",
-      "submit": "Send to {count} clients"
-    },
-    "done": {
-      "title": "You're live.",
-      "subtitle": "Everything else — programs, billing — you can set up at your own pace.",
-      "clients": "Clients imported",
-      "sent": "Invites sent",
-      "cta": "Go to dashboard"
-    },
-    "errors": {
-      "invalid_input": "Please check the form and try again.",
-      "not_authenticated": "Please log in again.",
-      "save_failed": "Something went wrong. Please try again.",
-      "no_rows": "No valid rows found. Check the pasted data.",
-      "template_failed": "Couldn't create the template. Please try again."
     }
   },
   "diets": {
@@ -4876,5 +5005,110 @@
       "body": "Open a workout once while you’re online and it will be available here without a connection.",
       "resume": "Resume workout"
     }
+  },
+  "measure": {
+    "types": {
+      "weight_reps": "Weight × reps",
+      "bodyweight_reps": "Bodyweight reps (optional added weight)",
+      "assisted_bw": "Assisted bodyweight",
+      "duration": "Time / hold",
+      "distance": "Distance",
+      "distance_duration": "Distance + time",
+      "calories": "Calories (machines)",
+      "weight_duration": "Weight + time",
+      "weight_distance": "Weight + distance",
+      "reps_duration": "Reps + time (AMRAP / EMOM)",
+      "intervals": "Intervals / rounds",
+      "cardio_machine": "Cardio machine (level, incline, speed)",
+      "steps_laps": "Steps / laps"
+    },
+    "fields": {
+      "weightKg": "Weight (kg)",
+      "assistKg": "Assistance (kg)",
+      "reps": "Reps",
+      "durationS": "Time (s)",
+      "durationMin": "Time (min)",
+      "distanceM": "Distance (m)",
+      "distanceKm": "Distance (km)",
+      "calories": "Calories (kcal)",
+      "rounds": "Rounds",
+      "work": "Work (s)",
+      "restInterval": "Rest (s)",
+      "level": "Level",
+      "incline": "Incline (%)",
+      "speed": "Speed (km/h)",
+      "laps": "Laps",
+      "steps": "Steps"
+    },
+    "unit": {
+      "reps": "reps",
+      "seconds": "s",
+      "meters": "m",
+      "pace": "s/km",
+      "kcal": "kcal",
+      "kg": "kg",
+      "km": "km",
+      "percent": "%",
+      "hours": "h"
+    },
+    "kg": "{value} kg",
+    "assist": "{value} kg assist",
+    "bodyweight": "BW",
+    "repsCount": "{value} reps",
+    "minutes": "{value} min",
+    "seconds": "{value} s",
+    "km": "{value} km",
+    "meters": "{value} m",
+    "kcal": "{value} kcal",
+    "extra": {
+      "rounds": "{value} rounds",
+      "work": "{value} s work",
+      "restInterval": "{value} s rest",
+      "level": "level {value}",
+      "incline": "{value}% incline",
+      "speed": "{value} km/h",
+      "laps": "{value} laps",
+      "steps": "{value} steps"
+    },
+    "decrease": "Decrease {field}",
+    "increase": "Increase {field}",
+    "more": "More",
+    "summary": {
+      "distance": "Distance",
+      "timeUnderEffort": "Work time",
+      "calories": "Calories"
+    },
+    "sheet": {
+      "rir": "Reps in reserve (RIR)",
+      "setType": "Set type",
+      "setTypes": {
+        "warmup": "Warm-up",
+        "drop": "Drop set",
+        "failure": "To failure",
+        "backoff": "Back-off",
+        "amrap": "AMRAP"
+      },
+      "side": "Side",
+      "sides": {
+        "left": "Left",
+        "right": "Right"
+      }
+    },
+    "pctOneRm": "{value}% 1RM",
+    "setTypes": {
+      "working": "Working",
+      "warmup": "Warm-up",
+      "backoff": "Back-off",
+      "drop": "Drop set",
+      "failure": "To failure",
+      "amrap": "AMRAP"
+    },
+    "targets": {
+      "rpe": "RPE {value}",
+      "rir": "{value} RIR"
+    },
+    "tempoValue": "Tempo {value}",
+    "perSide": "Each side",
+    "hasScaled": "Scaled option"
   }
 }

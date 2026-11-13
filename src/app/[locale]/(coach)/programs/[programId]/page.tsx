@@ -9,6 +9,8 @@ import { formatDate } from "@/lib/format";
 import { Link } from "@/i18n/navigation";
 import { ProgramBuilder } from "./program-builder";
 import { EditNameDialog } from "./edit-name-dialog";
+import { PlanMetaBadges } from "../plan-meta-badges";
+import { UpdateFromTemplateButton } from "./update-from-template-button";
 import { PendingAdjustmentsBanner, type PendingAdjustmentCheckin } from "./pending-adjustments-banner";
 
 export default async function ProgramDetailPage({
@@ -52,6 +54,12 @@ export default async function ProgramDetailPage({
                 programId={tree.id}
                 nameAr={tree.name_ar}
                 nameEn={tree.name_en}
+                meta={{
+                  plan_type: tree.plan_type ?? "",
+                  goal: tree.goal ?? "",
+                  level: tree.level ?? "",
+                  equipment: tree.equipment,
+                }}
               />
             </div>
             <p className="text-sm text-muted-foreground">
@@ -64,6 +72,9 @@ export default async function ProgramDetailPage({
                     })
                   : `${formatDate(tree.start_date, locale)} · ${t("ongoing")}`}
             </p>
+            <div className="mt-1.5">
+              <PlanMetaBadges planType={tree.plan_type} goal={tree.goal} level={tree.level} />
+            </div>
           </div>
           {isTemplate && <Badge variant="secondary">{t("template")}</Badge>}
         </div>
@@ -83,13 +94,16 @@ export default async function ProgramDetailPage({
           </p>
           <ul className="mt-2 flex flex-col gap-1">
             {clonedInstances.map((instance) => (
-              <li key={instance.id}>
+              <li key={instance.id} className="flex items-center justify-between gap-3">
                 <Link
                   href={`/programs/${instance.id}`}
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
                   {instance.clients?.display_name ?? "—"}
                 </Link>
+                {!instance.archived_at && (
+                  <UpdateFromTemplateButton locale={locale} templateId={tree.id} programId={instance.id} />
+                )}
               </li>
             ))}
           </ul>

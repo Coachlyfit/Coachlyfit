@@ -54,6 +54,7 @@ export async function createExerciseAction(locale: string, formData: FormData): 
     name_ar: formData.get("name_ar"),
     name_en: formData.get("name_en"),
     muscle_group: formData.get("muscle_group") || undefined,
+    measurement_type: formData.get("measurement_type") || undefined,
     equipment: formData.get("equipment") || undefined,
     video_url: formData.get("video_url") || undefined,
     image_url: formData.get("image_url") || undefined,
@@ -73,6 +74,8 @@ export async function createExerciseAction(locale: string, formData: FormData): 
     primary_muscles: formData.get("primary_muscles") || undefined,
     secondary_muscles: formData.get("secondary_muscles") || undefined,
     difficulty: formData.get("difficulty") || undefined,
+    skill_group: formData.get("skill_group") || undefined,
+    skill_level: formData.get("skill_level") ? Number(formData.get("skill_level")) : undefined,
     thumbnail_url: formData.get("thumbnail_url") || undefined,
     video_url_alt: formData.get("video_url_alt") || undefined,
     // Present only on the clone flow — the dialog hides this field entirely
@@ -80,6 +83,7 @@ export async function createExerciseAction(locale: string, formData: FormData): 
     source_exercise_id: formData.get("source_exercise_id") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
+  if (!!parsed.data.skill_group !== (parsed.data.skill_level != null)) return { error: "skill_incomplete" };
 
   const supabase = await createClient();
   const coachId = await resolveCoachId(supabase);
@@ -103,6 +107,7 @@ export async function createExerciseAction(locale: string, formData: FormData): 
   try {
     await new LibraryService(supabase).createExercise(coachId, {
       ...input,
+      skill_group: input.skill_group || undefined,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
       thumbnail_url: thumbnail_url || undefined,
@@ -171,6 +176,7 @@ export async function updateExerciseAction(
     name_ar: formData.get("name_ar"),
     name_en: formData.get("name_en"),
     muscle_group: formData.get("muscle_group") || undefined,
+    measurement_type: formData.get("measurement_type") || undefined,
     equipment: formData.get("equipment") || undefined,
     video_url: formData.get("video_url") || undefined,
     image_url: formData.get("image_url") || undefined,
@@ -190,10 +196,13 @@ export async function updateExerciseAction(
     primary_muscles: formData.get("primary_muscles") || undefined,
     secondary_muscles: formData.get("secondary_muscles") || undefined,
     difficulty: formData.get("difficulty") || undefined,
+    skill_group: formData.get("skill_group") || undefined,
+    skill_level: formData.get("skill_level") ? Number(formData.get("skill_level")) : undefined,
     thumbnail_url: formData.get("thumbnail_url") || undefined,
     video_url_alt: formData.get("video_url_alt") || undefined,
   });
   if (!parsed.success) return { error: "invalid_input" };
+  if (!!parsed.data.skill_group !== (parsed.data.skill_level != null)) return { error: "skill_incomplete" };
 
   const supabase = await createClient();
   const {
@@ -219,6 +228,9 @@ export async function updateExerciseAction(
   try {
     const updated = await new LibraryService(supabase).updateExercise(id, {
       ...input,
+      // A blank skill on an edit CLEARS the rung (the form always sends what it shows).
+      skill_group: input.skill_group || null,
+      skill_level: input.skill_level ?? null,
       video_url: video_url || undefined,
       image_url: image_url || undefined,
       thumbnail_url: thumbnail_url || undefined,

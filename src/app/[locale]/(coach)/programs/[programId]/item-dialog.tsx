@@ -14,6 +14,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { ProgressionRule } from "@/domain/programs/progression";
+import { SET_TYPES } from "@/domain/programs/set-targets";
+import {
+  EXTRA_KEYS,
+  fieldLabelKey,
+  inputRule,
+  isAssisted,
+  isExtraField,
+  measurementFields,
+  durationUnit,
+  type MeasureField,
+} from "@/domain/library/measurement";
+import { defaultEnteredSet, setToEntered, setToStored, type SetPayload } from "@/domain/workouts/set-measures";
 import { itemSchema, type ItemFormInput } from "../schemas";
 import { addItemAction, updateItemAction } from "../actions";
 import { ExercisePicker } from "./exercise-picker";
@@ -24,6 +36,14 @@ type ExistingItemSet = {
   duration_seconds: number | null;
   weight: number | null;
   rest_seconds: number | null;
+  distance_m: number | null;
+  calories: number | null;
+  extra: unknown;
+  set_type: string;
+  reps_max: number | null;
+  pct_1rm: number | null;
+  rpe_target: number | null;
+  rir_target: number | null;
 };
 type ExistingItem = {
   id: string;
@@ -34,6 +54,10 @@ type ExistingItem = {
   block: string;
   rehab_phase_id: string | null;
   coach_note_private: string | null;
+  tempo: string | null;
+  per_side: boolean;
+  scaled_notes_ar: string | null;
+  scaled_notes_en: string | null;
   exercises: PickedExercise;
   program_item_sets: ExistingItemSet[]; // must already be ordered by set_index
 };
@@ -47,11 +71,28 @@ const PROGRESSION_RULES: { value: ProgressionRule; labelKey: string }[] = [
   { value: "plus_1_rep_week", labelKey: "progressionPlus1Rep" },
 ];
 
-const BLOCKS = ["warmup", "main", "cooldown", "mobility", "rehab"] as const;
+const BLOCKS = ["warmup", "main", "accessory", "finisher", "cooldown", "mobility", "rehab"] as const;
 
-const SETS_GRID = "grid grid-cols-[2rem_repeat(3,minmax(0,1fr))_2.75rem] items-center gap-2";
+const SETS_GRID = "grid items-center gap-2";
+/** Target column -> the set field it edits. */
+const TARGET_FIELD = { repsMax: "reps_max", pct1rm: "pct_1rm", rpe: "rpe_target", rir: "rir_target" } as const;
 // 44px tall with 16px text on mobile (no iOS zoom), denser from md up.
 const SET_INPUT = "h-11 font-mono font-semibold tabular-nums md:h-9";
+
+/** RHF path for a measure's input. Column fields map 1:1 to set keys;
+ * extra metrics live under `extra`. (The cast is only because RHF's path
+ * type can't see through the nullable `extra` object.) */
+function setFieldPath(index: number, field: MeasureField) {
+  const column: Partial<Record<MeasureField, string>> = {
+    weight: "weight",
+    reps: "reps",
+    duration: "duration_seconds",
+    distance: "distance_m",
+    calories: "calories",
+  };
+  const path = isExtraField(field) ? `extra.${EXTRA_KEYS[field]}` : column[field];
+  return `sets.${index}.${path}` as `sets.${number}.reps`;
+}
 
 const mono = (chunks: React.ReactNode) => (
   <bdi className="font-mono font-semibold tabular-nums text-foreground">{chunks}</bdi>
@@ -89,11 +130,19 @@ export function ItemDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("programs.itemDialog");
+  const tm = useTranslations("measure");
   const tErrors = useTranslations("programs.errors");
   const tCommon = useTranslations("common");
   const exerciseMeta = useExerciseMeta();
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+  const [targetsOpen] = useState(
+    () =>
+      !!item &&
+      item.program_item_sets.some(
+        (s) => s.set_type !== "working" || s.reps_max != null || s.pct_1rm != null || s.rpe_target != null || s.rir_target != null
+      )
+  );
   const [selectedExercise, setSelectedExercise] = useState<PickedExercise | null>(
     item?.exercises ?? initialExercise ?? null
   );
@@ -105,7 +154,16 @@ export function ItemDialog({
   const [notesOpen] = useState(
     () =>
       !!item &&
-      !!(item.notes_ar || item.notes_en || item.coach_note_private || item.progression_rule !== "none")
+      !!(
+        item.notes_ar ||
+        item.notes_en ||
+        item.coach_note_private ||
+        item.tempo ||
+        item.per_side ||
+        item.scaled_notes_ar ||
+        item.scaled_notes_en ||
+        item.progression_rule !== "none"
+      )
   );
 
   const {
@@ -121,50 +179,98 @@ export function ItemDialog({
     defaultValues: item
       ? {
           exercise_id: item.exercise_id,
+          // Entered units (minutes / km / positive assistance) — see
+          // set-measures.ts; setToStored converts back on submit.
           sets:
             item.program_item_sets.length > 0
-              ? item.program_item_sets.map((s) => ({
-                  reps: s.reps ?? undefined,
-                  duration_seconds: s.duration_seconds ?? undefined,
-                  weight: s.weight ?? undefined,
-                  rest_seconds: s.rest_seconds ?? undefined,
-                }))
-              : [{ reps: 10 }],
+              ? item.program_item_sets.map((s) => setToEntered(item.exercises.measurement_type, item.block, s))
+              : [defaultEnteredSet(item.exercises.measurement_type, item.block)],
           progression_rule: item.progression_rule as ProgressionRule,
           notes_ar: item.notes_ar ?? "",
           notes_en: item.notes_en ?? "",
           block: item.block as ItemFormInput["block"],
           rehab_phase_id: item.rehab_phase_id ?? "",
           coach_note_private: item.coach_note_private ?? "",
+          tempo: item.tempo ?? "",
+          per_side: item.per_side,
+          scaled_notes_ar: item.scaled_notes_ar ?? "",
+          scaled_notes_en: item.scaled_notes_en ?? "",
         }
       : {
           exercise_id: initialExercise?.id,
-          sets: initialBlock === "rehab" || initialBlock === "mobility" ? [{ duration_seconds: 30 }] : [{ reps: 10 }],
+          sets: [defaultEnteredSet(initialExercise?.measurement_type, initialBlock ?? "main")],
           progression_rule: "none",
           block: initialBlock ?? "main",
         },
   });
-  const { fields, append, remove } = useFieldArray({ control, name: "sets" });
+  const { fields, append, remove, replace } = useFieldArray({ control, name: "sets" });
   const block = useWatch({ control, name: "block" });
-  const isDurationBlock = block === "rehab" || block === "mobility";
+  const measurementType = selectedExercise?.measurement_type;
+  // The inputs this exercise has — from its measurement type, not the block
+  // (a plain strength exercise in a rehab/mobility block is still a timed hold).
+  const measureFields = measurementFields(measurementType, block);
+  const hasReps = measureFields.includes("reps");
+  const holdsOnly =
+    !hasReps &&
+    measureFields.length === 1 &&
+    measureFields[0] === "duration" &&
+    durationUnit(measurementType, block) === "s";
   const watchedSets = useWatch({ control, name: "sets" });
   const total = (watchedSets ?? []).reduce(
-    (sum, s) => sum + (Number(isDurationBlock ? s?.duration_seconds : s?.reps) || 0),
+    (sum, s) => sum + (Number(hasReps ? s?.reps : s?.duration_seconds) || 0),
     0
   );
   const meta = selectedExercise ? exerciseMeta(selectedExercise) : null;
+
+  /** A different type/block means different inputs, and a value typed into a
+   * field that no longer exists would silently survive into the saved set —
+   * so the sets start over from the new type's defaults. */
+  function resetSetsIfFieldsChange(nextType: string | null | undefined, nextBlock: string | undefined) {
+    const before = measurementFields(measurementType, block).join();
+    const after = measurementFields(nextType, nextBlock).join();
+    if (before !== after) replace([defaultEnteredSet(nextType, nextBlock)]);
+  }
+
+  // One column per measure + set number + rest + remove. Wide types (a
+  // treadmill has six measures) get a minimum column width and scroll
+  // sideways inside the card rather than crushing the inputs.
+  const gridStyle = {
+    gridTemplateColumns: `2rem repeat(${measureFields.length + 1}, minmax(${measureFields.length > 3 ? "4.75rem" : "0"}, 1fr)) 2.75rem`,
+    minWidth: measureFields.length > 3 ? `${measureFields.length * 5 + 9}rem` : undefined,
+  };
+
+  // Which target columns apply: a rep range and RPE/RIR make sense for any
+  // rep-based set, %1RM only where there is a (non-assisted) load.
+  const targetColumns = [
+    ...(hasReps ? (["repsMax"] as const) : []),
+    ...(measureFields.includes("weight") && !isAssisted(measurementType) ? (["pct1rm"] as const) : []),
+    "rpe",
+    "rir",
+  ] as ("repsMax" | "pct1rm" | "rpe" | "rir")[];
+  const targetGrid = `2rem minmax(7rem, 1.6fr) repeat(${targetColumns.length}, minmax(0, 1fr))`;
 
   const onSubmit = handleSubmit((data) => {
     setFormError(null);
     const formData = new FormData();
     formData.set("exercise_id", data.exercise_id);
-    formData.set("sets", JSON.stringify(data.sets));
+    formData.set(
+      "sets",
+      // zodResolver hands handleSubmit the *parsed* values (numbers), though
+      // RHF still types them as the schema's input.
+      JSON.stringify(
+        data.sets.map((set) => setToStored(selectedExercise?.measurement_type, data.block, set as SetPayload))
+      )
+    );
     formData.set("progression_rule", data.progression_rule ?? "none");
     if (data.notes_ar) formData.set("notes_ar", data.notes_ar);
     if (data.notes_en) formData.set("notes_en", data.notes_en);
     formData.set("block", data.block ?? "main");
     if (data.rehab_phase_id) formData.set("rehab_phase_id", data.rehab_phase_id);
     if (data.coach_note_private) formData.set("coach_note_private", data.coach_note_private);
+    formData.set("tempo", data.tempo ?? "");
+    formData.set("per_side", data.per_side ? "true" : "false");
+    formData.set("scaled_notes_ar", data.scaled_notes_ar ?? "");
+    formData.set("scaled_notes_en", data.scaled_notes_en ?? "");
 
     startTransition(async () => {
       const result = item
@@ -237,6 +343,7 @@ export function ItemDialog({
                       locale={locale}
                       selectedId={selectedExercise?.id ?? null}
                       onSelect={(exercise) => {
+                        resetSetsIfFieldsChange(exercise.measurement_type, block);
                         setSelectedExercise(exercise);
                         setBrowsing(false);
                         setValue("exercise_id", exercise.id, { shouldValidate: true });
@@ -296,7 +403,10 @@ export function ItemDialog({
                       render={({ field }) => (
                         <Select
                           value={field.value}
-                          onValueChange={field.onChange}
+                          onValueChange={(next) => {
+                            resetSetsIfFieldsChange(measurementType, next ?? undefined);
+                            field.onChange(next);
+                          }}
                           items={BLOCKS.map((b) => ({ value: b, label: t(`blockKind.${b}`) }))}
                         >
                           <SelectTrigger id="block" className="w-full">
@@ -353,90 +463,162 @@ export function ItemDialog({
 
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-medium">
-                    {isDurationBlock ? t("holds") : t("sets")}{" "}
+                    {holdsOnly ? t("holds") : t("sets")}{" "}
                     <span className="font-mono tabular-nums text-muted-foreground">{fields.length}</span>
                   </span>
-                  <div className="overflow-hidden rounded-xl border border-border">
-                    <div className={`${SETS_GRID} bg-muted/50 px-2.5 py-2 text-xs text-muted-foreground`}>
-                      <span>{t("setNumber")}</span>
-                      <span>{isDurationBlock ? t("durationSeconds") : t("reps")}</span>
-                      <span>{t("weightKg")}</span>
-                      <span>{t("restS")}</span>
-                      <span />
-                    </div>
-                    {fields.map((field, index) => (
-                      <div key={field.id} className={`${SETS_GRID} border-t border-border px-2.5 py-2`}>
-                        <span className="font-mono tabular-nums text-muted-foreground">{index + 1}</span>
-                        {isDurationBlock ? (
-                          <Input
-                            type="number"
-                            inputMode="numeric"
-                            min={1}
-                            max={3600}
-                            aria-label={t("durationAria", { n: index + 1 })}
-                            className={SET_INPUT}
-                            {...register(`sets.${index}.duration_seconds` as const)}
-                          />
-                        ) : (
-                          <Input
-                            type="number"
-                            inputMode="numeric"
-                            min={1}
-                            max={100}
-                            aria-label={t("repsAria", { n: index + 1 })}
-                            className={SET_INPUT}
-                            {...register(`sets.${index}.reps` as const)}
-                          />
-                        )}
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.5"
-                          min={0}
-                          placeholder="—"
-                          aria-label={t("weightAria", { n: index + 1 })}
-                          className={SET_INPUT}
-                          {...register(`sets.${index}.weight` as const)}
-                        />
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          min={0}
-                          max={900}
-                          placeholder="—"
-                          aria-label={t("restAria", { n: index + 1 })}
-                          className={SET_INPUT}
-                          {...register(`sets.${index}.rest_seconds` as const)}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-destructive hover:text-destructive max-md:size-11"
-                          aria-label={t("removeSetAria", { n: index + 1 })}
-                          title={t("removeSetAria", { n: index + 1 })}
-                          onClick={() => remove(index)}
-                          disabled={fields.length <= 1}
-                        >
-                          <Trash2 className="size-4" aria-hidden="true" />
-                        </Button>
+                  <div className="overflow-x-auto rounded-xl border border-border">
+                    <div style={{ minWidth: gridStyle.minWidth }}>
+                      <div
+                        className={`${SETS_GRID} bg-muted/50 px-2.5 py-2 text-xs text-muted-foreground`}
+                        style={{ gridTemplateColumns: gridStyle.gridTemplateColumns }}
+                      >
+                        <span>{t("setNumber")}</span>
+                        {measureFields.map((f) => (
+                          <span key={f}>{tm(`fields.${fieldLabelKey(measurementType, f, block)}`)}</span>
+                        ))}
+                        <span>{t("restS")}</span>
+                        <span />
                       </div>
-                    ))}
+                      {fields.map((field, index) => (
+                        <div
+                          key={field.id}
+                          className={`${SETS_GRID} border-t border-border px-2.5 py-2`}
+                          style={{ gridTemplateColumns: gridStyle.gridTemplateColumns }}
+                        >
+                          <span className="font-mono tabular-nums text-muted-foreground">{index + 1}</span>
+                          {measureFields.map((f) => {
+                            const rule = inputRule(measurementType, f, block);
+                            const required = f === "reps" || f === "duration" || f === "distance" || f === "calories";
+                            const label = tm(`fields.${fieldLabelKey(measurementType, f, block)}`);
+                            return (
+                              <Input
+                                key={f}
+                                type="number"
+                                inputMode={rule.integer ? "numeric" : "decimal"}
+                                min={rule.min}
+                                max={rule.max}
+                                step={rule.step}
+                                placeholder={required ? undefined : "—"}
+                                aria-label={`${label} · ${t("setN", { index: index + 1 })}`}
+                                className={SET_INPUT}
+                                {...register(setFieldPath(index, f))}
+                              />
+                            );
+                          })}
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            min={0}
+                            max={900}
+                            placeholder="—"
+                            aria-label={t("restAria", { n: index + 1 })}
+                            className={SET_INPUT}
+                            {...register(`sets.${index}.rest_seconds` as const)}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:text-destructive max-md:size-11"
+                            aria-label={t("removeSetAria", { n: index + 1 })}
+                            title={t("removeSetAria", { n: index + 1 })}
+                            onClick={() => remove(index)}
+                            disabled={fields.length <= 1}
+                          >
+                            <Trash2 className="size-4" aria-hidden="true" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     className="h-11 border-dashed"
                     onClick={() => {
-                      // Duplicate the last set (reps/duration, weight, rest).
+                      // Duplicate the last set (every measure, weight, rest).
                       const last = getValues(`sets.${fields.length - 1}` as const);
-                      append(last ? { ...last } : isDurationBlock ? { duration_seconds: 30 } : { reps: 10 });
+                      append(last ? { ...last } : defaultEnteredSet(measurementType, block));
                     }}
                   >
                     <Plus className="size-4" aria-hidden="true" />
                     {t("duplicateSet")}
                   </Button>
                 </div>
+
+                <details open={targetsOpen} className="group rounded-xl bg-muted/40">
+                  <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+                    <span>
+                      {t("targets.title")} <span className="font-normal text-muted-foreground">{t("optional")}</span>
+                    </span>
+                    <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+                  </summary>
+                  <div className="flex flex-col gap-2 px-3 pb-3">
+                    <p className="text-xs text-muted-foreground">{t("targets.hint")}</p>
+                    <div className="overflow-x-auto rounded-xl border border-border bg-background">
+                      <div style={{ minWidth: `${12 + targetColumns.length * 5}rem` }}>
+                        <div
+                          className={`${SETS_GRID} bg-muted/50 px-2.5 py-2 text-xs text-muted-foreground`}
+                          style={{ gridTemplateColumns: targetGrid }}
+                        >
+                          <span>{t("setNumber")}</span>
+                          <span>{t("targets.setType")}</span>
+                          {targetColumns.map((c) => (
+                            <span key={c}>{t(`targets.${c}`)}</span>
+                          ))}
+                        </div>
+                        {fields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            className={`${SETS_GRID} border-t border-border px-2.5 py-2`}
+                            style={{ gridTemplateColumns: targetGrid }}
+                          >
+                            <span className="font-mono tabular-nums text-muted-foreground">{index + 1}</span>
+                            <Controller
+                              name={`sets.${index}.set_type` as const}
+                              control={control}
+                              render={({ field: f }) => (
+                                <Select
+                                  value={f.value ?? "working"}
+                                  onValueChange={f.onChange}
+                                  items={SET_TYPES.map((s) => ({ value: s, label: tm(`setTypes.${s}`) }))}
+                                >
+                                  <SelectTrigger
+                                    className="w-full md:h-9"
+                                    aria-label={`${t("targets.setType")} · ${t("setN", { index: index + 1 })}`}
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {SET_TYPES.map((s) => (
+                                      <SelectItem key={s} value={s}>
+                                        {tm(`setTypes.${s}`)}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                            {targetColumns.map((c) => (
+                              <Input
+                                key={c}
+                                type="number"
+                                inputMode={c === "pct1rm" || c === "rpe" ? "decimal" : "numeric"}
+                                min={c === "rir" ? 0 : 1}
+                                max={c === "pct1rm" ? 200 : c === "repsMax" ? 500 : 10}
+                                step={c === "rpe" ? 0.5 : 1}
+                                placeholder="—"
+                                aria-label={`${t(`targets.${c}`)} · ${t("setN", { index: index + 1 })}`}
+                                className={SET_INPUT}
+                                {...register(`sets.${index}.${TARGET_FIELD[c]}` as `sets.${number}.reps`)}
+                              />
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </details>
 
                 <details open={notesOpen} className="group rounded-xl bg-muted/40">
                   <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
@@ -450,6 +632,25 @@ export function ItemDialog({
                     <div className="flex flex-col gap-2 md:hidden">
                       <Label htmlFor="progression_rule_mobile">{t("progressionRule")}</Label>
                       {progressionSelect("progression_rule_mobile")}
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="tempo">{t("tempo")}</Label>
+                        <Input id="tempo" dir="ltr" maxLength={12} placeholder="3-1-1-0" {...register("tempo")} />
+                      </div>
+                      <label className="flex items-center gap-2 self-end pb-2 text-sm">
+                        <input type="checkbox" className="size-4 accent-primary" {...register("per_side")} />
+                        {t("perSide")}
+                      </label>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="scaled_notes_ar">{t("scaledAr")}</Label>
+                      <Textarea id="scaled_notes_ar" dir="rtl" rows={2} {...register("scaled_notes_ar")} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="scaled_notes_en">{t("scaledEn")}</Label>
+                      <Textarea id="scaled_notes_en" dir="ltr" rows={2} {...register("scaled_notes_en")} />
+                      <p className="text-xs text-muted-foreground">{t("scaledHint")}</p>
                     </div>
                     <div className="flex flex-col gap-2">
                       <Label htmlFor="notes_ar">{t("notesAr")}</Label>
@@ -474,7 +675,11 @@ export function ItemDialog({
 
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/50 px-4 py-3 max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-5 md:py-3.5">
             <span className="text-sm text-muted-foreground max-md:hidden">
-              {t.rich(isDurationBlock ? "summaryHolds" : "summaryReps", { sets: fields.length, total, m: mono })}
+              {t.rich(hasReps ? "summaryReps" : holdsOnly ? "summaryHolds" : "summarySets", {
+                sets: fields.length,
+                total,
+                m: mono,
+              })}
             </span>
             <div className="flex gap-2 max-md:w-full">
               <Button

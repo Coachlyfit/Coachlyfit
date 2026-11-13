@@ -9,6 +9,7 @@ import { addDays } from "@/domain/nutrition/adherence";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 import { PageTitle } from "@/components/dashboard/page-title";
+import { StarterPlansDialog } from "./starter-plans-dialog";
 import { CreateProgramDialog } from "./create-program-dialog";
 import { ProgramsTrashButton } from "./programs-trash-button";
 import { ProgramsClient, type ProgramsView } from "./programs-client";
@@ -60,13 +61,18 @@ export default async function ProgramsPage({
 
   for (const program of programs) {
     const trainingDays = program.program_days.filter(isTrainingDay);
+    // Extra sessions of a day are not extra days of the split.
+    const splitDays = trainingDays.filter((d) => d.parent_day_id == null);
     if (!program.client_id) {
       templates.push({
         id: program.id,
         name: pickLocale(program, locale),
-        split: trainingDays.map((d) => pickLocale(d, locale, "label") || formatNumber(d.day_index, locale)),
+        split: splitDays.map((d) => pickLocale(d, locale, "label") || formatNumber(d.day_index, locale)),
         exercises: trainingDays.reduce((sum, d) => sum + d.program_items[0].count, 0),
         usedBy: 0,
+        planType: program.plan_type,
+        goal: program.goal,
+        level: program.level,
       });
       continue;
     }
@@ -86,11 +92,14 @@ export default async function ProgramsPage({
       // can be null on an assigned program.
       client: program.clients?.display_name ?? "—",
       name: pickLocale(program, locale),
+      planType: program.plan_type,
+      goal: program.goal,
+      level: program.level,
       status,
       startDate: program.start_date,
       // Uncapped: the 12-week default is progression.ts's ceiling, not the calendar's.
       weekNo: weekIndexForDate(program.start_date, today, Infinity),
-      trainingDays: trainingDays.length,
+      trainingDays: splitDays.length,
       cells: cells.map(cell),
       viewCells: (weekStart === currentWeek ? cells : weekCells(program, weekStart, today)).map(cell),
     });
@@ -124,6 +133,7 @@ export default async function ProgramsPage({
         </div>
         <div className="flex items-center gap-2">
           <ProgramsTrashButton locale={locale} />
+          <StarterPlansDialog locale={locale} />
           {/* Pinned above the bottom nav on mobile (end-20 clears the feedback
               widget), inline from md up. */}
           <CreateProgramDialog

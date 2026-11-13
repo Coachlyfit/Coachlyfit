@@ -16,7 +16,25 @@ export type SessionSummary = {
 export function computeSessionSummary(logs: SetLogForSummary[]): SessionSummary {
   let totalVolume = 0;
   for (const log of logs) {
-    if (log.weight != null && log.reps != null) totalVolume += log.weight * log.reps;
+    // Assisted sets (stored with a negative weight) are not load lifted.
+    if (log.weight != null && log.weight > 0 && log.reps != null) totalVolume += log.weight * log.reps;
   }
   return { totalVolume, setsCompleted: logs.length };
+}
+
+export type SessionTotals = { totalDurationSeconds: number; totalDistanceM: number; totalCalories: number };
+
+/** Time-under-effort, distance and calories across a session's sets — shown
+ * on the finish screen next to volume. Not persisted on workout_sessions
+ * (computed from the logs already in memory), unlike totalVolume above. */
+export function computeSessionTotals(
+  logs: { duration_seconds?: number | null; distance_m?: number | null; calories?: number | null }[]
+): SessionTotals {
+  const totals: SessionTotals = { totalDurationSeconds: 0, totalDistanceM: 0, totalCalories: 0 };
+  for (const log of logs) {
+    totals.totalDurationSeconds += log.duration_seconds ?? 0;
+    totals.totalDistanceM += log.distance_m ?? 0;
+    totals.totalCalories += log.calories ?? 0;
+  }
+  return totals;
 }
