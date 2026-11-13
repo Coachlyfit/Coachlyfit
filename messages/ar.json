@@ -2417,7 +2417,82 @@
       "skillGroup": "سلّم مهارة (اختياري)",
       "skillNone": "مش جزء من سلّم",
       "skillLevel": "المستوى",
-      "skillHint": "خلّي التمرين ده درجة في سلّم مهارة (مثلاً بلانش مطوي = بلانش، مستوى 2). العميل بيشوف أعلى درجة سجّلها في تقدّم المهارات."
+      "skillHint": "خلّي التمرين ده درجة في سلّم مهارة (مثلاً بلانش مطوي = بلانش، مستوى 2). العميل بيشوف أعلى درجة سجّلها في تقدّم المهارات.",
+      "form": {
+        "subtitle": "مكتبة التمارين",
+        "navLabel": "أقسام التمرين",
+        "contentLanguage": "لغة المحتوى",
+        "langAr": "عربي",
+        "langEn": "English",
+        "close": "إغلاق",
+        "saveChanges": "احفظ التعديلات",
+        "next": "التالي: {section}",
+        "sectionOf": "القسم <num>{n}</num> / <num>{total}</num>",
+        "sections": {
+          "basics": {
+            "title": "الأساسيات",
+            "subtitle": "الاسم والتصنيف"
+          },
+          "media": {
+            "title": "الميديا",
+            "subtitle": "فيديو وصور"
+          },
+          "instructions": {
+            "title": "الشرح",
+            "subtitle": "خطوات وتلميحات"
+          },
+          "extra": {
+            "title": "تفاصيل إضافية",
+            "subtitle": "عضلات، إيقاع، ملاحظات"
+          }
+        },
+        "tagRequired": "مطلوب",
+        "tagOptional": "اختياري",
+        "filled": "{n}/{total}",
+        "translationMissing": "الترجمة ناقصة",
+        "sectionHasErrors": "في القسم ده أخطاء",
+        "requiredHint": "المطلوب بس: الاسمين (عربي وإنجليزي) والمجموعة العضلية. الباقي تكمّله بعدين.",
+        "otherLangValue": "{lang}: <v>{value}</v>",
+        "otherLangEmpty": "{lang}: لسه ما اتكتبش",
+        "skillLadder": "سلّم المهارات",
+        "equipmentPlaceholder": "بار، دامبل، كابل…",
+        "mediaHintVideo": "الفيديو الأساسي اللي العميل بيشوفه.",
+        "mediaHintImage": "بيظهر في المكتبة وأثناء بناء البرنامج.",
+        "mediaHintThumb": "صورة الكارت في المكتبة.",
+        "mediaHintAlt": "اختياري — زاوية تصوير مختلفة.",
+        "instructionsPlaceholder": "اشرح التمرين في سطرين",
+        "stepsHint": "خطوة في كل خانة.",
+        "mistakesHint": "أخطاء بيقع فيها العملاء كتير.",
+        "addCue": "ضيف نقطة",
+        "addStep": "ضيف خطوة",
+        "addMistake": "ضيف خطأ",
+        "removeRow": "احذف الصف {n}",
+        "rowN": "{label} {n}",
+        "emptyList": "لسه مفيش حاجة مضافة.",
+        "tempoHint": "نزول · ثبات · طلوع · ثبات — مثلاً 3-1-1-0.",
+        "tempoLower": "نزول",
+        "tempoPauseBottom": "ثبات",
+        "tempoLift": "طلوع",
+        "tempoPauseTop": "ثبات",
+        "tagsPlaceholder": "اكتب واضغط Enter",
+        "preview": {
+          "title": "العميل هيشوفه كده",
+          "hint": "المعاينة بتتغير مع اللغة وكل حاجة بتكتبها.",
+          "namePlaceholder": "اسم التمرين"
+        },
+        "discard": {
+          "title": "تتجاهل التعديلات؟",
+          "description": "في تعديلات على التمرين ده ما اتحفظتش. لو قفلت دلوقتي هتضيع.",
+          "confirm": "تجاهل"
+        },
+        "errors": {
+          "required": "مطلوب",
+          "tooLong": "طويل أوي",
+          "invalidUrl": "اكتب رابط صحيح يبدأ بـ https://",
+          "skillIncomplete": "اختار السلّم والمستوى مع بعض، أو سيبهم الاتنين فاضيين.",
+          "invalid": "راجع الخانة دي"
+        }
+      }
     },
     "food": {
       "add": "ضيف طعام",

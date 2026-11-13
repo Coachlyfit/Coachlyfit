@@ -190,6 +190,20 @@ describe("LibraryService", () => {
     expect(updates[0].payload).toMatchObject({ name_en: "Squat" });
   });
 
+  it("updateExercise passes null through so an emptied field is cleared, and leaves omitted keys out", async () => {
+    const { db, updates } = fakeSupabase([]);
+    await new LibraryService(db).updateExercise("ex-1", {
+      name_ar: "قرفصاء",
+      name_en: "Squat",
+      cues_en: null,
+      tempo: null,
+      skill_group: null,
+    });
+
+    expect(updates[0].payload).toMatchObject({ cues_en: null, tempo: null, skill_group: null });
+    expect(updates[0].payload).not.toHaveProperty("steps_en");
+  });
+
   it("updateFood strips source_food_id the same way", async () => {
     const { db, updates } = fakeSupabase([]);
     await new LibraryService(db).updateFood("food-1", {

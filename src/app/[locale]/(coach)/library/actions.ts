@@ -226,23 +226,34 @@ export async function updateExerciseAction(
     ...input
   } = parsed.data;
   try {
+    // The edit form always sends what it shows, so an empty optional value
+    // means "clear it" -> null (an omitted key would leave the old value).
     const updated = await new LibraryService(supabase).updateExercise(id, {
       ...input,
-      // A blank skill on an edit CLEARS the rung (the form always sends what it shows).
+      equipment: input.equipment || null,
+      instructions_ar: input.instructions_ar || null,
+      instructions_en: input.instructions_en || null,
+      coach_notes_ar: input.coach_notes_ar || null,
+      coach_notes_en: input.coach_notes_en || null,
+      safety_ar: input.safety_ar || null,
+      safety_en: input.safety_en || null,
+      tempo: input.tempo || null,
+      difficulty: input.difficulty ?? null,
+      // A blank skill on an edit CLEARS the rung.
       skill_group: input.skill_group || null,
       skill_level: input.skill_level ?? null,
-      video_url: video_url || undefined,
-      image_url: image_url || undefined,
-      thumbnail_url: thumbnail_url || undefined,
-      video_url_alt: video_url_alt || undefined,
-      cues_ar: linesToArray(cues_ar),
-      cues_en: linesToArray(cues_en),
-      steps_ar: linesToArray(steps_ar),
-      steps_en: linesToArray(steps_en),
-      mistakes_ar: linesToArray(mistakes_ar),
-      mistakes_en: linesToArray(mistakes_en),
-      primary_muscles: linesToArray(primary_muscles),
-      secondary_muscles: linesToArray(secondary_muscles),
+      video_url: video_url || null,
+      image_url: image_url || null,
+      thumbnail_url: thumbnail_url || null,
+      video_url_alt: video_url_alt || null,
+      cues_ar: linesToArray(cues_ar) ?? null,
+      cues_en: linesToArray(cues_en) ?? null,
+      steps_ar: linesToArray(steps_ar) ?? null,
+      steps_en: linesToArray(steps_en) ?? null,
+      mistakes_ar: linesToArray(mistakes_ar) ?? null,
+      mistakes_en: linesToArray(mistakes_en) ?? null,
+      primary_muscles: linesToArray(primary_muscles) ?? null,
+      secondary_muscles: linesToArray(secondary_muscles) ?? null,
     });
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (error) {
