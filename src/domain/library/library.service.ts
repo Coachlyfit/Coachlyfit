@@ -56,6 +56,15 @@ export type CreateExerciseInput = {
   source_exercise_id?: string;
 };
 
+/** An edit payload: every optional column may be `null` to CLEAR it (an
+ * omitted key is left untouched — supabase-js drops undefined from an
+ * update). The names stay required, as on create; measurement_type is NOT NULL. */
+export type UpdateExerciseInput = {
+  [K in keyof CreateExerciseInput]: K extends "name_ar" | "name_en" | "measurement_type"
+    ? CreateExerciseInput[K]
+    : CreateExerciseInput[K] | null;
+};
+
 /** Which half of the library to show. Derived from `coach_id is null`, not
  * stored — a `visibility` column would duplicate the nullable FK and allow
  * the impossible state (visibility GLOBAL + a coach_id). */
@@ -287,7 +296,7 @@ export class LibraryService {
    * meant to be user-editable afterwards — stripping it here rather than
    * just omitting it from the edit form means a crafted payload can't
    * rewrite "Based on" after the fact. */
-  async updateExercise(id: string, input: CreateExerciseInput): Promise<boolean> {
+  async updateExercise(id: string, input: UpdateExerciseInput): Promise<boolean> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to drop it from patch
     const { source_exercise_id: _sourceExerciseId, ...patch } = input;
     const { data, error } = await this.db.from("exercises").update(patch).eq("id", id).select("id");

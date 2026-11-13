@@ -815,7 +815,21 @@
       "error": "Couldn't load the weight history.",
       "errorDescription": "Something went wrong while loading. Try again.",
       "retry": "Try again",
-      "groupLine": "{sets} × {value}"
+      "groupLine": "{sets} × {value}",
+      "view": "View",
+      "viewBySession": "By session",
+      "viewByExercise": "By exercise",
+      "viewTable": "Table",
+      "sessionMeta": "{sets, plural, one {# set} other {# sets}} · {exercises, plural, one {# exercise} other {# exercises}}",
+      "deltaNew": "New",
+      "deltaKg": "{delta} kg",
+      "metric": "Metric",
+      "metricTop": "Top weight",
+      "metricE1rm": "Estimated 1RM",
+      "metricVolume": "Volume",
+      "history": "History",
+      "searchExercises": "Search exercises",
+      "noMatches": "No exercises match."
     },
     "errors": {
       "invalid_input": "Please check the form and try again.",
@@ -2403,7 +2417,82 @@
       "skillGroup": "Skill ladder (optional)",
       "skillNone": "Not part of a ladder",
       "skillLevel": "Level",
-      "skillHint": "Make this exercise a rung of a skill ladder (e.g. Tuck Planche = Planche, level 2). Athletes see their highest logged rung under Skill progress."
+      "skillHint": "Make this exercise a rung of a skill ladder (e.g. Tuck Planche = Planche, level 2). Athletes see their highest logged rung under Skill progress.",
+      "form": {
+        "subtitle": "Exercise library",
+        "navLabel": "Exercise sections",
+        "contentLanguage": "Content language",
+        "langAr": "عربي",
+        "langEn": "English",
+        "close": "Close",
+        "saveChanges": "Save changes",
+        "next": "Next: {section}",
+        "sectionOf": "Section <num>{n}</num> / <num>{total}</num>",
+        "sections": {
+          "basics": {
+            "title": "Basics",
+            "subtitle": "Name and category"
+          },
+          "media": {
+            "title": "Media",
+            "subtitle": "Video and images"
+          },
+          "instructions": {
+            "title": "Instructions",
+            "subtitle": "Steps and cues"
+          },
+          "extra": {
+            "title": "Extra details",
+            "subtitle": "Muscles, tempo, notes"
+          }
+        },
+        "tagRequired": "Required",
+        "tagOptional": "Optional",
+        "filled": "{n}/{total}",
+        "translationMissing": "Translation missing",
+        "sectionHasErrors": "This section has errors",
+        "requiredHint": "Only both names (Arabic and English) and the muscle group are required. You can finish the rest later.",
+        "otherLangValue": "{lang}: <v>{value}</v>",
+        "otherLangEmpty": "{lang}: not written yet",
+        "skillLadder": "Skill ladder",
+        "equipmentPlaceholder": "Barbell, dumbbell, cable…",
+        "mediaHintVideo": "The main video the client watches.",
+        "mediaHintImage": "Shown in the library and while building a program.",
+        "mediaHintThumb": "The card image in the library.",
+        "mediaHintAlt": "Optional — a different camera angle.",
+        "instructionsPlaceholder": "Describe the exercise in a couple of lines",
+        "stepsHint": "One step per row.",
+        "mistakesHint": "Mistakes clients commonly make.",
+        "addCue": "Add cue",
+        "addStep": "Add step",
+        "addMistake": "Add mistake",
+        "removeRow": "Remove row {n}",
+        "rowN": "{label} {n}",
+        "emptyList": "Nothing added yet.",
+        "tempoHint": "Lowering · pause · lifting · pause — e.g. 3-1-1-0.",
+        "tempoLower": "Lowering",
+        "tempoPauseBottom": "Pause",
+        "tempoLift": "Lifting",
+        "tempoPauseTop": "Pause",
+        "tagsPlaceholder": "Type and press Enter",
+        "preview": {
+          "title": "How the client sees it",
+          "hint": "The preview follows the content language and updates as you type.",
+          "namePlaceholder": "Exercise name"
+        },
+        "discard": {
+          "title": "Discard changes?",
+          "description": "You have unsaved changes to this exercise. If you close now they will be lost.",
+          "confirm": "Discard"
+        },
+        "errors": {
+          "required": "Required",
+          "tooLong": "Too long",
+          "invalidUrl": "Enter a valid link starting with https://",
+          "skillIncomplete": "Pick both a ladder and a level, or neither.",
+          "invalid": "Check this field"
+        }
+      }
     },
     "food": {
       "add": "Add food",

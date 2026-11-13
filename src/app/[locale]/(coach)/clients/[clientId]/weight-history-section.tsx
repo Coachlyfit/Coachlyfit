@@ -12,7 +12,7 @@ import { formatSetMeasures, EMPTY_MEASURES, type SetMeasures } from "@/domain/wo
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate, formatNumber } from "@/lib/format";
 import { WeightHistoryFilters } from "./weight-history-filters";
-import { WeightHistoryTable } from "./weight-history-table";
+import { WeightHistoryViews } from "./weight-history-views";
 
 /** Every query runs through the request's RLS-scoped client: coach_read on
  * workout_sessions/workout_set_logs (and the security-invoker
@@ -112,6 +112,10 @@ export async function WeightHistorySection({
   const bestRows = bests
     .filter((b) => hasBest(b) && (!params.exerciseId || b.exercise_id === params.exerciseId))
     .sort((a, b) => nameOf(a.exercise_id).localeCompare(nameOf(b.exercise_id)));
+  // Formatted here, once, so the client views render the exact same text the
+  // server did: formatting in the browser uses the viewer's time zone, which
+  // can differ from the server's and break hydration.
+  const dates = Object.fromEntries(sessions.map((s) => [s.id, formatDate(s.started_at, locale, { dateStyle: "medium" })]));
   const chartUnit: Record<PrimaryMetric, string> = {
     weight: tm("unit.kg"),
     reps: tm("unit.reps"),
@@ -173,7 +177,10 @@ export async function WeightHistorySection({
             </Card>
           )}
 
-          <WeightHistoryTable sessions={sessions} hasMore={hasMore} params={params} locale={locale} />
+          <div className="flex flex-col gap-3">
+            <h3 className="text-base font-semibold tracking-tight">{t("sessions")}</h3>
+            <WeightHistoryViews sessions={sessions} hasMore={hasMore} params={params} locale={locale} dates={dates} />
+          </div>
         </>
       )}
     </div>

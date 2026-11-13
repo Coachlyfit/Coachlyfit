@@ -15,12 +15,23 @@ export function TagsInput({
   onChange,
   invalid,
   describedBy,
+  max = 8,
+  maxLength = 24,
+  placeholder,
+  tone = "secondary",
+  inputRef,
 }: {
   id: string;
   value: string[];
   onChange: (tags: string[]) => void;
   invalid?: boolean;
   describedBy?: string;
+  /** Defaults are the recipe form's limits; the exercise form passes its own. */
+  max?: number;
+  maxLength?: number;
+  placeholder?: string;
+  tone?: "secondary" | "info";
+  inputRef?: React.Ref<HTMLInputElement>;
 }) {
   const t = useTranslations("recipes.form");
   const [draft, setDraft] = useState("");
@@ -28,8 +39,8 @@ export function TagsInput({
   function commit(text: string) {
     const tag = text.trim();
     setDraft("");
-    if (!tag || value.some((v) => v.toLowerCase() === tag.toLowerCase()) || value.length >= 8) return;
-    onChange([...value, tag.slice(0, 24)]);
+    if (!tag || value.some((v) => v.toLowerCase() === tag.toLowerCase()) || value.length >= max) return;
+    onChange([...value, tag.slice(0, maxLength)]);
   }
 
   return (
@@ -38,7 +49,7 @@ export function TagsInput({
         <ul className="flex flex-wrap gap-1.5">
           {value.map((tag) => (
             <li key={tag}>
-              <Badge variant="secondary" className="gap-1 pe-1">
+              <Badge variant={tone} className="gap-1 pe-1">
                 {tag}
                 <button
                   type="button"
@@ -55,12 +66,13 @@ export function TagsInput({
       )}
       <Input
         id={id}
+        ref={inputRef}
         value={draft}
-        maxLength={24}
-        placeholder={t("tagsPlaceholder")}
+        maxLength={maxLength}
+        placeholder={placeholder ?? t("tagsPlaceholder")}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
-        disabled={value.length >= 8}
+        disabled={value.length >= max}
         onChange={(e) => {
           if (e.target.value.endsWith(",") || e.target.value.endsWith("،")) {
             commit(e.target.value.slice(0, -1));
