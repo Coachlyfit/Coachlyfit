@@ -13,7 +13,8 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatNumber } from "@/lib/format";
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import type { AppLocale } from "@/domain/locale";
+import { tierTitle } from "@/domain/billing/plans";
 import { Link } from "@/i18n/navigation";
 import { RecordPaymentDialog } from "../../record-payment-dialog";
 import { TRIAL_ENDING_SOON_DAYS as DAYS_SOON } from "@/domain/billing/coach-stage";
@@ -34,6 +35,7 @@ export default async function AdminCoachDetailPage({
   const { locale, coachId } = await params;
   const t = await getTranslations("admin.coaches");
   const td = await getTranslations("admin.coaches.detail");
+  const tPlans = await getTranslations("plans");
   const tAudit = await getTranslations("admin.settings.audit");
   const supabase = await createClient();
 
@@ -41,10 +43,10 @@ export default async function AdminCoachDetailPage({
     await Promise.all([
       supabase.rpc("admin_list_coaches"),
       supabase.from("payments").select("*").eq("coach_id", coachId).order("created_at", { ascending: false }),
-      supabase.from("subscription_tiers").select("id, key, name_ar, name_en").order("price_egp_monthly"),
+      supabase.from("subscription_tiers").select("id, key, name_ar, name_en, max_clients").order("price_egp_monthly"),
       supabase
         .from("subscription_requests")
-        .select("id, coach_id, type, note, status, admin_response, created_at, subscription_tiers(name_ar, name_en)")
+        .select("id, coach_id, type, note, status, admin_response, created_at, subscription_tiers(key, name_ar, name_en, max_clients)")
         .eq("coach_id", coachId)
         .order("created_at", { ascending: false })
         .limit(20),
@@ -60,7 +62,7 @@ export default async function AdminCoachDetailPage({
   const coach = coaches?.find((c) => c.coach_id === coachId);
   if (!coach) notFound();
 
-  const tierOptions = (tiers ?? []).map((tier) => ({ id: tier.id, name: pickLocale(tier, locale) }));
+  const tierOptions = (tiers ?? []).map((tier) => ({ id: tier.id, name: tierTitle(tier, locale, tPlans) }));
   const tierName = tierOptions.find((tier) => tier.id === coach.tier_id)?.name ?? coach.tier_key;
   const periodEnd =
     coach.status === "trialing" ? (coach.trial_ends_at ?? coach.current_period_end) : coach.current_period_end;
@@ -168,7 +170,7 @@ export default async function AdminCoachDetailPage({
                 id: row.id,
                 coachId: row.coach_id,
                 type: row.type,
-                tierName: row.subscription_tiers ? pickLocale(row.subscription_tiers, locale) : null,
+                tierName: row.subscription_tiers ? tierTitle(row.subscription_tiers, locale, tPlans) : null,
                 note: row.note,
                 status: row.status,
                 adminResponse: row.admin_response,

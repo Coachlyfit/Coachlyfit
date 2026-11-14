@@ -248,22 +248,6 @@
         "currency": "EGP"
       }
     },
-    "pricing": {
-      "perMonth": "ج.م / شهر",
-      "mostPopular": "الأكتر اختيارًا",
-      "clientLimit": "حتى {max} عميل",
-      "unlimitedClients": "عملاء بلا حدود",
-      "teamLimit": "لحد {max} أعضاء فريق",
-      "unlimitedTeam": "أعضاء فريق من غير حد",
-      "features": {
-        "forms_builder": "منشئ نماذج مخصص",
-        "custom_library": "مكتبة تمارين وأطعمة خاصة بك",
-        "priority_support": "دعم ذو أولوية",
-        "white_label": "لوجوك على الفواتير",
-        "custom_branding": "ألوان علامتك واللوجو بتاعك جوه التطبيق",
-        "task_management": "وزّع مهام على فريقك"
-      }
-    },
     "footer": {
       "tagline": "منصة إدارة العملاء للمدربين في مصر والمنطقة.",
       "columns": {
@@ -468,7 +452,8 @@
       "packages": "الباقات",
       "portal": "البوابة",
       "brand": "العلامة",
-      "account": "الحساب والفريق"
+      "account": "الحساب والفريق",
+      "subscription": "الاشتراك"
     },
     "headings": {
       "identity": "هويتك",
@@ -3659,7 +3644,7 @@
     }
   },
   "billing": {
-    "title": "الفوترة",
+    "title": "الاشتراك",
     "currentPlan": "باقتك الحالية",
     "status": {
       "trialing": "تجربة مجانية",
@@ -3690,16 +3675,7 @@
       "resumed": "رجّعنا اشتراكك."
     },
     "plans": {
-      "title": "الباقات",
-      "current": "الحالية",
-      "clients": "لحد {max} عميل",
-      "unlimited": "عملاء بلا حد",
-      "team": "لحد {max} أعضاء فريق",
-      "teamUnlimited": "أعضاء فريق من غير حد",
-      "teamNone": "من غير أعضاء فريق",
-      "upgrade": "اطلب ترقية",
-      "downgrade": "اطلب باقة أقل",
-      "choose": "اطلب الباقة دي"
+      "title": "الباقات"
     },
     "requests": {
       "title": "طلباتك",
@@ -3753,7 +3729,8 @@
         "bank_transfer": "تحويل بنكي",
         "vodafone_cash": "فودافون كاش",
         "cash": "نقدًا"
-      }
+      },
+      "amountValue": "{amount} ج.م"
     },
     "clientLimitUnlimited": "{count} عميل · بلا حد أقصى",
     "banner": {
@@ -3769,7 +3746,9 @@
       "team_members": "باقتك مفيهاش أماكن فاضية في الفريق. الأعضاء الحاليين مكملين زي ما هم.",
       "task_management": "باقتك مفيهاش إدارة المهام.",
       "cta": "شوف الباقات"
-    }
+    },
+    "seatsUsage": "{used} من {max} مقعد فريق مستخدم",
+    "seatsUsageUnlimited": "{used} مقعد فريق مستخدم"
   },
   "review": {
     "title": "مراجعة المتابعات",
@@ -5205,5 +5184,35 @@
     "tempoValue": "الإيقاع {value}",
     "perSide": "لكل جانب",
     "hasScaled": "فيه خيار مخفّف"
+  },
+  "plans": {
+    "mostPopular": "الأكثر طلبًا",
+    "perMonth": "/ شهريًا",
+    "currency": "ج.م",
+    "included": "تشمل الباقة:",
+    "seats": "{count, plural, =0 {بدون مقاعد فريق} one {مقعد فريق واحد مشمول} two {مقعدان للفريق مشمولان} few {# مقاعد فريق مشمولة} many {# مقعد فريق مشمول} other {# مقعد فريق مشمول}}",
+    "seatsUnlimited": "مقاعد فريق بلا حد مشمولة",
+    "clients": "حتى {count} عميل",
+    "clientsUnlimited": "عملاء بلا حد",
+    "tierOption": "حتى {clients} عميل · {seats} مقاعد فريق — {price} ج.م",
+    "tierOptionUnlimited": "عملاء بلا حد — {price} ج.م",
+    "tierLabel": "شريحة العملاء",
+    "features": {
+      "foodLibrary": "مكتبة الطعام",
+      "exerciseLibrary": "مكتبة التمارين",
+      "clientPortal": "بوابة العميل / تطبيق الموبايل",
+      "teamManagement": "إدارة الفريق",
+      "rolePermissions": "صلاحيات حسب الدور",
+      "clientAssignment": "توزيع العملاء على الفريق",
+      "customBranding": "استخدام هويتك البصرية",
+      "prioritySupport": "دعم ذو أولوية"
+    },
+    "cta": {
+      "subscribe": "اشترك دلوقتي",
+      "start": "ابدأ دلوقتي",
+      "current": "باقتك الحالية",
+      "upgrade": "اطلب ترقية",
+      "downgrade": "اطلب باقة أقل"
+    }
   }
 }

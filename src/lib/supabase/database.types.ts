@@ -4301,6 +4301,8 @@ export type Database = {
       subscription_tiers: {
         Row: {
           created_at: string
+          description_ar: string | null
+          description_en: string | null
           features: Json
           id: string
           is_active: boolean
@@ -4313,6 +4315,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
           features?: Json
           id?: string
           is_active?: boolean
@@ -4325,6 +4329,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
           features?: Json
           id?: string
           is_active?: boolean
@@ -5027,7 +5033,6 @@ export type Database = {
       coach_client_roster: {
         Row: {
           adherence: number | null
-          assigned_to: string | null
           avatar_url: string | null
           client_id: string | null
           coach_id: string | null

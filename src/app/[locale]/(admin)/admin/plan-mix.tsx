@@ -22,14 +22,22 @@ export async function PlanMix({ metrics, locale }: { metrics: AdminMetrics; loca
   const tHome = await getTranslations("admin.home.library");
   const tTiers = await getTranslations("admin.coaches.segments");
 
+  // plan_mix has a row per tier, and Pro Coach is sold in several tiers that
+  // share one key, so sum per plan family: one bar segment per family.
+  const families = new Map<string, { count: number; mrr: number }>();
+  for (const tier of metrics.plan_mix) {
+    const family = families.get(tier.key) ?? { count: 0, mrr: 0 };
+    families.set(tier.key, { count: family.count + tier.count, mrr: family.mrr + tier.mrr_egp });
+  }
+
   const rows = [
-    ...metrics.plan_mix.map((tier) => ({
-      key: tier.key,
-      name: tier.key in TIER_NAME ? tTiers(TIER_NAME[tier.key as keyof typeof TIER_NAME]) : tier.key,
+    ...[...families].map(([key, family]) => ({
+      key,
+      name: key in TIER_NAME ? tTiers(TIER_NAME[key as keyof typeof TIER_NAME]) : key,
       ltr: true,
-      color: TIER_COLOR[tier.key] ?? "bg-chart-5",
-      count: tier.count,
-      mrr: tier.mrr_egp,
+      color: TIER_COLOR[key] ?? "bg-chart-5",
+      count: family.count,
+      mrr: family.mrr,
     })),
     { key: "trial", name: t("trial"), ltr: false, color: TRIAL_COLOR, count: metrics.trialing_count, mrr: 0 },
   ];
