@@ -36,7 +36,13 @@ export function ManageSubscriptionDialog({
   coachId: string;
   tiers: { id: string; name: string }[];
   /** null = the coach has no subscription row; saving creates one. */
-  current: { tierId: string; status: string; periodEnd: string | null; cancelAtPeriodEnd: boolean } | null;
+  current: {
+    tierId: string;
+    status: string;
+    periodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    complimentary: boolean;
+  } | null;
 }) {
   const t = useTranslations("admin.coaches.detail.manage");
   const tStatus = useTranslations("admin.coaches.status");
@@ -51,6 +57,7 @@ export function ManageSubscriptionDialog({
     status: (current?.status as Status | undefined) ?? "active",
     periodEnd: current?.periodEnd?.slice(0, 10) ?? "",
     cancelAtPeriodEnd: current?.cancelAtPeriodEnd ?? false,
+    complimentary: current?.complimentary ?? false,
   };
 
   const { handleSubmit, control, reset } = useForm<UpdateSubscriptionInput>({
@@ -148,6 +155,16 @@ export function ManageSubscriptionDialog({
               <Label className="flex items-center gap-2 font-normal">
                 <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
                 {t("cancelAtPeriodEnd")}
+              </Label>
+            )}
+          />
+          <Controller
+            name="complimentary"
+            control={control}
+            render={({ field }) => (
+              <Label className="flex items-center gap-2 font-normal">
+                <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />
+                {t("complimentary")}
               </Label>
             )}
           />

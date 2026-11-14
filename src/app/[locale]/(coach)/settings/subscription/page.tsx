@@ -17,6 +17,10 @@ import { formatDate, formatNumber } from "@/lib/format";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { getAuthUser, getRequestCoachId } from "@/lib/auth/session";
+import { SettingsTabsBar } from "@/components/settings/settings-tabs-bar";
+import { coachAccess } from "@/domain/billing/access";
+import { isUnlimited, PLAN_TIER_COLUMNS } from "@/domain/billing/plans";
+import { TeamService } from "@/domain/team/team.service";
 import { CancelControl, PlansAndRequests } from "./subscription-manager";
 
 // The coach's own Coachly Fit subscription (coach -> platform money). Client
@@ -39,6 +43,7 @@ export default async function SubscriptionPage({
     { data: payments },
     { data: tiers },
     { data: requests },
+    seats,
     user,
     coachId,
   ] = await Promise.all([
@@ -52,15 +57,13 @@ export default async function SubscriptionPage({
       .maybeSingle(),
     supabase.from("clients").select("id", { count: "exact", head: true }).neq("status", "archived"),
     supabase.from("payments").select("*").order("created_at", { ascending: false }),
-    supabase
-      .from("subscription_tiers")
-      .select("id, name_ar, name_en, price_egp_monthly, max_clients, max_team_members")
-      .order("price_egp_monthly"),
+    supabase.from("subscription_tiers").select(PLAN_TIER_COLUMNS).order("price_egp_monthly"),
     supabase
       .from("subscription_requests")
-      .select("id, type, note, status, admin_response, created_at, subscription_tiers(name_ar, name_en)")
+      .select("id, type, tier_id, note, status, admin_response, created_at")
       .order("created_at", { ascending: false })
       .limit(20),
+    new TeamService(supabase).seats(),
     getAuthUser(),
     getRequestCoachId(),
   ]);
@@ -70,6 +73,9 @@ export default async function SubscriptionPage({
   if (!isOwner) notFound();
   const tier = subscription?.subscription_tiers;
   const canceled = subscription?.status === "canceled";
+  // A locked coach is redirected here from every other page, so tabs to those
+  // pages would only bounce them back.
+  const hasAccess = coachAccess(subscription, new Date()).allowed;
   const cancelScheduled = !!subscription?.cancel_at_period_end && !canceled;
   const periodValue =
     subscription?.status === "trialing" ? subscription.trial_ends_at : subscription?.current_period_end;
@@ -84,6 +90,7 @@ export default async function SubscriptionPage({
   return (
     <div className="flex flex-col gap-6">
       <PageTitle title={t("title")} />
+      {hasAccess && <SettingsTabsBar />}
       <Link
         href="/finance"
         className="flex min-h-11 w-fit items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
@@ -138,9 +145,16 @@ export default async function SubscriptionPage({
           {tier && <p className="text-sm text-muted-foreground">{t("priceMonthly", { price: tier.price_egp_monthly })}</p>}
           {tier && (
             <p className="text-sm text-muted-foreground">
-              {tier.max_clients == null
+              {isUnlimited(tier.max_clients)
                 ? t("clientLimitUnlimited", { count: clientCount ?? 0 })
-                : t("clientLimit", { count: clientCount ?? 0, max: tier.max_clients })}
+                : t("clientLimit", { count: clientCount ?? 0, max: tier.max_clients ?? 0 })}
+            </p>
+          )}
+          {tier && seats && (
+            <p className="text-sm text-muted-foreground">
+              {seats.max == null
+                ? t("seatsUsageUnlimited", { used: seats.used })
+                : t("seatsUsage", { used: seats.used, max: seats.max })}
             </p>
           )}
           {!subscription && <p className="text-sm text-muted-foreground">{t("noSubscription")}</p>}
@@ -174,20 +188,14 @@ export default async function SubscriptionPage({
 
       <PlansAndRequests
         locale={locale}
-        tiers={(tiers ?? []).map((row) => ({
-          id: row.id,
-          name: pickLocale(row, locale),
-          price: row.price_egp_monthly,
-          maxClients: row.max_clients,
-          maxTeamMembers: row.max_team_members,
-        }))}
+        tiers={tiers ?? []}
         currentTierId={canceled ? null : (subscription?.tier_id ?? null)}
         canceled={canceled}
         isOwner={isOwner}
         requests={(requests ?? []).map((row) => ({
           id: row.id,
           type: row.type,
-          tierName: row.subscription_tiers ? pickLocale(row.subscription_tiers, locale) : null,
+          tierId: row.tier_id,
           note: row.note,
           status: row.status,
           adminResponse: row.admin_response,
@@ -216,7 +224,7 @@ export default async function SubscriptionPage({
                 {payments.map((payment) => (
                   <TableRow key={payment.id}>
                     <TableCell className="tabular-nums">{formatDate(payment.created_at, locale)}</TableCell>
-                    <TableCell className="tabular-nums">{payment.amount_egp} EGP</TableCell>
+                    <TableCell className="tabular-nums">{t("history.amountValue", { amount: formatNumber(payment.amount_egp, locale) })}</TableCell>
                     <TableCell>{tMethods(payment.method)}</TableCell>
                     <TableCell className="tabular-nums text-muted-foreground">
                       {formatDate(payment.period_start, locale)} – {formatDate(payment.period_end, locale)}

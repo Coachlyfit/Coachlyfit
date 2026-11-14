@@ -14,33 +14,22 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { REQUEST_TYPES, type RequestType } from "@/domain/billing/coach-subscription.service";
-import { formatDate, formatNumber } from "@/lib/format";
+import { PlanCards, usePlanLabels } from "@/components/billing/plan-cards";
+import type { PlanTier } from "@/domain/billing/plans";
+import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import { requestSubscriptionChangeAction, setCancelAtPeriodEndAction, withdrawRequestAction } from "./actions";
 import { subscriptionRequestSchema, type SubscriptionRequestInput } from "./schemas";
 
-export type TierOption = {
-  id: string;
-  name: string;
-  price: number;
-  maxClients: number | null;
-  /** null = no cap, 0 = the plan has no team seats. */
-  maxTeamMembers: number | null;
-};
-
 export type RequestRow = {
   id: string;
   type: string;
-  tierName: string | null;
+  tierId: string | null;
   note: string | null;
   status: string;
   adminResponse: string | null;
   createdAt: string;
 };
-
-// No cap is null; the seeded top tier may still carry this old sentinel
-// (see 20260820000001).
-const UNLIMITED_CLIENTS = 999_999;
 
 const STATUS_VARIANT = { pending: "warning", approved: "success", rejected: "destructive" } as const;
 
@@ -109,7 +98,7 @@ export function PlansAndRequests({
   requests,
 }: {
   locale: AppLocale;
-  tiers: TierOption[];
+  tiers: PlanTier[];
   currentTierId: string | null;
   canceled: boolean;
   isOwner: boolean;
@@ -117,6 +106,7 @@ export function PlansAndRequests({
 }) {
   const t = useTranslations("billing");
   const tErrors = useTranslations("billing.errors");
+  const { tierName } = usePlanLabels();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -134,7 +124,6 @@ export function PlansAndRequests({
 
   const hasPending = requests.some((r) => r.status === "pending");
   const canRequest = isOwner && !hasPending;
-  const currentPrice = tiers.find((tier) => tier.id === currentTierId)?.price ?? null;
   const otherTiers = tiers.filter((tier) => tier.id !== currentTierId);
 
   function openDialog(defaults: SubscriptionRequestInput) {
@@ -165,51 +154,18 @@ export function PlansAndRequests({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("plans.title")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {tiers.map((tier) => {
-            const current = tier.id === currentTierId;
-            return (
-              <div key={tier.id} className="flex flex-col gap-2 rounded-lg border border-border p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold">{tier.name}</span>
-                  {current && <Badge variant="secondary">{t("plans.current")}</Badge>}
-                </div>
-                <p className="text-sm text-muted-foreground">{t("priceMonthly", { price: tier.price })}</p>
-                <p className="text-sm text-muted-foreground">
-                  {tier.maxClients == null || tier.maxClients >= UNLIMITED_CLIENTS
-                    ? t("plans.unlimited")
-                    : t("plans.clients", { max: formatNumber(tier.maxClients, locale) })}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {tier.maxTeamMembers == null
-                    ? t("plans.teamUnlimited")
-                    : tier.maxTeamMembers === 0
-                      ? t("plans.teamNone")
-                      : t("plans.team", { max: formatNumber(tier.maxTeamMembers, locale) })}
-                </p>
-                {!current && isOwner && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-auto w-fit"
-                    disabled={!canRequest}
-                    onClick={() => openDialog({ type: "change_plan", tierId: tier.id })}
-                  >
-                    {currentPrice == null
-                      ? t("plans.choose")
-                      : t(tier.price > currentPrice ? "plans.upgrade" : "plans.downgrade")}
-                  </Button>
-                )}
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-base font-semibold">{t("plans.title")}</h2>
+        <PlanCards
+          tiers={tiers}
+          mode={{
+            kind: "action",
+            currentTierId,
+            disabled: !canRequest,
+            onChoose: (tierId) => openDialog({ type: "change_plan", tierId }),
+          }}
+        />
+      </section>
 
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
@@ -232,12 +188,14 @@ export function PlansAndRequests({
             <p className="py-4 text-center text-sm text-muted-foreground">{t("requests.empty")}</p>
           ) : (
             <ul className="flex flex-col divide-y divide-border">
-              {requests.map((request) => (
+              {requests.map((request) => {
+                const requestedTier = tiers.find((tier) => tier.id === request.tierId);
+                return (
                 <li key={request.id} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">
                       {t.has(`requests.types.${request.type}`) ? t(`requests.types.${request.type}`) : request.type}
-                      {request.tierName && ` · ${request.tierName}`}
+                      {requestedTier && ` · ${tierName(requestedTier)}`}
                     </span>
                     <Badge variant={STATUS_VARIANT[request.status as keyof typeof STATUS_VARIANT] ?? "secondary"}>
                       {t.has(`requests.status.${request.status}`) ? t(`requests.status.${request.status}`) : request.status}
@@ -266,7 +224,8 @@ export function PlansAndRequests({
                     </Button>
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </CardContent>
@@ -313,7 +272,7 @@ export function PlansAndRequests({
                     <Select
                       value={field.value ?? null}
                       onValueChange={(value) => field.onChange(value ?? undefined)}
-                      items={otherTiers.map((tier) => ({ value: tier.id, label: tier.name }))}
+                      items={otherTiers.map((tier) => ({ value: tier.id, label: tierName(tier) }))}
                     >
                       <SelectTrigger id="request-tier" className="w-full" aria-invalid={!!errors.tierId}>
                         <SelectValue placeholder={t("requests.planPlaceholder")} />
@@ -321,7 +280,7 @@ export function PlansAndRequests({
                       <SelectContent>
                         {otherTiers.map((tier) => (
                           <SelectItem key={tier.id} value={tier.id}>
-                            {tier.name}
+                            {tierName(tier)}
                           </SelectItem>
                         ))}
                       </SelectContent>

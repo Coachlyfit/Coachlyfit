@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { pickLocale, type AppLocale } from "@/domain/locale";
+import type { AppLocale } from "@/domain/locale";
+import { tierTitle } from "@/domain/billing/plans";
 import { RequestsList } from "./requests-list";
 
 /** Inbox of coach subscription requests. Rows are admin-readable through RLS
@@ -14,12 +15,13 @@ export default async function AdminRequestsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("admin.requests");
+  const tPlans = await getTranslations("plans");
   const supabase = await createClient();
 
   const [{ data: requests }, { data: coaches }] = await Promise.all([
     supabase
       .from("subscription_requests")
-      .select("id, coach_id, type, note, status, admin_response, created_at, subscription_tiers(name_ar, name_en)")
+      .select("id, coach_id, type, note, status, admin_response, created_at, subscription_tiers(key, name_ar, name_en, max_clients)")
       .order("created_at", { ascending: false })
       .limit(200),
     supabase.rpc("admin_list_coaches"),
@@ -32,7 +34,7 @@ export default async function AdminRequestsPage({
       coachId: row.coach_id,
       coachName: names.get(row.coach_id) ?? row.coach_id,
       type: row.type,
-      tierName: row.subscription_tiers ? pickLocale(row.subscription_tiers, locale) : null,
+      tierName: row.subscription_tiers ? tierTitle(row.subscription_tiers, locale, tPlans) : null,
       note: row.note,
       status: row.status,
       adminResponse: row.admin_response,

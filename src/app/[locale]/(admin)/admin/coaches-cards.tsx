@@ -31,7 +31,7 @@ export function CoachCompactCard({ locale, coach }: { locale: AppLocale; coach: 
         <span>
           {t.rich("clientsCount", { count: coach.clients, value: formatNumber(coach.clients, locale), num })}
         </span>
-        <Amount value={coach.amount} locale={locale} className="ms-auto font-semibold text-foreground" />
+        <Amount value={coach.amount} complimentary={coach.complimentary} locale={locale} className="ms-auto font-semibold text-foreground" />
       </div>
       <CoachAction coach={coach} locale={locale} className="h-11 w-full" />
     </article>
@@ -68,7 +68,7 @@ export function CoachesCards({ locale, coaches }: { locale: AppLocale; coaches: 
             <div className="flex flex-col gap-1 rounded-lg bg-muted/50 p-2">
               <dt className="text-xs text-muted-foreground">{t("table.monthlyShort")}</dt>
               <dd>
-                <Amount value={coach.amount} locale={locale} className="text-base font-semibold" />
+                <Amount value={coach.amount} complimentary={coach.complimentary} locale={locale} className="text-base font-semibold" />
               </dd>
             </div>
             <div className="flex flex-col gap-1 rounded-lg bg-muted/50 p-2">

@@ -6,20 +6,29 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import type { SettingsTab } from "./settings-preview";
 
-export type SettingsNavTab = SettingsTab | "account";
+/** Tabs that are their own routes rather than a ?tab= view of /settings. */
+export const ROUTE_TAB_PATHS = {
+  subscription: "/settings/subscription",
+  account: "/settings/account",
+} as const;
+export type RouteTab = keyof typeof ROUTE_TAB_PATHS;
+export type SettingsNavTab = SettingsTab | RouteTab;
+
+export function isRouteTab(tab: SettingsNavTab): tab is RouteTab {
+  return tab in ROUTE_TAB_PATHS;
+}
 
 // The one list of coach settings destinations. The first five are in-page
-// views of /settings (?tab=); "account" is the /settings/account route.
+// views of /settings (?tab=); the last two are routes (ROUTE_TAB_PATHS).
 export const SETTINGS_NAV_TABS = [
   "identity",
   "billing",
   "packages",
   "portal",
   "brand",
+  "subscription",
   "account",
 ] as const satisfies readonly SettingsNavTab[];
-
-const ACCOUNT_PATH = "/settings/account";
 
 export function SettingsTabsBar({
   current = "identity",
@@ -35,8 +44,9 @@ export function SettingsTabsBar({
   const router = useRouter();
   const pathname = usePathname();
   const listRef = useRef<HTMLDivElement>(null);
-  // startsWith, so any nested account route keeps the tab active.
-  const active: SettingsNavTab = pathname.startsWith(ACCOUNT_PATH) ? "account" : current;
+  // startsWith, so any nested route keeps its tab active.
+  const routeTab = (Object.keys(ROUTE_TAB_PATHS) as RouteTab[]).find((id) => pathname.startsWith(ROUTE_TAB_PATHS[id]));
+  const active: SettingsNavTab = routeTab ?? current;
 
   useEffect(() => {
     listRef.current?.querySelector("[data-active]")?.scrollIntoView({ inline: "center", block: "nearest" });
@@ -45,7 +55,7 @@ export function SettingsTabsBar({
   function select(next: SettingsNavTab) {
     if (next === active) return;
     if (onSelect) onSelect(next);
-    else router.push(next === "account" ? ACCOUNT_PATH : `/settings?tab=${next}`);
+    else router.push(isRouteTab(next) ? ROUTE_TAB_PATHS[next] : `/settings?tab=${next}`);
   }
 
   return (

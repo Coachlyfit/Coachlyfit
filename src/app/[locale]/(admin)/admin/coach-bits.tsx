@@ -91,7 +91,25 @@ export function CoachNoteText({
   );
 }
 
-export function Amount({ value, locale, className }: { value: number | null; locale: AppLocale; className?: string }) {
+export function Amount({
+  value,
+  complimentary,
+  locale,
+  className,
+}: {
+  value: number | null;
+  complimentary?: boolean;
+  locale: AppLocale;
+  className?: string;
+}) {
+  const t = useTranslations("admin.coaches");
+  if (complimentary) {
+    return (
+      <Badge variant="secondary" className={cn("rounded-md", className)}>
+        {t("complimentary")}
+      </Badge>
+    );
+  }
   return (
     <span className={cn("font-mono tabular-nums", className)}>
       {value != null && value > 0 ? formatNumber(value, locale) : "—"}

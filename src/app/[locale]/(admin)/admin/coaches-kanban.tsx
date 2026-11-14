@@ -60,7 +60,7 @@ export function CoachesKanban({ locale, coaches }: { locale: AppLocale; coaches:
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
                   <CoachNoteText coach={coach} locale={locale} />
-                  <Amount value={coach.amount} locale={locale} className="ms-auto font-semibold" />
+                  <Amount value={coach.amount} complimentary={coach.complimentary} locale={locale} className="ms-auto font-semibold" />
                 </div>
                 <CoachAction coach={coach} locale={locale} className="w-full" />
               </article>

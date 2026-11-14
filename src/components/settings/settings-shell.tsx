@@ -33,7 +33,7 @@ import { PackagesCard, type Package, type PackageDraft } from "./packages-card";
 import { PaymentMethodsCard } from "./payment-methods-card";
 import { PortalFields } from "./portal-fields";
 import { SettingsPreview, type SettingsTab } from "./settings-preview";
-import { SettingsTabsBar, type SettingsNavTab } from "./settings-tabs-bar";
+import { ROUTE_TAB_PATHS, SettingsTabsBar, isRouteTab, type SettingsNavTab } from "./settings-tabs-bar";
 
 const TABS = ["identity", "billing", "packages", "portal", "brand"] as const satisfies readonly SettingsTab[];
 const FORM_ID = "settings-form";
@@ -131,7 +131,7 @@ export function SettingsShell({
   // replaceState, not pushState: tabs don't stack history entries, so Back
   // leaves the page instead of flipping tabs under an unsaved form.
   function goTab(next: SettingsNavTab) {
-    if (next === "account") router.push("/settings/account");
+    if (isRouteTab(next)) router.push(ROUTE_TAB_PATHS[next]);
     else window.history.replaceState(null, "", `?tab=${next}`);
   }
 

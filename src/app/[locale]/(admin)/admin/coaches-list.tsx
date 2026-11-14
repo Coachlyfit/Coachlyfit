@@ -55,7 +55,7 @@ export function CoachesList({ locale, coaches }: { locale: AppLocale; coaches: C
                 <PlanBadge tier={coach.tier} />
               </TableCell>
               <TableCell className="text-end">
-                <Amount value={coach.amount} locale={locale} className="font-semibold" />
+                <Amount value={coach.amount} complimentary={coach.complimentary} locale={locale} className="font-semibold" />
               </TableCell>
               <TableCell className="text-end font-mono tabular-nums">{formatNumber(coach.clients, locale)}</TableCell>
               <TableCell>
