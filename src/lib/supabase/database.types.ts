@@ -4350,6 +4350,7 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           id: string
+          is_complimentary: boolean
           status: string
           status_changed_at: string | null
           tier_id: string
@@ -4361,6 +4362,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           id?: string
+          is_complimentary?: boolean
           status?: string
           status_changed_at?: string | null
           tier_id: string
@@ -4372,6 +4374,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           id?: string
+          is_complimentary?: boolean
           status?: string
           status_changed_at?: string | null
           tier_id?: string
@@ -5291,6 +5294,7 @@ export type Database = {
           coach_id: string
           created_at: string
           current_period_end: string
+          is_complimentary: boolean
           last_seen_at: string
           mrr_egp: number
           owner_name: string
@@ -5349,6 +5353,7 @@ export type Database = {
         Args: {
           p_cancel_at_period_end?: boolean
           p_coach_id: string
+          p_complimentary?: boolean
           p_period_end?: string
           p_status?: string
           p_tier_id?: string

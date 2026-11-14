@@ -224,6 +224,7 @@ export async function updateSubscriptionAction(locale: string, input: UpdateSubs
     p_status: parsed.data.status,
     p_period_end: parsed.data.periodEnd || undefined,
     p_cancel_at_period_end: parsed.data.cancelAtPeriodEnd,
+    p_complimentary: parsed.data.complimentary,
   });
   if (rpcError) return { error: subscriptionErrorCode(rpcError.code) };
 

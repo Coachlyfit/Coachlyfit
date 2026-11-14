@@ -70,6 +70,11 @@ export async function KpiCards({
           <span className="text-muted-foreground">
             {t.rich("trialsNote", { count: formatNumber(metrics.trialing_count, locale), num })}
           </span>
+          {metrics.complimentary_count > 0 && (
+            <span className="text-muted-foreground">
+              {t.rich("complimentaryNote", { count: formatNumber(metrics.complimentary_count, locale), num })}
+            </span>
+          )}
         </div>
         <div className={CARD}>
           <span className="text-muted-foreground">{t("pastDue")}</span>
@@ -103,6 +108,11 @@ export async function KpiCards({
             <span className="text-xs text-muted-foreground">
               {t.rich("trialsShort", { count: formatNumber(metrics.trialing_count, locale), num })}
             </span>
+            {metrics.complimentary_count > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {t.rich("complimentaryShort", { count: formatNumber(metrics.complimentary_count, locale), num })}
+              </span>
+            )}
           </div>
           <div className={`${TILE} bg-destructive-tint text-destructive-tint-foreground`}>
             <span>{t("pastDue")}</span>

@@ -24,6 +24,7 @@ export const updateSubscriptionSchema = z.object({
   // yyyy-mm-dd from the date picker; empty = leave the date as it is.
   periodEnd: z.union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal("")]),
   cancelAtPeriodEnd: z.boolean(),
+  complimentary: z.boolean(),
 });
 export type UpdateSubscriptionInput = z.infer<typeof updateSubscriptionSchema>;
 

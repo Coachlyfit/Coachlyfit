@@ -96,6 +96,7 @@ export default async function AdminCoachDetailPage({
             </p>
           </div>
           {risk && <Badge variant={risk.tone}>{risk.label}</Badge>}
+          {coach.is_complimentary && <Badge variant="secondary">{t("complimentary")}</Badge>}
           {coach.cancel_at_period_end && <Badge variant="warning">{td("cancelScheduled")}</Badge>}
           {coach.suspended_at && <Badge variant="destructive">{td("suspended")}</Badge>}
           <div className="flex flex-wrap gap-2">
@@ -110,6 +111,7 @@ export default async function AdminCoachDetailPage({
                       status: coach.status,
                       periodEnd,
                       cancelAtPeriodEnd: coach.cancel_at_period_end,
+                      complimentary: coach.is_complimentary,
                     }
                   : null
               }

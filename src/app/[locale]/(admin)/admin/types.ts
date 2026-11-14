@@ -4,7 +4,9 @@ import type { CoachNote, CoachStage } from "@/domain/billing/coach-stage";
  * 20261011000002_admin_dashboard.sql) -- the RPC is typed as Json. */
 export type AdminMetrics = {
   mrr_egp: number;
+  /** Paying coaches only; free-access accounts are counted separately. */
   active_count: number;
+  complimentary_count: number;
   trialing_count: number;
   past_due_count: number;
   canceled_count: number;
@@ -30,6 +32,8 @@ export type CoachView = {
   tier: string | null;
   /** List price per month; null when there is nothing to bill (trial, cancelled, no plan). */
   amount: number | null;
+  /** Free access (not billed); shown as a badge instead of an amount. */
+  complimentary: boolean;
   clients: number;
   periodEnd: string | null;
   stage: CoachStage | null;

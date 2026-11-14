@@ -2734,7 +2734,9 @@
       "activeCoaches": "مدربين نشطين",
       "activeShort": "نشط",
       "trialsNote": "+ <num>{count}</num> في فترة تجربة",
+      "complimentaryNote": "+ <num>{count}</num> وصول مجاني",
       "trialsShort": "+<num>{count}</num> تجربة",
+      "complimentaryShort": "+<num>{count}</num> مجاني",
       "pastDue": "متأخر السداد",
       "pastDueAmount": "<num>{amount}</num> ج.م معلّقة",
       "churn90": "معدل التسرب · 90 يوم",
@@ -2837,6 +2839,7 @@
         "kanban": "كانبان"
       },
       "recordPayment": "سجّل دفعة",
+      "complimentary": "وصول مجاني",
       "recordPaymentDialog": {
         "title": "سجّل دفعة",
         "amount": "المبلغ (جنيه)",
@@ -2879,6 +2882,7 @@
           "periodEnd": "تاريخ الانتهاء",
           "periodEndHint": "سيبه فاضي عشان التاريخ الحالي يفضل زي ما هو. في التجربة المجانية ده تاريخ نهاية التجربة.",
           "cancelAtPeriodEnd": "إلغاء في نهاية الفترة",
+          "complimentary": "وصول مجاني (بدون فوترة ومش بيدخل في الإيراد)",
           "saved": "اتحدّث الاشتراك."
         },
         "suspend": {
@@ -3234,6 +3238,7 @@
           "status": "الحالة",
           "period_end": "تاريخ الانتهاء",
           "cancel_at_period_end": "إلغاء بنهاية الفترة",
+          "complimentary": "وصول مجاني",
           "full_name": "الاسم",
           "phone": "الهاتف",
           "email": "البريد الإلكتروني",

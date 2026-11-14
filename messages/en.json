@@ -2734,7 +2734,9 @@
       "activeCoaches": "Active coaches",
       "activeShort": "Active",
       "trialsNote": "+ <num>{count}</num> on trial",
+      "complimentaryNote": "+ <num>{count}</num> free access",
       "trialsShort": "+<num>{count}</num> trial",
+      "complimentaryShort": "+<num>{count}</num> free",
       "pastDue": "Past due",
       "pastDueAmount": "<num>{amount}</num> EGP waiting",
       "churn90": "Churn · 90 days",
@@ -2837,6 +2839,7 @@
         "kanban": "Kanban"
       },
       "recordPayment": "Record payment",
+      "complimentary": "Free access",
       "recordPaymentDialog": {
         "title": "Record a payment",
         "amount": "Amount (EGP)",
@@ -2879,6 +2882,7 @@
           "periodEnd": "End date",
           "periodEndHint": "Leave empty to keep the current date. For a trial this is the trial end.",
           "cancelAtPeriodEnd": "Cancel at the end of the period",
+          "complimentary": "Free access (not billed, excluded from revenue)",
           "saved": "Subscription updated."
         },
         "suspend": {
@@ -3234,6 +3238,7 @@
           "status": "Status",
           "period_end": "End date",
           "cancel_at_period_end": "Cancel at period end",
+          "complimentary": "Free access",
           "full_name": "Name",
           "phone": "Phone",
           "email": "Email",
