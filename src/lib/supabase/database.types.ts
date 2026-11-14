@@ -5033,6 +5033,7 @@ export type Database = {
       coach_client_roster: {
         Row: {
           adherence: number | null
+          assigned_to: string | null
           avatar_url: string | null
           client_id: string | null
           coach_id: string | null
@@ -5048,6 +5049,13 @@ export type Database = {
           subscription_status: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_coach_id_fkey"
             columns: ["coach_id"]
