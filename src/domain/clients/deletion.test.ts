@@ -9,7 +9,7 @@ describe("daysUntilPermanentDelete", () => {
   });
 
   it("rounds a partial day up", () => {
-    expect(daysUntilPermanentDelete("2026-10-17T00:00:00Z", now)).toBe(1);
+    expect(daysUntilPermanentDelete("2026-09-17T00:00:00Z", now)).toBe(1);
   });
 
   it("never goes negative once the window has passed", () => {
