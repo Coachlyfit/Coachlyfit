@@ -731,6 +731,7 @@ export type Database = {
           assigned_to: string | null
           coach_id: string
           created_at: string
+          deleted_at: string | null
           display_name: string
           email: string | null
           id: string
@@ -743,6 +744,7 @@ export type Database = {
           assigned_to?: string | null
           coach_id: string
           created_at?: string
+          deleted_at?: string | null
           display_name: string
           email?: string | null
           id?: string
@@ -755,6 +757,7 @@ export type Database = {
           assigned_to?: string | null
           coach_id?: string
           created_at?: string
+          deleted_at?: string | null
           display_name?: string
           email?: string | null
           id?: string
@@ -5503,6 +5506,15 @@ export type Database = {
         }[]
       }
       link_existing_client: { Args: { p_email: string }; Returns: string }
+      list_deleted_clients: {
+        Args: never
+        Returns: {
+          client_id: string
+          deleted_at: string
+          display_name: string
+          email: string
+        }[]
+      }
       list_online_users: {
         Args: { p_limit?: number; p_offset?: number; p_search?: string }
         Returns: {
@@ -5698,6 +5710,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      restore_client: { Args: { p_client_id: string }; Returns: undefined }
       restore_marketing_version: {
         Args: { p_version_id: string }
         Returns: undefined
@@ -5746,6 +5759,7 @@ export type Database = {
         Returns: undefined
       }
       snapshot_mrr: { Args: never; Returns: undefined }
+      soft_delete_client: { Args: { p_client_id: string }; Returns: undefined }
       support_mark_read: { Args: { p_ticket_id: string }; Returns: undefined }
       support_reopen_ticket: {
         Args: { p_ticket_id: string }

@@ -18,6 +18,7 @@ export function TrashDialog<T extends { id: string }>({
   renderRow,
   onRestored,
   iconOnly = false,
+  labels,
 }: {
   listArchived: () => Promise<T[]>;
   restore: (id: string) => Promise<{ error: string } | void>;
@@ -25,8 +26,11 @@ export function TrashDialog<T extends { id: string }>({
   onRestored: () => void;
   /** Icon-button trigger for a crowded toolbar; the label moves to aria-label. */
   iconOnly?: boolean;
+  /** Override the generic "Trash" wording (e.g. "Recently deleted"). */
+  labels?: Partial<Record<"trigger" | "title" | "empty" | "restore" | "restoreFailed", string>>;
 }) {
-  const t = useTranslations("common.trash");
+  const tDefault = useTranslations("common.trash");
+  const t = (key: "trigger" | "title" | "empty" | "restore" | "restoreFailed") => labels?.[key] ?? tDefault(key);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<T[] | null>(null);

@@ -379,3 +379,38 @@ export async function setClientArchivedAction(
   revalidatePath(`/${locale}/clients`);
   revalidatePath(`/${locale}/clients/${clientId}`);
 }
+
+/** Soft delete: the client disappears everywhere and is permanently deleted
+ * after 60 days (pg_cron). Coach-only: soft_delete_client() checks the caller
+ * is the coach, or the assigned team member, of this client. */
+export async function deleteClientAction(locale: string, clientId: string): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  const ok = await new ClientsService(supabase).softDelete(clientId);
+  if (!ok) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/clients`);
+}
+
+export async function restoreDeletedClientAction(locale: string, clientId: string): Promise<VoidActionResult> {
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  try {
+    const ok = await new ClientsService(supabase).restoreDeleted(clientId);
+    if (!ok) return { error: "not_found_or_forbidden" };
+  } catch (error) {
+    // Restoring past the seat cap trips clients_enforce_cap_on_undelete.
+    return { error: capError(error) };
+  }
+  revalidatePath(`/${locale}/clients`);
+}
+
+export async function listDeletedClientsAction() {
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return [];
+  return new ClientsService(supabase).listDeleted();
+}

@@ -1051,6 +1051,23 @@
       "title": "Coaching decisions",
       "empty": "No coaching decisions yet.",
       "decidedBy": "by {name}"
+    },
+    "delete": {
+      "action": "Delete client",
+      "title": "Delete {name}?",
+      "description": "The client will be removed and permanently deleted after 60 days.",
+      "confirm": "Delete",
+      "deleting": "Deleting…",
+      "success": "{name} was deleted",
+      "failed": "Couldn't delete this client. Try again."
+    },
+    "deleted": {
+      "trigger": "Recently deleted",
+      "title": "Recently deleted",
+      "empty": "No recently deleted clients",
+      "restore": "Restore",
+      "restoreFailed": "Couldn't restore this client",
+      "daysLeft": "{count, plural, =0 {Deleted permanently today} one {# day left} other {# days left}}"
     }
   },
   "join": {
