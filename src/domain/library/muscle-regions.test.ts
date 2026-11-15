@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MUSCLE_GROUPS } from "./taxonomy";
 import { accumulateMuscleVolume, exerciseToBodyState, normalizeVolumeToIntensity } from "./muscle-regions";
 
 describe("exerciseToBodyState", () => {
@@ -54,5 +55,15 @@ describe("accumulateMuscleVolume / normalizeVolumeToIntensity", () => {
 
   it("returns empty state for empty input rather than dividing by zero", () => {
     expect(normalizeVolumeToIntensity({})).toEqual({});
+  });
+});
+
+describe("muscle_group fallback", () => {
+  it("lights up regions for every group except cardio/other", () => {
+    for (const group of MUSCLE_GROUPS) {
+      const state = exerciseToBodyState([], [], group);
+      const lit = Object.keys(state).length > 0;
+      expect(lit, group).toBe(group !== "cardio" && group !== "other");
+    }
   });
 });
