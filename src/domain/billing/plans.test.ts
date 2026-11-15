@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupPlans, isUnlimited, planBullets, type PlanTier } from "./plans";
+import { groupPlans, isUnlimited, planBullets, tierTitle, type PlanTier } from "./plans";
 
 function tier(key: string, price: number, features: Record<string, boolean> = {}): PlanTier {
   return {
@@ -71,5 +71,33 @@ describe("planBullets", () => {
 
   it("copes with a null features column", () => {
     expect(planBullets(null)).toHaveLength(6);
+  });
+});
+
+describe("tierTitle", () => {
+  const t = (key: "clients" | "clientsUnlimited", values?: { count: string }) =>
+    key === "clients" ? `up to ${values?.count}` : "unlimited";
+  const proCoach = (max_clients: number | null) => ({
+    key: "elite",
+    name_ar: "مدرب محترف",
+    name_en: "Pro Coach",
+    max_clients,
+  });
+
+  it("tells the Pro Coach tiers apart by client count", () => {
+    const titles = [150, 250, 500, null].map((max) => tierTitle(proCoach(max), "en", t));
+    expect(titles).toEqual([
+      "Pro Coach · up to 150",
+      "Pro Coach · up to 250",
+      "Pro Coach · up to 500",
+      "Pro Coach · unlimited",
+    ]);
+    expect(new Set(titles).size).toBe(titles.length);
+  });
+
+  it("leaves a single-tier plan as its plain name", () => {
+    expect(tierTitle({ key: "starter", name_ar: "مدرب جديد", name_en: "New Coach", max_clients: 30 }, "ar", t)).toBe(
+      "مدرب جديد"
+    );
   });
 });

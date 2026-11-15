@@ -148,6 +148,7 @@ export function ExerciseDialog({
   open,
   onOpenChange,
   onSaved,
+  admin,
 }: {
   locale: AppLocale;
   mode: Mode;
@@ -157,11 +158,19 @@ export function ExerciseDialog({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onSaved: () => void;
+  /** Admin curating a global exercise: same form, but saves through the
+   * admin actions and hides the coach-only fields (private notes, skill
+   * ladder). Only "create" and "edit" make sense here. */
+  admin?: {
+    create: (locale: string, formData: FormData) => Promise<{ error: string } | void>;
+    update: (locale: string, id: string, formData: FormData) => Promise<{ error: string } | void>;
+  };
 }) {
   const t = useTranslations("library.exercise");
   const tf = useTranslations("library.exercise.form");
   const tCommon = useTranslations("common");
   const tLibrary = useTranslations("library");
+  const tAdmin = useTranslations("admin.library");
   const tErrors = useTranslations("library.errors");
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -212,10 +221,10 @@ export function ExerciseDialog({
       setFormError(null);
       const formData = toFormData(data, { mode, sourceId: item?.id });
       startTransition(async () => {
+        const update = admin?.update ?? updateExerciseAction;
+        const create = admin?.create ?? createExerciseAction;
         const result =
-          mode === "edit" && item
-            ? await updateExerciseAction(locale, item.id, formData)
-            : await createExerciseAction(locale, formData);
+          mode === "edit" && item ? await update(locale, item.id, formData) : await create(locale, formData);
         if (result?.error) {
           setFormError(result.error);
           return;
@@ -237,7 +246,16 @@ export function ExerciseDialog({
     }
   );
 
-  const title = mode === "edit" ? t("editTitle") : mode === "clone" ? t("cloneTitle") : t("add");
+  const addLabel = admin ? tAdmin("addGlobal") : t("add");
+  const title = admin
+    ? mode === "edit"
+      ? tAdmin("editGlobal")
+      : addLabel
+    : mode === "edit"
+      ? t("editTitle")
+      : mode === "clone"
+        ? t("cloneTitle")
+        : addLabel;
   const submitLabel = mode === "create" ? t("submit") : tf("saveChanges");
   // Reads the CLONE's own source_name_*, not item's own name — that's what
   // survives a rename (20260805000001_library_clone.sql).
@@ -265,7 +283,7 @@ export function ExerciseDialog({
       {mode === "create" && (
         <DialogTrigger render={<Button size="sm" />}>
           <Plus className="size-4" />
-          {t("add")}
+          {addLabel}
         </DialogTrigger>
       )}
       <DialogContent
@@ -310,7 +328,7 @@ export function ExerciseDialog({
           <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[230px_minmax(0,1fr)] md:grid-rows-1 lg:grid-cols-[230px_minmax(0,1fr)_320px]">
             <SectionNav control={control} errorKeys={Object.keys(errors)} section={section} onSelect={setSection} />
             <div ref={panelRef} className="min-h-0 overflow-y-auto px-4 py-4 md:px-6 md:py-5">
-              <Section form={form} lang={lang} idp={idPrefix} />
+              <Section form={form} lang={lang} idp={idPrefix} admin={!!admin} />
             </div>
             <ExercisePreview control={control} lang={lang} />
           </div>

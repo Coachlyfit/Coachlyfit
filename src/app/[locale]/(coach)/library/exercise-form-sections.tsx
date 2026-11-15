@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { TagsInput } from "./recipes/tags-input";
 
 export type ExerciseForm = UseFormReturn<ExerciseFormValues>;
-export type SectionProps = { form: ExerciseForm; lang: ContentLang; idp: string };
+export type SectionProps = { form: ExerciseForm; lang: ContentLang; idp: string; admin?: boolean };
 
 // Inputs are 44px on every breakpoint (touch target); the shared Input is
 // 40px on mobile and 32px from md up.
@@ -67,7 +67,7 @@ function Required() {
 // 1 · Basics
 // ---------------------------------------------------------------------------
 
-export function BasicsSection({ form, lang, idp }: SectionProps) {
+export function BasicsSection({ form, lang, idp, admin }: SectionProps) {
   const t = useTranslations("library.exercise");
   const tf = useTranslations("library.exercise.form");
   const tGroups = useTranslations("library.muscleGroups");
@@ -224,6 +224,7 @@ export function BasicsSection({ form, lang, idp }: SectionProps) {
         </div>
       </div>
 
+      {!admin && (
       <div className="flex flex-col gap-2 rounded-xl bg-muted/50 p-3.5">
         <div className="flex items-center justify-between gap-2">
           <Label htmlFor={id("skill_group")}>{tf("skillLadder")}</Label>
@@ -272,6 +273,7 @@ export function BasicsSection({ form, lang, idp }: SectionProps) {
         <FieldError error={errors.skill_level} />
         <p className={HINT}>{t("skillHint")}</p>
       </div>
+      )}
     </div>
   );
 }
@@ -600,7 +602,7 @@ function MuscleTags({
   );
 }
 
-export function ExtraSection({ form, lang, idp }: SectionProps) {
+export function ExtraSection({ form, lang, idp, admin }: SectionProps) {
   const t = useTranslations("library.exercise");
   const sfx = lang === "ar" ? "Ar" : "En";
   return (
@@ -608,16 +610,18 @@ export function ExtraSection({ form, lang, idp }: SectionProps) {
       <TempoInput form={form} idp={idp} />
       <MuscleTags form={form} idp={idp} name="primary_muscles" label={t("primaryMuscles")} tone="info" />
       <MuscleTags form={form} idp={idp} name="secondary_muscles" label={t("secondaryMuscles")} tone="secondary" />
-      <div key={lang} className="flex flex-col gap-1.5">
-        <Label htmlFor={`${idp}coach_notes_${lang}`}>{t(`coachNotes${sfx}`)}</Label>
-        <Textarea
-          id={`${idp}coach_notes_${lang}`}
-          dir={dirOf(lang)}
-          rows={3}
-          className="min-h-21"
-          {...form.register(`coach_notes_${lang}`)}
-        />
-      </div>
+      {!admin && (
+        <div key={lang} className="flex flex-col gap-1.5">
+          <Label htmlFor={`${idp}coach_notes_${lang}`}>{t(`coachNotes${sfx}`)}</Label>
+          <Textarea
+            id={`${idp}coach_notes_${lang}`}
+            dir={dirOf(lang)}
+            rows={3}
+            className="min-h-21"
+            {...form.register(`coach_notes_${lang}`)}
+          />
+        </div>
+      )}
     </div>
   );
 }

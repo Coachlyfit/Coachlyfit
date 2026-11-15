@@ -44,8 +44,10 @@ import {
   promoteExerciseAction,
   promoteFoodAction,
   restoreGlobalExerciseAction,
+  createGlobalExerciseAction,
+  updateGlobalExerciseAction,
 } from "./actions";
-import { GlobalExerciseDialog } from "./global-exercise-dialog";
+import { ExerciseDialog } from "@/app/[locale]/(coach)/library/exercise-dialog";
 import { GlobalFoodDialog } from "./global-food-dialog";
 import { AdminExerciseCard } from "./admin-exercise-card";
 import { AdminFoodCard } from "./admin-food-card";
@@ -57,6 +59,8 @@ type Exercise = ExercisePage["rows"][number];
 type Food = FoodPage["rows"][number];
 
 type Pending = { kind: "exercise" | "food"; id: string };
+
+const ADMIN_EXERCISE_ACTIONS = { create: createGlobalExerciseAction, update: updateGlobalExerciseAction };
 
 const SEARCH_DEBOUNCE_MS = 300;
 const NO_FILTERS = { q: "", source: "all", group: null, cat: null, equip: null } as const;
@@ -293,7 +297,12 @@ export function LibraryAdminClient({
             </TabsTrigger>
           </TabsList>
           {tab === "exercises" ? (
-            <GlobalExerciseDialog locale={locale} onSaved={invalidate} />
+            <ExerciseDialog
+              locale={locale}
+              mode="create"
+              admin={ADMIN_EXERCISE_ACTIONS}
+              onSaved={invalidate}
+            />
           ) : (
             <GlobalFoodDialog locale={locale} onSaved={invalidate} />
           )}
@@ -546,11 +555,13 @@ export function LibraryAdminClient({
       </Tabs>
 
       {editingExercise && (
-        <GlobalExerciseDialog
+        <ExerciseDialog
           // key remounts the form so defaultValues track the selected row.
           key={editingExercise.id}
           locale={locale}
-          exercise={editingExercise}
+          mode="edit"
+          admin={ADMIN_EXERCISE_ACTIONS}
+          item={editingExercise}
           open
           onOpenChange={(open) => !open && setEditingExercise(null)}
           onSaved={() => {
