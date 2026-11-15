@@ -135,7 +135,31 @@ export async function updateGlobalExerciseAction(
   try {
     // admin_update_global is qualified `coach_id is null`, so an attempt to
     // edit a coach's private row matches 0 rows and lands here as false.
-    const updated = await new LibraryService(supabase).updateExercise(id, input);
+    // The form always sends what it shows: an omitted optional value means
+    // "clear it" -> null (a missing key would leave the old value), same as
+    // the coach updateExerciseAction.
+    const updated = await new LibraryService(supabase).updateExercise(id, {
+      ...input,
+      equipment: input.equipment || null,
+      instructions_ar: input.instructions_ar || null,
+      instructions_en: input.instructions_en || null,
+      safety_ar: input.safety_ar || null,
+      safety_en: input.safety_en || null,
+      tempo: input.tempo || null,
+      difficulty: input.difficulty ?? null,
+      video_url: input.video_url ?? null,
+      image_url: input.image_url ?? null,
+      thumbnail_url: input.thumbnail_url ?? null,
+      video_url_alt: input.video_url_alt ?? null,
+      cues_ar: input.cues_ar ?? null,
+      cues_en: input.cues_en ?? null,
+      steps_ar: input.steps_ar ?? null,
+      steps_en: input.steps_en ?? null,
+      mistakes_ar: input.mistakes_ar ?? null,
+      mistakes_en: input.mistakes_en ?? null,
+      primary_muscles: input.primary_muscles ?? null,
+      secondary_muscles: input.secondary_muscles ?? null,
+    });
     if (!updated) return { error: "not_found_or_forbidden" };
   } catch (err) {
     return { error: libraryErrorKey(err) };

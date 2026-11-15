@@ -10,8 +10,8 @@ import { FOOD_CATEGORIES } from "@/domain/library/taxonomy";
 import type { CreateFoodFormInput } from "./schemas";
 
 /** The food form fields, shared by the coach's create/clone/edit dialog
- * (food-dialog.tsx). See exercise-fields.tsx for why this is pulled out and
- * what idPrefix is for. */
+ * (food-dialog.tsx) and the admin global-food-dialog. `idPrefix` keeps
+ * `htmlFor`s from colliding if two instances mount at once. */
 export function FoodFields({
   idPrefix = "",
   register,
