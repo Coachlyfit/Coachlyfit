@@ -154,6 +154,16 @@ describe("templates: client_id is null, invisible to the client it would otherwi
 describe("workout sessions & set logs: client owns, coach reads", () => {
   let sessionId: string;
 
+  it("a client cannot start a session on another client's program day, even with their own client_id", async () => {
+    const other = await createClientOf(coachB.userId, "b2");
+    const { data, error } = await other.client
+      .from("workout_sessions")
+      .insert({ coach_id: coachB.userId, client_id: other.clientRowId, program_day_id: tree.dayId })
+      .select("id");
+    expect(error).not.toBeNull();
+    expect(data).toBeNull();
+  });
+
   it("a client can start a session and log a set on their own assigned item", async () => {
     const { data: session, error: sessionError } = await clientOfA.client
       .from("workout_sessions")

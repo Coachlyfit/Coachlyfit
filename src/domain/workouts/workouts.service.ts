@@ -10,6 +10,10 @@ import { requireCoachId } from "@/domain/programs/platform/ownership";
 
 type Json = Database["public"]["Tables"]["workout_sessions"]["Row"]["block_results"];
 
+// ponytail: fixed 12h window for "still in progress"; make it per-session
+// (e.g. last set logged) if long sessions start getting dropped.
+const ACTIVE_SESSION_WINDOW_MS = 12 * 3_600_000;
+
 /** One logged set resolved to the exercise actually performed — the input
  * shape prs.ts (strength and non-weight records) needs. */
 export type SetLogForClient = {
@@ -214,6 +218,39 @@ export class WorkoutsService {
       .maybeSingle();
     if (error) throw error;
     return data;
+  }
+
+  /** The client's unfinished session, if one was started recently. Older
+   * unfinished rows count as abandoned (sessions used to be created just by
+   * opening a day), so they never take over the Plan page. */
+  async getActiveSession(clientId: string): Promise<WorkoutSession | null> {
+    const since = new Date(Date.now() - ACTIVE_SESSION_WINDOW_MS).toISOString();
+    const { data, error } = await this.db
+      .from("workout_sessions")
+      .select("*")
+      .eq("client_id", clientId)
+      .is("completed_at", null)
+      .gte("started_at", since)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  /** "Start workout": returns the client's active session if one exists (on
+   * any day), so there are never two running at once; otherwise starts one
+   * for this day. Any plan day can be started on any date: started_at is
+   * the real time it was done, program_day_id says which plan workout it was. */
+  async startOrGetActive(programDayId: string): Promise<WorkoutSession | null> {
+    const { data: day, error } = await this.db
+      .from("program_days")
+      .select("client_id")
+      .eq("id", programDayId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!day?.client_id) return null;
+    return (await this.getActiveSession(day.client_id)) ?? this.startSession(programDayId);
   }
 
   /** Client home numbers: how many workouts the client has ever completed,

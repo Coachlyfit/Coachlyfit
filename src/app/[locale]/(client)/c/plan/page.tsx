@@ -11,7 +11,7 @@ import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { TodayExercisePreview } from "../today-exercise-preview";
+import { doneOn } from "@/domain/workouts/session-entry";
 
 export default async function ClientPlanPage({
   params,
@@ -72,6 +72,16 @@ export default async function ClientPlanPage({
 
   const TodayMark = locale === "ar" ? ChevronLeft : ChevronRight;
 
+  // "Done · 45 min", or with the real date when it was done on another day
+  // than scheduled: "Done Mon 16 · 45 min".
+  const doneMeta = (s: { started_at: string; duration_seconds: number | null }, scheduled: string) => {
+    const minutes = Math.round((s.duration_seconds ?? 0) / 60);
+    const actual = doneOn(s, scheduled);
+    return actual
+      ? t("doneOnMeta", { date: formatDate(actual, locale, { weekday: "short", day: "numeric" }), minutes })
+      : t("doneMeta", { minutes });
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -89,12 +99,6 @@ export default async function ClientPlanPage({
           const session = hasWorkout && day ? sessionsByDayId.get(day.id) : undefined;
           const done = session != null;
           const hasRehab = plan.rehabItems.length > 0 || plan.mobilityItems.length > 0;
-          // The coach can move Mobility & rehab above the main workout. The
-          // preview list must walk the day in that same section order.
-          const previewItems = sortItemsBySections(
-            [...plan.workoutItems, ...plan.mobilityItems, ...plan.rehabItems],
-            plan.day?.section_order
-          );
           const content = (
             <div
               className={cn(
@@ -120,7 +124,7 @@ export default async function ClientPlanPage({
                     ? t("restMeta")
                     : hasWorkout
                       ? done
-                        ? t("doneMeta", { minutes: Math.round((session!.duration_seconds ?? 0) / 60) })
+                        ? doneMeta(session!, date)
                         : t("exerciseCount", { count: plan.workoutItems.length })
                       : hasRehab
                         ? t("exerciseCount", { count: plan.rehabItems.length + plan.mobilityItems.length })
@@ -143,26 +147,13 @@ export default async function ClientPlanPage({
             </div>
           );
 
-          // Only today (still startable) or an already-done day (reviewable)
-          // link straight into the workout route, which starts/resumes a
-          // session on load — a past day that was never done, or a future
-          // one, must not spawn a session just from being tapped to view.
-          // Those expand in place to a read-only exercise list instead.
-          if (day && (hasWorkout || hasRehab) && (isToday || done)) {
+          // Any day can be opened (today's highlight is only a hint). The
+          // workout route shows a preview; nothing starts until "Start workout".
+          if (day && (hasWorkout || hasRehab)) {
             return (
-              <Link key={date} href={`/c/workout/${day.id}`}>
+              <Link key={date} href={`/c/workout/${day.id}?date=${date}`}>
                 {content}
               </Link>
-            );
-          }
-          if (hasWorkout || hasRehab) {
-            return (
-              <details key={date}>
-                <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{content}</summary>
-                <div className="pt-3">
-                  <TodayExercisePreview locale={locale} items={previewItems} />
-                </div>
-              </details>
             );
           }
           return <div key={date}>{content}</div>;
@@ -183,7 +174,7 @@ export default async function ClientPlanPage({
                   <p className="text-[13px] font-semibold">{label}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {extraDone
-                      ? t("doneMeta", { minutes: Math.round((extraDone.duration_seconds ?? 0) / 60) })
+                      ? doneMeta(extraDone, date)
                       : t("exerciseCount", { count: workoutCount || items.length })}
                   </p>
                 </div>
@@ -191,20 +182,10 @@ export default async function ClientPlanPage({
                 {isToday && !extraDone && <TodayMark className="size-4 shrink-0 text-warning-tint-foreground" aria-hidden="true" />}
               </div>
             );
-            if (isToday || extraDone) {
-              return (
-                <Link key={extra.id} href={`/c/workout/${extra.id}`}>
-                  {row}
-                </Link>
-              );
-            }
             return (
-              <details key={extra.id}>
-                <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">{row}</summary>
-                <div className="pt-3">
-                  <TodayExercisePreview locale={locale} items={items} />
-                </div>
-              </details>
+              <Link key={extra.id} href={`/c/workout/${extra.id}?date=${date}`}>
+                {row}
+              </Link>
             );
           });
 

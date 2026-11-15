@@ -1173,9 +1173,23 @@
       "exerciseCount": "{count} exercises",
       "today": "Today",
       "historyLink": "History",
+      "doneOnMeta": "Done {date} · {minutes} min",
       "sessionN": "Session {n}"
     },
     "workout": {
+      "preview": {
+        "back": "Back to plan",
+        "workout": "Workout",
+        "start": "Start workout",
+        "starting": "Starting…",
+        "startFailed": "Couldn't start the workout. Try again.",
+        "scheduledNote": "This workout is scheduled for {day}. It will be logged today.",
+        "doneOn": "Done {date}",
+        "viewSummary": "View last summary",
+        "restartTitle": "Do this workout again?",
+        "restartBody": "You already finished it this week. Starting it again logs a new session.",
+        "restartConfirm": "Start again"
+      },
       "setsDone": "{done} / {total} sets",
       "finish": "Finish workout",
       "finishSaveFailed": "Couldn't save your finished workout. Your coach may not see it yet.",

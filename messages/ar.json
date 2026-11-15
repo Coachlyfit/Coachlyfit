@@ -1173,9 +1173,23 @@
       "exerciseCount": "{count} تمارين",
       "today": "النهاردة",
       "historyLink": "السجل",
+      "doneOnMeta": "تم {date} · {minutes} د",
       "sessionN": "الحصة {n}"
     },
     "workout": {
+      "preview": {
+        "back": "الرجوع للبرنامج",
+        "workout": "التمرين",
+        "start": "ابدأ التمرين",
+        "starting": "جاري البدء…",
+        "startFailed": "ماقدرنا نبدأ التمرين. جرّب تاني.",
+        "scheduledNote": "التمرين ده مجدول يوم {day}. هيتسجّل النهاردة.",
+        "doneOn": "تم {date}",
+        "viewSummary": "شوف ملخص آخر مرة",
+        "restartTitle": "تعمل التمرين ده تاني؟",
+        "restartBody": "خلّصته الأسبوع ده. لو بدأته تاني هيتسجّل كحصة جديدة.",
+        "restartConfirm": "ابدأ تاني"
+      },
       "setsDone": "{done} / {total} مجموعة",
       "finish": "إنهاء التمرين",
       "finishSaveFailed": "تعذر حفظ التمرين. ممكن كابتنك ميشوفوش لسه.",
