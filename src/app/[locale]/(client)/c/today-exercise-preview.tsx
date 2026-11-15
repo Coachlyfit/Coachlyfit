@@ -9,7 +9,12 @@ import { ExerciseVideoSheet, type VideoSheetExercise } from "@/components/workou
 import { measurementFields } from "@/domain/library/measurement";
 import { formatSetMeasures, measuresFromRow } from "@/domain/workouts/set-measures";
 
-type PreviewItem = ProgramTree["program_days"][number]["program_items"][number];
+// Only what this list reads, so it also takes the workout route's
+// CLIENT_SAFE_ITEM_COLUMNS rows, not just full ProgramTree rows.
+type PreviewItem = Pick<
+  ProgramTree["program_days"][number]["program_items"][number],
+  "id" | "sets" | "reps" | "block" | "program_item_sets"
+> & { exercises: VideoSheetExercise & { measurement_type: string } };
 
 /** Today's exercise preview list — tappable when an exercise has a video,
  * opening the same form-check sheet the workout runner uses. Sets×reps stay

@@ -1,0 +1,297 @@
+{
+  "name_en_fix": {
+    "Jumping jack": "Jumping Jack",
+    "Thigh fly (Adductor Magnus Stretch)": "Thigh Fly (Adductor Magnus Stretch)",
+    "Standing Reach Up Back rotation Stretch": "Standing Reach-Up Back Rotation Stretch",
+    "Hack Squats Machine": "Hack Squat Machine"
+  },
+  "exercises": {
+    "High Knee Run": "الجري برفع الركبتين",
+    "Duck Walk": "المشي بوضعية القرفصاء (مشية البطة)",
+    "Bodyweight Single Leg Deadlift": "الرفعة الميتة بساق واحدة بوزن الجسم",
+    "Standing Hip Abduction": "تبعيد الورك وقوفًا",
+    "Bridge Hip Abduction": "تبعيد الورك من وضعية الجسر",
+    "Fire Hydrant": "رفع الساق جانبًا على أربع (حنفية الإطفاء)",
+    "Plank Leg Lift": "البلانك مع رفع الساق",
+    "Bodyweight Sumo Squat": "القرفصاء سومو بوزن الجسم",
+    "Spider Plank": "بلانك العنكبوت",
+    "High Knee Skips": "القفز برفع الركبتين",
+    "Half Kneeling Hip Flexor Stretch": "إطالة عضلات ثني الورك من الركوع النصفي",
+    "Inner Thigh Side Stretch": "إطالة الفخذ الداخلي جانبًا",
+    "Standing Quadriceps Stretch": "إطالة الفخذ الأمامي وقوفًا",
+    "Crunches": "الكرنش",
+    "Bicycle Crunch": "كرنش الدراجة",
+    "Heel Touch": "لمس الكعبين",
+    "Kneeling Diamond Push-Up": "ضغط الألماس من وضعية الركبتين",
+    "Above Head Chest Stretch": "إطالة الصدر برفع الذراعين فوق الرأس",
+    "Wall Slides": "انزلاق الذراعين على الحائط",
+    "Arm Leg Raises": "رفع الذراع والساق المتعاكستين",
+    "Side Plank": "البلانك الجانبي",
+    "Barbell Rollout": "دحرجة البار",
+    "Glute Bridge": "جسر الأرداف",
+    "Cossack Squat": "قرفصاء القوزاق",
+    "Hack Squats Machine": "سكوات الهاك على الجهاز",
+    "Leg Curl": "ثني الساق على الجهاز",
+    "Hip Abduction Machine": "تبعيد الورك على الجهاز",
+    "Hip Adduction Machine": "تقريب الفخذين على الجهاز",
+    "Hack Squat Calf Raise": "رفع السمانة على جهاز الهاك سكوات",
+    "Z-Bar Curl": "تجعيد الذراع بالبار Z",
+    "Seated Incline Dumbbell Curl": "تجعيد الذراع بالدمبل جلوسًا على بنش مائل",
+    "Bodyweight Skull Crushers": "تمديد الذراع الخلفية بوزن الجسم",
+    "Seated Side Crunch": "كرنش جانبي جلوسًا",
+    "Rear Delt Fly Machine": "رفرفة الكتف الخلفي على الجهاز",
+    "High Cable Crossover": "تقاطع الكابل العلوي",
+    "Lying Scissor Kick": "ركلات المقص مستلقيًا",
+    "Leg Raise": "رفع الساقين",
+    "Bodyweight Windmill": "طاحونة الهواء بوزن الجسم",
+    "Elbow To Knee Twists": "لمس الركبة بالمرفق المعاكس",
+    "Hindu Push-ups": "الضغط الهندي",
+    "Bench Dips": "غطس الترايسبس على البنش",
+    "One-Arm Lying Triceps Extension": "تمديد الترايسبس بذراع واحدة مستلقيًا",
+    "Bent Over Kickback": "ركلة الترايسبس الخلفية مع الانحناء",
+    "Hammer Press": "ضغط المطرقة بالدمبل",
+    "Dumbbell Bulgarian Split Squat": "السكوات البلغاري بالدمبل",
+    "Side Lunge": "الاندفاع الجانبي",
+    "Side Lying Clam": "المحارة مستلقيًا على الجنب",
+    "Single Leg Bridge": "جسر الأرداف بساق واحدة",
+    "Thigh fly (Adductor Magnus Stretch)": "إطالة الفخذ الداخلي (العضلة الضامة الكبرى)",
+    "Plank Knee to Elbow": "البلانك مع لمس الركبة بالمرفق",
+    "Half Wipers": "نصف ماسحات الزجاج",
+    "Side Plank Leg Raises": "رفع الساق من البلانك الجانبي",
+    "Cable Crossover": "تقاطع الكابل",
+    "Donkey Kicks": "ركلات الحمار",
+    "Cable Internal Shoulder Rotation": "الدوران الداخلي للكتف بالكابل",
+    "Cable External Shoulder Rotation": "الدوران الخارجي للكتف بالكابل",
+    "Step Up with Knee Raises": "الصعود على الصندوق مع رفع الركبة",
+    "Standing Rotation": "لف الجذع وقوفًا",
+    "Swimming": "تمرين السباحة على الأرض",
+    "Reverse Plank Kicks": "ركلات البلانك المعكوس",
+    "Shoulder Stretch Behind The Back": "إطالة الكتف خلف الظهر",
+    "Dumbbell Scaption": "رفع الدمبل بوضعية السكابشن",
+    "Seated Rear Lateral Dumbbell Raise": "رفع الدمبل الجانبي الخلفي جلوسًا",
+    "Doorway Pec and Shoulder Stretch": "إطالة الصدر والكتف عند إطار الباب",
+    "Across Chest Shoulder Stretch": "إطالة الكتف بسحب الذراع عبر الصدر",
+    "One-Arm Reverse Pushdown": "الدفع للأسفل بقبضة معكوسة بذراع واحدة",
+    "Reverse Wrist Curl": "تجعيد الرسغ العكسي",
+    "Rope Straight Arm Pulldown": "سحب الحبل للأسفل بذراع مفرودة",
+    "Standing Reach Up Back rotation Stretch": "إطالة الوصول للأعلى مع لف الظهر وقوفًا"
+  },
+  "workouts": {
+    "10-best-bodyweight-exercises-to-get-rid-of-cellulite": {
+      "name_en": "Lower-Body Bodyweight Burn",
+      "name_ar": "حرق الجزء السفلي بوزن الجسم",
+      "description_en": "Ten bodyweight moves for legs and glutes, from jump squats to wall sits. No equipment needed.",
+      "description_ar": "عشرة تمارين بوزن الجسم للساقين والأرداف، من القرفصاء القفزي إلى الجلوس على الحائط. لا تحتاج إلى معدات."
+    },
+    "300-calorie-hiit-workout": {
+      "name_en": "Home HIIT Calorie Burner",
+      "name_ar": "حرق السعرات بالتمارين المتقطعة في المنزل",
+      "description_en": "A short, high-intensity circuit of seven bodyweight moves built to raise your heart rate fast.",
+      "description_ar": "دائرة قصيرة عالية الكثافة من سبعة تمارين بوزن الجسم لرفع معدل ضربات القلب بسرعة."
+    },
+    "5-min-total-abs-workout": {
+      "name_en": "5-Minute Abs Express",
+      "name_ar": "تمرين البطن السريع في خمس دقائق",
+      "description_en": "Five quick core exercises for a fast abs session at home, with no equipment.",
+      "description_ar": "خمسة تمارين سريعة لعضلات الجذع لجلسة بطن مختصرة في المنزل دون معدات."
+    },
+    "8-exercises-for-bigger-breasts": {
+      "name_en": "Chest Builder for Beginners",
+      "name_ar": "بناء الصدر للمبتدئين",
+      "description_en": "Eight chest exercises that mix push-ups and dumbbell work, starting with a dynamic stretch.",
+      "description_ar": "ثمانية تمارين للصدر تجمع بين الضغط وتمارين الدمبل، وتبدأ بإطالة ديناميكية."
+    },
+    "at-home-back-fat-burning-workout": {
+      "name_en": "Home Back Toning",
+      "name_ar": "شد الظهر في المنزل",
+      "description_en": "A bodyweight routine that warms up the shoulders and works the upper and lower back.",
+      "description_ar": "روتين بوزن الجسم يسخّن الكتفين ويعمل على عضلات الظهر العلوية والسفلية."
+    },
+    "at-home-full-body-workout": {
+      "name_en": "No-Equipment Full Body",
+      "name_ar": "تمرين الجسم الكامل دون معدات",
+      "description_en": "Ten bodyweight exercises covering chest, back, legs and core. A balanced session you can do anywhere.",
+      "description_ar": "عشرة تمارين بوزن الجسم تشمل الصدر والظهر والساقين والجذع، في جلسة متوازنة يمكن أداؤها في أي مكان."
+    },
+    "back-workout-for-beginners": {
+      "name_en": "Beginner Back Basics",
+      "name_ar": "أساسيات الظهر للمبتدئين",
+      "description_en": "Six machine and cable back exercises with a short warm-up, a safe way to learn pulling movements.",
+      "description_ar": "ستة تمارين للظهر على الأجهزة والكابل مع إحماء قصير، وهي طريقة آمنة لتعلّم حركات السحب."
+    },
+    "barbell-free-weights-workout-program": {
+      "name_en": "Barbell Full Body Starter",
+      "name_ar": "بداية الجسم الكامل بالبار",
+      "description_en": "Seven barbell lifts for the whole body, from squats to rollouts. Built for three sessions a week.",
+      "description_ar": "سبع حركات بالبار للجسم كاملًا، من القرفصاء إلى الدحرجة. مصمم لثلاث جلسات أسبوعيًا."
+    },
+    "beach-body-workout-routine": {
+      "name_en": "Home Body Sculpt",
+      "name_ar": "نحت الجسم في المنزل",
+      "description_en": "Eleven bodyweight exercises for a full-body session at home, with a mobility warm-up first.",
+      "description_ar": "أحد عشر تمرينًا بوزن الجسم لجلسة شاملة في المنزل، تسبقها حركات إحماء للمرونة."
+    },
+    "beginner-leg-workout": {
+      "name_en": "Beginner Leg Day",
+      "name_ar": "يوم الساقين للمبتدئين",
+      "description_en": "A beginner leg session mixing bodyweight moves and machines, with a warm-up built in.",
+      "description_ar": "جلسة ساقين للمبتدئين تجمع بين تمارين وزن الجسم والأجهزة، مع إحماء ضمن البرنامج."
+    },
+    "biceps-workout": {
+      "name_en": "Biceps Basics",
+      "name_ar": "أساسيات عضلة البايسبس",
+      "description_en": "Four curl variations with a barbell and dumbbells to build the front of the arm.",
+      "description_ar": "أربعة أشكال من تجعيد الذراع بالبار والدمبل لبناء الجزء الأمامي من الذراع."
+    },
+    "bodyweight-strength-workout": {
+      "name_en": "Bodyweight Strength",
+      "name_ar": "القوة بوزن الجسم",
+      "description_en": "Five compound bodyweight exercises, from pull-ups to push-ups, for intermediate lifters.",
+      "description_ar": "خمسة تمارين مركبة بوزن الجسم، من العقلة إلى الضغط، للمتدربين المتوسطين."
+    },
+    "chest-and-back-superset-workout": {
+      "name_en": "Chest and Back Supersets",
+      "name_ar": "سوبر ست الصدر والظهر",
+      "description_en": "Three chest-and-back superset pairs, each followed by a rest. Efficient and demanding.",
+      "description_ar": "ثلاثة أزواج سوبر ست للصدر والظهر، يعقب كل زوج راحة. جلسة فعّالة وشاقة."
+    },
+    "chest-workout-beginner": {
+      "name_en": "Beginner Chest Day",
+      "name_ar": "يوم الصدر للمبتدئين",
+      "description_en": "Five chest exercises with a barbell, dumbbells and cables, covering flat, incline and fly movements.",
+      "description_ar": "خمسة تمارين للصدر بالبار والدمبل والكابل، تغطي الضغط المسطح والمائل وتمارين الفلاي."
+    },
+    "complete-abs-workout": {
+      "name_en": "Advanced Abs Circuit",
+      "name_ar": "دائرة البطن المتقدمة",
+      "description_en": "Five demanding core exercises that hit the upper abs, lower abs and obliques.",
+      "description_ar": "خمسة تمارين شاقة للجذع تستهدف البطن العلوي والسفلي وعضلات الخاصرة."
+    },
+    "core-build-up-workout": {
+      "name_en": "Core Build-Up",
+      "name_ar": "بناء عضلات الجذع",
+      "description_en": "Ten bodyweight core exercises that start with a warm-up and progress to planks.",
+      "description_ar": "عشرة تمارين لعضلات الجذع بوزن الجسم، تبدأ بإحماء وتتدرج إلى تمارين البلانك."
+    },
+    "flabby-arm-workout": {
+      "name_en": "Arm Toning Routine",
+      "name_ar": "روتين شد الذراعين",
+      "description_en": "Six arm exercises for biceps and triceps, from wall push-ups to dumbbell curls and kickbacks.",
+      "description_ar": "ستة تمارين للذراعين تعمل على البايسبس والترايسبس، من الضغط على الحائط إلى تجعيد الدمبل وركلات الترايسبس."
+    },
+    "full-body-workout-routine-for-beginners": {
+      "name_en": "Beginner Full Body Gym Routine",
+      "name_ar": "روتين الجسم الكامل للمبتدئين في النادي",
+      "description_en": "Eleven gym exercises across chest, back, legs and arms. A solid first full-body program.",
+      "description_ar": "أحد عشر تمرينًا في النادي للصدر والظهر والساقين والذراعين، وهو برنامج أول متكامل للجسم كاملًا."
+    },
+    "inner-chest-workout": {
+      "name_en": "Inner Chest Focus",
+      "name_ar": "التركيز على الصدر الداخلي",
+      "description_en": "Five exercises that squeeze the chest inward, using diamond push-ups, close-grip presses and cables.",
+      "description_ar": "خمسة تمارين تركّز على ضم الصدر للداخل بالضغط الألماسي والضغط بقبضة ضيقة والكابل."
+    },
+    "leg-workout-for-building-muscle": {
+      "name_en": "Leg Muscle Builder",
+      "name_ar": "بناء عضلات الساقين",
+      "description_en": "Nine leg exercises with barbells, dumbbells and machines, starting with a treadmill warm-up.",
+      "description_ar": "تسعة تمارين للساقين بالبار والدمبل والأجهزة، تبدأ بإحماء على جهاز المشي."
+    },
+    "neck-strengthening-exercises": {
+      "name_en": "Neck Strength and Mobility",
+      "name_ar": "قوة ومرونة الرقبة",
+      "description_en": "Ten neck exercises, from simple stretches to weighted harness work, to build mobility and strength.",
+      "description_ar": "عشرة تمارين للرقبة، من الإطالات البسيطة إلى التمارين بحزام الأوزان، لبناء المرونة والقوة."
+    },
+    "no-equipment-lower-body-strength-exercises": {
+      "name_en": "Lower-Body Strength Without Equipment",
+      "name_ar": "قوة الجزء السفلي دون معدات",
+      "description_en": "Eight bodyweight exercises for the legs and glutes, from lunges to wall sits.",
+      "description_ar": "ثمانية تمارين بوزن الجسم للساقين والأرداف، من الاندفاع إلى الجلوس على الحائط."
+    },
+    "obliques-workout": {
+      "name_en": "Obliques at Home",
+      "name_ar": "عضلات الخاصرة في المنزل",
+      "description_en": "Six bodyweight exercises that target the sides of the waist, no equipment required.",
+      "description_ar": "ستة تمارين بوزن الجسم تستهدف جانبي الخصر دون الحاجة إلى معدات."
+    },
+    "pyramid-chest-workout": {
+      "name_en": "Pyramid Chest Routine",
+      "name_ar": "روتين الصدر التصاعدي",
+      "description_en": "Six chest exercises using pyramid sets, with the load rising as the reps drop.",
+      "description_ar": "ستة تمارين للصدر بنظام المجموعات التصاعدية، يزداد فيها الحمل مع انخفاض التكرارات."
+    },
+    "rounder-butt-workout": {
+      "name_en": "Glute Shaping at Home",
+      "name_ar": "تشكيل الأرداف في المنزل",
+      "description_en": "Six bodyweight exercises focused on the glutes, including donkey kicks and sumo squats.",
+      "description_ar": "ستة تمارين بوزن الجسم تركّز على الأرداف، منها ركلات الحمار والقرفصاء سومو."
+    },
+    "sexy-butt-and-abs-workout": {
+      "name_en": "Glutes and Abs Bodyweight",
+      "name_ar": "الأرداف والبطن بوزن الجسم",
+      "description_en": "Ten bodyweight exercises pairing glute work with core work, all done on the floor or standing.",
+      "description_ar": "عشرة تمارين بوزن الجسم تجمع بين تمارين الأرداف وعضلات الجذع، تؤدى على الأرض أو وقوفًا."
+    },
+    "shoulder-workout-for-beginners": {
+      "name_en": "Beginner Shoulder Day",
+      "name_ar": "يوم الكتفين للمبتدئين",
+      "description_en": "Eight shoulder exercises with cables, machines and dumbbells, starting with rotator cuff activation.",
+      "description_ar": "ثمانية تمارين للكتفين بالكابل والأجهزة والدمبل، تبدأ بتنشيط عضلات الكفة المدورة."
+    },
+    "shoulder-workout-intermediate-level": {
+      "name_en": "Intermediate Shoulder Day",
+      "name_ar": "يوم الكتفين للمتوسطين",
+      "description_en": "Seven shoulder exercises combining raises, a barbell press, rear-delt work and shrugs.",
+      "description_ar": "سبعة تمارين للكتفين تجمع بين الرفعات والضغط بالبار وتمرين الكتف الخلفي ورفع الأكتاف."
+    },
+    "summer-body-workout": {
+      "name_en": "Light Cardio and Core at Home",
+      "name_ar": "كارديو خفيف وجذع في المنزل",
+      "description_en": "Seven bodyweight moves that mix light cardio and core work for a fat-burning session.",
+      "description_ar": "سبع حركات بوزن الجسم تجمع بين الكارديو الخفيف وتمارين الجذع لجلسة حرق دهون."
+    },
+    "the-best-12-posture-exercises": {
+      "name_en": "Posture Reset",
+      "name_ar": "تصحيح القوام",
+      "description_en": "Twelve mobility and strengthening exercises for the upper back, shoulders and core to help posture.",
+      "description_ar": "اثنا عشر تمرينًا للمرونة والتقوية لأعلى الظهر والكتفين والجذع للمساعدة على تحسين القوام."
+    },
+    "the-best-rotator-cuff-exercises": {
+      "name_en": "Rotator Cuff Care",
+      "name_ar": "العناية بالكفة المدورة",
+      "description_en": "Nine low-load shoulder exercises that strengthen the rotator cuff and keep the joint healthy.",
+      "description_ar": "تسعة تمارين خفيفة الحمل للكتف تقوّي الكفة المدورة وتحافظ على سلامة المفصل."
+    },
+    "the-complete-arm-workout": {
+      "name_en": "Complete Arm Day",
+      "name_ar": "يوم الذراعين المتكامل",
+      "description_en": "Eight exercises for biceps, triceps and forearms, with two superset pairs.",
+      "description_ar": "ثمانية تمارين للبايسبس والترايسبس والساعدين، مع زوجين من السوبر ست."
+    },
+    "triceps-workout": {
+      "name_en": "Triceps Focus",
+      "name_ar": "التركيز على الترايسبس",
+      "description_en": "Four triceps exercises using dips, cables and dumbbells.",
+      "description_ar": "أربعة تمارين للترايسبس بالغطس والكابل والدمبل."
+    },
+    "ultimate-back-fat-burning-workout": {
+      "name_en": "Advanced Back and Fat Burn",
+      "name_ar": "الظهر وحرق الدهون للمتقدمين",
+      "description_en": "Seven back exercises with a shoulder warm-up and higher rep ranges for an advanced, high-volume session.",
+      "description_ar": "سبعة تمارين للظهر مع إحماء للكتفين وتكرارات أعلى لجلسة متقدمة عالية الحجم."
+    },
+    "ultimate-back-workout": {
+      "name_en": "Advanced Back Day",
+      "name_ar": "يوم الظهر للمتقدمين",
+      "description_en": "Nine back exercises, from pull-ups to barbell rows, for an advanced strength session.",
+      "description_ar": "تسعة تمارين للظهر، من العقلة إلى التجديف بالبار، لجلسة قوة متقدمة."
+    },
+    "upper-chest-workout": {
+      "name_en": "Upper Chest Focus",
+      "name_ar": "التركيز على الصدر العلوي",
+      "description_en": "Five incline-based exercises that load the upper chest, with barbell, dumbbell, machine and cable work.",
+      "description_ar": "خمسة تمارين على المستوى المائل تُحمّل الصدر العلوي، بالبار والدمبل والجهاز والكابل."
+    }
+  }
+}

@@ -131,6 +131,45 @@ export async function createFromStarterAction(
   return { id: programId, skipped };
 }
 
+const platformIdsSchema = z.object({ templateId: z.string().uuid(), copyId: z.string().uuid().optional() });
+
+/** "Customize and edit": copies a platform template into the coach's own
+ * templates and returns the copy's id, so the UI can open it in the editor.
+ * The platform original is never written. */
+export async function customizePlatformTemplateAction(locale: string, templateId: string): Promise<CreateResult> {
+  if (!platformIdsSchema.safeParse({ templateId }).success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  const copy = await new ProgramsService(supabase).customizePlatformTemplate(templateId, coachId);
+  if (!copy) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+  revalidatePath(`/${locale}/programs/library`);
+  return { id: copy.id };
+}
+
+/** "Reset to original": a fresh copy of the platform template; the coach's
+ * old copy is archived (restorable from Trash), not deleted. */
+export async function resetPlatformCopyAction(
+  locale: string,
+  templateId: string,
+  copyId: string
+): Promise<CreateResult> {
+  if (!platformIdsSchema.safeParse({ templateId, copyId }).success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  const fresh = await new ProgramsService(supabase).resetPlatformCopy(templateId, copyId, coachId);
+  if (!fresh) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/programs`);
+  revalidatePath(`/${locale}/programs/library`);
+  return { id: fresh.id };
+}
+
 export async function updateProgramAction(locale: string, id: string, formData: FormData): Promise<ActionResult> {
   const parsed = createProgramSchema.safeParse({
     client_id: formData.get("client_id") || "",

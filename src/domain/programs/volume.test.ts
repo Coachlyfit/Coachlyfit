@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MUSCLE_GROUPS } from "@/domain/library/taxonomy";
 import { muscleGroupWeeklyVolume } from "./volume";
 
 function item(muscleGroup: string | null, setCount: number) {
@@ -30,9 +31,9 @@ describe("muscleGroupWeeklyVolume", () => {
     expect(muscleGroupWeeklyVolume(days).find((r) => r.muscleGroup === "other")?.sets).toBe(2);
   });
 
-  it("returns all 10 groups with zero counts when given no days", () => {
+  it("returns every group with zero counts when given no days", () => {
     const result = muscleGroupWeeklyVolume([]);
-    expect(result).toHaveLength(10);
+    expect(result).toHaveLength(MUSCLE_GROUPS.length);
     expect(result.every((r) => r.sets === 0)).toBe(true);
   });
 });

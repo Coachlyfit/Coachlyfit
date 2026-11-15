@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { requireCoachId } from "@/domain/programs/platform/ownership";
 
 type ActivityLog = Database["public"]["Tables"]["activity_logs"]["Row"];
 
@@ -41,7 +42,7 @@ export class ActivityLogsService {
       .from("activity_logs")
       .upsert(
         {
-          coach_id: parent.coach_id,
+          coach_id: requireCoachId(parent),
           client_id: parent.client_id,
           program_activity_id: activityId,
           performed_on: input.performed_on ?? new Date().toISOString().slice(0, 10),

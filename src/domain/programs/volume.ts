@@ -19,7 +19,7 @@ export type MuscleGroupVolume = { muscleGroup: MuscleGroup; sets: number };
  * this reads the tree once, not per selected week. Legacy/unknown
  * `muscle_group` values (see taxonomy.ts — the column has no DB constraint)
  * fall into "other" rather than being dropped, so nothing is silently
- * uncounted. Always returns all 10 groups, zero included, so the sidebar can
+ * uncounted. Always returns every group, zero included, so the sidebar can
  * render a stable set of bars without checking for missing keys. */
 export function muscleGroupWeeklyVolume(days: VolumeDay[]): MuscleGroupVolume[] {
   const counts = new Map<MuscleGroup, number>(MUSCLE_GROUPS.map((group) => [group, 0]));

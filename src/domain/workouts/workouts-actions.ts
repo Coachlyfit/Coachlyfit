@@ -1,10 +1,10 @@
 "use server";
 
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService, type LogSetInput, type UpdateSetInput, type ExerciseResultInput } from "./workouts.service";
 import { ActivityLogsService, type LogActivityInput } from "./activity-logs.service";
-import { startOfWeekSaturday } from "@/domain/programs/program-cycle";
 
 // Numeric extra metrics a set can carry (EXTRA_KEYS in library/measurement.ts)
 // plus the two per-set tags. Anything else in the object is rejected, so a
@@ -82,15 +82,22 @@ const exerciseResultSchema = z.object({
   notes: z.string().max(500).optional().nullable(),
 });
 
-export async function startOrResumeSessionAction(programDayId: string) {
+/** The only place a workout session is created: the preview's "Start workout"
+ * button. Any plan day can be started on any date. Returns the session in
+ * progress instead if there already is one. */
+export async function startSessionAction(
+  locale: string,
+  programDayId: string
+): Promise<{ error: string } | { sessionDayId: string }> {
+  const parsed = z.string().uuid().safeParse(programDayId);
+  if (!parsed.success) return { error: "invalid_input" };
+
   const supabase = await createClient();
-  const workouts = new WorkoutsService(supabase);
+  const session = await new WorkoutsService(supabase).startOrGetActive(parsed.data);
+  if (!session) return { error: "not_found_or_forbidden" };
 
-  const weekStart = startOfWeekSaturday(new Date().toISOString().slice(0, 10));
-  const existing = await workouts.getSessionForDay(programDayId, weekStart);
-  if (existing) return existing;
-
-  return workouts.startSession(programDayId);
+  revalidatePath(`/${locale}/c`, "layout");
+  return { sessionDayId: session.program_day_id };
 }
 
 export async function logSetAction(

@@ -103,7 +103,8 @@
       "shortDashboard": "الرئيسية",
       "shortLibrary": "المكتبة",
       "shortLeads": "المحتملون"
-    }
+    },
+    "templates": "قوالب البرامج"
   },
   "palette": {
     "navigation": "التنقل",
@@ -1172,9 +1173,23 @@
       "exerciseCount": "{count} تمارين",
       "today": "النهاردة",
       "historyLink": "السجل",
+      "doneOnMeta": "تم {date} · {minutes} د",
       "sessionN": "الحصة {n}"
     },
     "workout": {
+      "preview": {
+        "back": "الرجوع للبرنامج",
+        "workout": "التمرين",
+        "start": "ابدأ التمرين",
+        "starting": "جاري البدء…",
+        "startFailed": "ماقدرنا نبدأ التمرين. جرّب تاني.",
+        "scheduledNote": "التمرين ده مجدول يوم {day}. هيتسجّل النهاردة.",
+        "doneOn": "تم {date}",
+        "viewSummary": "شوف ملخص آخر مرة",
+        "restartTitle": "تعمل التمرين ده تاني؟",
+        "restartBody": "خلّصته الأسبوع ده. لو بدأته تاني هيتسجّل كحصة جديدة.",
+        "restartConfirm": "ابدأ تاني"
+      },
       "setsDone": "{done} / {total} مجموعة",
       "finish": "إنهاء التمرين",
       "finishSaveFailed": "تعذر حفظ التمرين. ممكن كابتنك ميشوفوش لسه.",
@@ -2308,6 +2323,79 @@
       "saved": "خطة الأسابيع اتحفظت.",
       "nameEn": "الاسم (إنجليزي)",
       "nameAr": "الاسم (عربي)"
+    },
+    "library": {
+      "title": "مكتبة القوالب",
+      "link": "مكتبة القوالب",
+      "heading": "مكتبة القوالب",
+      "subtitle": "برامج جاهزة من Coachly Fit. خصّص أحدها ليصبح قالبك الخاص، أو أسنده مباشرة إلى عميل.",
+      "backToPrograms": "العودة إلى البرامج",
+      "searchPlaceholder": "ابحث في القوالب",
+      "filters": {
+        "category": "التصنيف",
+        "level": "المستوى",
+        "equipment": "المعدات",
+        "all": "الكل",
+        "clear": "مسح التصفية"
+      },
+      "categories": {
+        "strength": "القوة",
+        "fat_burning": "حرق الدهون",
+        "full_body": "الجسم كاملًا",
+        "at_home": "في المنزل",
+        "body_weight": "بوزن الجسم",
+        "core": "الجذع والبطن",
+        "legs": "الساقان",
+        "chest": "الصدر",
+        "back": "الظهر",
+        "shoulders": "الكتفان",
+        "arms": "الذراعان",
+        "glutes": "الأرداف"
+      },
+      "card": {
+        "exercises": "{count, plural, one {تمرين واحد} two {تمرينان} few {# تمارين} many {# تمرينًا} other {# تمرين}}",
+        "customized": "مُخصَّص",
+        "preview": "معاينة",
+        "openCopy": "فتح نسختي",
+        "reset": "إعادة إلى الأصل"
+      },
+      "empty": {
+        "title": "لا توجد قوالب بعد",
+        "description": "ستظهر هنا القوالب التي تنشرها Coachly Fit."
+      },
+      "noResults": {
+        "title": "لا توجد قوالب مطابقة",
+        "description": "جرّب بحثًا مختلفًا أو امسح التصفية."
+      },
+      "preview": {
+        "session": "التمرين",
+        "warmup": "إحماء",
+        "superset": "سوبر ست {key}",
+        "sets": "{count, plural, one {مجموعة واحدة} two {مجموعتان} few {# مجموعات} many {# مجموعة} other {# مجموعة}}",
+        "seconds": "{value} ث",
+        "minutes": "{value} د",
+        "rest": "راحة {value} ث",
+        "noMedia": "لا يوجد عرض",
+        "readOnly": "هذا قالب من المنصة ولا يمكن تعديله. خصّصه للحصول على نسختك الخاصة.",
+        "source": "البنية مبنية على",
+        "customize": "خصّص وعدّل",
+        "customizing": "جارٍ إنشاء نسختك…",
+        "assign": "أسنده إلى عميل",
+        "hasCopy": "لديك بالفعل نسخة من هذا القالب.",
+        "openCopy": "فتح نسختي",
+        "reset": "إعادة إلى الأصل",
+        "daysPerWeek": "{count, plural, one {يوم واحد أسبوعيًا} two {يومان أسبوعيًا} few {# أيام أسبوعيًا} many {# يومًا أسبوعيًا} other {# يوم أسبوعيًا}}"
+      },
+      "reset": {
+        "title": "إعادة القالب إلى الأصل؟",
+        "description": "سيُنشأ نسخة جديدة من القالب الأصلي. تنتقل نسختك الحالية إلى سلة المحذوفات ويمكنك استعادتها.",
+        "confirm": "إعادة",
+        "resetting": "جارٍ الإعادة…"
+      },
+      "errors": {
+        "not_found_or_forbidden": "هذا القالب لم يعد متاحًا."
+      },
+      "results": "{count, plural, one {قالب واحد} two {قالبان} few {# قوالب} many {# قالبًا} other {# قالب}}"
     }
   },
   "library": {
@@ -2508,8 +2596,16 @@
       "legs": "الأرجل",
       "shoulders": "الأكتاف",
       "arms": "الذراعين",
+      "biceps": "عضلة الباي",
+      "triceps": "عضلة التراي",
+      "forearm": "الساعد",
+      "neck": "الرقبة",
+      "trapezius": "الترابيس",
+      "erector_spinae": "عضلات أسفل الظهر",
       "core": "البطن",
       "glutes": "الأرداف",
+      "hips": "الحوض",
+      "calf": "السمانة",
       "cardio": "كارديو",
       "full_body": "الجسم كامل",
       "other": "أخرى"
@@ -3486,6 +3582,48 @@
       "notePlaceholder": "اكتب ملاحظة للفريق…",
       "addNote": "إضافة ملاحظة",
       "noteAdded": "تمت إضافة الملاحظة."
+    },
+    "templates": {
+      "title": "قوالب البرامج",
+      "heading": "قوالب البرامج",
+      "subtitle": "قوالب المنصة التي يراها المدربون في مكتبة القوالب. لا يرى المدربون إلا القوالب المنشورة.",
+      "empty": {
+        "title": "لا توجد قوالب للمنصة",
+        "description": "أضف القوالب عبر ملف الترحيل الخاص بالبيانات الأولية، ثم انشرها من هنا."
+      },
+      "columns": {
+        "name": "القالب",
+        "level": "المستوى",
+        "exercises": "التمارين",
+        "published": "منشور"
+      },
+      "publishToggle": "نشر {name}",
+      "edit": "تعديل التفاصيل",
+      "editDialog": {
+        "title": "تعديل تفاصيل القالب",
+        "nameAr": "الاسم (بالعربية)",
+        "nameEn": "الاسم (بالإنجليزية)",
+        "descriptionAr": "الوصف (بالعربية)",
+        "descriptionEn": "الوصف (بالإنجليزية)",
+        "level": "المستوى",
+        "noLevel": "غير محدد",
+        "categories": "التصنيفات",
+        "daysPerWeek": "أيام الأسبوع",
+        "save": "حفظ",
+        "saving": "جارٍ الحفظ…"
+      },
+      "toast": {
+        "published": "تم نشر القالب",
+        "unpublished": "تم إلغاء نشر القالب",
+        "saved": "تم حفظ التفاصيل"
+      },
+      "errors": {
+        "invalid_input": "يرجى مراجعة الحقول والمحاولة مرة أخرى.",
+        "not_authenticated": "يرجى تسجيل الدخول مرة أخرى.",
+        "forbidden": "تعديل قوالب المنصة متاح للمشرفين فقط.",
+        "not_found": "هذا القالب لم يعد موجودًا.",
+        "unknown": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+      }
     }
   },
   "notifications": {

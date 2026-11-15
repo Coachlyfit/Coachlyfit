@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { planMacros } from "./macros";
 import { itemMacroFood } from "@/domain/recipes/recipe-nutrition";
+import { requireCoachId } from "@/domain/programs/platform/ownership";
 
 type DietPlan = Database["public"]["Tables"]["diet_plans"]["Row"];
 type Meal = Database["public"]["Tables"]["meals"]["Row"];
@@ -256,7 +257,7 @@ export class DietPlansService {
 
     const { data, error } = await this.db
       .from("diet_plans")
-      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, program_id: programId, ...input })
+      .insert({ coach_id: requireCoachId(parent), client_id: parent.client_id, program_id: programId, ...input })
       .select()
       .single();
     if (error) throw error;
@@ -461,7 +462,7 @@ export class DietPlansService {
     const { data, error } = await this.db
       .from("meals")
       .insert({
-        coach_id: parent.coach_id,
+        coach_id: requireCoachId(parent),
         client_id: parent.client_id,
         diet_plan_id: dietPlanId,
         order_index: await this.nextIndex("meals", "diet_plan_id", dietPlanId),
@@ -487,7 +488,7 @@ export class DietPlansService {
     const start = await this.nextIndex("meals", "diet_plan_id", dietPlanId);
     const { error } = await this.db.from("meals").insert(
       inputs.map((input, i) => ({
-        coach_id: parent.coach_id,
+        coach_id: requireCoachId(parent),
         client_id: parent.client_id,
         diet_plan_id: dietPlanId,
         order_index: start + i,
@@ -615,7 +616,7 @@ export class DietPlansService {
     const { data, error } = await this.db
       .from("meal_items")
       .insert({
-        coach_id: parent.coach_id,
+        coach_id: requireCoachId(parent),
         client_id: parent.client_id,
         meal_id: mealId,
         order_index: await this.nextIndex("meal_items", "meal_id", mealId),
