@@ -1440,6 +1440,36 @@ export type Database = {
           },
         ]
       }
+      exercises_muscle_group_backup: {
+        Row: {
+          id: string | null
+          muscle_group: string | null
+        }
+        Insert: {
+          id?: string | null
+          muscle_group?: string | null
+        }
+        Update: {
+          id?: string | null
+          muscle_group?: string | null
+        }
+        Relationships: []
+      }
+      exercises_video_url_backup: {
+        Row: {
+          id: string | null
+          video_url: string | null
+        }
+        Insert: {
+          id?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          id?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           author_id: string
@@ -3176,7 +3206,7 @@ export type Database = {
       program_activities: {
         Row: {
           client_id: string | null
-          coach_id: string
+          coach_id: string | null
           created_by: string | null
           distance_km: number | null
           duration_min: number | null
@@ -3195,7 +3225,7 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
-          coach_id: string
+          coach_id?: string | null
           created_by?: string | null
           distance_km?: number | null
           duration_min?: number | null
@@ -3214,7 +3244,7 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
-          coach_id?: string
+          coach_id?: string | null
           created_by?: string | null
           distance_km?: number | null
           duration_min?: number | null
@@ -3279,7 +3309,7 @@ export type Database = {
       program_days: {
         Row: {
           client_id: string | null
-          coach_id: string
+          coach_id: string | null
           created_by: string | null
           day_index: number
           diet_plan_id: string | null
@@ -3296,7 +3326,7 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
-          coach_id: string
+          coach_id?: string | null
           created_by?: string | null
           day_index: number
           diet_plan_id?: string | null
@@ -3313,7 +3343,7 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
-          coach_id?: string
+          coach_id?: string | null
           created_by?: string | null
           day_index?: number
           diet_plan_id?: string | null
@@ -3434,7 +3464,7 @@ export type Database = {
         Row: {
           calories: number | null
           client_id: string | null
-          coach_id: string
+          coach_id: string | null
           created_by: string | null
           distance_m: number | null
           duration_seconds: number | null
@@ -3454,7 +3484,7 @@ export type Database = {
         Insert: {
           calories?: number | null
           client_id?: string | null
-          coach_id: string
+          coach_id?: string | null
           created_by?: string | null
           distance_m?: number | null
           duration_seconds?: number | null
@@ -3474,7 +3504,7 @@ export type Database = {
         Update: {
           calories?: number | null
           client_id?: string | null
-          coach_id?: string
+          coach_id?: string | null
           created_by?: string | null
           distance_m?: number | null
           duration_seconds?: number | null
@@ -3540,7 +3570,7 @@ export type Database = {
         Row: {
           block: string
           client_id: string | null
-          coach_id: string
+          coach_id: string | null
           created_by: string | null
           exercise_id: string
           group_config: Json | null
@@ -3564,7 +3594,7 @@ export type Database = {
         Insert: {
           block?: string
           client_id?: string | null
-          coach_id: string
+          coach_id?: string | null
           created_by?: string | null
           exercise_id: string
           group_config?: Json | null
@@ -3588,7 +3618,7 @@ export type Database = {
         Update: {
           block?: string
           client_id?: string | null
-          coach_id?: string
+          coach_id?: string | null
           created_by?: string | null
           exercise_id?: string
           group_config?: Json | null
@@ -3727,11 +3757,13 @@ export type Database = {
       programs: {
         Row: {
           archived_at: string | null
+          categories: string[]
           checkin_triggered_at: string | null
           client_id: string | null
-          coach_id: string
+          coach_id: string | null
           created_at: string
           created_by: string | null
+          days_per_week: number | null
           description_ar: string | null
           description_en: string | null
           end_date: string | null
@@ -3742,18 +3774,23 @@ export type Database = {
           name_ar: string
           name_en: string
           plan_type: string | null
+          published: boolean
           schedule_mode: string
+          slug: string | null
           source_template_id: string | null
+          source_url: string | null
           start_date: string
           week_plan: Json | null
         }
         Insert: {
           archived_at?: string | null
+          categories?: string[]
           checkin_triggered_at?: string | null
           client_id?: string | null
-          coach_id: string
+          coach_id?: string | null
           created_at?: string
           created_by?: string | null
+          days_per_week?: number | null
           description_ar?: string | null
           description_en?: string | null
           end_date?: string | null
@@ -3764,18 +3801,23 @@ export type Database = {
           name_ar: string
           name_en: string
           plan_type?: string | null
+          published?: boolean
           schedule_mode?: string
+          slug?: string | null
           source_template_id?: string | null
+          source_url?: string | null
           start_date?: string
           week_plan?: Json | null
         }
         Update: {
           archived_at?: string | null
+          categories?: string[]
           checkin_triggered_at?: string | null
           client_id?: string | null
-          coach_id?: string
+          coach_id?: string | null
           created_at?: string
           created_by?: string | null
+          days_per_week?: number | null
           description_ar?: string | null
           description_en?: string | null
           end_date?: string | null
@@ -3786,8 +3828,11 @@ export type Database = {
           name_ar?: string
           name_en?: string
           plan_type?: string | null
+          published?: boolean
           schedule_mode?: string
+          slug?: string | null
           source_template_id?: string | null
+          source_url?: string | null
           start_date?: string
           week_plan?: Json | null
         }

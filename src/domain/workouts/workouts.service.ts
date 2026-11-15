@@ -6,6 +6,7 @@ import { parseBlockResults, toBlockScoreRows, type BlockResult, type BlockScoreR
 import { isTimedKind } from "@/domain/programs/group-config";
 import { estimateOneRepMax, liftKindFromName, type LiftKind } from "@/domain/progress/prs";
 import { toSkillRung, type SkillRung } from "@/domain/progress/skill-levels";
+import { requireCoachId } from "@/domain/programs/platform/ownership";
 
 type Json = Database["public"]["Tables"]["workout_sessions"]["Row"]["block_results"];
 
@@ -185,7 +186,7 @@ export class WorkoutsService {
 
     const { data, error } = await this.db
       .from("workout_sessions")
-      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, program_day_id: programDayId })
+      .insert({ coach_id: requireCoachId(parent), client_id: parent.client_id, program_day_id: programDayId })
       .select()
       .single();
     if (error) throw error;
@@ -274,7 +275,7 @@ export class WorkoutsService {
       .from("workout_set_logs")
       .upsert(
         {
-          coach_id: parent.coach_id,
+          coach_id: requireCoachId(parent),
           client_id: parent.client_id,
           session_id: sessionId,
           ...rest,
@@ -404,7 +405,7 @@ export class WorkoutsService {
       .from("workout_exercise_results")
       .upsert(
         {
-          coach_id: parent.coach_id,
+          coach_id: requireCoachId(parent),
           client_id: parent.client_id,
           session_id: sessionId,
           program_item_id: programItemId,

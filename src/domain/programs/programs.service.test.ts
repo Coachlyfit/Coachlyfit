@@ -19,13 +19,17 @@ function fakeSupabase(opts: {
   oldProgramRow?: Record<string, unknown> | null;
   /** addSession's lookup of the day the session hangs off. */
   sessionParentRow?: Record<string, unknown> | null;
+  /** customizePlatformTemplate's "is this a visible platform template" lookup. */
+  platformRow?: Record<string, unknown> | null;
+  /** resetPlatformCopy's lookup of the coach's existing copy. */
+  oldCopyRow?: Record<string, unknown> | null;
 } = {}) {
   const {
     parentRow = null,
     treeRow = null,
     affected = [{ id: "1" }],
     itemsRow = [],
-    ownClientRow = { id: "client-1" },
+    ownClientRow = { id: "client-1", coach_id: "coach-1" },
     pickedRows = [
       { id: "a", program_day_id: "day-1", group_key: null },
       { id: "b", program_day_id: "day-1", group_key: null },
@@ -37,6 +41,8 @@ function fakeSupabase(opts: {
     lastOrderRows = [],
     oldProgramRow = null,
     sessionParentRow = null,
+    platformRow = { id: "platform-1" },
+    oldCopyRow = null,
   } = opts;
 
   const inserts: { table: string; payload: unknown }[] = [];
@@ -81,12 +87,22 @@ function fakeSupabase(opts: {
           if (cols === "id, client_id, start_date, end_date, source_template_id") {
             return { eq: () => ({ maybeSingle: async () => ({ data: oldProgramRow, error: null }) }) };
           }
+          // customizePlatformTemplate: select("id").eq(id).is(coach_id,null).is(client_id,null).maybeSingle()
+          if (cols === "id" && table === "programs") {
+            return {
+              eq: () => ({ is: () => ({ is: () => ({ maybeSingle: async () => ({ data: platformRow, error: null }) }) }) }),
+            };
+          }
+          // resetPlatformCopy: the coach's existing copy of a platform template.
+          if (cols === "id, client_id, source_template_id") {
+            return { eq: () => ({ maybeSingle: async () => ({ data: oldCopyRow, error: null }) }) };
+          }
           // addItem: the day's current last order_index.
           if (cols === "order_index") {
             return { eq: () => ({ order: () => ({ limit: async () => ({ data: lastOrderRows, error: null }) }) }) };
           }
-          // assertOwnClient: select("id").eq(...).maybeSingle()
-          if (cols === "id" && table === "clients") {
+          // assertOwnClient: select("id, coach_id").eq(...).maybeSingle()
+          if (cols === "id, coach_id" && table === "clients") {
             return { eq: () => ({ maybeSingle: async () => ({ data: ownClientRow, error: null }) }) };
           }
           // getTree: select("*, program_days(...)").eq(...).order() x4.maybeSingle()
@@ -1041,7 +1057,7 @@ describe("ProgramsService", () => {
       const chain: Record<string, unknown> = {
         then: (resolve: (v: { data: unknown[]; error: null }) => void) => resolve({ data: [{ id: "p1" }], error: null }),
       };
-      for (const method of ["select", "is", "gte", "lt", "order"]) {
+      for (const method of ["select", "is", "not", "gte", "lt", "order"]) {
         chain[method] = (...args: unknown[]) => {
           calls.push([method, ...args]);
           return chain;
@@ -1059,6 +1075,9 @@ describe("ProgramsService", () => {
       expect(result).toEqual([{ id: "p1" }]);
       expect(tables).toEqual(["programs"]);
       expect(calls).toContainEqual(["is", "archived_at", null]);
+      // published platform templates are readable by every coach (platform_read)
+      // but belong in the Template Library, not in the coach's own overview
+      expect(calls).toContainEqual(["not", "coach_id", "is", null]);
       expect(calls).toContainEqual(["gte", "program_days.workout_sessions.started_at", "2026-10-03"]);
       expect(calls).toContainEqual(["lt", "program_days.workout_sessions.started_at", "2026-10-10"]);
     });
@@ -1223,5 +1242,244 @@ describe("extra sessions", () => {
       }),
     };
     expect(await new ProgramsService(db as never).duplicateDay("d-pm")).toBeNull();
+  });
+});
+
+describe("platform templates", () => {
+  // A platform template: no coach, no client. Two days, a superset, 5 sets in total.
+  const platform = {
+    id: "platform-1",
+    coach_id: null,
+    client_id: null,
+    name_ar: "قالب",
+    name_en: "Template",
+    start_date: "2026-11-18",
+    end_date: null,
+    schedule_mode: "cycle",
+    categories: ["strength", "full_body"],
+    days_per_week: null,
+    source_url: "https://fitnessprogramer.com/workout/x/",
+    published: true,
+    slug: "x",
+    program_days: [
+      {
+        id: "pd-1",
+        day_index: 1,
+        order_index: 0,
+        section_order: ["workout", "mobility_rehab", "activities"],
+        label_ar: "اليوم 1",
+        label_en: "Day 1",
+        weekday: null,
+        notes_ar: null,
+        notes_en: null,
+        diet_plan_id: null,
+        program_items: [
+          {
+            id: "pi-1",
+            exercise_id: "global-ex-1",
+            sets: 2,
+            reps: "10",
+            rest_seconds: 60,
+            progression_rule: "none",
+            order_index: 0,
+            block: "main",
+            rehab_phase_id: null,
+            coach_note_private: null,
+            group_key: "ss1",
+            group_kind: "superset",
+            program_item_sets: [
+              { id: "s1", set_index: 1, reps: 10, weight: null, rest_seconds: 60, duration_seconds: null },
+              { id: "s2", set_index: 2, reps: 10, weight: null, rest_seconds: 60, duration_seconds: null },
+            ],
+          },
+          {
+            id: "pi-2",
+            exercise_id: "global-ex-2",
+            sets: 1,
+            reps: "12",
+            rest_seconds: 60,
+            progression_rule: "none",
+            order_index: 1,
+            block: "main",
+            rehab_phase_id: null,
+            coach_note_private: null,
+            group_key: "ss1",
+            group_kind: "superset",
+            program_item_sets: [{ id: "s3", set_index: 1, reps: 12, weight: null, rest_seconds: 60, duration_seconds: null }],
+          },
+        ],
+        program_activities: [],
+      },
+      {
+        id: "pd-2",
+        day_index: 2,
+        order_index: 1,
+        section_order: ["workout", "mobility_rehab", "activities"],
+        label_ar: "اليوم 2",
+        label_en: "Day 2",
+        weekday: null,
+        notes_ar: null,
+        notes_en: null,
+        diet_plan_id: null,
+        program_items: [
+          {
+            id: "pi-3",
+            exercise_id: "global-ex-3",
+            sets: 2,
+            reps: "8",
+            rest_seconds: 90,
+            progression_rule: "none",
+            order_index: 0,
+            block: "main",
+            rehab_phase_id: null,
+            coach_note_private: null,
+            group_key: null,
+            group_kind: null,
+            program_item_sets: [
+              { id: "s4", set_index: 1, reps: 8, weight: null, rest_seconds: 90, duration_seconds: null },
+              { id: "s5", set_index: 2, reps: 8, weight: null, rest_seconds: 90, duration_seconds: null },
+            ],
+          },
+        ],
+        program_activities: [],
+      },
+    ],
+    rehab_protocols: [],
+    diet_variants: [],
+  };
+
+  it("customize deep-copies the whole tree into the coach's own template and points back at the original", async () => {
+    const { db, inserts } = fakeSupabase({ treeRow: platform });
+    const copy = await new ProgramsService(db).customizePlatformTemplate("platform-1", "coach-7");
+    expect(copy).not.toBeNull();
+
+    const program = inserts.find((i) => i.table === "programs")?.payload;
+    expect(program).toMatchObject({
+      coach_id: "coach-7",
+      client_id: null,
+      source_template_id: "platform-1",
+      categories: ["strength", "full_body"],
+      source_url: "https://fitnessprogramer.com/workout/x/",
+    });
+    // a copy is the coach's own draft: never published, never carries the platform slug
+    expect(program).not.toHaveProperty("published");
+    expect(program).not.toHaveProperty("slug");
+
+    const days = inserts.filter((i) => i.table === "program_days");
+    const items = inserts.filter((i) => i.table === "program_items");
+    const sets = inserts.filter((i) => i.table === "program_item_sets").flatMap((i) => i.payload as object[]);
+    expect(days).toHaveLength(2);
+    expect(items).toHaveLength(3);
+    expect(sets).toHaveLength(5);
+
+    // exercises and superset grouping are preserved; every row belongs to the coach
+    expect(items.map((i) => (i.payload as { exercise_id: string }).exercise_id)).toEqual([
+      "global-ex-1",
+      "global-ex-2",
+      "global-ex-3",
+    ]);
+    expect(items.slice(0, 2).map((i) => i.payload)).toEqual([
+      expect.objectContaining({ group_key: "ss1", group_kind: "superset" }),
+      expect.objectContaining({ group_key: "ss1", group_kind: "superset" }),
+    ]);
+    for (const row of [...days, ...items].map((i) => i.payload).concat(sets)) {
+      expect(row).toMatchObject({ coach_id: "coach-7", client_id: null });
+    }
+  });
+
+  it("never writes to the original: no update or delete, and no insert reuses an original id", async () => {
+    const { db, inserts, updates, deletes, upserts, rpcs } = fakeSupabase({ treeRow: platform });
+    await new ProgramsService(db).customizePlatformTemplate("platform-1", "coach-7");
+
+    expect(updates).toHaveLength(0);
+    expect(deletes).toHaveLength(0);
+    expect(rpcs).toHaveLength(0);
+    const originalIds = new Set(["platform-1", "pd-1", "pd-2", "pi-1", "pi-2", "pi-3", "s1", "s2", "s3", "s4", "s5"]);
+    for (const w of [...inserts, ...upserts]) {
+      expect(originalIds.has((w.payload as { id?: string }).id ?? "")).toBe(false);
+    }
+    expect(inserts.every((i) => (i.payload as { coach_id?: unknown }).coach_id !== null)).toBe(true);
+  });
+
+  it("two coaches customizing the same template get separate copies owned by themselves", async () => {
+    const a = fakeSupabase({ treeRow: platform });
+    const b = fakeSupabase({ treeRow: platform });
+    await new ProgramsService(a.db).customizePlatformTemplate("platform-1", "coach-A");
+    await new ProgramsService(b.db).customizePlatformTemplate("platform-1", "coach-B");
+
+    const owners = (f: typeof a) =>
+      new Set(f.inserts.flatMap((i) => [i.payload].flat()).map((row) => (row as { coach_id?: string }).coach_id));
+    expect(owners(a)).toEqual(new Set(["coach-A"]));
+    expect(owners(b)).toEqual(new Set(["coach-B"]));
+  });
+
+  it("returns null and inserts nothing when the template isn't visible (unpublished, or not a platform template)", async () => {
+    const { db, inserts } = fakeSupabase({ treeRow: platform, platformRow: null });
+    expect(await new ProgramsService(db).customizePlatformTemplate("platform-1", "coach-7")).toBeNull();
+    expect(inserts).toHaveLength(0);
+  });
+
+  it("assigning a platform template to a client clones it under the client's own coach", async () => {
+    const { db, inserts, updates } = fakeSupabase({
+      treeRow: platform,
+      ownClientRow: { id: "client-9", coach_id: "coach-9" },
+    });
+    await new ProgramsService(db).cloneToClient("platform-1", "client-9");
+
+    expect(inserts.find((i) => i.table === "programs")?.payload).toMatchObject({
+      coach_id: "coach-9",
+      client_id: "client-9",
+      source_template_id: "platform-1",
+    });
+    expect(updates).toHaveLength(0);
+  });
+
+  it("reset makes a fresh copy of the original, then archives only the old copy", async () => {
+    const { db, inserts, updates } = fakeSupabase({
+      treeRow: platform,
+      oldCopyRow: { id: "my-copy", client_id: null, source_template_id: "platform-1" },
+    });
+    const fresh = await new ProgramsService(db).resetPlatformCopy("platform-1", "my-copy", "coach-7");
+
+    expect(fresh).not.toBeNull();
+    expect(inserts.find((i) => i.table === "programs")?.payload).toMatchObject({
+      coach_id: "coach-7",
+      source_template_id: "platform-1",
+    });
+    expect(updates).toHaveLength(1);
+    expect(updates[0].eqs).toEqual([["id", "my-copy"]]);
+    expect(updates[0].payload).toHaveProperty("archived_at");
+  });
+
+  it("reset refuses a program that isn't this coach's copy of that template, and changes nothing", async () => {
+    for (const oldCopyRow of [
+      null,
+      { id: "x", client_id: "client-9", source_template_id: "platform-1" }, // a client's program
+      { id: "x", client_id: null, source_template_id: "other-template" }, // copy of something else
+    ]) {
+      const { db, inserts, updates } = fakeSupabase({ treeRow: platform, oldCopyRow });
+      expect(await new ProgramsService(db).resetPlatformCopy("platform-1", "x", "coach-7")).toBeNull();
+      expect(inserts).toHaveLength(0);
+      expect(updates).toHaveLength(0);
+    }
+  });
+
+  it("refuses to edit a platform template in place (edits go through Customize)", async () => {
+    const { db, inserts } = fakeSupabase({ parentRow: { coach_id: null, client_id: null } });
+    await expect(new ProgramsService(db).addItem("pd-1", { exercise_id: "ex-1" })).rejects.toThrow(
+      "platform_template_read_only"
+    );
+    expect(inserts).toHaveLength(0);
+  });
+
+  it("a coach's own template saved from a client program still has no source template", async () => {
+    const own = { ...platform, id: "p-own", coach_id: "coach-1", client_id: "client-9" };
+    const { db, inserts } = fakeSupabase({ treeRow: own });
+    await new ProgramsService(db).saveAsTemplate("p-own");
+    expect(inserts.find((i) => i.table === "programs")?.payload).toMatchObject({
+      coach_id: "coach-1",
+      client_id: null,
+      source_template_id: null,
+    });
   });
 });

@@ -103,7 +103,8 @@
       "shortDashboard": "Home",
       "shortLibrary": "Library",
       "shortLeads": "Leads"
-    }
+    },
+    "templates": "Program templates"
   },
   "palette": {
     "navigation": "Navigation",
@@ -2308,6 +2309,79 @@
       "saved": "Week plan saved.",
       "nameEn": "Name (English)",
       "nameAr": "Name (Arabic)"
+    },
+    "library": {
+      "title": "Template library",
+      "link": "Template library",
+      "heading": "Template library",
+      "subtitle": "Ready-made programs from Coachly Fit. Customize one into your own template, or assign it straight to a client.",
+      "backToPrograms": "Back to programs",
+      "searchPlaceholder": "Search templates",
+      "filters": {
+        "category": "Category",
+        "level": "Level",
+        "equipment": "Equipment",
+        "all": "All",
+        "clear": "Clear filters"
+      },
+      "categories": {
+        "strength": "Strength",
+        "fat_burning": "Fat burning",
+        "full_body": "Full body",
+        "at_home": "At home",
+        "body_weight": "Body weight",
+        "core": "Core & abs",
+        "legs": "Legs",
+        "chest": "Chest",
+        "back": "Back",
+        "shoulders": "Shoulders",
+        "arms": "Arms",
+        "glutes": "Glutes"
+      },
+      "card": {
+        "exercises": "{count, plural, one {# exercise} other {# exercises}}",
+        "customized": "Customized",
+        "preview": "Preview",
+        "openCopy": "Open my copy",
+        "reset": "Reset to original"
+      },
+      "empty": {
+        "title": "No templates yet",
+        "description": "Templates published by Coachly Fit will appear here."
+      },
+      "noResults": {
+        "title": "No templates match",
+        "description": "Try a different search or clear the filters."
+      },
+      "preview": {
+        "session": "Workout",
+        "warmup": "Warm-up",
+        "superset": "Superset {key}",
+        "sets": "{count, plural, one {# set} other {# sets}}",
+        "seconds": "{value}s",
+        "minutes": "{value} min",
+        "rest": "Rest {value}s",
+        "noMedia": "No demo",
+        "readOnly": "This is a platform template and can't be edited. Customize it to get your own copy.",
+        "source": "Structure based on",
+        "customize": "Customize and edit",
+        "customizing": "Creating your copy…",
+        "assign": "Assign to client",
+        "hasCopy": "You already have a copy of this template.",
+        "openCopy": "Open my copy",
+        "reset": "Reset to original",
+        "daysPerWeek": "{count, plural, one {# day per week} other {# days per week}}"
+      },
+      "reset": {
+        "title": "Reset to the original?",
+        "description": "This makes a fresh copy of the original template. Your current copy moves to the trash, where you can restore it.",
+        "confirm": "Reset",
+        "resetting": "Resetting…"
+      },
+      "errors": {
+        "not_found_or_forbidden": "This template isn't available any more."
+      },
+      "results": "{count, plural, one {# template} other {# templates}}"
     }
   },
   "library": {
@@ -3494,6 +3568,48 @@
       "notePlaceholder": "Write a note for the team…",
       "addNote": "Add note",
       "noteAdded": "Note added."
+    },
+    "templates": {
+      "title": "Program templates",
+      "heading": "Program templates",
+      "subtitle": "Platform templates that coaches see in their Template Library. Coaches only see the ones that are published.",
+      "empty": {
+        "title": "No platform templates",
+        "description": "Add templates with the seed migration, then publish them here."
+      },
+      "columns": {
+        "name": "Template",
+        "level": "Level",
+        "exercises": "Exercises",
+        "published": "Published"
+      },
+      "publishToggle": "Publish {name}",
+      "edit": "Edit details",
+      "editDialog": {
+        "title": "Edit template details",
+        "nameAr": "Name (Arabic)",
+        "nameEn": "Name (English)",
+        "descriptionAr": "Description (Arabic)",
+        "descriptionEn": "Description (English)",
+        "level": "Level",
+        "noLevel": "Not set",
+        "categories": "Categories",
+        "daysPerWeek": "Days per week",
+        "save": "Save",
+        "saving": "Saving…"
+      },
+      "toast": {
+        "published": "Template published",
+        "unpublished": "Template unpublished",
+        "saved": "Details saved"
+      },
+      "errors": {
+        "invalid_input": "Please check the fields and try again.",
+        "not_authenticated": "Please log in again.",
+        "forbidden": "Only admins can change platform templates.",
+        "not_found": "This template no longer exists.",
+        "unknown": "Something went wrong. Please try again."
+      }
     }
   },
   "notifications": {

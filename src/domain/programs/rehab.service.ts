@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { CreateRehabPhaseInput, CreateRehabProtocolInput, UpdateRehabPhaseInput, UpdateRehabProtocolInput } from "./programs.service";
+import { requireCoachId } from "@/domain/programs/platform/ownership";
 
 type RehabProtocol = Database["public"]["Tables"]["rehab_protocols"]["Row"];
 type RehabPhase = Database["public"]["Tables"]["rehab_phases"]["Row"];
@@ -26,7 +27,7 @@ export class RehabService {
 
     const { data, error } = await this.db
       .from("rehab_protocols")
-      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, program_id: programId, ...input })
+      .insert({ coach_id: requireCoachId(parent), client_id: parent.client_id, program_id: programId, ...input })
       .select()
       .single();
     if (error) throw error;
@@ -56,7 +57,7 @@ export class RehabService {
 
     const { data, error } = await this.db
       .from("rehab_phases")
-      .insert({ coach_id: parent.coach_id, client_id: parent.client_id, protocol_id: protocolId, ...input })
+      .insert({ coach_id: requireCoachId(parent), client_id: parent.client_id, protocol_id: protocolId, ...input })
       .select()
       .single();
     if (error) throw error;

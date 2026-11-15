@@ -1,0 +1,1400 @@
+[
+  {
+    "site_slug": "high-knee-run",
+    "name_en": "High Knee Run",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/High-Knee-Run.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio",
+      "hips",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite",
+      "beginner-leg-workout"
+    ]
+  },
+  {
+    "site_slug": "duck-walk",
+    "name_en": "Duck Walk",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/09/Duck-Walk.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite"
+    ]
+  },
+  {
+    "site_slug": "bodyweight-single-leg-deadlift",
+    "name_en": "Bodyweight Single Leg Deadlift",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Bodyweight-Single-Leg-Deadlift.gif",
+    "muscle_group": "glutes",
+    "primary_muscles": [
+      "glutes"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite"
+    ]
+  },
+  {
+    "site_slug": "standing-hip-abduction",
+    "name_en": "Standing Hip Abduction",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Standing-Hip-Abduction-1.gif",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite"
+    ]
+  },
+  {
+    "site_slug": "bridge-hip-abduction",
+    "name_en": "Bridge Hip Abduction",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Bridge-Hip-Abduction.gif",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite",
+      "sexy-butt-and-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "fire-hydrant",
+    "name_en": "Fire Hydrant",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Fire-Hydrant.gif",
+    "muscle_group": "glutes",
+    "primary_muscles": [
+      "glutes"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite",
+      "no-equipment-lower-body-strength-exercises",
+      "sexy-butt-and-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "plank-leg-lift",
+    "name_en": "Plank Leg Lift",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Plank-Leg-Lift.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core",
+      "hips"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite",
+      "at-home-full-body-workout",
+      "beach-body-workout-routine",
+      "core-build-up-workout",
+      "rounder-butt-workout",
+      "sexy-butt-and-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "bodyweight-sumo-squat",
+    "name_en": "Bodyweight Sumo Squat",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/BODYWEIGHT-SUMO-SQUAT.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "10-best-bodyweight-exercises-to-get-rid-of-cellulite",
+      "300-calorie-hiit-workout",
+      "at-home-full-body-workout",
+      "beach-body-workout-routine",
+      "beginner-bodyweight-workout",
+      "bodyweight-strength-workout",
+      "no-equipment-lower-body-strength-exercises",
+      "rounder-butt-workout",
+      "sexy-butt-and-abs-workout",
+      "summer-body-workout"
+    ]
+  },
+  {
+    "site_slug": "fast-feet-run",
+    "name_en": "Fast Feet Run",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/09/Fast-Feet-Run.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "15-minute-hiit-workout-for-beginners",
+      "200m-interval-running-workout-for-speed"
+    ]
+  },
+  {
+    "site_slug": "spider-plank",
+    "name_en": "Spider Plank",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Spider-Plank.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core",
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "15-minute-hiit-workout-for-beginners",
+      "beginner-bodyweight-workout",
+      "complete-abs-workout",
+      "core-build-up-workout"
+    ]
+  },
+  {
+    "site_slug": "plyo-jacks",
+    "name_en": "Plyo Jacks",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/09/Plyo-Jacks.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "15-minute-hiit-workout-for-beginners"
+    ]
+  },
+  {
+    "site_slug": "briskly-walking",
+    "name_en": "Briskly Walking",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/09/Briskly-Walking.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "200m-interval-running-workout-for-speed"
+    ]
+  },
+  {
+    "site_slug": "high-knee-skips",
+    "name_en": "High Knee Skips",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/High-Knee-Skips_Cardio.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "200m-interval-running-workout-for-speed",
+      "300-calorie-hiit-workout",
+      "beach-body-workout-routine",
+      "slim-waist-workout-routine"
+    ]
+  },
+  {
+    "site_slug": "running",
+    "name_en": "Running",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/07/Run.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "200m-interval-running-workout-for-speed",
+      "200m-interval-running-workout-for-speed",
+      "200m-interval-running-workout-for-speed",
+      "200m-interval-running-workout-for-speed"
+    ]
+  },
+  {
+    "site_slug": "half-kneeling-hip-flexor-stretch",
+    "name_en": "Half Kneeling Hip Flexor Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Kneeling-Hip-Flexor-Stretch-1-360x360.png",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "200m-interval-running-workout-for-speed",
+      "leg-workout-for-building-muscle"
+    ]
+  },
+  {
+    "site_slug": "inner-thigh-side-stretch",
+    "name_en": "Inner Thigh Side Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/INNER-THIGH-SIDE-STRETCH.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "200m-interval-running-workout-for-speed",
+      "leg-workout-for-building-muscle"
+    ]
+  },
+  {
+    "site_slug": "standing-cross-leg-hamstring-stretch",
+    "name_en": "Standing Cross Leg Hamstring Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Standing-Cross-Leg-Hamstring-Stretch.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "200m-interval-running-workout-for-speed"
+    ]
+  },
+  {
+    "site_slug": "standing-quadriceps-stretch",
+    "name_en": "Standing Quadriceps Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/Standing-Quadriceps-Stretch.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "200m-interval-running-workout-for-speed",
+      "leg-workout-for-building-muscle"
+    ]
+  },
+  {
+    "site_slug": "dumbbell-floor-wipers",
+    "name_en": "Dumbbell Floor Wipers",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2023/06/Dumbbell-Floor-Wipers.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "300-workout"
+    ]
+  },
+  {
+    "site_slug": "kettlebell-clean-and-press",
+    "name_en": "Kettlebell Clean and Press",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2023/06/Kettlebell-Clean-and-Press.gif",
+    "muscle_group": "full_body",
+    "primary_muscles": [
+      "full_body",
+      "hips",
+      "legs",
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "kettlebell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "300-workout"
+    ]
+  },
+  {
+    "site_slug": "crunch",
+    "name_en": "Crunches",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2015/11/Crunch.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "5-min-total-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "bicycle-crunch",
+    "name_en": "Bicycle Crunch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bicycle-Crunch.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core",
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "5-min-total-abs-workout",
+      "complete-abs-workout",
+      "core-build-up-workout",
+      "full-body-workout-routine-for-beginners",
+      "obliques-workout",
+      "sexy-butt-and-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "heel-touch",
+    "name_en": "Heel Touch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Heel-Touch.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "5-min-total-abs-workout",
+      "obliques-workout"
+    ]
+  },
+  {
+    "site_slug": "knee-push-up",
+    "name_en": "Kneeling Diamond Push-Up",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Knee-Push-Up.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest",
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "8-exercises-for-bigger-breasts"
+    ]
+  },
+  {
+    "site_slug": "above-head-chest-stretch",
+    "name_en": "Above Head Chest Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Above-Head-Chest-Stretch.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "8-exercises-for-bigger-breasts"
+    ]
+  },
+  {
+    "site_slug": "wall-slides",
+    "name_en": "Wall Slides",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/wall-slide.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "at-home-back-fat-burning-workout",
+      "at-home-full-body-workout",
+      "back-workout-for-a-bigger-back",
+      "beach-body-workout-routine",
+      "the-best-12-posture-exercises",
+      "the-best-rotator-cuff-exercises",
+      "ultimate-back-fat-burning-workout",
+      "ultimate-back-workout"
+    ]
+  },
+  {
+    "site_slug": "arm-leg-raises",
+    "name_en": "Arm Leg Raises",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/arm-leg-raise.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "at-home-back-fat-burning-workout",
+      "beach-body-workout-routine",
+      "core-build-up-workout",
+      "the-best-12-posture-exercises"
+    ]
+  },
+  {
+    "site_slug": "side-plank",
+    "name_en": "Side Plank",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Side-Plank-1-360x360.png",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "at-home-back-fat-burning-workout",
+      "the-best-12-posture-exercises"
+    ]
+  },
+  {
+    "site_slug": "barbell-rollout",
+    "name_en": "Barbell Rollout",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/Barbell-Rollout.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "barbell-free-weights-workout-program"
+    ]
+  },
+  {
+    "site_slug": "glute-bridge",
+    "name_en": "Glute Bridge",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Glute-Bridge-.gif",
+    "muscle_group": "glutes",
+    "primary_muscles": [
+      "glutes"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "beach-body-workout-routine",
+      "core-build-up-workout",
+      "rounder-butt-workout",
+      "sexy-butt-and-abs-workout",
+      "summer-body-workout"
+    ]
+  },
+  {
+    "site_slug": "cossack-squat",
+    "name_en": "Cossack Squat",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Cossack-Squat.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "beginner-bodyweight-workout",
+      "beginner-leg-workout"
+    ]
+  },
+  {
+    "site_slug": "reverse-lunge-knee",
+    "name_en": "Reverse Lunge Knee Lift",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Reverse-Lunge-Knee.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "beginner-bodyweight-workout"
+    ]
+  },
+  {
+    "site_slug": "jumping-jack",
+    "name_en": "Jumping jack",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Jumping-jack.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "beginner-bodyweight-workout"
+    ]
+  },
+  {
+    "site_slug": "hack-squats-machine",
+    "name_en": "Hack Squats Machine",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Sled-Hack-Squat.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "beginner-leg-workout"
+    ]
+  },
+  {
+    "site_slug": "leg-curl",
+    "name_en": "Leg Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Curl.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "beginner-leg-workout",
+      "full-body-workout-routine-for-beginners",
+      "leg-workout-for-building-muscle"
+    ]
+  },
+  {
+    "site_slug": "hip-abduction-machine",
+    "name_en": "Hip Abduction Machine",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/HiP-ABDUCTION-MACHINE.gif",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "beginner-leg-workout"
+    ]
+  },
+  {
+    "site_slug": "hip-adduction-machine",
+    "name_en": "Hip Adduction Machine",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/HIP-ADDUCTION-MACHINE.gif",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "beginner-leg-workout"
+    ]
+  },
+  {
+    "site_slug": "hack-squat-calf-raise",
+    "name_en": "Hack Squat Calf Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Hack-Squat-Calf-Raise.gif",
+    "muscle_group": "calf",
+    "primary_muscles": [
+      "calf"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "beginner-leg-workout",
+      "leg-workout-for-building-muscle"
+    ]
+  },
+  {
+    "site_slug": "z-bar-curl",
+    "name_en": "Z-Bar Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Z-Bar-Curl.gif",
+    "muscle_group": "biceps",
+    "primary_muscles": [
+      "biceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "biceps-workout"
+    ]
+  },
+  {
+    "site_slug": "seated-incline-dumbbell-curl",
+    "name_en": "Seated Incline Dumbbell Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Incline-Dumbbell-Curl.gif",
+    "muscle_group": "biceps",
+    "primary_muscles": [
+      "biceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "biceps-workout",
+      "full-body-workout-routine-for-beginners",
+      "the-complete-arm-workout"
+    ]
+  },
+  {
+    "site_slug": "bodyweight-skull-crushers",
+    "name_en": "Bodyweight Skull Crushers",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/02/Bodyweight-Skull-Crushers.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "bodyweight-strength-workout"
+    ]
+  },
+  {
+    "site_slug": "seated-side-crunch",
+    "name_en": "Seated Side Crunch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Seated-Side-Crunches.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "bodyweight-strength-workout",
+      "sexy-butt-and-abs-workout",
+      "slim-waist-workout-routine",
+      "the-best-12-posture-exercises"
+    ]
+  },
+  {
+    "site_slug": "rear-delt-machine-fly",
+    "name_en": "Rear Delt Fly Machine",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Rear-Delt-Machine-Flys.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders",
+      "trapezius"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "chest-and-back-superset-workout",
+      "shoulder-workout-intermediate-level",
+      "ultimate-back-fat-burning-workout"
+    ]
+  },
+  {
+    "site_slug": "high-cable-crossover",
+    "name_en": "High Cable Crossover",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/High-Cable-Crossover.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "chest-workout-beginner",
+      "inner-chest-workout"
+    ]
+  },
+  {
+    "site_slug": "lying-scissor-kick",
+    "name_en": "Lying Scissor Kick",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Lying-Scissor-Kick.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "complete-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "leg-raise",
+    "name_en": "Leg Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lying-Leg-Raise.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "complete-abs-workout",
+      "core-build-up-workout",
+      "sexy-butt-and-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "bodyweight-windmill",
+    "name_en": "Bodyweight Windmill",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Bodyweight-Windmill.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "core-build-up-workout",
+      "slim-waist-workout-routine"
+    ]
+  },
+  {
+    "site_slug": "elbow-to-knee-twists",
+    "name_en": "Elbow To Knee Twists",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/09/Elbow-To-Knee-Twists.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "core-build-up-workout"
+    ]
+  },
+  {
+    "site_slug": "hindu-push-ups",
+    "name_en": "Hindu Push-ups",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Pike-to-Cobra.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "core-build-up-workout"
+    ]
+  },
+  {
+    "site_slug": "bench-dips",
+    "name_en": "Bench Dips",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bench-Dips.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "flabby-arm-workout"
+    ]
+  },
+  {
+    "site_slug": "one-arm-lying-triceps-extension",
+    "name_en": "One-Arm Lying Triceps Extension",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/One-Arm-Lying-Triceps-Extension.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "flabby-arm-workout"
+    ]
+  },
+  {
+    "site_slug": "bent-over-triceps-kick-back",
+    "name_en": "Bent Over Kickback",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Triceps-Kickback.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "full-body-workout-routine-for-beginners",
+      "the-complete-arm-workout"
+    ]
+  },
+  {
+    "site_slug": "hammer-press",
+    "name_en": "Hammer Press",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Press.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "inner-chest-workout"
+    ]
+  },
+  {
+    "site_slug": "dumbbell-bulgarian-split-squat",
+    "name_en": "Dumbbell Bulgarian Split Squat",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Dumbbell-Bulgarian-Split-Squat.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "leg-workout-for-building-muscle"
+    ]
+  },
+  {
+    "site_slug": "side-lunge-stretch",
+    "name_en": "Side Lunge",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Side-Lunge-Stretch.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "no-equipment-lower-body-strength-exercises"
+    ]
+  },
+  {
+    "site_slug": "side-lying-clam",
+    "name_en": "Side Lying Clam",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Side-Lying-Clam.gif",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "no-equipment-lower-body-strength-exercises",
+      "rounder-butt-workout",
+      "sexy-butt-and-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "single-leg-bridge",
+    "name_en": "Single Leg Bridge",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Single-Leg-Bridge.gif",
+    "muscle_group": "glutes",
+    "primary_muscles": [
+      "glutes"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "no-equipment-lower-body-strength-exercises"
+    ]
+  },
+  {
+    "site_slug": "adductor-magnus-stretch",
+    "name_en": "Thigh fly (Adductor Magnus Stretch)",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Adductor-Magnus-Stretch.gif",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "no-equipment-lower-body-strength-exercises"
+    ]
+  },
+  {
+    "site_slug": "plank-knee-to-elbow",
+    "name_en": "Plank Knee to Elbow",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/PLANK-KNEE-TO-ELBOW.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "obliques-workout"
+    ]
+  },
+  {
+    "site_slug": "half-wipers",
+    "name_en": "Half Wipers",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Half-Wipers.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "obliques-workout"
+    ]
+  },
+  {
+    "site_slug": "side-plank-leg-raises",
+    "name_en": "Side Plank Leg Raises",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Side-Plank-Leg-Raises.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "obliques-workout",
+      "slim-waist-workout-routine"
+    ]
+  },
+  {
+    "site_slug": "cable-crossover",
+    "name_en": "Cable Crossover",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crossover.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "pyramid-chest-workout"
+    ]
+  },
+  {
+    "site_slug": "donkey-kicks",
+    "name_en": "Donkey Kicks",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Donkey-Kicks.gif",
+    "muscle_group": "glutes",
+    "primary_muscles": [
+      "glutes"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "rounder-butt-workout",
+      "sexy-butt-and-abs-workout"
+    ]
+  },
+  {
+    "site_slug": "cable-internal-shoulder-rotation",
+    "name_en": "Cable Internal Shoulder Rotation",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Cable-Internal-Shoulder-Rotation.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "shoulder-workout-for-beginners",
+      "the-best-rotator-cuff-exercises"
+    ]
+  },
+  {
+    "site_slug": "cable-external-shoulder-rotation",
+    "name_en": "Cable External Shoulder Rotation",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Cable-External-Shoulder-Rotation.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "shoulder-workout-for-beginners",
+      "the-best-rotator-cuff-exercises"
+    ]
+  },
+  {
+    "site_slug": "snap-jumps",
+    "name_en": "Snap Jumps",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/SNAP-JUMPS.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core",
+      "cardio",
+      "full_body",
+      "hips",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "slim-waist-workout-routine"
+    ]
+  },
+  {
+    "site_slug": "seated-oblique-twist",
+    "name_en": "Seated Oblique Twist",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Seated-Oblique-Twist.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "slim-waist-workout-routine"
+    ]
+  },
+  {
+    "site_slug": "crunch-with-leg-raise",
+    "name_en": "Crunch With Leg Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Crunch-With-Leg-Raise.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "slim-waist-workout-routine"
+    ]
+  },
+  {
+    "site_slug": "step-up-with-knee-raises",
+    "name_en": "Step Up with Knee Raises",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Step-up.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "summer-body-workout"
+    ]
+  },
+  {
+    "site_slug": "standing-rotation",
+    "name_en": "Standing Rotation",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Standing-Rotation.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "the-best-12-posture-exercises"
+    ]
+  },
+  {
+    "site_slug": "swimming",
+    "name_en": "Swimming",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Swimming.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back",
+      "hips",
+      "trapezius"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "the-best-12-posture-exercises"
+    ]
+  },
+  {
+    "site_slug": "reverse-plank-kicks",
+    "name_en": "Reverse Plank Kicks",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Reverse-Plank-Kicks.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [
+      "glutes"
+    ],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "the-best-12-posture-exercises"
+    ]
+  },
+  {
+    "site_slug": "shoulder-stretch-behind-back",
+    "name_en": "Shoulder Stretch Behind The Back",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Shoulder-Stretch-Behind-Back.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "the-best-12-posture-exercises"
+    ]
+  },
+  {
+    "site_slug": "dumbbell-scaption",
+    "name_en": "Dumbbell Scaption",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Dumbbell-Scaption.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "the-best-rotator-cuff-exercises"
+    ]
+  },
+  {
+    "site_slug": "seated-rear-lateral-dumbbell-raise",
+    "name_en": "Seated Rear Lateral Dumbbell Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Rear-Lateral-Dumbbell-Raise.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "the-best-rotator-cuff-exercises"
+    ]
+  },
+  {
+    "site_slug": "doorway-pec-and-shoulder-stretch",
+    "name_en": "Doorway Pec and Shoulder Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/01/Doorway-chest-and-sshoulder-stretch.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest",
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "the-best-rotator-cuff-exercises"
+    ]
+  },
+  {
+    "site_slug": "across-chest-shoulder-stretch",
+    "name_en": "Across Chest Shoulder Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Across-Chest-Shoulder-Stretch.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "the-best-rotator-cuff-exercises"
+    ]
+  },
+  {
+    "site_slug": "one-arm-reverse-push-down",
+    "name_en": "One-Arm Reverse Pushdown",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/One-Arm-Reverse-Push-Down.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "the-complete-arm-workout",
+      "triceps-workout"
+    ]
+  },
+  {
+    "site_slug": "reverse-wrist-curl",
+    "name_en": "Reverse Wrist Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Reverse-Wrist-Curl.gif",
+    "muscle_group": "forearm",
+    "primary_muscles": [
+      "forearm"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "the-complete-arm-workout"
+    ]
+  },
+  {
+    "site_slug": "rope-straight-arm-pulldown",
+    "name_en": "Rope Straight Arm Pulldown",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Rope-Straight-Arm-Pulldown.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "ultimate-back-workout"
+    ]
+  },
+  {
+    "site_slug": "standing-reach-up-back-rotation-stretch",
+    "name_en": "Standing Reach Up Back rotation Stretch",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Standing-Reach-Up-Back-rotation-Stretch.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back",
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "ultimate-back-workout"
+    ]
+  }
+]

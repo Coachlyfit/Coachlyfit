@@ -1,5 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { LibraryBig } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
 import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/server";
 import { ProgramsService, type ProgramScope } from "@/domain/programs/programs.service";
@@ -131,8 +134,12 @@ export default async function ProgramsPage({
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ProgramsTrashButton locale={locale} />
+          <Link href="/programs/library" className={buttonVariants({ variant: "outline" })}>
+            <LibraryBig className="size-4" aria-hidden="true" />
+            {t("library.link")}
+          </Link>
           <StarterPlansDialog locale={locale} />
           {/* Pinned above the bottom nav on mobile (end-20 clears the feedback
               widget), inline from md up. */}

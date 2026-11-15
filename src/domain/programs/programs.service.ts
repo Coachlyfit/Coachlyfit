@@ -4,6 +4,7 @@ import type { ProgressionRule } from "./progression";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 import { normalizeSectionOrder } from "./day-sections";
 import type { GroupConfig, GroupKind } from "./group-config";
+import { requireCoachId } from "./platform/ownership";
 import type { PlanGoal, PlanLevel, PlanType } from "./plan-meta";
 import type { WeekPlan } from "./week-plan";
 
@@ -362,16 +363,18 @@ export class ProgramsService {
    * client_id verbatim from an argument (create, cloneToClient): the FK
    * alone doesn't stop a coach from pointing a program at another coach's
    * client id, since foreign-key checks run with RLS bypassed. */
-  private async assertOwnClient(clientId: string): Promise<void> {
-    const { data, error } = await this.db.from("clients").select("id").eq("id", clientId).maybeSingle();
+  private async assertOwnClient(clientId: string): Promise<{ coach_id: string }> {
+    const { data, error } = await this.db.from("clients").select("id, coach_id").eq("id", clientId).maybeSingle();
     if (error) throw error;
     if (!data) throw new Error("client_not_found_or_forbidden");
+    return data;
   }
 
   async list(scope: ProgramScope = "all") {
     let q = this.db
       .from("programs")
       .select("*, clients(display_name)")
+      .not("coach_id", "is", null) // platform templates have their own list (listPlatformTemplates)
       .is("archived_at", null)
       .order("created_at", { ascending: false });
     q = applyScope(q, scope);
@@ -392,6 +395,7 @@ export class ProgramsService {
       .select(
         "*, clients(display_name), program_days(id, day_index, parent_day_id, weekday, label_ar, label_en, program_items(count), workout_sessions(started_at, completed_at))"
       )
+      .not("coach_id", "is", null)
       .is("archived_at", null)
       .gte("program_days.workout_sessions.started_at", fromIso)
       .lt("program_days.workout_sessions.started_at", toIso)
@@ -405,6 +409,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("programs")
       .select("*, clients(display_name)")
+      .not("coach_id", "is", null)
       .not("archived_at", "is", null)
       .order("archived_at", { ascending: false });
     if (error) throw error;
@@ -564,20 +569,29 @@ export class ProgramsService {
    * — ponytail: a partial clone leaves an orphan program the coach can
    * delete; add an RPC if that ever bites.
    *
-   * `source_template_id` is stamped only when cloning *out* to a client: a
-   * template saved back from an assigned program has no source template. */
+   * `source_template_id` is stamped when cloning out to a client, and when
+   * cloning a platform template (the copy points back at its original). A
+   * template saved back from an assigned program has no source template.
+   *
+   * A platform template (coach_id null) has no owner to inherit, so the copy
+   * takes `targetCoachId`; a coach-owned source always keeps its own owner.
+   * The source is only ever read, never written. */
   private async cloneTree(
     programId: string,
     clientId: string | null,
-    overrides: Partial<Pick<Program, "name_ar" | "name_en" | "start_date" | "end_date">> = {}
+    overrides: Partial<Pick<Program, "name_ar" | "name_en" | "start_date" | "end_date">> = {},
+    targetCoachId?: string
   ): Promise<Program | null> {
     const tree = await this.getTree(programId);
     if (!tree) return null;
+    const isPlatform = tree.coach_id == null;
+    const ownerId = tree.coach_id ?? targetCoachId;
+    if (!ownerId) throw new Error("coach_required");
 
     const { data: cloned, error: programError } = await this.db
       .from("programs")
       .insert({
-        coach_id: tree.coach_id,
+        coach_id: ownerId,
         client_id: clientId,
         name_ar: tree.name_ar,
         name_en: tree.name_en,
@@ -591,7 +605,10 @@ export class ProgramsService {
         description_ar: tree.description_ar,
         description_en: tree.description_en,
         week_plan: tree.week_plan,
-        source_template_id: clientId ? tree.id : null,
+        categories: tree.categories,
+        days_per_week: tree.days_per_week,
+        source_url: tree.source_url,
+        source_template_id: clientId || isPlatform ? tree.id : null,
         ...overrides,
       })
       .select()
@@ -607,7 +624,7 @@ export class ProgramsService {
       const { data: clonedProtocol, error: protocolError } = await this.db
         .from("rehab_protocols")
         .insert({
-          coach_id: tree.coach_id,
+          coach_id: ownerId,
           client_id: clientId,
           program_id: cloned.id,
           body_area: protocol.body_area,
@@ -628,7 +645,7 @@ export class ProgramsService {
           .from("rehab_phases")
           .insert(
             protocol.rehab_phases.map((phase) => ({
-              coach_id: tree.coach_id,
+              coach_id: ownerId,
               client_id: clientId,
               protocol_id: clonedProtocol.id,
               name_ar: phase.name_ar,
@@ -669,7 +686,7 @@ export class ProgramsService {
       const { data: clonedDay, error: dayError } = await this.db
         .from("program_days")
         .insert({
-          coach_id: tree.coach_id,
+          coach_id: ownerId,
           client_id: clientId,
           program_id: cloned.id,
           parent_day_id: day.parent_day_id ? (dayIdMap.get(day.parent_day_id) ?? null) : null,
@@ -692,7 +709,7 @@ export class ProgramsService {
         const { data: clonedItem, error: itemError } = await this.db
           .from("program_items")
           .insert({
-            coach_id: tree.coach_id,
+            coach_id: ownerId,
             client_id: clientId,
             program_day_id: clonedDay.id,
             exercise_id: item.exercise_id,
@@ -713,13 +730,13 @@ export class ProgramsService {
           .select()
           .single();
         if (itemError) throw itemError;
-        await this.writePrivateNote(clonedItem.id, tree.coach_id, item.coach_note_private, false);
+        await this.writePrivateNote(clonedItem.id, ownerId, item.coach_note_private, false);
 
         // Per-set prescriptions must be cloned explicitly — they don't live
         // on program_items, so they're not carried by the insert above.
         if (item.program_item_sets.length > 0) {
           const { error: setsError } = await this.db.from("program_item_sets").insert(
-            setCopyRows(item.program_item_sets, tree.coach_id, clientId, clonedItem.id)
+            setCopyRows(item.program_item_sets, ownerId, clientId, clonedItem.id)
           );
           if (setsError) throw setsError;
         }
@@ -728,7 +745,7 @@ export class ProgramsService {
       if (day.program_activities.length > 0) {
         const { error: activitiesError } = await this.db.from("program_activities").insert(
           day.program_activities.map((activity) => ({
-            coach_id: tree.coach_id,
+            coach_id: ownerId,
             client_id: clientId,
             program_day_id: clonedDay.id,
             kind: activity.kind,
@@ -760,9 +777,9 @@ export class ProgramsService {
    * soft-archived right after, same as the coach's own "Delete" action —
    * restorable from Trash, never destroyed. */
   async cloneToClient(programId: string, clientId: string, replaceActive = false): Promise<Program | null> {
-    await this.assertOwnClient(clientId);
+    const client = await this.assertOwnClient(clientId);
     const today = new Date().toISOString().slice(0, 10);
-    const cloned = await this.cloneTree(programId, clientId, { start_date: today });
+    const cloned = await this.cloneTree(programId, clientId, { start_date: today }, client.coach_id);
     if (!cloned) return null;
 
     if (replaceActive) {
@@ -795,11 +812,13 @@ export class ProgramsService {
     if (error) throw error;
     if (!old || !old.client_id || old.source_template_id !== templateId) return null;
 
-    await this.assertOwnClient(old.client_id);
-    const cloned = await this.cloneTree(templateId, old.client_id, {
-      start_date: old.start_date,
-      end_date: old.end_date,
-    });
+    const client = await this.assertOwnClient(old.client_id);
+    const cloned = await this.cloneTree(
+      templateId,
+      old.client_id,
+      { start_date: old.start_date, end_date: old.end_date },
+      client.coach_id
+    );
     if (!cloned) return null;
 
     const { error: archiveError } = await this.db
@@ -821,6 +840,74 @@ export class ProgramsService {
       ...(name_ar ? { name_ar } : {}),
       ...(name_en ? { name_en } : {}),
     });
+  }
+
+  /** Published platform templates for the Template Library grid, with the
+   * counts the card shows. RLS (platform_read) already limits a coach to
+   * published rows; the explicit `coach_id is null` keeps the intent visible. */
+  async listPlatformTemplates() {
+    const { data, error } = await this.db
+      .from("programs")
+      .select("*, program_days(id, program_items(count))")
+      .is("coach_id", null)
+      .is("client_id", null)
+      .is("archived_at", null)
+      .order("name_en");
+    if (error) throw error;
+    return data;
+  }
+
+  /** platform template id -> this coach's newest live copy of it. */
+  async myPlatformCopies(): Promise<Map<string, string>> {
+    const { data, error } = await this.db
+      .from("programs")
+      .select("id, source_template_id")
+      .not("coach_id", "is", null)
+      .is("client_id", null)
+      .is("archived_at", null)
+      .not("source_template_id", "is", null)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    const copies = new Map<string, string>();
+    // ascending order, so a newer copy overwrites an older one
+    for (const row of data) if (row.source_template_id) copies.set(row.source_template_id, row.id);
+    return copies;
+  }
+
+  /** "Customize": deep-copies a platform template into one of this coach's own
+   * templates. The platform original is never written, so one coach's edits
+   * can't change what other coaches see. Null when the template isn't visible
+   * (unpublished, or not a platform template). */
+  async customizePlatformTemplate(templateId: string, coachId: string): Promise<Program | null> {
+    const { data, error } = await this.db
+      .from("programs")
+      .select("id")
+      .eq("id", templateId)
+      .is("coach_id", null)
+      .is("client_id", null)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return this.cloneTree(templateId, null, { end_date: null }, coachId);
+  }
+
+  /** "Reset to original": a fresh copy of the platform template, then the
+   * coach's old copy is archived (restorable from Trash, never deleted). The
+   * new copy is made first, so a failed clone leaves the coach's edits alone.
+   * Null when `copyId` isn't this coach's template cloned from `templateId`. */
+  async resetPlatformCopy(templateId: string, copyId: string, coachId: string): Promise<Program | null> {
+    const { data: old, error } = await this.db
+      .from("programs")
+      .select("id, client_id, source_template_id")
+      .eq("id", copyId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!old || old.client_id || old.source_template_id !== templateId) return null;
+
+    const fresh = await this.customizePlatformTemplate(templateId, coachId);
+    if (!fresh) return null;
+    await this.archive(copyId);
+    return fresh;
   }
 
   /** Derives coach_id/client_id from the parent `programs` row (RLS-scoped
@@ -914,6 +1001,7 @@ export class ProgramsService {
       .maybeSingle();
     if (parentError) throw parentError;
     if (!parent) return null;
+    requireCoachId(parent); // platform templates are edited via "Customize", never in place
 
     const sets = input.sets && input.sets.length > 0 ? input.sets : [{ reps: 10 }];
 
@@ -952,9 +1040,9 @@ export class ProgramsService {
 
     const { error: setsError } = await this.db
       .from("program_item_sets")
-      .insert(setRows(sets, parent.coach_id, parent.client_id, data.id));
+      .insert(setRows(sets, requireCoachId(parent), parent.client_id, data.id));
     if (setsError) throw setsError;
-    await this.writePrivateNote(data.id, parent.coach_id, input.coach_note_private, false);
+    await this.writePrivateNote(data.id, requireCoachId(parent), input.coach_note_private, false);
 
     return data;
   }
@@ -994,7 +1082,7 @@ export class ProgramsService {
         const { data, error } = await this.db.from("program_items").select("coach_id").eq("id", itemId).maybeSingle();
         if (error) throw error;
         if (!data) return false;
-        coachId = data.coach_id;
+        coachId = requireCoachId(data);
       }
       await this.writePrivateNote(itemId, coachId, coach_note_private, true);
     }
@@ -1053,12 +1141,12 @@ export class ProgramsService {
       .select()
       .single();
     if (itemError) throw itemError;
-    await this.writePrivateNote(newItem.id, source.coach_id, sourceNote, false);
+    await this.writePrivateNote(newItem.id, requireCoachId(source), sourceNote, false);
 
     const sourceSets = (source.program_item_sets as ProgramItemSet[]).sort((a, b) => a.set_index - b.set_index);
     if (sourceSets.length > 0) {
       const { error: setsError } = await this.db.from("program_item_sets").insert(
-        setCopyRows(sourceSets, source.coach_id, source.client_id, newItem.id)
+        setCopyRows(sourceSets, requireCoachId(source), source.client_id, newItem.id)
       );
       if (setsError) throw setsError;
     }
@@ -1144,12 +1232,12 @@ export class ProgramsService {
         .select()
         .single();
       if (itemError) throw itemError;
-      await this.writePrivateNote(newItem.id, source.coach_id, item.coach_note_private, false);
+      await this.writePrivateNote(newItem.id, requireCoachId(source), item.coach_note_private, false);
 
       const sourceSets = item.program_item_sets.sort((a, b) => a.set_index - b.set_index);
       if (sourceSets.length > 0) {
         const { error: setsError } = await this.db.from("program_item_sets").insert(
-          setCopyRows(sourceSets, source.coach_id, source.client_id, newItem.id)
+          setCopyRows(sourceSets, requireCoachId(source), source.client_id, newItem.id)
         );
         if (setsError) throw setsError;
       }
@@ -1413,7 +1501,7 @@ export class ProgramsService {
     const { data, error } = await this.db
       .from("program_revisions")
       .insert({
-        coach_id: tree.coach_id,
+        coach_id: requireCoachId(tree),
         program_id: programId,
         snapshot: tree as unknown as Database["public"]["Tables"]["program_revisions"]["Insert"]["snapshot"],
         reason,
@@ -1525,7 +1613,7 @@ export class ProgramsService {
           { onConflict: "id" }
         );
         if (itemError) throw itemError;
-        await this.writePrivateNote(item.id, snapshot.coach_id, item.coach_note_private, true);
+        await this.writePrivateNote(item.id, requireCoachId(snapshot), item.coach_note_private, true);
 
         // Nothing references a set's own id (logs point at the item), so the
         // item's sets are simply replaced.
@@ -1534,7 +1622,7 @@ export class ProgramsService {
         if (item.program_item_sets.length > 0) {
           const { error: setsError } = await this.db
             .from("program_item_sets")
-            .insert(setCopyRows(item.program_item_sets, snapshot.coach_id, snapshot.client_id, item.id));
+            .insert(setCopyRows(item.program_item_sets, requireCoachId(snapshot), snapshot.client_id, item.id));
           if (setsError) throw setsError;
         }
       }

@@ -18,13 +18,14 @@ import {
   LifeBuoy,
   CirclePlay,
   ClipboardCheck,
+  LibraryBig,
   type LucideIcon,
 } from "lucide-react";
 import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support" | "guides";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support" | "guides" | "templates";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge and
    * SupportUnreadBadge. */
@@ -88,6 +89,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin/support", labelKey: "support", icon: LifeBuoy, badge: "supportUnread" },
   { href: "/admin/online", labelKey: "online", icon: Radio },
   { href: "/admin/library", labelKey: "library", icon: Dumbbell, shortLabelKey: "shortLibrary" },
+  { href: "/admin/templates", labelKey: "templates", icon: LibraryBig },
   { href: "/admin/feedback", labelKey: "feedback", icon: MessageSquareText },
   { href: "/admin/emails", labelKey: "emails", icon: Mail },
   { href: "/admin/leads", labelKey: "leads", icon: UserPlus, shortLabelKey: "shortLeads" },
@@ -111,7 +113,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
   { hrefs: ["/admin"] },
   { labelKey: "groupCoaches", hrefs: ["/admin/requests", "/admin/online", "/admin/support", "/admin/feedback"] },
   { labelKey: "groupGrowth", hrefs: ["/admin/leads", "/admin/emails"] },
-  { labelKey: "groupContent", hrefs: ["/admin/library", "/admin/site"] },
+  { labelKey: "groupContent", hrefs: ["/admin/library", "/admin/templates", "/admin/site"] },
   { hrefs: ["/admin/settings"] },
 ];
 
