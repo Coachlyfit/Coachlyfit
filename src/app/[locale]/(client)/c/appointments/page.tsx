@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/auth/session";
+import { appOrigin } from "@/lib/app-origin";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toView } from "@/components/appointments/to-view";
 import { AppointmentsService } from "@/domain/appointments/appointments.service";
@@ -59,7 +60,7 @@ export default async function ClientAppointmentsPage({ params }: { params: Promi
       past={past}
       timeZone={timeZone}
       cutoffHours={settings.cancel_cutoff_hours}
-      feed={{ baseUrl: process.env.NEXT_PUBLIC_APP_URL ?? "", token: feedToken }}
+      feed={{ baseUrl: await appOrigin(), token: feedToken }}
     />
   );
 }

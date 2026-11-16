@@ -17,8 +17,13 @@ export const STATE_TTL_SECONDS = 600;
 
 type Fetch = typeof fetch;
 
-export function redirectUri(): string {
-  return `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/google/callback`;
+/** The callback URL registered in Google Cloud. NEXT_PUBLIC_APP_URL wins (an
+ * empty value counts as unset); `fallbackOrigin` (the request's own origin)
+ * covers local dev. The connect and callback routes must pass the same one,
+ * since Google requires the two redirect URIs to match exactly. */
+export function redirectUri(fallbackOrigin = ""): string {
+  const base = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/+$/, "") || fallbackOrigin;
+  return `${base}/api/google/callback`;
 }
 
 /** Random, single-use CSRF value: kept in a short-lived httpOnly cookie and
@@ -72,8 +77,8 @@ async function tokenRequest(body: Record<string, string>, fetchImpl: Fetch): Pro
   return (await response.json()) as TokenResponse;
 }
 
-export function exchangeCode(code: string, fetchImpl: Fetch = fetch) {
-  return tokenRequest({ grant_type: "authorization_code", code, redirect_uri: redirectUri() }, fetchImpl);
+export function exchangeCode(code: string, fetchImpl: Fetch = fetch, fallbackOrigin = "") {
+  return tokenRequest({ grant_type: "authorization_code", code, redirect_uri: redirectUri(fallbackOrigin) }, fetchImpl);
 }
 
 export async function refreshAccessToken(refreshToken: string, fetchImpl: Fetch = fetch): Promise<string> {

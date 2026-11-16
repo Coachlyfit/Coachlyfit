@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     ]);
     if ((features as Record<string, unknown> | null)?.appointments !== true) return finish("upgrade");
 
-    const tokens = await exchangeCode(code);
+    const tokens = await exchangeCode(code, fetch, request.nextUrl.origin);
     refreshToken = tokens.refresh_token;
     const scopes = (tokens.scope ?? "").split(" ").filter(Boolean);
     // The consent screen lets a user untick scopes: without these, nothing works.

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUser, getRequestCoachId } from "@/lib/auth/session";
 import { getFeatures } from "@/lib/features";
+import { appOrigin } from "@/lib/app-origin";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
 import { SettingsTabsBar } from "@/components/settings/settings-tabs-bar";
@@ -78,7 +79,7 @@ export default async function ScheduleSettingsPage({ searchParams }: { searchPar
       <ScheduleSettings rules={rules} exceptions={exceptions} settings={settings} timeZone={timeZone} />
       <Card>
         <CardContent>
-          <FeedCard baseUrl={process.env.NEXT_PUBLIC_APP_URL ?? ""} token={feedToken} rotate={rotateFeedTokenAction} />
+          <FeedCard baseUrl={await appOrigin()} token={feedToken} rotate={rotateFeedTokenAction} />
         </CardContent>
       </Card>
     </div>

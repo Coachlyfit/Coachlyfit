@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   if (!clientId || !process.env.GOOGLE_CLIENT_SECRET || !process.env.GOOGLE_TOKEN_ENCRYPTION_KEY) return back("not_configured");
 
   const state = newState();
-  const response = NextResponse.redirect(buildAuthUrl({ clientId, redirectUri: redirectUri(), state }));
+  const response = NextResponse.redirect(buildAuthUrl({ clientId, redirectUri: redirectUri(request.nextUrl.origin), state }));
   response.cookies.set(STATE_COOKIE, `${state}:${locale}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
