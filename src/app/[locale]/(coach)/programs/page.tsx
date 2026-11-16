@@ -12,7 +12,6 @@ import { addDays } from "@/domain/nutrition/adherence";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatNumber } from "@/lib/format";
 import { PageTitle } from "@/components/dashboard/page-title";
-import { StarterPlansDialog } from "./starter-plans-dialog";
 import { CreateProgramDialog } from "./create-program-dialog";
 import { ProgramsTrashButton } from "./programs-trash-button";
 import { ProgramsClient, type ProgramsView } from "./programs-client";
@@ -140,7 +139,6 @@ export default async function ProgramsPage({
             <LibraryBig className="size-4" aria-hidden="true" />
             {t("library.link")}
           </Link>
-          <StarterPlansDialog locale={locale} />
           {/* Pinned above the bottom nav on mobile (end-20 clears the feedback
               widget), inline from md up. */}
           <CreateProgramDialog

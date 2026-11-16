@@ -2310,8 +2310,6 @@
       "advanced": "Advanced"
     },
     "starters": {
-      "button": "Start from a template",
-      "title": "Starter templates",
       "description": "Pick a ready-made plan. It becomes your own template that you can edit and assign to clients.",
       "days": "{count, plural, one {# training day} other {# training days}}",
       "use": "Use",
@@ -2429,7 +2427,8 @@
       "tabs": {
         "label": "Template type",
         "workouts": "Workouts",
-        "plans": "Plans"
+        "plans": "Plans",
+        "starters": "Starters"
       },
       "genders": {
         "female": "Women",
