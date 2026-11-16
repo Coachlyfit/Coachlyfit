@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { z } from "zod";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -34,6 +35,7 @@ export function AssignTemplateDialog({
   programId,
   clients,
   mode = "assign",
+  withStartDate = false,
   trigger,
   children,
 }: {
@@ -43,6 +45,8 @@ export function AssignTemplateDialog({
   /** Same clone either way; "duplicate" only swaps the copy, for a client
    * program being copied to another client rather than a template. */
   mode?: "assign" | "duplicate";
+  /** A multi-week plan runs from a chosen day: asks for it (default today) and passes it on. */
+  withStartDate?: boolean;
   /** Replaces the default outline button (the Programs list's cards). */
   trigger?: React.ReactElement;
   children?: React.ReactNode;
@@ -54,6 +58,7 @@ export function AssignTemplateDialog({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const {
     handleSubmit,
@@ -64,7 +69,13 @@ export function AssignTemplateDialog({
   const onSubmit = handleSubmit((data) => {
     setFormError(null);
     startTransition(async () => {
-      const result = await cloneProgramAction(locale, programId, data.client_id);
+      const result = await cloneProgramAction(
+        locale,
+        programId,
+        data.client_id,
+        false,
+        withStartDate && startDate ? startDate : undefined
+      );
       if ("error" in result) {
         setFormError(result.error);
         return;
@@ -116,8 +127,15 @@ export function AssignTemplateDialog({
             />
             {errors.client_id && <p className="text-sm text-destructive">{errors.client_id.message}</p>}
           </div>
+          {withStartDate && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="start_date">{t("startDate")}</Label>
+              <Input id="start_date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+              <p className="text-sm text-muted-foreground">{t("startDateHint")}</p>
+            </div>
+          )}
           {formError && <p className="text-sm text-destructive">{tErrors(formError)}</p>}
-          <Button type="submit" disabled={pending} className="min-w-24">
+          <Button type="submit" disabled={pending || (withStartDate && !startDate)} className="min-w-24">
             {pending ? tCommon("pending") : t("submit")}
           </Button>
         </form>

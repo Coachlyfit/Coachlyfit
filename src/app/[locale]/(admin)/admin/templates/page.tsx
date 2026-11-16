@@ -13,7 +13,7 @@ export default async function AdminTemplatesPage({ params }: { params: Promise<{
   const { data, error } = await supabase
     .from("programs")
     .select(
-      "id, slug, name_ar, name_en, description_ar, description_en, level, categories, days_per_week, published, program_days(program_items(count))"
+      "id, slug, kind, name_ar, name_en, description_ar, description_en, level, categories, days_per_week, duration_weeks, gender_target, published, program_days(program_items(count))"
     )
     .is("coach_id", null)
     .order("name_en");
@@ -22,6 +22,9 @@ export default async function AdminTemplatesPage({ params }: { params: Promise<{
   const templates: AdminTemplate[] = data.map((p) => ({
     id: p.id,
     slug: p.slug ?? "",
+    kind: p.kind === "plan" ? "plan" : "workout",
+    duration_weeks: p.duration_weeks,
+    gender_target: p.gender_target,
     name_ar: p.name_ar,
     name_en: p.name_en,
     description_ar: p.description_ar,

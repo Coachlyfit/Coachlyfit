@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ProgressionRule } from "./progression";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
+import { addDays } from "@/domain/nutrition/adherence";
 import { normalizeSectionOrder } from "./day-sections";
 import type { GroupConfig, GroupKind } from "./group-config";
 import { requireCoachId } from "./platform/ownership";
@@ -596,8 +597,16 @@ export class ProgramsService {
         name_ar: tree.name_ar,
         name_en: tree.name_en,
         start_date: tree.start_date,
-        end_date: tree.end_date,
+        // A plan has a known length: assigning it from a chosen start date ends it `duration_weeks` later
+        // (so "Week N of M" works). An explicit end_date override, or a program with no duration, is left alone.
+        end_date:
+          clientId && overrides.start_date && !("end_date" in overrides) && tree.duration_weeks
+            ? addDays(overrides.start_date, tree.duration_weeks * 7 - 1)
+            : tree.end_date,
         schedule_mode: tree.schedule_mode,
+        kind: tree.kind,
+        duration_weeks: tree.duration_weeks,
+        gender_target: tree.gender_target,
         plan_type: tree.plan_type,
         goal: tree.goal,
         level: tree.level,
@@ -769,17 +778,23 @@ export class ProgramsService {
     return cloned;
   }
 
-  /** Clones a template's whole tree onto a client, starting today — not the
-   * template's own start_date, which is almost always in the past by the
-   * time it's assigned and would otherwise throw off the cloned program's
-   * calculated current week/day (program-cycle.ts). When `replaceActive` is
+  /** Clones a template's whole tree onto a client, starting on `startDate`
+   * (default today) — never the template's own start_date, which is almost
+   * always in the past by the time it's assigned and would otherwise throw off
+   * the cloned program's calculated current week/day (program-cycle.ts). A plan
+   * (duration_weeks set) also gets its end_date from that start. When `replaceActive` is
    * set, the client's other currently-active (non-archived) programs are
    * soft-archived right after, same as the coach's own "Delete" action —
    * restorable from Trash, never destroyed. */
-  async cloneToClient(programId: string, clientId: string, replaceActive = false): Promise<Program | null> {
+  async cloneToClient(
+    programId: string,
+    clientId: string,
+    replaceActive = false,
+    startDate?: string
+  ): Promise<Program | null> {
     const client = await this.assertOwnClient(clientId);
-    const today = new Date().toISOString().slice(0, 10);
-    const cloned = await this.cloneTree(programId, clientId, { start_date: today }, client.coach_id);
+    const start = startDate ?? new Date().toISOString().slice(0, 10);
+    const cloned = await this.cloneTree(programId, clientId, { start_date: start }, client.coach_id);
     if (!cloned) return null;
 
     if (replaceActive) {

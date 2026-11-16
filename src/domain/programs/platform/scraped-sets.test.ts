@@ -46,6 +46,34 @@ describe("parseSets", () => {
     expect(timed.sets).toEqual([r(null, null, 480)]);
     expect(timed.flags).toEqual(["warmup", "duration_range:8-10 min"]);
   });
+  it("reads 'Max' as to-failure sets without inventing a rep count", () => {
+    const p = parseSets("3", "Max");
+    expect(p.sets).toEqual([
+      { reps: null, reps_max: null, duration_seconds: null, to_failure: true },
+      { reps: null, reps_max: null, duration_seconds: null, to_failure: true },
+      { reps: null, reps_max: null, duration_seconds: null, to_failure: true },
+    ]);
+    expect(parseSets("x", "Max").sets).toBeNull();
+  });
+  it("reads a sprint label as a timed set and flags it", () => {
+    const p = parseSets("1", "20 sec - Sprint");
+    expect(p.sets).toEqual([r(null, null, 20)]);
+    expect(p.flags).toEqual(["sprint"]);
+    expect(parseSets("1", "20 sec- Sprint").sets).toEqual([r(null, null, 20)]);
+  });
+  it("accepts a typo'd list only when it matches the declared set count", () => {
+    const p = parseSets("3", "12 12, 12");
+    expect(p.sets).toEqual([r(12), r(12), r(12)]);
+    expect(p.flags).toEqual(["typo_fixed:12 12, 12"]);
+    expect(parseSets("3", "10 12").sets).toBeNull(); // 2 numbers for 3 sets: ambiguous
+    expect(parseSets("3", "10 10, 110").sets).toBeNull(); // 110 reps is not a rep count
+  });
+  it("reads a warm-up label in the sets cell too", () => {
+    const p = parseSets("2-3 warm-up", "10-15");
+    expect(p.sets).toEqual([r(10, 15), r(10, 15)]);
+    expect(p.flags).toEqual(["warmup", "sets_range:2-3"]);
+    expect(parseSets("3-4 Warm-up", "12").sets).toHaveLength(3);
+  });
   it("returns null with a flag instead of guessing", () => {
     expect(parseSets("3", "% 80 max pace")).toEqual({ sets: null, flags: ["unparsed_reps:% 80 max pace"] });
     expect(parseSets("3", "50 - 135 pounds").sets).toBeNull();

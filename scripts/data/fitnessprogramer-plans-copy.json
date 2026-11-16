@@ -1,0 +1,221 @@
+{
+  "rest": { "en": "Rest", "ar": "راحة" },
+  "goal_override": {
+    "8-week-advanced-powerlifting-program": "strength",
+    "4-week-no-equipment-endurance-workout-plan": "endurance"
+  },
+  "plans": {
+    "6-month-bodybuilding-program": {
+      "name_en": "6-Week Bodybuilding Progression",
+      "name_ar": "تدرّج كمال الأجسام في ستة أسابيع",
+      "description_en": "Six weeks that build in stages: full-body days, then an upper/lower split, then push-pull-legs, and finally a four-day body-part split.",
+      "description_ar": "ستة أسابيع تتدرّج على مراحل: أيام للجسم كاملًا، ثم تقسيم علوي وسفلي، ثم الدفع والسحب والساقان، وأخيرًا تقسيم لأربعة أيام يركّز على مجموعات عضلية محددة."
+    },
+    "3x5-full-body-strength-training-program": {
+      "name_en": "Full-Body Strength 3×5",
+      "name_ar": "قوة الجسم الكامل 3×5",
+      "description_en": "Two weeks of alternating full-body workouts A and B, three days a week, built around heavy sets of five. A few bodyweight lifts finish to failure.",
+      "description_ar": "أسبوعان من تمرينين متناوبين (أ) و(ب) للجسم كاملًا، ثلاثة أيام في الأسبوع، قائمان على مجموعات ثقيلة من خمس تكرارات. وتنتهي بعض تمارين وزن الجسم حتى الإنهاك."
+    },
+    "body-toning-workout-for-women": {
+      "name_en": "Women's 6-Week Body Toning",
+      "name_ar": "شدّ الجسم للنساء في ستة أسابيع",
+      "description_en": "Six weeks on one weekly rhythm: exercise-ball work, a jump-rope challenge, upper body, lower body, core and an aerobic day, with one rest day. Mostly bodyweight, band and ball exercises.",
+      "description_ar": "ستة أسابيع بإيقاع أسبوعي واحد: تمارين كرة التمارين، وتحدي الحبل، والجزء العلوي، والجزء السفلي، والجذع، ويوم هوائي، مع يوم راحة. تعتمد غالبًا على وزن الجسم والأحزمة المطاطية والكرة."
+    },
+    "6-week-advanced-workout-plan-to-build-muscle": {
+      "name_en": "Advanced 6-Week Muscle Builder",
+      "name_ar": "بناء العضلات المتقدم في ستة أسابيع",
+      "description_en": "Five training days a week for six weeks, splitting the body into chest, back, shoulders, arms and legs, with abs added on three of the days.",
+      "description_ar": "خمسة أيام تدريب أسبوعيًا لمدة ستة أسابيع، تقسّم الجسم إلى الصدر والظهر والكتفين والذراعين والساقين، مع إضافة البطن في ثلاثة أيام."
+    },
+    "5x5-workout-plan": {
+      "name_en": "5×5 Strength Plan",
+      "name_ar": "خطة القوة 5×5",
+      "description_en": "Four weeks of alternating workouts A and B, three days a week with rest days in between, built around five sets of five on the main lifts.",
+      "description_ar": "أربعة أسابيع من تمرينين متناوبين (أ) و(ب)، ثلاثة أيام في الأسبوع بينها أيام راحة، قائمة على خمس مجموعات من خمس تكرارات في التمارين الأساسية."
+    },
+    "6-day-push-pull-leg-workout-for-advanced-lifters": {
+      "name_en": "Advanced Push-Pull-Legs, 6 Days",
+      "name_ar": "الدفع والسحب والساقان لستة أيام للمتقدمين",
+      "description_en": "Four weeks of a six-day push, pull and legs rotation, run twice a week with one rest day.",
+      "description_ar": "أربعة أسابيع من دورة الدفع والسحب والساقين على ستة أيام، تُكرَّر مرتين في الأسبوع مع يوم راحة واحد."
+    },
+    "8-week-advanced-powerlifting-program": {
+      "name_en": "8-Week Powerlifting Cycle",
+      "name_ar": "دورة رفع القوة في ثمانية أسابيع",
+      "description_en": "Eight weeks, four training days a week: strength, power, upper-body strength and powerlifting sessions. Every week has its own set of sessions.",
+      "description_ar": "ثمانية أسابيع بأربعة أيام تدريب أسبوعيًا: جلسات للقوة والقدرة وقوة الجزء العلوي ورفع القوة. ولكل أسبوع جلساته الخاصة."
+    },
+    "20-minute-tabata-workout-for-fast-fat-loss": {
+      "name_en": "20-Minute Tabata Fat-Loss Week",
+      "name_ar": "أسبوع التاباتا لحرق الدهون في عشرين دقيقة",
+      "description_en": "One week of four short, high-intensity days: full body, core, strength and HIIT.",
+      "description_ar": "أسبوع واحد من أربعة أيام قصيرة عالية الكثافة: الجسم كاملًا، والجذع، والقوة، والتمارين المتقطعة (HIIT)."
+    },
+    "strength-and-muscle-building-workout-program-for-women": {
+      "name_en": "Women's Strength and Muscle Week",
+      "name_ar": "أسبوع القوة وبناء العضلات للنساء",
+      "description_en": "A one-week, five-day split for women covering legs and glutes, back and arms, chest and shoulders, and a mixed legs, arms and abs day. Repeat the week to build it into a longer program.",
+      "description_ar": "أسبوع واحد بخمسة أيام للنساء، يغطي الساقين والأرداف، والظهر والذراعين، والصدر والكتفين، ويومًا مختلطًا للساقين والذراعين والبطن. كرّر الأسبوع لتحوّله إلى برنامج أطول."
+    },
+    "power-and-hypertrophy-workout": {
+      "name_en": "Power and Hypertrophy Week",
+      "name_ar": "أسبوع القدرة والتضخيم",
+      "description_en": "A one-week split with two power days (upper and lower body) followed by three hypertrophy days, and two rest days. Repeat the week as long as you like.",
+      "description_ar": "أسبوع واحد مقسّم إلى يومين للقدرة (علوي وسفلي) يتبعهما ثلاثة أيام للتضخيم، مع يومي راحة. كرّر الأسبوع بالقدر الذي تريده."
+    },
+    "8-week-workout-plan-to-build-muscle-intermediate": {
+      "name_en": "5-Session Muscle Split (Intermediate)",
+      "name_ar": "تقسيم العضلات بخمس جلسات (متوسط)",
+      "description_en": "A one-week split for intermediate lifters: chest and triceps, back and biceps, a light cardio-and-core session, shoulders and forearms, then legs and abs. Repeat the week to build it into a longer program.",
+      "description_ar": "أسبوع واحد مقسّم للمتدربين المتوسطين: الصدر والترايسبس، والظهر والبايسبس، وجلسة خفيفة للكارديو والجذع، والكتفان والساعدان، ثم الساقان والبطن. كرّر الأسبوع لتحوّله إلى برنامج أطول."
+    },
+    "4-week-no-equipment-endurance-workout-plan": {
+      "name_en": "4-Week No-Equipment Endurance",
+      "name_ar": "التحمّل في أربعة أسابيع دون معدات",
+      "description_en": "Four weeks of bodyweight endurance work, three days a week, mixing full-body endurance, speed and agility, and muscular endurance sessions.",
+      "description_ar": "أربعة أسابيع من تمارين التحمّل بوزن الجسم، ثلاثة أيام في الأسبوع، تجمع بين تحمّل الجسم كاملًا، والسرعة والرشاقة، والتحمّل العضلي."
+    },
+    "6-day-ppl-workout-program-for-beginners": {
+      "name_en": "Beginner Push-Pull-Legs, 6 Days",
+      "name_ar": "الدفع والسحب والساقان لستة أيام للمبتدئين",
+      "description_en": "A one-week beginner push, pull and legs rotation run twice over six days, with one rest day. Repeat the week to build it into a longer program.",
+      "description_ar": "أسبوع واحد للمبتدئين من دورة الدفع والسحب والساقين تُؤدّى مرتين على مدى ستة أيام، مع يوم راحة واحد. كرّر الأسبوع لتحوّله إلى برنامج أطول."
+    },
+    "4-day-split-workout-for-bodybuilding": {
+      "name_en": "4-Day Bodybuilding Split",
+      "name_ar": "تقسيم كمال الأجسام لأربعة أيام",
+      "description_en": "A one-week four-day split: chest and triceps, back and biceps, shoulders and traps, then legs and abs. Repeat the week to build it into a longer program.",
+      "description_ar": "أسبوع واحد بأربعة أيام: الصدر والترايسبس، والظهر والبايسبس، والكتفان والترابيس، ثم الساقان والبطن. كرّر الأسبوع لتحوّله إلى برنامج أطول."
+    },
+    "30-days-gym-body-building-program": {
+      "name_en": "5-Day Muscle Building Week",
+      "name_ar": "أسبوع بناء العضلات بخمسة أيام",
+      "description_en": "A one-week five-day split: chest and abs, arms, shoulders and abs, legs, then back and lats. Repeat the week to build it into a longer program.",
+      "description_ar": "أسبوع واحد بخمسة أيام: الصدر والبطن، والذراعان، والكتفان والبطن، والساقان، ثم الظهر والعضلة العريضة. كرّر الأسبوع لتحوّله إلى برنامج أطول."
+    }
+  },
+  "day_titles": {
+    "Full Body": { "en": "Full Body", "ar": "الجسم كاملًا" },
+    "Upper Body": { "en": "Upper Body", "ar": "الجزء العلوي" },
+    "Lower Body": { "en": "Lower Body", "ar": "الجزء السفلي" },
+    "Push Program": { "en": "Push", "ar": "الدفع" },
+    "Pull Program": { "en": "Pull", "ar": "السحب" },
+    "Leg Program": { "en": "Legs", "ar": "الساقان" },
+    "Chest and Triceps": { "en": "Chest and Triceps", "ar": "الصدر والترايسبس" },
+    "Back and Biceps": { "en": "Back and Biceps", "ar": "الظهر والبايسبس" },
+    "Shoulder + Trap": { "en": "Shoulders and Traps", "ar": "الكتفان والترابيس" },
+    "Leg+Abs": { "en": "Legs and Abs", "ar": "الساقان والبطن" },
+    "3x5 Workout A": { "en": "Workout A", "ar": "التمرين (أ)" },
+    "3x5 Workout B": { "en": "Workout B", "ar": "التمرين (ب)" },
+    "Exercise Ball Workout": { "en": "Exercise Ball", "ar": "كرة التمارين" },
+    "Jump Rope Challenge": { "en": "Jump Rope Challenge", "ar": "تحدي الحبل" },
+    "Upper Body Workout": { "en": "Upper Body", "ar": "الجزء العلوي" },
+    "Lower Body Workout": { "en": "Lower Body", "ar": "الجزء السفلي" },
+    "Core Workout": { "en": "Core", "ar": "الجذع والبطن" },
+    "Aerobic Activity": { "en": "Aerobic Activity", "ar": "نشاط هوائي" },
+    "Chest and Abs Workout": { "en": "Chest and Abs", "ar": "الصدر والبطن" },
+    "Back, Traps, and Forearm Workout": { "en": "Back, Traps and Forearms", "ar": "الظهر والترابيس والساعدان" },
+    "Shoulder and Abs Workout": { "en": "Shoulders and Abs", "ar": "الكتفان والبطن" },
+    "Arms and Forearm Workout": { "en": "Arms and Forearms", "ar": "الذراعان والساعدان" },
+    "Leg and Abs Workout": { "en": "Legs and Abs", "ar": "الساقان والبطن" },
+    "5x5 Workout A": { "en": "Workout A", "ar": "التمرين (أ)" },
+    "5x5 Workout B": { "en": "Workout B", "ar": "التمرين (ب)" },
+    "Push Workout": { "en": "Push", "ar": "الدفع" },
+    "Pull Workout": { "en": "Pull", "ar": "السحب" },
+    "Leg Workout": { "en": "Legs", "ar": "الساقان" },
+    "Strength Training": { "en": "Strength", "ar": "القوة" },
+    "Power Workout": { "en": "Power", "ar": "القدرة" },
+    "Upper Body Strength": { "en": "Upper-Body Strength", "ar": "قوة الجزء العلوي" },
+    "Powerlifting Training": { "en": "Powerlifting", "ar": "رفع القوة" },
+    "Core": { "en": "Core", "ar": "الجذع والبطن" },
+    "Strength": { "en": "Strength", "ar": "القوة" },
+    "HIIT": { "en": "HIIT", "ar": "التمارين المتقطعة عالية الكثافة (HIIT)" },
+    "Legs & Glutes": { "en": "Legs and Glutes", "ar": "الساقان والأرداف" },
+    "Back & Arms": { "en": "Back and Arms", "ar": "الظهر والذراعان" },
+    "Chest & Shoulders": { "en": "Chest and Shoulders", "ar": "الصدر والكتفان" },
+    "Legs & Arms & Ab": { "en": "Legs, Arms and Abs", "ar": "الساقان والذراعان والبطن" },
+    "Day 1 (Power - Upper Body)": { "en": "Power: Upper Body", "ar": "القدرة: الجزء العلوي" },
+    "Day 2 (Power - Lower Body)": { "en": "Power: Lower Body", "ar": "القدرة: الجزء السفلي" },
+    "Day 4 (Hypertrophy - Upper Body)": { "en": "Hypertrophy: Upper Body", "ar": "التضخيم: الجزء العلوي" },
+    "Day 5 (Hypertrophy - Lower Body)": { "en": "Hypertrophy: Lower Body", "ar": "التضخيم: الجزء السفلي" },
+    "Day 6 (Hypertrophy - Chest and Arm)": { "en": "Hypertrophy: Chest and Arms", "ar": "التضخيم: الصدر والذراعان" },
+    "REST / CARDİO": { "en": "Light Cardio and Core", "ar": "كارديو خفيف وجذع" },
+    "Shoulders and Forearms": { "en": "Shoulders and Forearms", "ar": "الكتفان والساعدان" },
+    "Leg and Abs": { "en": "Legs and Abs", "ar": "الساقان والبطن" },
+    "Full Body Endurance Workout": { "en": "Full-Body Endurance", "ar": "تحمّل الجسم كاملًا" },
+    "Speed and Agility Workout": { "en": "Speed and Agility", "ar": "السرعة والرشاقة" },
+    "Muscular Endurance Workout": { "en": "Muscular Endurance", "ar": "التحمّل العضلي" },
+    "Endurance Workout": { "en": "Endurance", "ar": "التحمّل" },
+    "Chest + Abs": { "en": "Chest and Abs", "ar": "الصدر والبطن" },
+    "Arm": { "en": "Arms", "ar": "الذراعان" },
+    "Shoulder + Abs": { "en": "Shoulders and Abs", "ar": "الكتفان والبطن" },
+    "Leg": { "en": "Legs", "ar": "الساقان" },
+    "Back+Wing": { "en": "Back and Lats", "ar": "الظهر والعضلة العريضة" }
+  },
+  "name_en_fix": {
+    "Standing incline chest press With Resistance Band": "Standing Incline Chest Press With Resistance Band"
+  },
+  "exercises": {
+    "Lying Chest Press Machine": "ضغط الصدر مستلقيًا على الجهاز",
+    "Horizontal Leg Press": "ضغط الساقين الأفقي على الجهاز",
+    "Machine Fly": "رفرفة الصدر على الجهاز",
+    "Rope Pushdown": "دفع الحبل للأسفل بالكابل",
+    "Bodyweight Lunge": "الاندفاع بوزن الجسم",
+    "Close Grip Cable Row": "التجديف بالكابل بقبضة ضيقة",
+    "Alternating Dumbbell Front Raise": "رفع الدمبل الأمامي بالتناوب",
+    "Incline Leg Hip Raise": "رفع الورك والساقين على مستوى مائل",
+    "Decline Dumbbell Press": "ضغط الدمبل على بنش مائل للأسفل",
+    "Bent-Over Dumbbell Rear Delt Raise With Head On Bench": "رفع الدمبل للكتف الخلفي مع إسناد الرأس على البنش",
+    "Low Cable Tricep Kickback": "ركلة الترايسبس الخلفية بالكابل السفلي",
+    "Wrist Roller": "لفّ الأوزان بأداة الرسغ",
+    "Seated Bench Leg Pull-in": "سحب الساقين جلوسًا على البنش",
+    "Barbell Military Press (Overhead press)": "الضغط العسكري بالبار (ضغط الكتف فوق الرأس)",
+    "Arm Scissors": "مقص الذراعين",
+    "Vertical Mountain Climber": "تسلّق الجبل العمودي",
+    "Exercise Ball Wall Squat": "القرفصاء على الحائط بكرة التمارين",
+    "Stability Ball V-Up": "رفع الجسم على شكل V بكرة الثبات",
+    "Stability Ball Decline Push-Up": "ضغط مائل للأسفل بكرة الثبات",
+    "Leg Curl On Stability Ball": "ثني الساق على كرة الثبات",
+    "Swiss Ball Rollout": "دحرجة الكرة السويسرية",
+    "Standing incline chest press With Resistance Band": "ضغط الصدر المائل وقوفًا بالحزام المطاطي",
+    "High Chest Fly With Resistance Band": "رفرفة الصدر العلوي بالحزام المطاطي",
+    "Kneeling Pulldown With Resistance Band": "السحب للأسفل من الركوع بالحزام المطاطي",
+    "Band Seated Row": "التجديف جلوسًا بالحزام المطاطي",
+    "Band Biceps Curl": "تجعيد البايسبس بالحزام المطاطي",
+    "Band Pushdown (Neutral Grip)": "دفع الحزام المطاطي للأسفل (قبضة محايدة)",
+    "Banded Lunge": "الاندفاع بالحزام المطاطي",
+    "Good Morning With Resistance Band": "تمرين صباح الخير بالحزام المطاطي",
+    "Resistance Band Lateral Walk": "المشي الجانبي بالحزام المطاطي",
+    "Banded Leg Curl": "ثني الساق بالحزام المطاطي",
+    "Banded Glute Kickbacks": "ركلات الأرداف الخلفية بالحزام المطاطي",
+    "Briskly Walking": "المشي السريع",
+    "Running": "الجري",
+    "Weighted Sit-ups": "تمرين البطن (سيت أب) بوزن إضافي",
+    "Reverse Lat-Pulldown": "سحب العضلة العريضة بقبضة معكوسة",
+    "Behind The Back Barbell Wrist Curl": "تجعيد الرسغ بالبار خلف الظهر",
+    "Weight Plate Front Raise": "رفع القرص الأمامي",
+    "Cable Tricep Kickback": "ركلة الترايسبس الخلفية بالكابل",
+    "Dumbbell Reverse Curl": "التجعيد العكسي بالدمبل",
+    "Barbell Bulgarian Split Squat": "السكوات البلغاري بالبار",
+    "Glute Kickback Machine": "ركلة الأرداف الخلفية على الجهاز",
+    "Leg Press Calf Raise": "رفع السمانة على جهاز ضغط الساقين",
+    "Bent Over Twist": "لف الجذع مع الانحناء",
+    "Bent Arm Lateral Raise": "الرفع الجانبي بذراع مثنية",
+    "Wrist Curl": "تجعيد الرسغ",
+    "Bench Side Bend": "الانحناء الجانبي على البنش",
+    "Sit-ups": "تمرين البطن (سيت أب)",
+    "Wide Grip Bench Press": "ضغط البنش بقبضة واسعة",
+    "Push Press": "الضغط الدافع (بوش برس)",
+    "Reverse Lunge Knee Lift": "الاندفاع للخلف مع رفع الركبة",
+    "Plie Dumbbell Squat": "القرفصاء بلييه بالدمبل",
+    "Decline Bench Dumbbell Lunge": "الاندفاع بالدمبل مع رفع القدم الخلفية على بنش",
+    "One Arm Cable Row": "التجديف بالكابل بذراع واحدة",
+    "Dumbbell Upward Fly": "رفرفة الدمبل للأعلى",
+    "Dynamic Wrist Stretches": "إطالة الرسغ الديناميكية",
+    "Toe Reaches": "لمس أصابع القدم",
+    "T-Cross Sit-up": "تمرين البطن بالتقاطع على شكل T",
+    "Cable Crossover Lat Pulldown": "سحب الكابل المتقاطع للعضلة العريضة"
+  }
+}

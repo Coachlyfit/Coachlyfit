@@ -1,0 +1,1271 @@
+[
+  {
+    "site_slug": "lying-chest-press-machine",
+    "name_en": "Lying Chest Press Machine",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/Lying-Chest-Press-Machine.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "simple-full-body-workout",
+      "simple-full-body-workout-2",
+      "simple-full-body-workout-3"
+    ]
+  },
+  {
+    "site_slug": "horizontal-leg-press",
+    "name_en": "Horizontal Leg Press",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/Lever-Horizontal-Leg-Press.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "simple-full-body-workout-3"
+    ]
+  },
+  {
+    "site_slug": "machine-fly",
+    "name_en": "Machine Fly",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/10301301-Lever-Pec-Deck-Fly_Chest_720.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "full-body-286"
+    ]
+  },
+  {
+    "site_slug": "rope-pushdown",
+    "name_en": "Rope Pushdown",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Rope-Pushdown.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "full-body-287",
+      "full-body-288",
+      "upper-body-219",
+      "upper-body-234",
+      "upper-body-235",
+      "upper-body-236",
+      "6-day-ppl-workout-program-for-beginners-push-program",
+      "6-day-ppl-workout-program-for-beginners-push-program"
+    ]
+  },
+  {
+    "site_slug": "bodyweight-lunge",
+    "name_en": "Bodyweight Lunge",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2023/07/bodyweight-lunges.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "lower-body-141",
+      "lower-body-142",
+      "lower-body-143",
+      "lower-body-144"
+    ]
+  },
+  {
+    "site_slug": "close-grip-cable-row",
+    "name_en": "Close Grip Cable Row",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/close-grip-cable-row.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "upper-body-235",
+      "upper-body-236",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-2",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-3",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-5",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-7",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-8"
+    ]
+  },
+  {
+    "site_slug": "alternating-dumbbell-front-raise",
+    "name_en": "Alternating Dumbbell Front Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Alternating-Dumbbell-Front-Raise.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-day-ppl-workout-program-for-beginners-push-program",
+      "6-day-ppl-workout-program-for-beginners-push-program-2",
+      "shoulder-workout-for-bodybuilding-beginners",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-8",
+      "6-day-ppl-workout-program-for-beginners-push-program",
+      "6-day-ppl-workout-program-for-beginners-push-program-2",
+      "shoulder-workout-for-bodybuilding-beginners"
+    ]
+  },
+  {
+    "site_slug": "incline-leg-hip-raise",
+    "name_en": "Incline Leg Hip Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Incline-Leg-Hip-Raise.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "6-day-ppl-workout-program-for-beginners-pull-program",
+      "6-day-ppl-workout-program-for-beginners-pull-program-2",
+      "8-week-advanced-powerlifting-program-upper-body-strength",
+      "8-week-advanced-powerlifting-program-upper-body-strength-2-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-3-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-4-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-5-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-6-week-copy",
+      "8-week-advanced-powerlifting-program-upper-body-strength-7-week",
+      "6-day-ppl-workout-program-for-beginners-pull-program",
+      "6-day-ppl-workout-program-for-beginners-pull-program-2"
+    ]
+  },
+  {
+    "site_slug": "decline-dumbbell-press",
+    "name_en": "Decline Dumbbell Press",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Decline-Dumbbell-Press.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-day-ppl-workout-program-for-beginners-push-program-2",
+      "8-week-workout-plan-to-build-muscle-intermediate",
+      "6-day-ppl-workout-program-for-beginners-push-program-2"
+    ]
+  },
+  {
+    "site_slug": "bent-over-dumbbell-rear-delt-raise-with-head-on-bench",
+    "name_en": "Bent-Over Dumbbell Rear Delt Raise With Head On Bench",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Dumbbell-Rear-Delt-Raise-With-Head-On-Bench.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-day-ppl-workout-program-for-beginners-pull-program-2",
+      "6-day-ppl-workout-program-for-beginners-pull-program-2"
+    ]
+  },
+  {
+    "site_slug": "low-cable-tricep-kickback",
+    "name_en": "Low Cable Tricep Kickback",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/10/Low-Cable-Tricep-Kickback.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "chest-and-triceps-exercise-for-bodybuilding-beginners",
+      "chest-and-triceps-exercise-for-bodybuilding-beginners"
+    ]
+  },
+  {
+    "site_slug": "wrist-roller",
+    "name_en": "Wrist Roller",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/wrist-roller.gif",
+    "muscle_group": "forearm",
+    "primary_muscles": [
+      "forearm"
+    ],
+    "secondary_muscles": [],
+    "equipment": "none",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "bodybuilding-workout-for-beginners-back-and-biceps-workout-for-bodybuilding-beginners",
+      "bodybuilding-workout-for-beginners-back-and-biceps-workout-for-bodybuilding-beginners"
+    ]
+  },
+  {
+    "site_slug": "seated-bench-leg-pull-in",
+    "name_en": "Seated Bench Leg Pull-in",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Bench-Leg-Pull-in.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "leg-and-abs-workout-for-bodybuilding-beginners",
+      "leg-and-abs-workout-for-bodybuilding-beginners"
+    ]
+  },
+  {
+    "site_slug": "barbell-military-press",
+    "name_en": "Barbell Military Press (Overhead press)",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/07/Barbell-Standing-Military-Press.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "3x5-full-body-strength-training-program-3x5-workout-b",
+      "3x5-full-body-strength-training-program-3x5-workout-b-2",
+      "3x5-full-body-strength-training-program-3x5-workout-b-3",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-6",
+      "5x5-workout-plan-5x5-workout-b",
+      "5x5-workout-plan-5x5-workout-b-2",
+      "5x5-workout-plan-5x5-workout-b-3",
+      "5x5-workout-plan-5x5-workout-b-4",
+      "5x5-workout-plan-5x5-workout-b-5",
+      "5x5-workout-plan-5x5-workout-b-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-2",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-3",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-4",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-5",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-7",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-8",
+      "8-week-advanced-powerlifting-program-strength-training",
+      "strength-training-2-week",
+      "strength-training-5-week",
+      "strength-training-6-week",
+      "strength-training-7-week",
+      "8-week-workout-plan-to-build-muscle-intermediate-shoulders-and-forearms"
+    ]
+  },
+  {
+    "site_slug": "arm-scissors",
+    "name_en": "Arm Scissors",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/02/Arm-Scissors.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest",
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "exercise-ball-workout",
+      "core-workout-10",
+      "exercise-ball-workout-2",
+      "core-workout-12",
+      "exercise-ball-workout-3",
+      "core-workout-13",
+      "exercise-ball-workout-4",
+      "core-workout-14",
+      "exercise-ball-workout-5",
+      "core-workout-15",
+      "exercise-ball-workout-6",
+      "core-workout-16"
+    ]
+  },
+  {
+    "site_slug": "vertical-mountain-climber",
+    "name_en": "Vertical Mountain Climber",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/07/Vertical-Mountain-Climber.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "exercise-ball-workout",
+      "exercise-ball-workout-2",
+      "exercise-ball-workout-3",
+      "exercise-ball-workout-4",
+      "exercise-ball-workout-5",
+      "exercise-ball-workout-6"
+    ]
+  },
+  {
+    "site_slug": "exercise-ball-wall-squat",
+    "name_en": "Exercise Ball Wall Squat",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/Exercise-Ball-Wall-Squat.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "stability ball",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "exercise-ball-workout",
+      "exercise-ball-workout-2",
+      "exercise-ball-workout-3",
+      "exercise-ball-workout-4",
+      "exercise-ball-workout-5",
+      "exercise-ball-workout-6"
+    ]
+  },
+  {
+    "site_slug": "stability-ball-v-up",
+    "name_en": "Stability Ball V-Up",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/V-Up-Down-with-Stability-ball.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "stability ball",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "exercise-ball-workout",
+      "exercise-ball-workout-2",
+      "exercise-ball-workout-3",
+      "exercise-ball-workout-4",
+      "exercise-ball-workout-5",
+      "exercise-ball-workout-6"
+    ]
+  },
+  {
+    "site_slug": "stability-ball-decline-push-up",
+    "name_en": "Stability Ball Decline Push-Up",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/stability-ball-decline-push-ups.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "stability ball",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "exercise-ball-workout",
+      "exercise-ball-workout-2",
+      "exercise-ball-workout-3",
+      "exercise-ball-workout-4",
+      "exercise-ball-workout-5",
+      "exercise-ball-workout-6"
+    ]
+  },
+  {
+    "site_slug": "leg-curl-on-stability-ball",
+    "name_en": "Leg Curl On Stability Ball",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/leg-curl-on-stability-ball.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "stability ball",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "exercise-ball-workout",
+      "exercise-ball-workout-2",
+      "exercise-ball-workout-3",
+      "exercise-ball-workout-4",
+      "exercise-ball-workout-5",
+      "exercise-ball-workout-6"
+    ]
+  },
+  {
+    "site_slug": "swiss-ball-rollout",
+    "name_en": "Swiss Ball Rollout",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/08/swiss-ball-rollout.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "stability ball",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "exercise-ball-workout",
+      "exercise-ball-workout-2",
+      "exercise-ball-workout-3",
+      "exercise-ball-workout-4",
+      "exercise-ball-workout-5",
+      "exercise-ball-workout-6"
+    ]
+  },
+  {
+    "site_slug": "standing-incline-chest-press-with-resistance-band",
+    "name_en": "Standing incline chest press With Resistance Band",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/05/Standing-incline-chest-press.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "upper-body-workout-4",
+      "upper-body-workout-9",
+      "upper-body-workout-10",
+      "upper-body-workout-11",
+      "upper-body-workout-12",
+      "upper-body-workout-13"
+    ]
+  },
+  {
+    "site_slug": "high-chest-fly-with-resistance-band",
+    "name_en": "High Chest Fly With Resistance Band",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/05/High-Chest-Fly-With-Resistance-Band.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "upper-body-workout-4",
+      "upper-body-workout-9",
+      "upper-body-workout-10",
+      "upper-body-workout-11",
+      "upper-body-workout-12",
+      "upper-body-workout-13"
+    ]
+  },
+  {
+    "site_slug": "kneeling-pulldown-with-resistance-band",
+    "name_en": "Kneeling Pulldown With Resistance Band",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/05/Kneeling-pulldown.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "upper-body-workout-4",
+      "upper-body-workout-9",
+      "upper-body-workout-10",
+      "upper-body-workout-11",
+      "upper-body-workout-12",
+      "upper-body-workout-13"
+    ]
+  },
+  {
+    "site_slug": "band-seated-row",
+    "name_en": "Band Seated Row",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/02/Band-Seated-Row.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "upper-body-workout-4",
+      "upper-body-workout-9",
+      "upper-body-workout-10",
+      "upper-body-workout-11",
+      "upper-body-workout-12",
+      "upper-body-workout-13"
+    ]
+  },
+  {
+    "site_slug": "band-biceps-curl",
+    "name_en": "Band Biceps Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/02/Band-Biceps-Curl.gif",
+    "muscle_group": "biceps",
+    "primary_muscles": [
+      "biceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "upper-body-workout-4",
+      "upper-body-workout-9",
+      "upper-body-workout-10",
+      "upper-body-workout-11",
+      "upper-body-workout-12",
+      "upper-body-workout-13"
+    ]
+  },
+  {
+    "site_slug": "triceps-extension-with-resistance-bands",
+    "name_en": "Band Pushdown (Neutral Grip)",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/07/Triceps-Extension-with-Resistance-Bands.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "upper-body-workout-4",
+      "upper-body-workout-9",
+      "upper-body-workout-10",
+      "upper-body-workout-11",
+      "upper-body-workout-12",
+      "upper-body-workout-13"
+    ]
+  },
+  {
+    "site_slug": "banded-lunge",
+    "name_en": "Banded Lunge",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/10/Banded-Lunge.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "lower-body-workout-3",
+      "lower-body-workout-4",
+      "lower-body-workout-copy",
+      "lower-body-workout-5",
+      "lower-body-workout-6",
+      "lower-body-workout-7"
+    ]
+  },
+  {
+    "site_slug": "good-morning-with-resistance-band",
+    "name_en": "Good Morning With Resistance Band",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/07/Good-Morning-With-Resistance-Band.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "lower-body-workout-3",
+      "lower-body-workout-4",
+      "lower-body-workout-copy",
+      "lower-body-workout-5",
+      "lower-body-workout-6",
+      "lower-body-workout-7"
+    ]
+  },
+  {
+    "site_slug": "resistance-band-lateral-walk",
+    "name_en": "Resistance Band Lateral Walk",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/02/Resistance-Band-Lateral-Walk.gif",
+    "muscle_group": "hips",
+    "primary_muscles": [
+      "hips",
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "lower-body-workout-3",
+      "lower-body-workout-4",
+      "lower-body-workout-copy",
+      "lower-body-workout-5",
+      "lower-body-workout-6",
+      "lower-body-workout-7"
+    ]
+  },
+  {
+    "site_slug": "banded-leg-curl",
+    "name_en": "Banded Leg Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/10/Banded-Leg-Curl.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "lower-body-workout-3",
+      "lower-body-workout-4",
+      "lower-body-workout-copy",
+      "lower-body-workout-5",
+      "lower-body-workout-6",
+      "lower-body-workout-7"
+    ]
+  },
+  {
+    "site_slug": "banded-glute-kickbacks",
+    "name_en": "Banded Glute Kickbacks",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/02/Banded-Glute-Kickbacks.gif",
+    "muscle_group": "glutes",
+    "primary_muscles": [
+      "glutes"
+    ],
+    "secondary_muscles": [],
+    "equipment": "band",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "lower-body-workout-3",
+      "lower-body-workout-4",
+      "lower-body-workout-copy",
+      "lower-body-workout-5",
+      "lower-body-workout-6",
+      "lower-body-workout-7"
+    ]
+  },
+  {
+    "site_slug": "briskly-walking",
+    "name_en": "Briskly Walking",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/09/Briskly-Walking.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "aerobic-activity-1",
+      "aerobic-activity-1",
+      "aerobic-activity-2",
+      "aerobic-activity-2",
+      "aerobic-activity",
+      "aerobic-activity",
+      "aerobic-activity-3",
+      "aerobic-activity-3",
+      "aerobic-activity-4",
+      "aerobic-activity-4",
+      "aerobic-activity-5",
+      "aerobic-activity-5"
+    ]
+  },
+  {
+    "site_slug": "running",
+    "name_en": "Running",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/07/Run.gif",
+    "muscle_group": "cardio",
+    "primary_muscles": [
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "aerobic-activity-1",
+      "aerobic-activity-2",
+      "aerobic-activity",
+      "aerobic-activity-3",
+      "aerobic-activity-4",
+      "aerobic-activity-5",
+      "endurance-workout-speed-and-agility-workout",
+      "endurance-workout-speed-and-agility-workout",
+      "endurance-workout-speed-and-agility-workout",
+      "endurance-workout-speed-and-agility-workout-2",
+      "endurance-workout-speed-and-agility-workout-2",
+      "endurance-workout-speed-and-agility-workout-2",
+      "endurance-workout-speed-and-agility-workout-3",
+      "endurance-workout-speed-and-agility-workout-3",
+      "endurance-workout-speed-and-agility-workout-3",
+      "endurance-workout-speed-and-agility-workout-4",
+      "endurance-workout-speed-and-agility-workout-4",
+      "endurance-workout-speed-and-agility-workout-4",
+      "endurance-workout-speed-and-agility-workout-5",
+      "endurance-workout-speed-and-agility-workout-5",
+      "endurance-workout-speed-and-agility-workout-5",
+      "4-week-no-equipment-endurance-workout-plan-endurance-workout-speed-and-agility-workout-6",
+      "4-week-no-equipment-endurance-workout-plan-endurance-workout-speed-and-agility-workout-6",
+      "4-week-no-equipment-endurance-workout-plan-endurance-workout-speed-and-agility-workout-6"
+    ]
+  },
+  {
+    "site_slug": "weighted-sit-ups",
+    "name_en": "Weighted Sit-ups",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/weightedsitups.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-chest-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-chest-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-chest-and-abs-workout-2-2",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-chest-and-abs-workout-2-3",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-chest-and-abs-workout-2-4",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-chest-and-abs-workout-2-5",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-6",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-6"
+    ]
+  },
+  {
+    "site_slug": "reverse-lat-pulldown",
+    "name_en": "Reverse Lat-Pulldown",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Reverse-Lat-Pulldown.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "back-traps-and-forearm-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-back-traps-and-forearm-workout-2-2",
+      "6-week-advanced-workout-plan-to-build-muscle-back-traps-and-forearm-workout-2-4",
+      "power-and-hypertrophy-workout-day-4-hypertrophy-upper-body"
+    ]
+  },
+  {
+    "site_slug": "behind-the-back-barbell-wrist-curl",
+    "name_en": "Behind The Back Barbell Wrist Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Behind-The-Back-Barbell-Wrist-Curl.gif",
+    "muscle_group": "forearm",
+    "primary_muscles": [
+      "forearm"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "back-traps-and-forearm-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-back-traps-and-forearm-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-back-traps-and-forearm-workout-2-2",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-back-traps-and-forearm-workout-2-3",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-back-traps-and-forearm-workout-2-4",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-back-traps-and-forearm-workout-2-5",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-6"
+    ]
+  },
+  {
+    "site_slug": "weight-plate-front-raise",
+    "name_en": "Weight Plate Front Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/Weight-Plate-Front-Raise-1.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-shoulder-and-abs-workout-6"
+    ]
+  },
+  {
+    "site_slug": "cable-tricep-kickback",
+    "name_en": "Cable Tricep Kickback",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Tricep-Kickback.gif",
+    "muscle_group": "triceps",
+    "primary_muscles": [
+      "triceps"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-2",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-3",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-4",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-5",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-7",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-8"
+    ]
+  },
+  {
+    "site_slug": "dumbbell-reverse-curl",
+    "name_en": "Dumbbell Reverse Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/04/dumbbell-reverse-curl.gif",
+    "muscle_group": "biceps",
+    "primary_muscles": [
+      "biceps",
+      "forearm"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-arms-and-forearm-workout-6"
+    ]
+  },
+  {
+    "site_slug": "barbell-bulgarian-split-squat",
+    "name_en": "Barbell Bulgarian Split Squat",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Barbell-Bulgarian-Split-Squat.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-7",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-8"
+    ]
+  },
+  {
+    "site_slug": "glute-kickback-machine",
+    "name_en": "Glute Kickback Machine",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Glute-Kickback-Machine.gif",
+    "muscle_group": "glutes",
+    "primary_muscles": [
+      "glutes"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-5",
+      "30-days-gym-body-building-program-day-5-leg"
+    ]
+  },
+  {
+    "site_slug": "leg-press-calf-raise",
+    "name_en": "Leg Press Calf Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Leg-Press-Calf-Raise.gif",
+    "muscle_group": "calf",
+    "primary_muscles": [
+      "calf"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-6",
+      "strength-and-muscle-building-workout-program-for-women-legs-arms"
+    ]
+  },
+  {
+    "site_slug": "bent-over-twist",
+    "name_en": "Bent Over Twist",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/09/Bent-Over-Twist.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-2",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-3",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-4",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-5",
+      "6-week-advanced-workout-plan-to-build-muscle-leg-and-abs-workout-6"
+    ]
+  },
+  {
+    "site_slug": "bent-arm-lateral-raise",
+    "name_en": "Bent Arm Lateral Raise",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Dumbbell-Bent-Arm-Laterl-Raise.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-3",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-5",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-push-workout-7"
+    ]
+  },
+  {
+    "site_slug": "wrist-curl",
+    "name_en": "Wrist Curl",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/barbell-Wrist-Curl.gif",
+    "muscle_group": "forearm",
+    "primary_muscles": [
+      "forearm"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-2",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-3",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-4",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-5",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-7",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-pull-workout-8",
+      "8-week-workout-plan-to-build-muscle-intermediate-shoulders-and-forearms",
+      "30-days-gym-body-building-program-day-2-arm"
+    ]
+  },
+  {
+    "site_slug": "bench-side-bend",
+    "name_en": "Bench Side Bend",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Bench-Side-Bend.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "machine",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-2",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-4",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-3",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-5",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-6",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-7",
+      "6-day-push-pull-leg-workout-for-advanced-lifters-leg-workout-8"
+    ]
+  },
+  {
+    "site_slug": "sit-ups",
+    "name_en": "Sit-ups",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Sit-ups.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "8-week-advanced-powerlifting-program-strength-training",
+      "strength-training-2-week",
+      "strength-training-3-week",
+      "strength-training-4-week-2",
+      "strength-training-5-week",
+      "strength-training-6-week",
+      "strength-training-7-week",
+      "30-days-gym-body-building-program",
+      "30-days-gym-body-building-program-day-4-shoulder-abs",
+      "30-days-gym-body-building-program-day-7-backwing"
+    ]
+  },
+  {
+    "site_slug": "wide-grip-bench-press",
+    "name_en": "Wide Grip Bench Press",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/07/Wide-Grip-Barbell-Bench-Press.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "8-week-advanced-powerlifting-program-upper-body-strength",
+      "8-week-advanced-powerlifting-program-upper-body-strength-2-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-3-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-4-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-5-week",
+      "8-week-advanced-powerlifting-program-upper-body-strength-6-week-copy",
+      "8-week-advanced-powerlifting-program-upper-body-strength-7-week"
+    ]
+  },
+  {
+    "site_slug": "push-press",
+    "name_en": "Push Press",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/push-press-1.gif",
+    "muscle_group": "shoulders",
+    "primary_muscles": [
+      "shoulders"
+    ],
+    "secondary_muscles": [],
+    "equipment": "barbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "strength-training-3-week",
+      "strength-training-4-week-2"
+    ]
+  },
+  {
+    "site_slug": "reverse-lunge-knee",
+    "name_en": "Reverse Lunge Knee Lift",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/Reverse-Lunge-Knee.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "hiit"
+    ]
+  },
+  {
+    "site_slug": "sumo-plie-dumbbell-squat",
+    "name_en": "Plie Dumbbell Squat",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2023/01/Sumo-Plie-Dumbbell-Squat.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "strength-and-muscle-building-workout-program-for-women-legs-glutes-2"
+    ]
+  },
+  {
+    "site_slug": "decline-bench-dumbbell-lunge",
+    "name_en": "Decline Bench Dumbbell Lunge",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/02/Decline-Bench-Dumbbell-Lunge.gif",
+    "muscle_group": "legs",
+    "primary_muscles": [
+      "legs"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "strength-and-muscle-building-workout-program-for-women-legs-arms"
+    ]
+  },
+  {
+    "site_slug": "one-arm-cable-row",
+    "name_en": "One Arm Cable Row",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/One-arm-Cable-Row.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "power-and-hypertrophy-workout-day-4-hypertrophy-upper-body"
+    ]
+  },
+  {
+    "site_slug": "dumbbell-upward-fly",
+    "name_en": "Dumbbell Upward Fly",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/10/Dumbbell-Upward-Fly.gif",
+    "muscle_group": "chest",
+    "primary_muscles": [
+      "chest"
+    ],
+    "secondary_muscles": [],
+    "equipment": "dumbbell",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "8-week-workout-plan-to-build-muscle-intermediate"
+    ]
+  },
+  {
+    "site_slug": "wrist-circles-stretch",
+    "name_en": "Dynamic Wrist Stretches",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Wrist-Circles-Stretch.gif",
+    "muscle_group": "forearm",
+    "primary_muscles": [
+      "forearm"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "duration",
+    "uses": [
+      "8-week-workout-plan-to-build-muscle-intermediate-shoulders-and-forearms"
+    ]
+  },
+  {
+    "site_slug": "toe-reaches",
+    "name_en": "Toe Reaches",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Toe-Reaches.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "endurance-workout-speed-and-agility-workout",
+      "endurance-workout-speed-and-agility-workout-2",
+      "endurance-workout-speed-and-agility-workout-3",
+      "endurance-workout-speed-and-agility-workout-4",
+      "endurance-workout-speed-and-agility-workout-5",
+      "4-week-no-equipment-endurance-workout-plan-endurance-workout-speed-and-agility-workout-6"
+    ]
+  },
+  {
+    "site_slug": "t-cross-sit-up",
+    "name_en": "T-Cross Sit-up",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2021/05/T-Cross-Sit-up.gif",
+    "muscle_group": "core",
+    "primary_muscles": [
+      "core",
+      "cardio"
+    ],
+    "secondary_muscles": [],
+    "equipment": "body weight",
+    "difficulty": null,
+    "measurement_type": "bodyweight_reps",
+    "uses": [
+      "endurance-workout-speed-and-agility-workout",
+      "endurance-workout-speed-and-agility-workout-2",
+      "endurance-workout-speed-and-agility-workout-3",
+      "endurance-workout-speed-and-agility-workout-4",
+      "endurance-workout-speed-and-agility-workout-5",
+      "4-week-no-equipment-endurance-workout-plan-endurance-workout-speed-and-agility-workout-6"
+    ]
+  },
+  {
+    "site_slug": "cable-crossover-lat-pulldown",
+    "name_en": "Cable Crossover Lat Pulldown",
+    "gif": "https://fitnessprogramer.com/wp-content/uploads/2022/01/Cable-Crossover-Lat-Pulldown.gif",
+    "muscle_group": "back",
+    "primary_muscles": [
+      "back"
+    ],
+    "secondary_muscles": [],
+    "equipment": "cable",
+    "difficulty": null,
+    "measurement_type": "weight_reps",
+    "uses": [
+      "30-days-gym-body-building-program-day-7-backwing"
+    ]
+  }
+]

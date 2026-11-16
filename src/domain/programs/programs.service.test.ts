@@ -1483,3 +1483,155 @@ describe("platform templates", () => {
     });
   });
 });
+
+describe("platform plans (multi-week)", () => {
+  // A 2-week plan = 14 days. Week 1 trains days 1, 3, 5; week 2 trains days 8, 10, 12; the other 8 are empty rest days.
+  const TRAINING = new Set([1, 3, 5, 8, 10, 12]);
+  const item = (id: string, order: number, group: string | null) => ({
+    id,
+    exercise_id: `global-ex-${order}`,
+    sets: 2,
+    reps: "10",
+    rest_seconds: 60,
+    progression_rule: "none",
+    order_index: order,
+    block: "main",
+    rehab_phase_id: null,
+    coach_note_private: null,
+    group_key: group,
+    group_kind: group ? "superset" : null,
+    program_item_sets: [
+      { id: `${id}-s1`, set_index: 1, reps: 10, weight: null, rest_seconds: 60, duration_seconds: null },
+      { id: `${id}-s2`, set_index: 2, reps: 10, weight: null, rest_seconds: 60, duration_seconds: null },
+    ],
+  });
+  const days = Array.from({ length: 14 }, (_, i) => ({
+    id: `pd-${i + 1}`,
+    day_index: i + 1,
+    order_index: i,
+    section_order: ["workout", "mobility_rehab", "activities"],
+    label_ar: TRAINING.has(i + 1) ? "تمرين" : "راحة",
+    label_en: TRAINING.has(i + 1) ? "Workout" : "Rest",
+    weekday: null,
+    notes_ar: null,
+    notes_en: null,
+    diet_plan_id: null,
+    program_items: TRAINING.has(i + 1) ? [item(`pi-${i + 1}-a`, 0, "ss1"), item(`pi-${i + 1}-b`, 1, "ss1")] : [],
+    program_activities: [],
+  }));
+  const plan = {
+    id: "plan-1",
+    coach_id: null,
+    client_id: null,
+    name_ar: "خطة",
+    name_en: "Plan",
+    start_date: "2026-11-21",
+    end_date: null,
+    schedule_mode: "cycle",
+    kind: "plan",
+    duration_weeks: 2,
+    gender_target: "all",
+    categories: [],
+    days_per_week: 3,
+    source_url: "https://fitnessprogramer.com/workout-plan/x/",
+    published: true,
+    slug: "x-plan",
+    program_days: days,
+    rehab_protocols: [],
+    diet_variants: [],
+  };
+
+  it("customize deep-copies every day of every week (rest days included) and points back at the original", async () => {
+    const { db, inserts, updates, deletes } = fakeSupabase({ treeRow: plan, platformRow: { id: "plan-1" } });
+    const copy = await new ProgramsService(db).customizePlatformTemplate("plan-1", "coach-7");
+    expect(copy).not.toBeNull();
+
+    const program = inserts.find((i) => i.table === "programs")?.payload;
+    expect(program).toMatchObject({
+      coach_id: "coach-7",
+      client_id: null,
+      source_template_id: "plan-1",
+      kind: "plan",
+      duration_weeks: 2,
+      gender_target: "all",
+      days_per_week: 3,
+    });
+
+    const dayInserts = inserts.filter((i) => i.table === "program_days").map((i) => i.payload as { day_index: number; label_en: string });
+    expect(dayInserts).toHaveLength(14);
+    expect(dayInserts.map((d) => d.day_index)).toEqual(Array.from({ length: 14 }, (_, i) => i + 1));
+    expect(dayInserts.filter((d) => d.label_en === "Rest")).toHaveLength(8);
+
+    const items = inserts.filter((i) => i.table === "program_items");
+    const sets = inserts.filter((i) => i.table === "program_item_sets").flatMap((i) => i.payload as object[]);
+    expect(items).toHaveLength(12); // 6 training days x 2 items
+    expect(sets).toHaveLength(24);
+    expect(items.every((i) => (i.payload as { group_key: string }).group_key === "ss1")).toBe(true);
+    for (const row of [...dayInserts, ...items.map((i) => i.payload), ...sets]) {
+      expect(row).toMatchObject({ coach_id: "coach-7", client_id: null });
+    }
+
+    // the original is only ever read
+    expect(updates).toHaveLength(0);
+    expect(deletes).toHaveLength(0);
+  });
+
+  it("assigning a plan with a start date ends it duration_weeks later", async () => {
+    const { db, inserts } = fakeSupabase({
+      treeRow: plan,
+      ownClientRow: { id: "client-9", coach_id: "coach-9" },
+    });
+    await new ProgramsService(db).cloneToClient("plan-1", "client-9", false, "2026-12-01");
+    expect(inserts.find((i) => i.table === "programs")?.payload).toMatchObject({
+      coach_id: "coach-9",
+      client_id: "client-9",
+      start_date: "2026-12-01",
+      end_date: "2026-12-14", // 14 days: 1 Dec .. 14 Dec
+      source_template_id: "plan-1",
+      kind: "plan",
+    });
+    expect(inserts.filter((i) => i.table === "program_days")).toHaveLength(14);
+  });
+
+  it("without a start date the plan starts today and still gets its end date", async () => {
+    const { db, inserts } = fakeSupabase({ treeRow: plan, ownClientRow: { id: "client-9", coach_id: "coach-9" } });
+    await new ProgramsService(db).cloneToClient("plan-1", "client-9");
+    const p = inserts.find((i) => i.table === "programs")?.payload as { start_date: string; end_date: string };
+    expect(p.start_date).toBe(new Date().toISOString().slice(0, 10));
+    const span = (Date.parse(p.end_date) - Date.parse(p.start_date)) / 86_400_000;
+    expect(span).toBe(13);
+  });
+
+  it("a single-session workout keeps its own end date when assigned with a start date", async () => {
+    const workout = { ...plan, kind: "workout", duration_weeks: null, end_date: null, program_days: [days[0]] };
+    const { db, inserts } = fakeSupabase({ treeRow: workout, ownClientRow: { id: "client-9", coach_id: "coach-9" } });
+    await new ProgramsService(db).cloneToClient("plan-1", "client-9", false, "2026-12-01");
+    expect(inserts.find((i) => i.table === "programs")?.payload).toMatchObject({
+      start_date: "2026-12-01",
+      end_date: null,
+      kind: "workout",
+    });
+  });
+
+  it("updating a client's copy from a plan keeps that copy's own dates", async () => {
+    const { db, inserts } = fakeSupabase({
+      treeRow: plan,
+      ownClientRow: { id: "client-9", coach_id: "coach-9" },
+      oldProgramRow: { id: "old", client_id: "client-9", start_date: "2026-01-05", end_date: "2026-03-01", source_template_id: "plan-1" },
+    });
+    await new ProgramsService(db).updateFromTemplate("plan-1", "old");
+    expect(inserts.find((i) => i.table === "programs")?.payload).toMatchObject({
+      start_date: "2026-01-05",
+      end_date: "2026-03-01",
+    });
+  });
+
+  it("editing a plan copy in place never reaches the original (the copy only ever gets its own rows)", async () => {
+    const { db, inserts } = fakeSupabase({ treeRow: plan });
+    await new ProgramsService(db).customizePlatformTemplate("plan-1", "coach-7");
+    const originalIds = new Set(["plan-1", ...days.map((d) => d.id), ...days.flatMap((d) => d.program_items.map((i) => i.id))]);
+    for (const w of inserts) {
+      for (const row of [w.payload].flat() as { id?: string }[]) expect(originalIds.has(row.id ?? "")).toBe(false);
+    }
+  });
+});

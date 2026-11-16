@@ -18,6 +18,8 @@ const metaSchema = z.object({
   description_en: z.string().trim().max(500),
   level: z.enum(PLAN_LEVELS).nullable(),
   days_per_week: z.number().int().min(1).max(7).nullable(),
+  duration_weeks: z.number().int().min(1).max(52).nullable(),
+  gender_target: z.enum(["female", "male", "all"]).nullable(),
   categories: z.array(z.enum(LIBRARY_CATEGORIES)),
 });
 

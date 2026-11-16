@@ -1925,7 +1925,9 @@
       "title": "Assign this template",
       "description": "Creates a copy of this program for the client you pick — the template stays unchanged.",
       "client": "Client",
-      "submit": "Assign"
+      "submit": "Assign",
+      "startDate": "Start date",
+      "startDateHint": "The plan's first week begins on this date."
     },
     "saveAsTemplateDialog": {
       "title": "Save as template",
@@ -2353,7 +2355,10 @@
         "level": "Level",
         "equipment": "Equipment",
         "all": "All",
-        "clear": "Clear filters"
+        "clear": "Clear filters",
+        "goal": "Goal",
+        "gender": "For",
+        "duration": "Duration"
       },
       "categories": {
         "strength": "Strength",
@@ -2374,7 +2379,9 @@
         "customized": "Customized",
         "preview": "Preview",
         "openCopy": "Open my copy",
-        "reset": "Reset to original"
+        "reset": "Reset to original",
+        "weeks": "{count, plural, one {# week} other {# weeks}}",
+        "daysPerWeek": "{count, plural, one {# day/week} other {# days/week}}"
       },
       "empty": {
         "title": "No templates yet",
@@ -2401,7 +2408,13 @@
         "hasCopy": "You already have a copy of this template.",
         "openCopy": "Open my copy",
         "reset": "Reset to original",
-        "daysPerWeek": "{count, plural, one {# day per week} other {# days per week}}"
+        "daysPerWeek": "{count, plural, one {# day per week} other {# days per week}}",
+        "week": "Week {n}",
+        "weekSelector": "Choose a week",
+        "dayN": "Day {n}",
+        "restDay": "Rest day",
+        "max": "Max",
+        "duration": "{count, plural, one {# week} other {# weeks}}"
       },
       "reset": {
         "title": "Reset to the original?",
@@ -2412,7 +2425,21 @@
       "errors": {
         "not_found_or_forbidden": "This template isn't available any more."
       },
-      "results": "{count, plural, one {# template} other {# templates}}"
+      "results": "{count, plural, one {# template} other {# templates}}",
+      "tabs": {
+        "label": "Template type",
+        "workouts": "Workouts",
+        "plans": "Plans"
+      },
+      "genders": {
+        "female": "Women",
+        "male": "Men",
+        "all": "Women & men"
+      },
+      "emptyPlans": {
+        "title": "No plans yet",
+        "description": "Plans published by Coachly Fit will appear here."
+      }
     }
   },
   "library": {
@@ -3627,7 +3654,10 @@
         "categories": "Categories",
         "daysPerWeek": "Days per week",
         "save": "Save",
-        "saving": "Saving…"
+        "saving": "Saving…",
+        "durationWeeks": "Duration (weeks)",
+        "gender": "For",
+        "noGender": "Not set"
       },
       "toast": {
         "published": "Template published",
@@ -3640,6 +3670,12 @@
         "forbidden": "Only admins can change platform templates.",
         "not_found": "This template no longer exists.",
         "unknown": "Something went wrong. Please try again."
+      },
+      "kind": {
+        "label": "Type",
+        "all": "All",
+        "workout": "Workout",
+        "plan": "Plan"
       }
     }
   },

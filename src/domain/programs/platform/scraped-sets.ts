@@ -4,7 +4,13 @@
  * known shape returns null plus a flag and is reported for review — never
  * guessed. Used by the one-off seed script. */
 
-export type ScrapedSet = { reps: number | null; reps_max: number | null; duration_seconds: number | null };
+/** `to_failure` marks a "Max" set: no rep target, work until you can't (stored as an AMRAP set). */
+export type ScrapedSet = {
+  reps: number | null;
+  reps_max: number | null;
+  duration_seconds: number | null;
+  to_failure?: boolean;
+};
 export type ParsedSets = { sets: ScrapedSet[] | null; flags: string[] };
 
 const clean = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
@@ -19,21 +25,33 @@ function parseCount(raw: string, flags: string[]): number | null {
   return Number(m[1]);
 }
 
-export function parseSets(setsRaw: string | null, repsRaw: string | null): ParsedSets {
+export function parseSets(setsRawIn: string | null, repsRaw: string | null): ParsedSets {
   const flags: string[] = [];
+  // the sets cell can carry the warm-up label instead ("2-3 warm-up"): same meaning, so strip and remember it
+  const SETS_WARMUP = /\s*(warming|warm-?\s*up)$/i;
+  const setsWarmup = SETS_WARMUP.test(clean(setsRawIn));
+  const setsRaw = setsWarmup ? clean(setsRawIn).replace(SETS_WARMUP, "") : setsRawIn;
   const rawReps = clean(repsRaw).replace(/^[-,.\s]+|[-,.\s]+$/g, "");
   // "10-15 warming" / "8-10 min warm-up": the numbers are normal, the label marks a warm-up block
   const WARMUP = /\s*(warming|warm-?\s*up)$/i;
   const warmup = WARMUP.test(rawReps);
   const reps = warmup ? rawReps.replace(WARMUP, "") : rawReps;
   if (!reps) return { sets: null, flags: ["no_reps"] };
-  if (warmup) flags.push("warmup");
+  if (warmup || setsWarmup) flags.push("warmup");
 
-  // Timed: "20 Sec", "10-15 sec", "5 min"
-  const timed = reps.match(/^(\d+)(?:\s*-\s*(\d+))?\s*(sec(?:ond)?s?|min(?:ute)?s?)$/i);
+  // "Max": no rep target, to failure
+  if (/^max(imum)?$/i.test(reps)) {
+    const count = parseCount(setsRaw ?? "", flags);
+    if (count == null) return { sets: null, flags: [...flags, `unparsed_sets:${clean(setsRaw)}`] };
+    return { sets: repeat(count, { reps: null, reps_max: null, duration_seconds: null, to_failure: true }), flags };
+  }
+
+  // Timed: "20 Sec", "10-15 sec", "5 min", "20 sec - Sprint"
+  const timed = reps.match(/^(\d+)(?:\s*-\s*(\d+))?\s*(sec(?:ond)?s?|min(?:ute)?s?)(?:\s*-\s*(sprint))?$/i);
   if (timed) {
     const unit = /^min/i.test(timed[3]) ? 60 : 1;
     if (timed[2]) flags.push(`duration_range:${reps}`);
+    if (timed[4]) flags.push("sprint");
     const count = parseCount(setsRaw ?? "", flags);
     if (count == null) return { sets: null, flags: [...flags, `unparsed_sets:${clean(setsRaw)}`] };
     return { sets: repeat(count, { reps: null, reps_max: null, duration_seconds: Number(timed[1]) * unit }), flags };
@@ -45,6 +63,16 @@ export function parseSets(setsRaw: string | null, repsRaw: string | null): Parse
     const declared = parseCount(setsRaw ?? "", []);
     if (declared != null && declared !== list.length) flags.push(`sets_vs_reps:${clean(setsRaw)}/${list.length}`);
     return { sets: list.map((r) => ({ reps: r, reps_max: null, duration_seconds: null })), flags };
+  }
+
+  // A typo'd list ("12 12, 12": a space where a comma belongs) is accepted ONLY when it has exactly
+  // the declared number of sets and every number is a plausible rep count; otherwise it stays unparsed.
+  if (/^\d+([\s,.]+\d+)+$/.test(reps)) {
+    const list = nums(reps);
+    const declared = parseCount(setsRaw ?? "", []);
+    if (declared === list.length && list.every((n) => n >= 1 && n <= 100)) {
+      return { sets: list.map((r) => ({ reps: r, reps_max: null, duration_seconds: null })), flags: [...flags, `typo_fixed:${reps}`] };
+    }
   }
 
   const count = parseCount(setsRaw ?? "", flags);
