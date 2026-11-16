@@ -14,6 +14,7 @@ import {
   Mail,
   Globe,
   ListTodo,
+  CalendarClock,
   UserPlus,
   LifeBuoy,
   CirclePlay,
@@ -25,7 +26,7 @@ import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "support" | "guides" | "templates";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "schedule" | "support" | "guides" | "templates";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge and
    * SupportUnreadBadge. */
@@ -73,6 +74,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/library", labelKey: "library", icon: Dumbbell, shortLabelKey: "shortLibrary" },
   { href: "/diets", labelKey: "diets", icon: Salad },
   { href: "/tasks", labelKey: "tasks", icon: ListTodo, feature: "task_management" },
+  { href: "/schedule", labelKey: "schedule", icon: CalendarClock, feature: "appointments" },
   { href: "/finance", labelKey: "finance", icon: Wallet, ownerOnly: true },
   { href: "/settings", labelKey: "settings", icon: Settings },
   { href: "/messages", labelKey: "inbox", icon: MessageCircle, badge: "unreadMessages" },
@@ -104,7 +106,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 // the sidebar shows; NAV_ITEMS order still drives the bottom nav and palette.
 export const COACH_NAV_GROUPS: NavGroup[] = [
   { hrefs: ["/dashboard"] },
-  { labelKey: "groupClients", hrefs: ["/clients", "/review", "/messages", "/tasks"] },
+  { labelKey: "groupClients", hrefs: ["/clients", "/schedule", "/review", "/messages", "/tasks"] },
   { labelKey: "groupContent", hrefs: ["/programs", "/forms", "/library", "/diets"] },
   { labelKey: "groupAccount", hrefs: ["/finance", "/settings", "/guides", "/support"] },
 ];

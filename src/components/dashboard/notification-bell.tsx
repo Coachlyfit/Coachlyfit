@@ -34,6 +34,22 @@ import { usePushSubscription } from "./use-push-subscription";
 const ADMIN_SUPPORT_KINDS = ["support_ticket_created", "support_coach_reply", "support_ticket_reopened"] as const;
 const COACH_SUPPORT_KINDS = ["support_admin_reply", "support_status_changed"] as const;
 
+// appointment_* are written by private.notify_on_appointment (the four
+// event kinds) and the appointment-reminders cron; the recipient is whichever
+// side the change concerns, so the same kinds reach coaches and clients.
+// google_reconnect_needed comes from the Google sync worker.
+const APPOINTMENT_KINDS = [
+  "appointment_requested",
+  "appointment_confirmed",
+  "appointment_cancelled",
+  "appointment_rescheduled",
+  "appointment_reminder",
+] as const;
+
+function isAppointmentKind(kind: string): kind is (typeof APPOINTMENT_KINDS)[number] {
+  return (APPOINTMENT_KINDS as readonly string[]).includes(kind);
+}
+
 const KINDS = [
   "exercise_promoted",
   "food_promoted",
@@ -50,6 +66,8 @@ const KINDS = [
   "coach_decision",
   "coach_invite",
   "nutrition_log_reminder",
+  ...APPOINTMENT_KINDS,
+  "google_reconnect_needed",
   ...ADMIN_SUPPORT_KINDS,
   ...COACH_SUPPORT_KINDS,
 ] as const;
@@ -122,6 +140,14 @@ export function NotificationBell({
         date: (payload.log_date as string | null) ?? "",
       });
     }
+    if (isAppointmentKind(notification.kind)) {
+      const startsAt = payload.starts_at as string | null;
+      return t(notification.kind, {
+        name: (payload.name as string | null) ?? t("someone"),
+        when: startsAt ? formatDate(startsAt, locale, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "",
+      });
+    }
+    if (notification.kind === "google_reconnect_needed") return t("google_reconnect_needed");
     if (notification.kind === "task_assigned") {
       return t("task_assigned", { title: (payload.title as string | null) ?? "" });
     }
@@ -162,8 +188,11 @@ export function NotificationBell({
       if (notification.kind === "new_message") return "/c/coach";
       if (notification.kind === "nutrition_log_reminder") return "/c/diet";
       if (notification.kind === "coach_decision" || notification.kind === "coach_invite") return "/c";
+      if (isAppointmentKind(notification.kind)) return "/c/appointments";
       return null;
     }
+    if (isAppointmentKind(notification.kind)) return "/schedule";
+    if (notification.kind === "google_reconnect_needed") return "/settings/schedule";
     if (notification.kind === "new_message") {
       const clientId = payload.client_id as string | null;
       return clientId ? `/messages/${clientId}` : null;

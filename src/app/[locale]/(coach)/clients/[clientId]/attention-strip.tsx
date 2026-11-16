@@ -1,6 +1,10 @@
 import { getTranslations } from "next-intl/server";
-import { AlertTriangle, Clock, MessageCircle, ClipboardCheck, CalendarX, Dumbbell } from "lucide-react";
+import { AlertTriangle, CalendarClock, Clock, MessageCircle, ClipboardCheck, CalendarX, Dumbbell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth/session";
+import { formatDate } from "@/lib/format";
+import { DEFAULT_TIME_ZONE, isValidTimeZone } from "@/domain/appointments/tz";
+import type { AppLocale } from "@/domain/locale";
 import { Link } from "@/i18n/navigation";
 import { isClientLate, lastCheckinDate } from "@/domain/progress/stats";
 import { subscriptionDisplayStatus } from "@/domain/billing/client-subscription";
@@ -20,15 +24,22 @@ type Item = { key: string; icon: typeof AlertTriangle; text: string; href?: stri
  * `now` is captured once up front — a single per-render clock read, not the
  * inline Date.now()/getTime() calls the React Compiler's purity rule flags
  * when they're scattered through the render body. */
-export async function AttentionStrip({ clientId }: { clientId: string }) {
+export async function AttentionStrip({ clientId, locale }: { clientId: string; locale: AppLocale }) {
   const t = await getTranslations("clients.profile.attention");
   const supabase = await createClient();
+  const user = await getAuthUser();
+  const { data: viewer } = user
+    ? await supabase.from("profiles").select("timezone").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const timeZone = viewer?.timezone && isValidTimeZone(viewer.timezone) ? viewer.timezone : DEFAULT_TIME_ZONE;
   const now = new Date();
   const painSince = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
   const outcomeSince = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [painReports, pendingCheckins, recentCheckins, thread, subscription, program, needsFollowUp] = await Promise.all([
+  const soon = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+
+  const [painReports, pendingCheckins, recentCheckins, thread, subscription, program, needsFollowUp, pendingSessions, upcomingSession] = await Promise.all([
     supabase
       .from("workout_exercise_results")
       .select("id", { count: "exact", head: true })
@@ -60,6 +71,24 @@ export async function AttentionStrip({ clientId }: { clientId: string }) {
       .eq("client_id", clientId)
       .in("outcome_status", ["worse", "persisting"])
       .gte("evaluated_at", outcomeSince),
+    // Session requests (and reschedule requests) waiting on the coach.
+    supabase
+      .from("appointments")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", clientId)
+      .gt("starts_at", now.toISOString())
+      .or("status.eq.requested,and(status.eq.confirmed,reschedule_requested_at.not.is.null)"),
+    // A confirmed session starting within a day.
+    supabase
+      .from("appointments")
+      .select("starts_at")
+      .eq("client_id", clientId)
+      .eq("status", "confirmed")
+      .gt("starts_at", now.toISOString())
+      .lte("starts_at", soon)
+      .order("starts_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const items: Item[] = [];
@@ -120,6 +149,26 @@ export async function AttentionStrip({ clientId }: { clientId: string }) {
       icon: AlertTriangle,
       text: t("decisionNeedsFollowUp"),
       href: `/clients/${clientId}?tab=decisions`,
+    });
+  }
+
+  if ((pendingSessions.count ?? 0) > 0) {
+    items.push({
+      key: "session-requests",
+      icon: CalendarClock,
+      text: t("sessionRequests", { count: pendingSessions.count ?? 0 }),
+      href: "/schedule",
+    });
+  }
+
+  if (upcomingSession.data) {
+    items.push({
+      key: "session-soon",
+      icon: CalendarClock,
+      text: t("sessionSoon", {
+        when: formatDate(upcomingSession.data.starts_at, locale, { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone }),
+      }),
+      href: "/schedule",
     });
   }
 

@@ -53,6 +53,7 @@ function toDraft(tier: Tier): TierInput {
     white_label: !!features.white_label,
     custom_branding: !!features.custom_branding,
     task_management: !!features.task_management,
+    appointments: !!features.appointments,
   };
 }
 

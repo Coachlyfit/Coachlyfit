@@ -56,7 +56,7 @@ async function processEmailBatch(supabase: ReturnType<typeof createAdminClient>,
 
   const { data: deliveries, error } = await supabase
     .from("notification_deliveries")
-    .select("id, attempts, notifications(id, kind, payload, profiles(id, full_name, locale, email_notifications))")
+    .select("id, attempts, notifications(id, kind, payload, profiles(id, full_name, locale, timezone, email_notifications))")
     .eq("channel", "email")
     .eq("status", "pending")
     .lte("send_after", now.toISOString())
@@ -103,7 +103,7 @@ async function processEmailBatch(supabase: ReturnType<typeof createAdminClient>,
       locale,
       notification.kind as NotificationKind,
       profile.full_name,
-      notificationName(notification.kind, payload, locale)
+      notificationName(notification.kind, payload, locale, profile.timezone)
     );
 
     const { error: sendError } = await resend.emails.send({ from: FROM_ADDRESS, to: recipientEmail, subject, html });
@@ -123,7 +123,7 @@ async function processPushBatch(supabase: ReturnType<typeof createAdminClient>, 
 
   const { data: deliveries, error } = await supabase
     .from("notification_deliveries")
-    .select("id, attempts, notifications(id, kind, payload, profiles(id, full_name, locale))")
+    .select("id, attempts, notifications(id, kind, payload, profiles(id, full_name, locale, timezone))")
     .eq("channel", "push")
     .eq("status", "pending")
     .lte("send_after", now.toISOString())
@@ -155,7 +155,7 @@ async function processPushBatch(supabase: ReturnType<typeof createAdminClient>, 
     const { title, body } = renderPushNotification(
       locale,
       notification.kind as NotificationKind,
-      notificationName(notification.kind, payload, locale)
+      notificationName(notification.kind, payload, locale, profile.timezone)
     );
     const message = JSON.stringify({ title, body, url: notificationUrl(notification.kind, payload, locale) });
 

@@ -12,6 +12,7 @@ export const FEATURE_KEYS = [
   "white_label",
   "custom_branding",
   "task_management",
+  "appointments",
 ] as const;
 
 export const tierSchema = z.object({
@@ -30,6 +31,7 @@ export const tierSchema = z.object({
   white_label: z.boolean(),
   custom_branding: z.boolean(),
   task_management: z.boolean(),
+  appointments: z.boolean(),
 });
 export type TierInput = z.infer<typeof tierSchema>;
 
