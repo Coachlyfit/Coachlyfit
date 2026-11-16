@@ -8,6 +8,7 @@ import type { SettingsTab } from "./settings-preview";
 
 /** Tabs that are their own routes rather than a ?tab= view of /settings. */
 export const ROUTE_TAB_PATHS = {
+  schedule: "/settings/schedule",
   subscription: "/settings/subscription",
   account: "/settings/account",
 } as const;
@@ -19,13 +20,14 @@ export function isRouteTab(tab: SettingsNavTab): tab is RouteTab {
 }
 
 // The one list of coach settings destinations. The first five are in-page
-// views of /settings (?tab=); the last two are routes (ROUTE_TAB_PATHS).
+// views of /settings (?tab=); the last three are routes (ROUTE_TAB_PATHS).
 export const SETTINGS_NAV_TABS = [
   "identity",
   "billing",
   "packages",
   "portal",
   "brand",
+  "schedule",
   "subscription",
   "account",
 ] as const satisfies readonly SettingsNavTab[];

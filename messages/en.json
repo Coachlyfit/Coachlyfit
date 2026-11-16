@@ -104,7 +104,8 @@
       "shortLibrary": "Library",
       "shortLeads": "Leads"
     },
-    "templates": "Program templates"
+    "templates": "Program templates",
+    "schedule": "Schedule"
   },
   "palette": {
     "navigation": "Navigation",
@@ -454,7 +455,8 @@
       "portal": "Portal",
       "brand": "Brand",
       "account": "Account & team",
-      "subscription": "Subscription"
+      "subscription": "Subscription",
+      "schedule": "Schedule"
     },
     "headings": {
       "identity": "Your identity",
@@ -965,7 +967,9 @@
         "subscriptionExpired": "Subscription has expired",
         "subscriptionEnding": "{days, plural, one {Subscription ends tomorrow} other {Subscription ends in # days}}",
         "noProgram": "No active workout plan",
-        "decisionNeedsFollowUp": "A recent plan change needs a follow-up"
+        "decisionNeedsFollowUp": "A recent plan change needs a follow-up",
+        "sessionRequests": "{count, plural, one {# session request waiting for your response} other {# session requests waiting for your response}}",
+        "sessionSoon": "Session {when}"
       },
       "training": {
         "empty": "No workout plan assigned",
@@ -3364,7 +3368,8 @@
           "priority_support": "Priority support",
           "white_label": "White label",
           "custom_branding": "Custom branding",
-          "task_management": "Task management"
+          "task_management": "Task management",
+          "appointments": "Session scheduling"
         },
         "title": "Plans",
         "empty": "No plans yet.",
@@ -3733,7 +3738,14 @@
     "support_coach_reply": "{name} replied on: {subject}",
     "support_ticket_reopened": "{name} reopened: {subject}",
     "support_admin_reply": "Support replied on your ticket: {subject}",
-    "support_status_changed": "Your ticket \"{subject}\" is now: {status}"
+    "support_status_changed": "Your ticket \"{subject}\" is now: {status}",
+    "appointment_requested": "{name} requested a session for {when}",
+    "appointment_confirmed": "Your session with {name} on {when} is confirmed",
+    "appointment_cancelled": "The session with {name} on {when} was cancelled",
+    "appointment_rescheduled": "Your session with {name} moved to {when}",
+    "appointment_reminder": "Reminder: session with {name} on {when}",
+    "google_reconnect_needed": "Reconnect your Google Calendar. Sync has stopped.",
+    "appointment_reschedule_proposed": "Your coach proposed a new time for {name}: {when}"
   },
   "progress": {
     "title": "Progress",
@@ -3970,7 +3982,8 @@
       "slug": "Your plan doesn't include a custom portal address. Your current one keeps working.",
       "team_members": "Your plan has no free team seats. Members you already have keep their access.",
       "task_management": "Your plan doesn't include task management.",
-      "cta": "View plans"
+      "cta": "View plans",
+      "appointments": "Your plan doesn't include session scheduling."
     },
     "seatsUsage": "{used} of {max} team seats used",
     "seatsUsageUnlimited": "{used} team seats used"
@@ -5463,5 +5476,213 @@
     "saveFirstHint": "Save the exercise first to customize its alternatives.",
     "customize": "Customize for this client",
     "resetToLibrary": "Reset to library"
+  },
+  "appointments": {
+    "title": "Schedule",
+    "today": "Today",
+    "prev": "Previous",
+    "next": "Next",
+    "day": "Day",
+    "week": "Week",
+    "newAppointment": "New session",
+    "requests": "{count, plural, one {# request needs your response} other {# requests need your response}}",
+    "empty": {
+      "title": "No sessions in this period",
+      "description": "Create a session for a client, or wait for requests from your clients."
+    },
+    "status": {
+      "requested": "Requested",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "completed": "Completed",
+      "no_show": "No-show"
+    },
+    "type": {
+      "online": "Online",
+      "in_person": "In person"
+    },
+    "form": {
+      "createTitle": "New session",
+      "rescheduleTitle": "Reschedule session",
+      "client": "Client",
+      "selectClient": "Select a client",
+      "required": "Required",
+      "date": "Date",
+      "time": "Time",
+      "duration": "Duration",
+      "minutes": "{count} min",
+      "type": "Type",
+      "link": "Meeting link",
+      "location": "Location",
+      "notes": "Notes",
+      "create": "Create session",
+      "save": "Save",
+      "timeZoneHint": "Times are in {timeZone}."
+    },
+    "detail": {
+      "when": "When",
+      "where": "Where",
+      "notes": "Notes",
+      "cancelReason": "Reason",
+      "rescheduleRequested": "The client asked to reschedule",
+      "confirm": "Confirm",
+      "reschedule": "Reschedule",
+      "complete": "Mark completed",
+      "noShow": "Mark no-show",
+      "decline": "Decline",
+      "cancel": "Cancel session",
+      "addToCalendar": "Add to calendar",
+      "declineTitle": "Decline this request?",
+      "cancelTitle": "Cancel this session?",
+      "reasonHint": "Optionally tell the client why.",
+      "removedInGoogle": "Removed from Google Calendar",
+      "proposedTime": "Moved in Google Calendar to {when}",
+      "acceptProposed": "Use this time",
+      "keepOriginal": "Keep original time"
+    },
+    "toast": {
+      "created": "Session created",
+      "rescheduled": "Session rescheduled",
+      "confirmed": "Session confirmed",
+      "completed": "Marked as completed",
+      "noShow": "Marked as no-show",
+      "declined": "Request declined",
+      "cancelled": "Session cancelled",
+      "requested": "Request sent to your coach",
+      "rescheduleRequested": "Reschedule request sent",
+      "kept": "Session kept at its original time"
+    },
+    "errors": {
+      "invalid_input": "Check the fields and try again.",
+      "invalid_time": "That time doesn't exist in this timezone (a clock change). Pick another time.",
+      "slot_taken": "That time is already taken.",
+      "client_busy": "This client already has a session at that time.",
+      "upgrade_required": "Your plan doesn't include scheduling.",
+      "not_found_or_forbidden": "You can't change this session, or it no longer exists.",
+      "cutoff_passed": "It's too late to change this online. Contact your coach.",
+      "invalid_transition": "That change isn't allowed for this session.",
+      "not_started": "The session hasn't started yet.",
+      "in_the_past": "Pick a time in the future.",
+      "invalid_client": "That client isn't on your roster.",
+      "invalid_status": "That status isn't allowed here.",
+      "not_authenticated": "Please sign in again.",
+      "owner_only": "Only the account owner can change this.",
+      "unavailable": "Sessions aren't available right now.",
+      "unknown": "Something went wrong. Try again.",
+      "google_not_connected": "Google Calendar isn't connected."
+    },
+    "feed": {
+      "title": "Calendar feed",
+      "description": "Subscribe in Apple Calendar, Outlook or Google Calendar to see your sessions there.",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "copyFailed": "Couldn't copy the link",
+      "regenerate": "Create a new link",
+      "regenerated": "New link created. The old one no longer works.",
+      "failed": "Couldn't create a new link",
+      "warning": "Anyone with this link can see your sessions. Create a new link if it leaks."
+    },
+    "settings": {
+      "title": "Schedule settings",
+      "availability": "Weekly availability",
+      "timeZone": "Time zone",
+      "off": "Not available",
+      "from": "From",
+      "to": "To",
+      "removeRange": "Remove hours",
+      "addRange": "Add hours",
+      "save": "Save",
+      "saved": "Saved",
+      "policy": "Booking rules",
+      "cutoff": "Cancellation cutoff (hours)",
+      "cutoffHint": "Clients can cancel or ask to reschedule online until this many hours before the session.",
+      "slotMinutes": "Session length (minutes)",
+      "slotMinutesHint": "The length of each bookable slot.",
+      "minNotice": "Minimum notice (hours)",
+      "minNoticeHint": "Clients can't book sooner than this before a slot.",
+      "daysOff": "Days off and special hours",
+      "noExceptions": "No days off or special hours set.",
+      "dayOff": "Day off",
+      "removeException": "Remove",
+      "pickDate": "Pick a date first",
+      "date": "Date",
+      "wholeDayOff": "Whole day off",
+      "addException": "Add"
+    },
+    "profile": {
+      "title": "Sessions",
+      "empty": "No sessions with this client yet.",
+      "openSchedule": "Open schedule"
+    },
+    "client": {
+      "title": "Sessions",
+      "request": "Request a session",
+      "requestHint": "Pick a time from your coach's free slots. Your coach will confirm it.",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "noUpcoming": "No upcoming sessions",
+      "noUpcomingHint": "Request a session to get started.",
+      "rescheduleSent": "You asked to reschedule. Your coach will get back to you.",
+      "locked": "Changes online close {hours, plural, one {# hour} other {# hours}} before the session. Contact your coach to change it.",
+      "requestReschedule": "Ask to reschedule",
+      "cancel": "Cancel",
+      "cancelTitle": "Cancel this session?",
+      "cancelHint": "Optionally tell your coach why.",
+      "rescheduleTitle": "Ask to reschedule",
+      "rescheduleHint": "Tell your coach when would suit you better.",
+      "rescheduleNote": "Message to your coach",
+      "keep": "Keep it",
+      "sendRequest": "Send request",
+      "availableTimes": "Available times",
+      "loadingSlots": "Loading times…",
+      "slotsFailed": "Couldn't load times. Try again.",
+      "noSlots": "No free times on this day. Try another day.",
+      "timeZone": "Show times in",
+      "unavailable": "Sessions aren't available",
+      "unavailableHint": "Your coach hasn't turned on online scheduling. Message them to arrange a session.",
+      "nextSession": "Your next session",
+      "bookTitle": "Book a session",
+      "bookHint": "Pick a time with your coach",
+      "awaiting": "awaiting confirmation"
+    },
+    "google": {
+      "title": "Google Calendar",
+      "description": "Sync your sessions to a dedicated \"Coachly Fit\" calendar in your Google account. Coachly Fit only touches that calendar, and your sessions keep working if the sync stops.",
+      "connect": "Connect Google Calendar",
+      "reconnect": "Reconnect",
+      "disconnect": "Disconnect",
+      "connected": "Connected",
+      "needsReconnect": "Needs to reconnect",
+      "needsReconnectHint": "Google stopped accepting our access. Your sessions are safe and still work; reconnect to resume syncing.",
+      "lastSync": "Last sync: {when}",
+      "neverSynced": "Not synced yet",
+      "notConfigured": "Google sign-in isn't configured on this server.",
+      "disconnectTitle": "Disconnect Google Calendar?",
+      "disconnectHint": "We'll revoke our access and delete the saved connection. Your sessions in Coachly Fit are not affected.",
+      "deleteCalendar": "Also delete the \"Coachly Fit\" calendar from Google",
+      "keep": "Keep connected",
+      "disconnected": "Google Calendar disconnected",
+      "banner": "Google Calendar sync is paused. Your schedule here is unaffected.",
+      "result": {
+        "connected": "Google Calendar connected",
+        "denied": "You cancelled the Google sign-in.",
+        "state": "The sign-in expired. Please try again.",
+        "forbidden": "Only the account owner can connect Google Calendar.",
+        "upgrade": "Your plan doesn't include session scheduling.",
+        "scopes": "Google Calendar needs both permissions to work. Try again and keep them ticked.",
+        "not_configured": "Google sign-in isn't configured on this server.",
+        "failed": "Couldn't connect Google Calendar. Try again."
+      }
+    },
+    "sync": {
+      "synced": "Synced to Google Calendar",
+      "pending": "Waiting to sync to Google Calendar",
+      "failed": "Google Calendar sync failed",
+      "syncedLong": "Synced to Google Calendar",
+      "pendingLong": "Waiting to sync to Google Calendar",
+      "failedLong": "Couldn't sync to Google Calendar",
+      "retry": "Try again",
+      "retrying": "Queued to sync again"
+    }
   }
 }

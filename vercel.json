@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/ledger-outcomes",
       "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/cron/google-watch-renew",
+      "schedule": "0 5 * * *"
     }
   ]
 }

@@ -13,6 +13,7 @@ import { AttentionStrip } from "./attention-strip";
 import { AttentionSkeleton } from "./attention-skeleton";
 import { TrainingCard } from "./training-card";
 import { NutritionCard } from "./nutrition-card";
+import { AppointmentsCard } from "./appointments-card";
 import { TrainingSkeleton } from "./training-skeleton";
 import { ClientTabs, type ClientTab } from "./client-tabs";
 import { RangePicker } from "./range-picker";
@@ -91,7 +92,7 @@ export default async function ClientDetailPage({
       />
 
       <Suspense fallback={<AttentionSkeleton />}>
-        <AttentionStrip clientId={clientId} />
+        <AttentionStrip clientId={clientId} locale={locale} />
       </Suspense>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -102,6 +103,10 @@ export default async function ClientDetailPage({
           <NutritionCard clientId={clientId} locale={locale} />
         </Suspense>
       </div>
+
+      <Suspense fallback={null}>
+        <AppointmentsCard clientId={clientId} clientName={client.display_name} locale={locale} />
+      </Suspense>
 
       <ClientTabs active={tab}>
         {tab === "progress" && (

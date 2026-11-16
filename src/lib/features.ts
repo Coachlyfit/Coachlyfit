@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 /** Plan feature flags the app gates on. priority_support is display-only
  * and custom_branding has its own read (lib/branding.ts). */
-export type PlanFeature = "forms_builder" | "custom_library" | "white_label" | "task_management";
+export type PlanFeature = "forms_builder" | "custom_library" | "white_label" | "task_management" | "appointments";
 
 /** The viewer's tenant's plan flags, to hide or disable what the plan doesn't
  * include. Display only: the triggers in
@@ -19,5 +19,6 @@ export const getFeatures = cache(async (): Promise<Record<PlanFeature, boolean>>
     custom_library: flags.custom_library === true,
     white_label: flags.white_label === true,
     task_management: flags.task_management === true,
+    appointments: flags.appointments === true,
   };
 });

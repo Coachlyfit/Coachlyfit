@@ -1,4 +1,4 @@
--- Supabase Cron setup for the two sub-daily jobs that the Vercel Hobby plan
+-- Supabase Cron setup for the sub-daily jobs that the Vercel Hobby plan
 -- rejects (Hobby allows only one run per day per cron job). Supabase Cron is
 -- pg_cron + pg_net, is available on the Free plan, and calls the exact same
 -- CRON_SECRET-protected endpoints, so no route code changes are needed.
@@ -59,6 +59,44 @@ select cron.schedule(
       'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
     ),
     timeout_milliseconds := 60000
+  ) as request_id;
+  $job$
+);
+
+-- Appointment reminders (24h and 1h before a confirmed session), every 15
+-- minutes. The route claims each reminder with an UPDATE, so overlapping or
+-- repeated runs never notify twice.
+select cron.schedule(
+  'coachlyfit-appointment-reminders-every-15-min',
+  '*/15 * * * *',
+  $job$
+  select net.http_get(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'app_url') || '/api/cron/appointment-reminders',
+    headers := jsonb_build_object(
+      'Authorization',
+      'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+    ),
+    timeout_milliseconds := 60000
+  ) as request_id;
+  $job$
+);
+
+-- Google Calendar sync, every 3 minutes: pushes queued appointment changes to
+-- each connected coach's "Coachly Fit" calendar, keeps their Google watch
+-- channel alive, pulls changes they made in Google, and refreshes their Google
+-- busy time (so booking slots avoid it). A Google webhook also triggers this
+-- same route right away. Channel renewal also runs daily from vercel.json.
+select cron.schedule(
+  'coachlyfit-google-sync-every-3-min',
+  '*/3 * * * *',
+  $job$
+  select net.http_get(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'app_url') || '/api/cron/google-sync',
+    headers := jsonb_build_object(
+      'Authorization',
+      'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+    ),
+    timeout_milliseconds := 120000
   ) as request_id;
   $job$
 );

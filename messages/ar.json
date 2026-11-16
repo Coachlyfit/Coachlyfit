@@ -104,7 +104,8 @@
       "shortLibrary": "المكتبة",
       "shortLeads": "المحتملون"
     },
-    "templates": "قوالب البرامج"
+    "templates": "قوالب البرامج",
+    "schedule": "الجدول"
   },
   "palette": {
     "navigation": "التنقل",
@@ -454,7 +455,8 @@
       "portal": "البوابة",
       "brand": "العلامة",
       "account": "الحساب والفريق",
-      "subscription": "الاشتراك"
+      "subscription": "الاشتراك",
+      "schedule": "الجدول"
     },
     "headings": {
       "identity": "هويتك",
@@ -965,7 +967,9 @@
         "subscriptionExpired": "الاشتراك خلص",
         "subscriptionEnding": "{days, plural, one {الاشتراك بيخلص بكرة} other {الاشتراك بيخلص خلال # أيام}}",
         "noProgram": "مفيش برنامج تدريبي شغّال",
-        "decisionNeedsFollowUp": "تعديل أخير في الخطة محتاج متابعة"
+        "decisionNeedsFollowUp": "تعديل أخير في الخطة محتاج متابعة",
+        "sessionRequests": "{count, plural, one {طلب جلسة واحد بانتظار ردّك} two {طلبا جلسة بانتظار ردّك} few {# طلبات جلسات بانتظار ردّك} many {# طلب جلسة بانتظار ردّك} other {# طلب جلسة بانتظار ردّك}}",
+        "sessionSoon": "جلسة {when}"
       },
       "training": {
         "empty": "لا يوجد برنامج تدريبي",
@@ -3364,7 +3368,8 @@
           "priority_support": "دعم أولوية",
           "white_label": "علامة بيضاء",
           "custom_branding": "هوية مخصصة",
-          "task_management": "إدارة المهام"
+          "task_management": "إدارة المهام",
+          "appointments": "جدولة الجلسات"
         },
         "title": "الباقات",
         "empty": "لا توجد باقات بعد.",
@@ -3733,7 +3738,14 @@
     "support_coach_reply": "{name} رد على: {subject}",
     "support_ticket_reopened": "{name} أعاد فتح: {subject}",
     "support_admin_reply": "فريق الدعم رد على تذكرتك: {subject}",
-    "support_status_changed": "تذكرتك \"{subject}\" حالتها الآن: {status}"
+    "support_status_changed": "تذكرتك \"{subject}\" حالتها الآن: {status}",
+    "appointment_requested": "{name} طلب جلسة يوم {when}",
+    "appointment_confirmed": "تم تأكيد جلستك مع {name} يوم {when}",
+    "appointment_cancelled": "تم إلغاء الجلسة مع {name} يوم {when}",
+    "appointment_rescheduled": "تم نقل جلستك مع {name} إلى {when}",
+    "appointment_reminder": "تذكير: جلسة مع {name} يوم {when}",
+    "google_reconnect_needed": "أعد ربط تقويم Google. توقفت المزامنة.",
+    "appointment_reschedule_proposed": "اقترح الكوتش موعدًا جديدًا لجلسة {name}: {when}"
   },
   "progress": {
     "title": "التقدّم",
@@ -3970,7 +3982,8 @@
       "slug": "باقتك مفيهاش رابط بوابة مخصص. رابطك الحالي شغّال زي ما هو.",
       "team_members": "باقتك مفيهاش أماكن فاضية في الفريق. الأعضاء الحاليين مكملين زي ما هم.",
       "task_management": "باقتك مفيهاش إدارة المهام.",
-      "cta": "شوف الباقات"
+      "cta": "شوف الباقات",
+      "appointments": "باقتك لا تشمل جدولة الجلسات."
     },
     "seatsUsage": "{used} من {max} مقعد فريق مستخدم",
     "seatsUsageUnlimited": "{used} مقعد فريق مستخدم"
@@ -5463,5 +5476,213 @@
     "saveFirstHint": "احفظ التمرين الأول عشان تخصّص بدائله.",
     "customize": "خصّص للعميل ده",
     "resetToLibrary": "رجّع لقائمة المكتبة"
+  },
+  "appointments": {
+    "title": "الجدول",
+    "today": "اليوم",
+    "prev": "السابق",
+    "next": "التالي",
+    "day": "يوم",
+    "week": "أسبوع",
+    "newAppointment": "جلسة جديدة",
+    "requests": "{count, plural, one {# طلب بانتظار ردّك} two {# طلبان بانتظار ردّك} few {# طلبات بانتظار ردّك} many {# طلبًا بانتظار ردّك} other {# طلب بانتظار ردّك}}",
+    "empty": {
+      "title": "لا توجد جلسات في هذه الفترة",
+      "description": "أنشئ جلسة لأحد عملائك، أو انتظر طلبات الجلسات منهم."
+    },
+    "status": {
+      "requested": "مطلوبة",
+      "confirmed": "مؤكدة",
+      "cancelled": "ملغاة",
+      "completed": "مكتملة",
+      "no_show": "غياب"
+    },
+    "type": {
+      "online": "أونلاين",
+      "in_person": "حضوري"
+    },
+    "form": {
+      "createTitle": "جلسة جديدة",
+      "rescheduleTitle": "إعادة جدولة الجلسة",
+      "client": "العميل",
+      "selectClient": "اختر عميلًا",
+      "required": "مطلوب",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "duration": "المدة",
+      "minutes": "{count} دقيقة",
+      "type": "النوع",
+      "link": "رابط الاجتماع",
+      "location": "المكان",
+      "notes": "ملاحظات",
+      "create": "إنشاء الجلسة",
+      "save": "حفظ",
+      "timeZoneHint": "الأوقات بتوقيت {timeZone}."
+    },
+    "detail": {
+      "when": "الموعد",
+      "where": "المكان",
+      "notes": "ملاحظات",
+      "cancelReason": "السبب",
+      "rescheduleRequested": "طلب العميل إعادة الجدولة",
+      "confirm": "تأكيد",
+      "reschedule": "إعادة جدولة",
+      "complete": "تحديد كمكتملة",
+      "noShow": "تسجيل غياب",
+      "decline": "رفض",
+      "cancel": "إلغاء الجلسة",
+      "addToCalendar": "إضافة إلى التقويم",
+      "declineTitle": "رفض هذا الطلب؟",
+      "cancelTitle": "إلغاء هذه الجلسة؟",
+      "reasonHint": "يمكنك إخبار العميل بالسبب (اختياري).",
+      "removedInGoogle": "تم حذفها من تقويم Google",
+      "proposedTime": "تم نقلها في تقويم Google إلى {when}",
+      "acceptProposed": "اعتماد هذا الموعد",
+      "keepOriginal": "إبقاء الموعد الأصلي"
+    },
+    "toast": {
+      "created": "تم إنشاء الجلسة",
+      "rescheduled": "تمت إعادة جدولة الجلسة",
+      "confirmed": "تم تأكيد الجلسة",
+      "completed": "تم تحديدها كمكتملة",
+      "noShow": "تم تسجيل الغياب",
+      "declined": "تم رفض الطلب",
+      "cancelled": "تم إلغاء الجلسة",
+      "requested": "تم إرسال الطلب إلى الكوتش",
+      "rescheduleRequested": "تم إرسال طلب إعادة الجدولة",
+      "kept": "تم الإبقاء على الموعد الأصلي"
+    },
+    "errors": {
+      "invalid_input": "راجع الحقول وحاول مرة أخرى.",
+      "invalid_time": "هذا الوقت غير موجود في هذه المنطقة الزمنية (بسبب تغيير الساعة). اختر وقتًا آخر.",
+      "slot_taken": "هذا الموعد محجوز بالفعل.",
+      "client_busy": "لدى هذا العميل جلسة أخرى في نفس الوقت.",
+      "upgrade_required": "باقتك لا تشمل جدولة الجلسات.",
+      "not_found_or_forbidden": "لا يمكنك تعديل هذه الجلسة، أو أنها لم تعد موجودة.",
+      "cutoff_passed": "فات وقت التعديل عبر التطبيق. تواصل مع الكوتش.",
+      "invalid_transition": "هذا التغيير غير مسموح لهذه الجلسة.",
+      "not_started": "لم تبدأ الجلسة بعد.",
+      "in_the_past": "اختر وقتًا في المستقبل.",
+      "invalid_client": "هذا العميل ليس ضمن عملائك.",
+      "invalid_status": "هذه الحالة غير مسموحة هنا.",
+      "not_authenticated": "سجّل الدخول من جديد.",
+      "owner_only": "صاحب الحساب فقط يمكنه تغيير هذا.",
+      "unavailable": "الجلسات غير متاحة الآن.",
+      "unknown": "حدث خطأ ما. حاول مرة أخرى.",
+      "google_not_connected": "تقويم Google غير مربوط."
+    },
+    "feed": {
+      "title": "رابط التقويم",
+      "description": "اشترك بهذا الرابط في تقويم آبل أو أوتلوك أو تقويم جوجل لتظهر جلساتك هناك.",
+      "copy": "نسخ الرابط",
+      "copied": "تم نسخ الرابط",
+      "copyFailed": "تعذّر نسخ الرابط",
+      "regenerate": "إنشاء رابط جديد",
+      "regenerated": "تم إنشاء رابط جديد. الرابط القديم لم يعد يعمل.",
+      "failed": "تعذّر إنشاء رابط جديد",
+      "warning": "أي شخص لديه هذا الرابط يمكنه رؤية جلساتك. أنشئ رابطًا جديدًا إذا تسرّب."
+    },
+    "settings": {
+      "title": "إعدادات الجدول",
+      "availability": "أوقات التوفر الأسبوعية",
+      "timeZone": "المنطقة الزمنية",
+      "off": "غير متاح",
+      "from": "من",
+      "to": "إلى",
+      "removeRange": "حذف هذه الساعات",
+      "addRange": "إضافة ساعات",
+      "save": "حفظ",
+      "saved": "تم الحفظ",
+      "policy": "قواعد الحجز",
+      "cutoff": "آخر موعد للإلغاء (بالساعات)",
+      "cutoffHint": "يمكن للعميل الإلغاء أو طلب إعادة الجدولة من التطبيق حتى هذا العدد من الساعات قبل الجلسة.",
+      "slotMinutes": "مدة الجلسة (بالدقائق)",
+      "slotMinutesHint": "مدة كل موعد قابل للحجز.",
+      "minNotice": "الحد الأدنى للإشعار المسبق (بالساعات)",
+      "minNoticeHint": "لا يستطيع العميل الحجز قبل الموعد بأقل من هذه المدة.",
+      "daysOff": "أيام الإجازة والساعات الخاصة",
+      "noExceptions": "لا توجد أيام إجازة أو ساعات خاصة.",
+      "dayOff": "إجازة",
+      "removeException": "حذف",
+      "pickDate": "اختر تاريخًا أولًا",
+      "date": "التاريخ",
+      "wholeDayOff": "إجازة اليوم كاملًا",
+      "addException": "إضافة"
+    },
+    "profile": {
+      "title": "الجلسات",
+      "empty": "لا توجد جلسات مع هذا العميل بعد.",
+      "openSchedule": "فتح الجدول"
+    },
+    "client": {
+      "title": "الجلسات",
+      "request": "طلب جلسة",
+      "requestHint": "اختر وقتًا من المواعيد المتاحة عند الكوتش. وسيقوم الكوتش بتأكيده.",
+      "upcoming": "القادمة",
+      "past": "السابقة",
+      "noUpcoming": "لا توجد جلسات قادمة",
+      "noUpcomingHint": "اطلب جلسة للبدء.",
+      "rescheduleSent": "طلبت إعادة الجدولة. سيرد عليك الكوتش.",
+      "locked": "التعديل عبر التطبيق يُغلق قبل الجلسة بـ {hours, plural, one {ساعة} two {ساعتين} few {# ساعات} many {# ساعة} other {# ساعة}}. تواصل مع الكوتش لتغييرها.",
+      "requestReschedule": "طلب إعادة جدولة",
+      "cancel": "إلغاء",
+      "cancelTitle": "إلغاء هذه الجلسة؟",
+      "cancelHint": "يمكنك إخبار الكوتش بالسبب (اختياري).",
+      "rescheduleTitle": "طلب إعادة جدولة",
+      "rescheduleHint": "أخبر الكوتش بالوقت الأنسب لك.",
+      "rescheduleNote": "رسالة إلى الكوتش",
+      "keep": "إبقاء الجلسة",
+      "sendRequest": "إرسال الطلب",
+      "availableTimes": "الأوقات المتاحة",
+      "loadingSlots": "جارٍ تحميل الأوقات…",
+      "slotsFailed": "تعذّر تحميل الأوقات. حاول مرة أخرى.",
+      "noSlots": "لا توجد أوقات متاحة في هذا اليوم. جرّب يومًا آخر.",
+      "timeZone": "عرض الأوقات بتوقيت",
+      "unavailable": "الجلسات غير متاحة",
+      "unavailableHint": "لم يفعّل الكوتش الحجز عبر التطبيق. راسله للاتفاق على جلسة.",
+      "nextSession": "جلستك القادمة",
+      "bookTitle": "احجز جلسة",
+      "bookHint": "اختر وقتًا مع الكوتش",
+      "awaiting": "بانتظار التأكيد"
+    },
+    "google": {
+      "title": "تقويم Google",
+      "description": "زامن جلساتك مع تقويم مخصص باسم \"Coachly Fit\" في حسابك على Google. يتعامل Coachly Fit مع هذا التقويم فقط، وتستمر جلساتك في العمل حتى لو توقفت المزامنة.",
+      "connect": "ربط تقويم Google",
+      "reconnect": "إعادة الربط",
+      "disconnect": "فصل الربط",
+      "connected": "متصل",
+      "needsReconnect": "يحتاج إلى إعادة ربط",
+      "needsReconnectHint": "توقفت Google عن قبول وصولنا. جلساتك آمنة وتعمل كالمعتاد؛ أعد الربط لاستئناف المزامنة.",
+      "lastSync": "آخر مزامنة: {when}",
+      "neverSynced": "لم تتم المزامنة بعد",
+      "notConfigured": "تسجيل الدخول عبر Google غير مفعّل على هذا الخادم.",
+      "disconnectTitle": "فصل تقويم Google؟",
+      "disconnectHint": "سنلغي صلاحية وصولنا ونحذف بيانات الربط المحفوظة. جلساتك داخل Coachly Fit لن تتأثر.",
+      "deleteCalendar": "احذف أيضًا تقويم \"Coachly Fit\" من Google",
+      "keep": "إبقاء الربط",
+      "disconnected": "تم فصل تقويم Google",
+      "banner": "مزامنة تقويم Google متوقفة. جدولك هنا لم يتأثر.",
+      "result": {
+        "connected": "تم ربط تقويم Google",
+        "denied": "ألغيت تسجيل الدخول إلى Google.",
+        "state": "انتهت صلاحية تسجيل الدخول. حاول مرة أخرى.",
+        "forbidden": "صاحب الحساب فقط يمكنه ربط تقويم Google.",
+        "upgrade": "باقتك لا تشمل جدولة الجلسات.",
+        "scopes": "يحتاج الربط إلى الصلاحيتين معًا. حاول مرة أخرى مع إبقائهما محددتين.",
+        "not_configured": "تسجيل الدخول عبر Google غير مفعّل على هذا الخادم.",
+        "failed": "تعذّر ربط تقويم Google. حاول مرة أخرى."
+      }
+    },
+    "sync": {
+      "synced": "تمت المزامنة مع تقويم Google",
+      "pending": "بانتظار المزامنة مع تقويم Google",
+      "failed": "فشلت المزامنة مع تقويم Google",
+      "syncedLong": "تمت المزامنة مع تقويم Google",
+      "pendingLong": "بانتظار المزامنة مع تقويم Google",
+      "failedLong": "تعذّرت المزامنة مع تقويم Google",
+      "retry": "أعد المحاولة",
+      "retrying": "تمت إضافتها لإعادة المزامنة"
+    }
   }
 }

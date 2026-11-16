@@ -22,7 +22,9 @@ import { TodaySection, type NutritionToday, type TodaySession } from "@/componen
 import { CoachRow } from "@/components/client-home/coach-row";
 import { CoachDecisionCard } from "./coach-decision-card";
 import { CoachInviteCard } from "./coach-invite-card";
-import { nextDueForm } from "./home-data";
+import { NextSession } from "@/components/client-home/next-session";
+import { DEFAULT_TIME_ZONE, isValidTimeZone } from "@/domain/appointments/tz";
+import { loadNextSession, nextDueForm } from "./home-data";
 
 export default async function ClientHomePage({
   params,
@@ -37,7 +39,7 @@ export default async function ClientHomePage({
   } = await supabase.auth.getUser();
 
   const [{ data: profile }, { data: clientRow }] = await Promise.all([
-    supabase.from("profiles").select("full_name, avatar_url").eq("id", user!.id).single(),
+    supabase.from("profiles").select("full_name, avatar_url, timezone").eq("id", user!.id).single(),
     supabase.from("clients").select("id, coach_id, coaches(business_name)").eq("profile_id", user!.id).single(),
   ]);
 
@@ -57,7 +59,7 @@ export default async function ClientHomePage({
 
   // Invoice count: RLS scopes it to this client's own non-draft invoices,
   // so the link only shows once a coach has actually issued one.
-  const [history, tree, latestDecision, { count: invoiceCount }, coachInvites, dueForm, stats, standaloneDiet, todayLogs] =
+  const [history, tree, latestDecision, { count: invoiceCount }, coachInvites, dueForm, stats, standaloneDiet, todayLogs, nextSession] =
     await Promise.all([
       clientRow ? progress.listCheckins(clientRow.id) : [],
       clientRow ? programs.getActiveTreeForClient(clientRow.id) : null,
@@ -68,7 +70,9 @@ export default async function ClientHomePage({
       clientRow ? workouts.completedStats(clientRow.id, weekStart) : { total: 0, weekStartedAt: [] as string[] },
       clientRow ? dietPlans.getActiveTreeForClient(clientRow.id) : null,
       clientRow ? nutritionLogs.listLogs(clientRow.id, todayIso, todayIso) : [],
+      loadNextSession(supabase, clientRow?.id ?? null),
     ]);
+  const sessionZone = profile?.timezone && isValidTimeZone(profile.timezone) ? profile.timezone : DEFAULT_TIME_ZONE;
 
   const plan = tree ? resolveDayPlan(tree, todayIso) : null;
 
@@ -146,6 +150,8 @@ export default async function ClientHomePage({
       />
 
       {dueForm && <CheckinBanner form={dueForm} locale={locale} />}
+
+      {nextSession.enabled && <NextSession session={nextSession.session} locale={locale} timeZone={sessionZone} />}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <div className="lg:col-start-1 lg:row-start-1">

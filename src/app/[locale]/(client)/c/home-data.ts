@@ -4,6 +4,26 @@ import { pickLocale, type AppLocale } from "@/domain/locale";
 import { countQuestions, estimateTime } from "@/domain/forms/client-list";
 import type { FormField } from "@/domain/forms/schema";
 import type { DueForm } from "@/components/client-home/checkin-banner";
+import type { NextSessionData } from "@/components/client-home/next-session";
+import { AppointmentsService } from "@/domain/appointments/appointments.service";
+
+/** The client's next session, plus whether their coach's plan has scheduling
+ * at all (no session and not enabled = show nothing; no session and enabled =
+ * invite them to book). */
+export async function loadNextSession(
+  db: SupabaseClient<Database>,
+  clientId: string | null
+): Promise<{ enabled: boolean; session: NextSessionData | null }> {
+  const { data: enabled } = await db.rpc("appointments_enabled");
+  if (!enabled || !clientId) return { enabled: false, session: null };
+  const next = await new AppointmentsService(db).nextForClient(clientId);
+  return {
+    enabled: true,
+    session: next
+      ? { startsAt: next.starts_at, endsAt: next.ends_at, status: next.status as NextSessionData["status"] }
+      : null,
+  };
+}
 
 /** The pending form the client should do next: earliest due date first,
  * undated last, newest assignment breaking ties — the same order the Forms

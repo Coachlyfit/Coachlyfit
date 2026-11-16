@@ -29,9 +29,28 @@ export type NotificationKind =
   | "support_coach_reply"
   | "support_ticket_reopened"
   | "support_admin_reply"
-  | "support_status_changed";
+  | "support_status_changed"
+  | "appointment_requested"
+  | "appointment_confirmed"
+  | "appointment_cancelled"
+  | "appointment_rescheduled"
+  | "appointment_reminder"
+  | "appointment_reschedule_proposed"
+  | "google_reconnect_needed";
 
 export type EmailLocale = "ar" | "en";
+
+const APPOINTMENT_KINDS = new Set<string>([
+  "appointment_requested",
+  "appointment_confirmed",
+  "appointment_cancelled",
+  "appointment_rescheduled",
+  "appointment_reminder",
+  "appointment_reschedule_proposed",
+]);
+export function isAppointmentNotice(kind: string): boolean {
+  return APPOINTMENT_KINDS.has(kind);
+}
 
 // Only the promoted-content kinds carry a name_ar/name_en pair in their
 // payload — everything else (new_message, and the ledger's two kinds)
@@ -67,7 +86,28 @@ function isSupportNotice(kind: string): boolean {
  * the date the trial/period ends for a subscription notice, the task's
  * title for a task notice, the ticket's subject for a support notice,
  * nothing otherwise. */
-export function notificationName(kind: string, payload: Record<string, unknown>, locale: EmailLocale): string | null {
+export function notificationName(
+  kind: string,
+  payload: Record<string, unknown>,
+  locale: EmailLocale,
+  /** The recipient's IANA zone: appointment times are shown in it. */
+  timeZone?: string
+): string | null {
+  if (isAppointmentNotice(kind)) {
+    const who = typeof payload.name === "string" && payload.name ? payload.name : null;
+    const when =
+      typeof payload.starts_at === "string"
+        ? formatDate(payload.starts_at, locale, {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: timeZone || "Africa/Cairo",
+          })
+        : null;
+    return [who, when].filter(Boolean).join(" · ") || null;
+  }
   if (notificationNeedsPickedName(kind)) return pickLocale(payload, locale);
   if (kind === "off_plan_reported") return (payload.client_name as string | null) ?? null;
   if (isSubscriptionNotice(kind) && typeof payload.period_end === "string") {
@@ -86,6 +126,12 @@ export function notificationUrl(kind: string, payload: Record<string, unknown>, 
     return `/${locale}/clients/${payload.client_id}?tab=nutrition`;
   }
   if (isSubscriptionNotice(kind)) return `/${locale}/settings/subscription`;
+  if (kind === "google_reconnect_needed") return `/${locale}/settings/schedule`;
+  if (isAppointmentNotice(kind)) {
+    // A request is always for the coach side; the rest carry who they're for.
+    const toCoach = kind === "appointment_requested" || payload.audience === "coach";
+    return toCoach ? `/${locale}/schedule` : `/${locale}/c/appointments`;
+  }
   if (isTaskNotice(kind)) return `/${locale}/tasks`;
   if (isSupportNotice(kind) && typeof payload.ticket_id === "string") {
     const base = ADMIN_SUPPORT_KINDS.has(kind) ? "admin/support" : "support";
@@ -120,6 +166,13 @@ const COPY: Record<
       support_ticket_reopened: "A support ticket was reopened",
       support_admin_reply: "Support replied on your ticket",
       support_status_changed: "Your support ticket was updated",
+      appointment_requested: "New session request",
+      appointment_confirmed: "Your session is confirmed",
+      appointment_cancelled: "A session was cancelled",
+      appointment_rescheduled: "Your session was rescheduled",
+      appointment_reminder: "Session reminder",
+      appointment_reschedule_proposed: "A new time was proposed for your session",
+      google_reconnect_needed: "Reconnect your Google Calendar",
     },
     greeting: "Hi",
     footer: "You're receiving this because you have email notifications turned on. You can turn them off in Settings.",
@@ -147,6 +200,13 @@ const COPY: Record<
       support_ticket_reopened: "تمت إعادة فتح تذكرة دعم",
       support_admin_reply: "فريق الدعم رد على تذكرتك",
       support_status_changed: "تم تحديث تذكرة الدعم الخاصة بك",
+      appointment_requested: "طلب جلسة جديد",
+      appointment_confirmed: "تم تأكيد جلستك",
+      appointment_cancelled: "تم إلغاء جلسة",
+      appointment_rescheduled: "تمت إعادة جدولة جلستك",
+      appointment_reminder: "تذكير بالجلسة",
+      appointment_reschedule_proposed: "تم اقتراح موعد جديد لجلستك",
+      google_reconnect_needed: "أعد ربط تقويم Google",
     },
     greeting: "مرحبًا",
     footer: "تصلك هذه الرسالة لأن إشعارات البريد الإلكتروني مفعّلة لديك. يمكنك إيقافها من الإعدادات.",
@@ -197,6 +257,20 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return `رد فريق الدعم على تذكرتك${name ? `: "${name}"` : ""}. افتح التطبيق للاطلاع على الرد.`;
       case "support_status_changed":
         return `تغيّرت حالة تذكرتك${name ? `: "${name}"` : ""}. افتح التطبيق للاطلاع عليها.`;
+      case "appointment_requested":
+        return `طلب جلسة بانتظار ردّك${name ? `: ${name}` : ""}. افتح صفحة الجدول لمراجعته.`;
+      case "appointment_confirmed":
+        return `تم تأكيد جلستك${name ? `: ${name}` : ""}.`;
+      case "appointment_cancelled":
+        return `تم إلغاء الجلسة${name ? `: ${name}` : ""}.`;
+      case "appointment_rescheduled":
+        return `تم تغيير موعد جلستك${name ? `: ${name}` : ""}.`;
+      case "appointment_reminder":
+        return `تذكير بجلسة قادمة${name ? `: ${name}` : ""}.`;
+      case "appointment_reschedule_proposed":
+        return `اقترح الكوتش موعدًا جديدًا لجلستك${name ? `: ${name}` : ""}. سيؤكده معك قريبًا.`;
+      case "google_reconnect_needed":
+        return "توقف الربط مع تقويم Google. أعد الربط من الإعدادات > الجدول. مواعيدك داخل Coachly Fit لم تتأثر.";
     }
   }
   switch (kind) {
@@ -240,6 +314,20 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return `Support replied on your ticket${name ? `: "${name}"` : ""}. Open the app to read the reply.`;
     case "support_status_changed":
       return `The status of your ticket changed${name ? `: "${name}"` : ""}. Open the app to see it.`;
+    case "appointment_requested":
+      return `A session request needs your response${name ? `: ${name}` : ""}. Open Schedule to review it.`;
+    case "appointment_confirmed":
+      return `Your session is confirmed${name ? `: ${name}` : ""}.`;
+    case "appointment_cancelled":
+      return `The session was cancelled${name ? `: ${name}` : ""}.`;
+    case "appointment_rescheduled":
+      return `Your session was moved${name ? `: ${name}` : ""}.`;
+    case "appointment_reminder":
+      return `Upcoming session${name ? `: ${name}` : ""}.`;
+    case "appointment_reschedule_proposed":
+      return `Your coach proposed a new time for your session${name ? `: ${name}` : ""}. They will confirm it with you.`;
+    case "google_reconnect_needed":
+      return "Your Google Calendar connection stopped working. Reconnect it in Settings > Schedule. Your appointments in Coachly Fit are not affected.";
   }
 }
 

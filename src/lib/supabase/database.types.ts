@@ -141,6 +141,127 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          cancel_reason: string | null
+          cancelled_by: string | null
+          client_id: string
+          coach_id: string
+          created_at: string
+          created_by: string | null
+          ends_at: string
+          google_etag: string | null
+          google_event_id: string | null
+          id: string
+          last_synced_at: string | null
+          location_or_link: string | null
+          notes: string | null
+          proposed_ends_at: string | null
+          proposed_starts_at: string | null
+          reminded_1h_at: string | null
+          reminded_24h_at: string | null
+          reschedule_note: string | null
+          reschedule_requested_at: string | null
+          starts_at: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_reason?: string | null
+          cancelled_by?: string | null
+          client_id: string
+          coach_id: string
+          created_at?: string
+          created_by?: string | null
+          ends_at: string
+          google_etag?: string | null
+          google_event_id?: string | null
+          id?: string
+          last_synced_at?: string | null
+          location_or_link?: string | null
+          notes?: string | null
+          proposed_ends_at?: string | null
+          proposed_starts_at?: string | null
+          reminded_1h_at?: string | null
+          reminded_24h_at?: string | null
+          reschedule_note?: string | null
+          reschedule_requested_at?: string | null
+          starts_at: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_reason?: string | null
+          cancelled_by?: string | null
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string
+          google_etag?: string | null
+          google_event_id?: string | null
+          id?: string
+          last_synced_at?: string | null
+          location_or_link?: string | null
+          notes?: string | null
+          proposed_ends_at?: string | null
+          proposed_starts_at?: string | null
+          reminded_1h_at?: string | null
+          reminded_24h_at?: string | null
+          reschedule_note?: string | null
+          reschedule_requested_at?: string | null
+          starts_at?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "appointments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       body_metrics: {
         Row: {
           client_id: string
@@ -209,6 +330,32 @@ export type Database = {
             columns: ["relationship_id"]
             isOneToOne: false
             referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_feed_tokens: {
+        Row: {
+          created_at: string
+          profile_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          profile_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          profile_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_feed_tokens_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -793,6 +940,114 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_appointment_settings: {
+        Row: {
+          cancel_cutoff_hours: number
+          coach_id: string
+          min_notice_hours: number
+          slot_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          cancel_cutoff_hours?: number
+          coach_id: string
+          min_notice_hours?: number
+          slot_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          cancel_cutoff_hours?: number
+          coach_id?: string
+          min_notice_hours?: number
+          slot_minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_appointment_settings_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_availability: {
+        Row: {
+          coach_id: string
+          created_at: string
+          end_time: string
+          id: string
+          start_time: string
+          timezone: string
+          weekday: number
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          start_time: string
+          timezone?: string
+          weekday: number
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          timezone?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_availability_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_availability_exceptions: {
+        Row: {
+          coach_id: string
+          created_at: string
+          date: string
+          end_time: string | null
+          id: string
+          is_off: boolean
+          start_time: string | null
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          date: string
+          end_time?: string | null
+          id?: string
+          is_off?: boolean
+          start_time?: string | null
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          date?: string
+          end_time?: string | null
+          id?: string
+          is_off?: boolean
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_availability_exceptions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
         ]
@@ -2030,6 +2285,171 @@ export type Database = {
           },
         ]
       }
+      google_busy_blocks: {
+        Row: {
+          coach_id: string
+          ends_at: string
+          starts_at: string
+        }
+        Insert: {
+          coach_id: string
+          ends_at: string
+          starts_at: string
+        }
+        Update: {
+          coach_id?: string
+          ends_at?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_busy_blocks_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_connections: {
+        Row: {
+          calendar_id: string
+          coach_id: string
+          connected_at: string
+          encrypted_refresh_token: string
+          google_email: string | null
+          id: string
+          last_sync_at: string | null
+          scopes: string[]
+          status: string
+        }
+        Insert: {
+          calendar_id: string
+          coach_id: string
+          connected_at?: string
+          encrypted_refresh_token: string
+          google_email?: string | null
+          id?: string
+          last_sync_at?: string | null
+          scopes?: string[]
+          status?: string
+        }
+        Update: {
+          calendar_id?: string
+          coach_id?: string
+          connected_at?: string
+          encrypted_refresh_token?: string
+          google_email?: string | null
+          id?: string
+          last_sync_at?: string | null
+          scopes?: string[]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_connections_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_sync_jobs: {
+        Row: {
+          appointment_id: string
+          attempts: number
+          coach_id: string
+          created_at: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          next_attempt_at: string
+          status: string
+        }
+        Insert: {
+          appointment_id: string
+          attempts?: number
+          coach_id: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          next_attempt_at?: string
+          status?: string
+        }
+        Update: {
+          appointment_id?: string
+          attempts?: number
+          coach_id?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          next_attempt_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_sync_jobs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_sync_jobs_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_watch_channels: {
+        Row: {
+          channel_id: string
+          channel_token: string
+          connection_id: string
+          created_at: string
+          dirty_at: string | null
+          expires_at: string
+          id: string
+          resource_id: string
+          sync_token: string | null
+        }
+        Insert: {
+          channel_id: string
+          channel_token: string
+          connection_id: string
+          created_at?: string
+          dirty_at?: string | null
+          expires_at: string
+          id?: string
+          resource_id: string
+          sync_token?: string | null
+        }
+        Update: {
+          channel_id?: string
+          channel_token?: string
+          connection_id?: string
+          created_at?: string
+          dirty_at?: string | null
+          expires_at?: string
+          id?: string
+          resource_id?: string
+          sync_token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_watch_channels_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "google_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       impersonation_log: {
         Row: {
           admin_id: string
@@ -3258,6 +3678,7 @@ export type Database = {
           suspended_at: string | null
           terms_accepted_at: string | null
           terms_version: string | null
+          timezone: string
         }
         Insert: {
           avatar_url?: string | null
@@ -3272,6 +3693,7 @@ export type Database = {
           suspended_at?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          timezone?: string
         }
         Update: {
           avatar_url?: string | null
@@ -3286,6 +3708,7 @@ export type Database = {
           suspended_at?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          timezone?: string
         }
         Relationships: []
       }
@@ -5508,7 +5931,56 @@ export type Database = {
         Args: { p_full_name: string; p_phone: string; p_user_id: string }
         Returns: undefined
       }
+      appointment_sync_status: {
+        Args: { p_ids: string[] }
+        Returns: {
+          appointment_id: string
+          state: string
+        }[]
+      }
+      appointments_enabled: { Args: never; Returns: boolean }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
+      calendar_feed: {
+        Args: { p_token: string }
+        Returns: {
+          counterpart_name: string
+          ends_at: string
+          id: string
+          location_or_link: string
+          starts_at: string
+          status: string
+          type: string
+          viewer_locale: string
+          viewer_role: string
+        }[]
+      }
+      claim_google_sync_jobs: {
+        Args: { p_limit: number }
+        Returns: {
+          appointment_id: string
+          attempts: number
+          coach_id: string
+          created_at: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          next_attempt_at: string
+          status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "google_sync_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      coach_busy_ranges: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          ends_at: string
+          starts_at: string
+        }[]
+      }
       create_support_ticket: {
         Args: {
           p_attachment_paths?: string[]
@@ -5553,6 +6025,28 @@ export type Database = {
           is_owner: boolean
           profile_id: string
         }[]
+      }
+      google_connect: {
+        Args: {
+          p_calendar_id: string
+          p_email: string
+          p_encrypted_refresh_token: string
+          p_scopes: string[]
+        }
+        Returns: string
+      }
+      google_disconnect: {
+        Args: never
+        Returns: {
+          calendar: string
+          channel_id: string
+          resource_id: string
+          token: string
+        }[]
+      }
+      google_webhook_ping: {
+        Args: { p_channel_id: string; p_token: string }
+        Returns: boolean
       }
       issue_invoice: {
         Args: { p_invoice_id: string }
@@ -5793,6 +6287,10 @@ export type Database = {
         Args: { p_ids: string[]; p_page_id: string }
         Returns: undefined
       }
+      replace_google_busy: {
+        Args: { p_blocks: Json; p_coach_id: string }
+        Returns: undefined
+      }
       replace_program_item_sets: {
         Args: { p_item_id: string; p_legacy?: Json; p_sets: Json }
         Returns: boolean
@@ -5809,6 +6307,10 @@ export type Database = {
       restore_marketing_version: {
         Args: { p_version_id: string }
         Returns: undefined
+      }
+      retry_google_sync: {
+        Args: { p_appointment_id: string }
+        Returns: boolean
       }
       review_checkin: {
         Args: {
