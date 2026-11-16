@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Link } from "@/i18n/navigation";
 import { AppointmentDialog } from "@/components/appointments/appointment-dialog";
 import { AppointmentDetail } from "@/components/appointments/appointment-detail";
-import { StatusBadge, type AppointmentView } from "@/components/appointments/shared";
+import { StatusBadge, SyncIcon, type AppointmentView, type SyncState } from "@/components/appointments/shared";
 import { formatRange, formatTime } from "@/components/appointments/format";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -29,12 +29,14 @@ type Props = {
   appointments: AppointmentView[];
   requests: AppointmentView[];
   clients: { id: string; display_name: string }[];
+  /** Google sync state by appointment id; empty when Google isn't connected. */
+  syncStates: Record<string, SyncState>;
   hrefs: { prev: string; next: string; today: string; day: string; week: string };
   /** Shown above the calendar (e.g. the Google reconnect banner). */
   banner?: ReactNode;
 };
 
-export function ScheduleView({ view, date, rangeStart, today, timeZone, appointments, requests, clients, hrefs, banner }: Props) {
+export function ScheduleView({ view, date, rangeStart, today, timeZone, appointments, requests, clients, syncStates, hrefs, banner }: Props) {
   const t = useTranslations("appointments");
   const locale = useLocale() as AppLocale;
   const [selected, setSelected] = useState<AppointmentView | null>(null);
@@ -138,6 +140,7 @@ export function ScheduleView({ view, date, rangeStart, today, timeZone, appointm
           day={days[0]}
           appointments={(byDay.get(days[0]) ?? []).filter((a) => a.status !== "cancelled")}
           timeZone={timeZone}
+          syncStates={syncStates}
           onSelect={setSelected}
         />
       ) : (
@@ -159,7 +162,10 @@ export function ScheduleView({ view, date, rangeStart, today, timeZone, appointm
                     )}
                   >
                     <span className="font-medium tabular-nums">{formatTime(a.startsAt, locale, timeZone)}</span>
-                    <span className={cn("truncate", a.status === "cancelled" && "line-through")}>{a.clientName}</span>
+                    <span className={cn("flex items-center gap-1 truncate", a.status === "cancelled" && "line-through")}>
+                      <span className="min-w-0 truncate">{a.clientName}</span>
+                      <SyncIcon state={syncStates[a.id]} />
+                    </span>
                   </button>
                 ))}
               </section>
@@ -172,7 +178,7 @@ export function ScheduleView({ view, date, rangeStart, today, timeZone, appointm
         <EmptyState title={t("empty.title")} description={t("empty.description")} />
       )}
 
-      <AppointmentDetail appointment={selected} timeZone={timeZone} onClose={() => setSelected(null)} onReschedule={openForm} />
+      <AppointmentDetail appointment={selected} timeZone={timeZone} syncState={selected ? syncStates[selected.id] : undefined} onClose={() => setSelected(null)} onReschedule={openForm} />
       <AppointmentDialog
         open={form.open}
         onOpenChange={(open) => setForm((f) => ({ ...f, open }))}
@@ -189,11 +195,13 @@ function DayGrid({
   day,
   appointments,
   timeZone,
+  syncStates,
   onSelect,
 }: {
   day: string;
   appointments: AppointmentView[];
   timeZone: string;
+  syncStates: Record<string, SyncState>;
   onSelect: (a: AppointmentView) => void;
 }) {
   const locale = useLocale() as AppLocale;
@@ -231,7 +239,8 @@ function DayGrid({
           >
             <span className="flex items-center gap-1 truncate font-medium">
               <Icon className="size-3 shrink-0" aria-hidden="true" />
-              {a.clientName}
+              <span className="min-w-0 truncate">{a.clientName}</span>
+              <SyncIcon state={syncStates[a.id]} />
             </span>
             <span className="truncate text-muted-foreground">{formatRange(a.startsAt, a.endsAt, locale, timeZone)}</span>
           </button>

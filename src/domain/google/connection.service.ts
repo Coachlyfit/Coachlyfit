@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { decryptToken, encryptToken } from "@/lib/crypto/token-crypto";
-import { createCalendar, deleteCalendar } from "@/lib/google/events-api";
+import { createCalendar, deleteCalendar, stopChannel } from "@/lib/google/events-api";
 import { refreshAccessToken, revokeToken } from "@/lib/google/oauth";
 
 type Db = SupabaseClient<Database>;
@@ -45,9 +45,10 @@ export class GoogleConnectionService {
     }
   }
 
-  /** Delete the stored connection (and queued jobs), then revoke at Google and
-   * optionally delete the Coachly Fit calendar. The Google-side steps are best
-   * effort: a token Google already forgot must not leave the coach stuck. */
+  /** Delete the stored connection (queued jobs, busy cache and watch channel
+   * with it), then stop notifications and revoke at Google, optionally deleting
+   * the Coachly Fit calendar. The Google-side steps are best effort: a token
+   * Google already forgot must not leave the coach stuck. */
   async disconnect(opts: { deleteCalendar: boolean }): Promise<void> {
     const { data, error } = await this.db.rpc("google_disconnect");
     if (error) throw error;
@@ -61,12 +62,16 @@ export class GoogleConnectionService {
       return; // Unreadable (key rotated): nothing to revoke with; the row is already gone.
     }
 
-    if (opts.deleteCalendar) {
-      try {
-        await deleteCalendar(await refreshAccessToken(refreshToken), connection.calendar);
-      } catch {
-        // Already gone or grant dead: carry on.
+    // Stop notifications and (optionally) delete the calendar while the grant
+    // still works, then revoke it. Every Google-side step is best effort.
+    try {
+      const accessToken = await refreshAccessToken(refreshToken);
+      if (connection.channel_id && connection.resource_id) {
+        await stopChannel(accessToken, { id: connection.channel_id, resourceId: connection.resource_id }).catch(() => undefined);
       }
+      if (opts.deleteCalendar) await deleteCalendar(accessToken, connection.calendar);
+    } catch {
+      // Grant already dead or calendar already gone: carry on.
     }
     await revokeToken(refreshToken).catch(() => undefined);
   }

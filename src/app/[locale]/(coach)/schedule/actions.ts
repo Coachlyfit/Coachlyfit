@@ -125,3 +125,53 @@ export async function cancelAppointmentAction(locale: string, id: string, reason
   }
   done(locale);
 }
+
+/** The coach moved this session in Google Calendar: take that time as the new
+ * one. (Ignoring the proposal needs no action: the session just stays put.) */
+export async function acceptProposedTimeAction(locale: string, id: string): Promise<ActionResult> {
+  const coach = await requireAppointments();
+  if ("error" in coach) return { error: coach.error };
+
+  const { data: row } = await coach.supabase
+    .from("appointments")
+    .select("proposed_starts_at, proposed_ends_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (!row?.proposed_starts_at || !row.proposed_ends_at) return { error: "not_found_or_forbidden" };
+
+  try {
+    const ok = await new AppointmentsService(coach.supabase).moveTo(id, row.proposed_starts_at, row.proposed_ends_at);
+    if (!ok) return { error: "not_found_or_forbidden" };
+  } catch (error) {
+    return { error: appointmentError(error) };
+  }
+  done(locale);
+}
+
+/** Keep the session where it is. If Google had it moved, queue a push so the
+ * Google event goes back to Coachly's time (Coachly is the source of truth). */
+export async function dismissRescheduleRequestAction(locale: string, id: string): Promise<ActionResult> {
+  const coach = await requireAppointments();
+  if ("error" in coach) return { error: coach.error };
+
+  try {
+    const ok = await new AppointmentsService(coach.supabase).clearRescheduleRequest(id);
+    if (!ok) return { error: "not_found_or_forbidden" };
+  } catch (error) {
+    return { error: appointmentError(error) };
+  }
+  // Not connected to Google: nothing to push, and that's fine.
+  await coach.supabase.rpc("retry_google_sync", { p_appointment_id: id });
+  done(locale);
+}
+
+/** Queue this appointment for Google again (after a failed sync). */
+export async function retryGoogleSyncAction(locale: string, id: string): Promise<ActionResult> {
+  const coach = await requireAppointments();
+  if ("error" in coach) return { error: coach.error };
+
+  const { data, error } = await coach.supabase.rpc("retry_google_sync", { p_appointment_id: id });
+  if (error) return { error: error.code === "42501" ? "not_found_or_forbidden" : "unknown" };
+  if (!data) return { error: "google_not_connected" };
+  done(locale);
+}

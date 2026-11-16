@@ -3744,7 +3744,8 @@
     "appointment_cancelled": "The session with {name} on {when} was cancelled",
     "appointment_rescheduled": "Your session with {name} moved to {when}",
     "appointment_reminder": "Reminder: session with {name} on {when}",
-    "google_reconnect_needed": "Reconnect your Google Calendar. Sync has stopped."
+    "google_reconnect_needed": "Reconnect your Google Calendar. Sync has stopped.",
+    "appointment_reschedule_proposed": "Your coach proposed a new time for {name}: {when}"
   },
   "progress": {
     "title": "Progress",
@@ -5533,7 +5534,11 @@
       "addToCalendar": "Add to calendar",
       "declineTitle": "Decline this request?",
       "cancelTitle": "Cancel this session?",
-      "reasonHint": "Optionally tell the client why."
+      "reasonHint": "Optionally tell the client why.",
+      "removedInGoogle": "Removed from Google Calendar",
+      "proposedTime": "Moved in Google Calendar to {when}",
+      "acceptProposed": "Use this time",
+      "keepOriginal": "Keep original time"
     },
     "toast": {
       "created": "Session created",
@@ -5544,7 +5549,8 @@
       "declined": "Request declined",
       "cancelled": "Session cancelled",
       "requested": "Request sent to your coach",
-      "rescheduleRequested": "Reschedule request sent"
+      "rescheduleRequested": "Reschedule request sent",
+      "kept": "Session kept at its original time"
     },
     "errors": {
       "invalid_input": "Check the fields and try again.",
@@ -5562,7 +5568,8 @@
       "not_authenticated": "Please sign in again.",
       "owner_only": "Only the account owner can change this.",
       "unavailable": "Sessions aren't available right now.",
-      "unknown": "Something went wrong. Try again."
+      "unknown": "Something went wrong. Try again.",
+      "google_not_connected": "Google Calendar isn't connected."
     },
     "feed": {
       "title": "Calendar feed",
@@ -5666,6 +5673,16 @@
         "not_configured": "Google sign-in isn't configured on this server.",
         "failed": "Couldn't connect Google Calendar. Try again."
       }
+    },
+    "sync": {
+      "synced": "Synced to Google Calendar",
+      "pending": "Waiting to sync to Google Calendar",
+      "failed": "Google Calendar sync failed",
+      "syncedLong": "Synced to Google Calendar",
+      "pendingLong": "Waiting to sync to Google Calendar",
+      "failedLong": "Couldn't sync to Google Calendar",
+      "retry": "Try again",
+      "retrying": "Queued to sync again"
     }
   }
 }

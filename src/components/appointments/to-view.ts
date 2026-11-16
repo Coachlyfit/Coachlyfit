@@ -15,5 +15,7 @@ export function toView(a: AppointmentRow | AppointmentWithClient, clientName?: s
     cancelReason: a.cancel_reason,
     rescheduleRequestedAt: a.reschedule_requested_at,
     rescheduleNote: a.reschedule_note,
+    proposedStartsAt: a.proposed_starts_at,
+    proposedEndsAt: a.proposed_ends_at,
   };
 }

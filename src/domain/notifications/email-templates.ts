@@ -35,6 +35,7 @@ export type NotificationKind =
   | "appointment_cancelled"
   | "appointment_rescheduled"
   | "appointment_reminder"
+  | "appointment_reschedule_proposed"
   | "google_reconnect_needed";
 
 export type EmailLocale = "ar" | "en";
@@ -45,6 +46,7 @@ const APPOINTMENT_KINDS = new Set<string>([
   "appointment_cancelled",
   "appointment_rescheduled",
   "appointment_reminder",
+  "appointment_reschedule_proposed",
 ]);
 export function isAppointmentNotice(kind: string): boolean {
   return APPOINTMENT_KINDS.has(kind);
@@ -169,6 +171,7 @@ const COPY: Record<
       appointment_cancelled: "A session was cancelled",
       appointment_rescheduled: "Your session was rescheduled",
       appointment_reminder: "Session reminder",
+      appointment_reschedule_proposed: "A new time was proposed for your session",
       google_reconnect_needed: "Reconnect your Google Calendar",
     },
     greeting: "Hi",
@@ -202,6 +205,7 @@ const COPY: Record<
       appointment_cancelled: "تم إلغاء جلسة",
       appointment_rescheduled: "تمت إعادة جدولة جلستك",
       appointment_reminder: "تذكير بالجلسة",
+      appointment_reschedule_proposed: "تم اقتراح موعد جديد لجلستك",
       google_reconnect_needed: "أعد ربط تقويم Google",
     },
     greeting: "مرحبًا",
@@ -263,6 +267,8 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
         return `تم تغيير موعد جلستك${name ? `: ${name}` : ""}.`;
       case "appointment_reminder":
         return `تذكير بجلسة قادمة${name ? `: ${name}` : ""}.`;
+      case "appointment_reschedule_proposed":
+        return `اقترح الكوتش موعدًا جديدًا لجلستك${name ? `: ${name}` : ""}. سيؤكده معك قريبًا.`;
       case "google_reconnect_needed":
         return "توقف الربط مع تقويم Google. أعد الربط من الإعدادات > الجدول. مواعيدك داخل Coachly Fit لم تتأثر.";
     }
@@ -318,6 +324,8 @@ function bodyByKind(locale: EmailLocale, kind: NotificationKind, name: string | 
       return `Your session was moved${name ? `: ${name}` : ""}.`;
     case "appointment_reminder":
       return `Upcoming session${name ? `: ${name}` : ""}.`;
+    case "appointment_reschedule_proposed":
+      return `Your coach proposed a new time for your session${name ? `: ${name}` : ""}. They will confirm it with you.`;
     case "google_reconnect_needed":
       return "Your Google Calendar connection stopped working. Reconnect it in Settings > Schedule. Your appointments in Coachly Fit are not affected.";
   }

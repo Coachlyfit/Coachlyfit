@@ -7,6 +7,7 @@ import { getFeatures } from "@/lib/features";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { UpgradePrompt } from "@/components/dashboard/upgrade-prompt";
 import { toView } from "@/components/appointments/to-view";
+import type { SyncState } from "@/components/appointments/shared";
 import { AppointmentsService } from "@/domain/appointments/appointments.service";
 import { DEFAULT_TIME_ZONE, addDays, isValidTimeZone, localDateTime, startOfDay, weekdayOf } from "@/domain/appointments/tz";
 import type { AppLocale } from "@/domain/locale";
@@ -68,6 +69,11 @@ export default async function SchedulePage({
     supabase.from("google_connections").select("status").maybeSingle(),
   ]);
 
+  // Google sync state per appointment (empty when Google isn't connected).
+  const ids = [...new Set([...appointments, ...pending, ...rescheduling].map((a) => a.id))];
+  const { data: syncRows } = ids.length > 0 ? await supabase.rpc("appointment_sync_status", { p_ids: ids }) : { data: [] };
+  const syncStates: Record<string, SyncState> = Object.fromEntries((syncRows ?? []).map((r) => [r.appointment_id, r.state as SyncState]));
+
   const step = view === "day" ? 1 : 7;
   const href = (target: string, v = view) => `/schedule?view=${v}&date=${target}`;
 
@@ -83,6 +89,7 @@ export default async function SchedulePage({
         appointments={appointments.map((a) => toView(a))}
         requests={[...pending, ...rescheduling].map((a) => toView(a))}
         clients={clients ?? []}
+        syncStates={syncStates}
         banner={google && google.status !== "active" ? <GoogleReconnectBanner /> : undefined}
         hrefs={{
           prev: href(addDays(date, -step)),

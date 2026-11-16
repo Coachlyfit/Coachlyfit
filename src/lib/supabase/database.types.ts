@@ -156,6 +156,8 @@ export type Database = {
           last_synced_at: string | null
           location_or_link: string | null
           notes: string | null
+          proposed_ends_at: string | null
+          proposed_starts_at: string | null
           reminded_1h_at: string | null
           reminded_24h_at: string | null
           reschedule_note: string | null
@@ -179,6 +181,8 @@ export type Database = {
           last_synced_at?: string | null
           location_or_link?: string | null
           notes?: string | null
+          proposed_ends_at?: string | null
+          proposed_starts_at?: string | null
           reminded_1h_at?: string | null
           reminded_24h_at?: string | null
           reschedule_note?: string | null
@@ -202,6 +206,8 @@ export type Database = {
           last_synced_at?: string | null
           location_or_link?: string | null
           notes?: string | null
+          proposed_ends_at?: string | null
+          proposed_starts_at?: string | null
           reminded_1h_at?: string | null
           reminded_24h_at?: string | null
           reschedule_note?: string | null
@@ -2279,6 +2285,32 @@ export type Database = {
           },
         ]
       }
+      google_busy_blocks: {
+        Row: {
+          coach_id: string
+          ends_at: string
+          starts_at: string
+        }
+        Insert: {
+          coach_id: string
+          ends_at: string
+          starts_at: string
+        }
+        Update: {
+          coach_id?: string
+          ends_at?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_busy_blocks_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       google_connections: {
         Row: {
           calendar_id: string
@@ -2370,6 +2402,50 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_watch_channels: {
+        Row: {
+          channel_id: string
+          channel_token: string
+          connection_id: string
+          created_at: string
+          dirty_at: string | null
+          expires_at: string
+          id: string
+          resource_id: string
+          sync_token: string | null
+        }
+        Insert: {
+          channel_id: string
+          channel_token: string
+          connection_id: string
+          created_at?: string
+          dirty_at?: string | null
+          expires_at: string
+          id?: string
+          resource_id: string
+          sync_token?: string | null
+        }
+        Update: {
+          channel_id?: string
+          channel_token?: string
+          connection_id?: string
+          created_at?: string
+          dirty_at?: string | null
+          expires_at?: string
+          id?: string
+          resource_id?: string
+          sync_token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_watch_channels_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "google_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -5855,6 +5931,13 @@ export type Database = {
         Args: { p_full_name: string; p_phone: string; p_user_id: string }
         Returns: undefined
       }
+      appointment_sync_status: {
+        Args: { p_ids: string[] }
+        Returns: {
+          appointment_id: string
+          state: string
+        }[]
+      }
       appointments_enabled: { Args: never; Returns: boolean }
       begin_impersonation: { Args: { p_coach_id: string }; Returns: undefined }
       calendar_feed: {
@@ -5956,8 +6039,14 @@ export type Database = {
         Args: never
         Returns: {
           calendar: string
+          channel_id: string
+          resource_id: string
           token: string
         }[]
+      }
+      google_webhook_ping: {
+        Args: { p_channel_id: string; p_token: string }
+        Returns: boolean
       }
       issue_invoice: {
         Args: { p_invoice_id: string }
@@ -6198,6 +6287,10 @@ export type Database = {
         Args: { p_ids: string[]; p_page_id: string }
         Returns: undefined
       }
+      replace_google_busy: {
+        Args: { p_blocks: Json; p_coach_id: string }
+        Returns: undefined
+      }
       replace_program_item_sets: {
         Args: { p_item_id: string; p_legacy?: Json; p_sets: Json }
         Returns: boolean
@@ -6214,6 +6307,10 @@ export type Database = {
       restore_marketing_version: {
         Args: { p_version_id: string }
         Returns: undefined
+      }
+      retry_google_sync: {
+        Args: { p_appointment_id: string }
+        Returns: boolean
       }
       review_checkin: {
         Args: {

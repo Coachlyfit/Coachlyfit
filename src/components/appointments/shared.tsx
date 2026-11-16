@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from "react";
 import { useTranslations } from "next-intl";
+import { AlertTriangle, Check, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,13 @@ export type AppointmentView = {
   cancelReason: string | null;
   rescheduleRequestedAt: string | null;
   rescheduleNote: string | null;
+  /** A new time the coach set in Google Calendar, awaiting acceptance. */
+  proposedStartsAt: string | null;
+  proposedEndsAt: string | null;
 };
+
+/** Google Calendar sync state of one appointment (owner only; absent = not connected). */
+export type SyncState = "synced" | "pending" | "failed";
 
 const VARIANT = {
   requested: "warning",
@@ -33,6 +40,16 @@ const VARIANT = {
 export function StatusBadge({ status }: { status: AppointmentView["status"] }) {
   const t = useTranslations("appointments.status");
   return <Badge variant={VARIANT[status]}>{t(status)}</Badge>;
+}
+
+/** Tiny Google sync indicator: synced / pending / failed. Renders nothing when
+ * the appointment has no state (Google isn't connected). */
+export function SyncIcon({ state }: { state: SyncState | undefined }) {
+  const t = useTranslations("appointments.sync");
+  if (!state) return null;
+  const Icon = state === "synced" ? Check : state === "pending" ? Clock : AlertTriangle;
+  const tone = state === "synced" ? "text-success" : state === "pending" ? "text-muted-foreground" : "text-destructive";
+  return <Icon className={cn("size-3 shrink-0", tone)} role="img" aria-label={t(state)} />;
 }
 
 /** A plain <select> in the Input's clothes: the app's Select is a popover list,

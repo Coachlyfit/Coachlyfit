@@ -44,6 +44,7 @@ const APPOINTMENT_KINDS = [
   "appointment_cancelled",
   "appointment_rescheduled",
   "appointment_reminder",
+  "appointment_reschedule_proposed",
 ] as const;
 
 function isAppointmentKind(kind: string): kind is (typeof APPOINTMENT_KINDS)[number] {

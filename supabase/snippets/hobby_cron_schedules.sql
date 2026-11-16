@@ -81,8 +81,11 @@ select cron.schedule(
   $job$
 );
 
--- Google Calendar sync: pushes queued appointment changes to each connected
--- coach's "Coachly Fit" calendar, every 3 minutes.
+-- Google Calendar sync, every 3 minutes: pushes queued appointment changes to
+-- each connected coach's "Coachly Fit" calendar, keeps their Google watch
+-- channel alive, pulls changes they made in Google, and refreshes their Google
+-- busy time (so booking slots avoid it). A Google webhook also triggers this
+-- same route right away. Channel renewal also runs daily from vercel.json.
 select cron.schedule(
   'coachlyfit-google-sync-every-3-min',
   '*/3 * * * *',

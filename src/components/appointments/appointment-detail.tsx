@@ -15,14 +15,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { StatusBadge, type AppointmentView } from "@/components/appointments/shared";
+import { StatusBadge, SyncIcon, type AppointmentView, type SyncState } from "@/components/appointments/shared";
 import { formatRange } from "@/components/appointments/format";
 import type { AppLocale } from "@/domain/locale";
-import { cancelAppointmentAction, transitionAppointmentAction } from "@/app/[locale]/(coach)/schedule/actions";
+import {
+  acceptProposedTimeAction,
+  cancelAppointmentAction,
+  dismissRescheduleRequestAction,
+  retryGoogleSyncAction,
+  transitionAppointmentAction,
+} from "@/app/[locale]/(coach)/schedule/actions";
 
 type Props = {
   appointment: AppointmentView | null;
   timeZone: string;
+  /** Google sync state; undefined when Google isn't connected. */
+  syncState?: SyncState;
   onClose: () => void;
   onReschedule: (appointment: AppointmentView) => void;
 };
@@ -34,7 +42,7 @@ export function AppointmentDetail({ appointment, ...rest }: Props) {
   return <DetailBody key={appointment.id} appointment={appointment} {...rest} />;
 }
 
-function DetailBody({ appointment: a, timeZone, onClose, onReschedule }: Omit<Props, "appointment"> & { appointment: AppointmentView }) {
+function DetailBody({ appointment: a, timeZone, syncState, onClose, onReschedule }: Omit<Props, "appointment"> & { appointment: AppointmentView }) {
   const t = useTranslations("appointments");
   const tErrors = useTranslations("appointments.errors");
   const tCommon = useTranslations("common");
@@ -57,6 +65,32 @@ function DetailBody({ appointment: a, timeZone, onClose, onReschedule }: Omit<Pr
       if (result?.error) return fail(result.error);
       toast.success(message);
       onClose();
+    });
+  }
+
+  function acceptProposal() {
+    startTransition(async () => {
+      const result = await acceptProposedTimeAction(locale, a.id);
+      if (result?.error) return fail(result.error);
+      toast.success(t("toast.rescheduled"));
+      onClose();
+    });
+  }
+
+  function keepOriginal() {
+    startTransition(async () => {
+      const result = await dismissRescheduleRequestAction(locale, a.id);
+      if (result?.error) return fail(result.error);
+      toast.success(t("toast.kept"));
+      onClose();
+    });
+  }
+
+  function retrySync() {
+    startTransition(async () => {
+      const result = await retryGoogleSyncAction(locale, a.id);
+      if (result?.error) return fail(result.error);
+      toast.success(t("sync.retrying"));
     });
   }
 
@@ -107,13 +141,37 @@ function DetailBody({ appointment: a, timeZone, onClose, onReschedule }: Omit<Pr
             {a.cancelReason && (
               <div className="flex flex-col">
                 <dt className="text-muted-foreground">{t("detail.cancelReason")}</dt>
-                <dd dir="auto">{a.cancelReason}</dd>
+                <dd dir="auto">{a.cancelReason === "google_removed" ? t("detail.removedInGoogle") : a.cancelReason}</dd>
               </div>
             )}
             {a.rescheduleRequestedAt && live && (
               <div className="rounded-lg bg-warning-tint p-2.5 text-warning-tint-foreground">
                 <p className="font-medium">{t("detail.rescheduleRequested")}</p>
                 {a.rescheduleNote && <p dir="auto">{a.rescheduleNote}</p>}
+                <Button size="sm" variant="outline" className="mt-2 me-2" disabled={pending} onClick={keepOriginal}>
+                  {t("detail.keepOriginal")}
+                </Button>
+                {a.proposedStartsAt && a.proposedEndsAt && (
+                  <>
+                    <p className="mt-1">
+                      {t("detail.proposedTime", { when: formatRange(a.proposedStartsAt, a.proposedEndsAt, locale, timeZone) })}
+                    </p>
+                    <Button size="sm" className="mt-2" disabled={pending} onClick={acceptProposal}>
+                      {t("detail.acceptProposed")}
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+            {syncState && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <SyncIcon state={syncState} />
+                <span>{t(`sync.${syncState}Long`)}</span>
+                {syncState === "failed" && (
+                  <Button size="sm" variant="outline" disabled={pending} onClick={retrySync}>
+                    {t("sync.retry")}
+                  </Button>
+                )}
               </div>
             )}
           </dl>

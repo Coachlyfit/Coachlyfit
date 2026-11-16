@@ -155,6 +155,18 @@ export class AppointmentsService {
     return this.update(id, patch);
   }
 
+  /** Accept a new time (e.g. one proposed from Google Calendar). Moving clears
+   * the pending request and tells the client, via the database triggers. */
+  moveTo(id: string, startsAt: string, endsAt: string) {
+    return this.update(id, { starts_at: startsAt, ends_at: endsAt });
+  }
+
+  /** Decline a reschedule request (a client's, or a move made in Google
+   * Calendar): the session stays where it is. */
+  clearRescheduleRequest(id: string) {
+    return this.update(id, { reschedule_requested_at: null, reschedule_note: null });
+  }
+
   /** Client asks the coach to move a confirmed session. */
   requestReschedule(id: string, note: string | null) {
     return this.update(id, { reschedule_requested_at: new Date().toISOString(), reschedule_note: note || null });

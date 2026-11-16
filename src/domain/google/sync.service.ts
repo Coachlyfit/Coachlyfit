@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
-import { GoogleApiError } from "@/lib/google/errors";
 import type { EventsApi } from "@/lib/google/events-api";
 import type { AppLocale } from "@/domain/locale";
+import { markNeedsReconnect, needsReconnect } from "./connection-state";
 import { buildEvent } from "./event";
 import { reconcile } from "./reconcile";
 import { describeError, nextSyncOutcome } from "./sync-jobs";
@@ -49,9 +49,9 @@ export class GoogleSyncService {
         touched.add(job.coach_id);
         counts.done++;
       } catch (error) {
-        if (this.needsReconnect(error)) {
+        if (needsReconnect(error)) {
           paused.add(job.coach_id);
-          await this.markNeedsReconnect(job.coach_id);
+          await markNeedsReconnect(this.db, job.coach_id);
           await this.requeue(job, { attempts: job.attempts });
           counts.paused++;
           continue;
@@ -79,12 +79,6 @@ export class GoogleSyncService {
       await this.db.from("google_connections").update({ last_sync_at: this.now().toISOString() }).eq("coach_id", coachId);
     }
     return counts;
-  }
-
-  /** The coach's grant is dead, or their "Coachly Fit" calendar is gone (a
-   * 404 on create: event-level 404s are absorbed in reconcile). */
-  private needsReconnect(error: unknown): boolean {
-    return error instanceof GoogleApiError && (error.isAuthRevoked || (error.status === 404 && error.reason === "notFound"));
   }
 
   private async process(job: Job): Promise<void> {
@@ -143,19 +137,5 @@ export class GoogleSyncService {
       .eq("id", job.id);
     if (error?.code === "23505") await this.db.from("google_sync_jobs").delete().eq("id", job.id);
     else if (error) throw error;
-  }
-
-  /** Flip the connection once and tell the coach once. Their appointments keep
-   * working; only the Google sync waits for a reconnect. */
-  private async markNeedsReconnect(coachId: string): Promise<void> {
-    const { data } = await this.db
-      .from("google_connections")
-      .update({ status: "needs_reconnect" })
-      .eq("coach_id", coachId)
-      .eq("status", "active")
-      .select("id");
-    if ((data?.length ?? 0) > 0) {
-      await this.db.from("notifications").insert({ profile_id: coachId, kind: "google_reconnect_needed", payload: {} });
-    }
   }
 }

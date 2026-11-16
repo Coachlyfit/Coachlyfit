@@ -3744,7 +3744,8 @@
     "appointment_cancelled": "تم إلغاء الجلسة مع {name} يوم {when}",
     "appointment_rescheduled": "تم نقل جلستك مع {name} إلى {when}",
     "appointment_reminder": "تذكير: جلسة مع {name} يوم {when}",
-    "google_reconnect_needed": "أعد ربط تقويم Google. توقفت المزامنة."
+    "google_reconnect_needed": "أعد ربط تقويم Google. توقفت المزامنة.",
+    "appointment_reschedule_proposed": "اقترح الكوتش موعدًا جديدًا لجلسة {name}: {when}"
   },
   "progress": {
     "title": "التقدّم",
@@ -5533,7 +5534,11 @@
       "addToCalendar": "إضافة إلى التقويم",
       "declineTitle": "رفض هذا الطلب؟",
       "cancelTitle": "إلغاء هذه الجلسة؟",
-      "reasonHint": "يمكنك إخبار العميل بالسبب (اختياري)."
+      "reasonHint": "يمكنك إخبار العميل بالسبب (اختياري).",
+      "removedInGoogle": "تم حذفها من تقويم Google",
+      "proposedTime": "تم نقلها في تقويم Google إلى {when}",
+      "acceptProposed": "اعتماد هذا الموعد",
+      "keepOriginal": "إبقاء الموعد الأصلي"
     },
     "toast": {
       "created": "تم إنشاء الجلسة",
@@ -5544,7 +5549,8 @@
       "declined": "تم رفض الطلب",
       "cancelled": "تم إلغاء الجلسة",
       "requested": "تم إرسال الطلب إلى الكوتش",
-      "rescheduleRequested": "تم إرسال طلب إعادة الجدولة"
+      "rescheduleRequested": "تم إرسال طلب إعادة الجدولة",
+      "kept": "تم الإبقاء على الموعد الأصلي"
     },
     "errors": {
       "invalid_input": "راجع الحقول وحاول مرة أخرى.",
@@ -5562,7 +5568,8 @@
       "not_authenticated": "سجّل الدخول من جديد.",
       "owner_only": "صاحب الحساب فقط يمكنه تغيير هذا.",
       "unavailable": "الجلسات غير متاحة الآن.",
-      "unknown": "حدث خطأ ما. حاول مرة أخرى."
+      "unknown": "حدث خطأ ما. حاول مرة أخرى.",
+      "google_not_connected": "تقويم Google غير مربوط."
     },
     "feed": {
       "title": "رابط التقويم",
@@ -5666,6 +5673,16 @@
         "not_configured": "تسجيل الدخول عبر Google غير مفعّل على هذا الخادم.",
         "failed": "تعذّر ربط تقويم Google. حاول مرة أخرى."
       }
+    },
+    "sync": {
+      "synced": "تمت المزامنة مع تقويم Google",
+      "pending": "بانتظار المزامنة مع تقويم Google",
+      "failed": "فشلت المزامنة مع تقويم Google",
+      "syncedLong": "تمت المزامنة مع تقويم Google",
+      "pendingLong": "بانتظار المزامنة مع تقويم Google",
+      "failedLong": "تعذّرت المزامنة مع تقويم Google",
+      "retry": "أعد المحاولة",
+      "retrying": "تمت إضافتها لإعادة المزامنة"
     }
   }
 }
