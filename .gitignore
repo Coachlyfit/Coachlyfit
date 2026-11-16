@@ -69,3 +69,7 @@ next-env.d.ts
 .vercel
 .env*
 .firecrawl
+
+# one-off fitnessprogramer plan crawl artifacts (regenerable from the cache)
+scripts/data/fitnessprogramer-plans.json
+scripts/data/fitnessprogramer-plans-seed-plan.json
