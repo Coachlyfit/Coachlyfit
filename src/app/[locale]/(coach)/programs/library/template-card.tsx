@@ -24,10 +24,17 @@ export function TemplateCard({ locale, row }: { locale: AppLocale; row: LibraryR
   const description = pickLocale(row, locale, "description");
   const level = asPlanLevel(row.level);
   const goal = asPlanGoal(row.goal);
-  const chips = [
-    ...row.categories.map((c) => t(`categories.${c}`)),
-    ...row.equipment.map((e) => equipmentLabel(e)).filter((e): e is string => !!e),
-  ];
+  const isPlan = row.kind === "plan";
+  const gender = row.gender_target === "female" || row.gender_target === "male" || row.gender_target === "all" ? row.gender_target : null;
+  const equipment = row.equipment.map((e) => equipmentLabel(e)).filter((e): e is string => !!e);
+  // a plan's tags: who it is for, how long, how often; a workout's: its muscle categories
+  const chips = isPlan
+    ? [
+        ...(row.duration_weeks ? [t("card.weeks", { count: row.duration_weeks })] : []),
+        ...(row.days_per_week ? [t("card.daysPerWeek", { count: row.days_per_week })] : []),
+        ...equipment,
+      ]
+    : [...row.categories.map((c) => t(`categories.${c}`)), ...equipment];
 
   return (
     <article className="flex flex-col gap-3 rounded-xl bg-card p-4.5 ring-1 ring-foreground/10">
@@ -45,14 +52,17 @@ export function TemplateCard({ locale, row }: { locale: AppLocale; row: LibraryR
       <div className="flex flex-wrap gap-1.5">
         {level && <Badge variant="outline">{tLevels(level)}</Badge>}
         {goal && <Badge variant="outline">{tGoals(goal)}</Badge>}
-        {chips.slice(0, MAX_CHIPS).map((c) => (
+        {isPlan && gender && <Badge variant="outline">{t(`genders.${gender}`)}</Badge>}
+        {chips.slice(0, isPlan ? MAX_CHIPS + 1 : MAX_CHIPS).map((c) => (
           <span key={c} className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
             {c}
           </span>
         ))}
-        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-          {t("card.exercises", { count: row.exercises })}
-        </span>
+        {!isPlan && (
+          <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+            {t("card.exercises", { count: row.exercises })}
+          </span>
+        )}
       </div>
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">

@@ -6,18 +6,27 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { AppLocale } from "@/domain/locale";
 import { ProgramsService } from "@/domain/programs/programs.service";
-import type { LibraryRow } from "@/domain/programs/platform/library-view";
+import type { LibraryRow, TemplateKind } from "@/domain/programs/platform/library-view";
 import { LibraryClient } from "./library-client";
 
-export default async function TemplateLibraryPage({ params }: { params: Promise<{ locale: AppLocale }> }) {
+export default async function TemplateLibraryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: AppLocale }>;
+  searchParams: Promise<{ kind?: string }>;
+}) {
   const { locale } = await params;
+  // anything but ?kind=plan is the workouts tab (a hand-edited URL falls back, it doesn't error)
+  const kind: TemplateKind = (await searchParams).kind === "plan" ? "plan" : "workout";
   const t = await getTranslations("programs.library");
 
   const service = new ProgramsService(await createClient());
   const [templates, copies] = await Promise.all([service.listPlatformTemplates(), service.myPlatformCopies()]);
 
-  const rows: LibraryRow[] = templates.map((p) => ({
+  const all: LibraryRow[] = templates.map((p) => ({
     id: p.id,
+    kind: p.kind === "plan" ? "plan" : "workout",
     name_ar: p.name_ar,
     name_en: p.name_en,
     description_ar: p.description_ar,
@@ -28,8 +37,11 @@ export default async function TemplateLibraryPage({ params }: { params: Promise<
     equipment: p.equipment,
     exercises: p.program_days.reduce((n, d) => n + (d.program_items[0]?.count ?? 0), 0),
     days_per_week: p.days_per_week,
+    duration_weeks: p.duration_weeks,
+    gender_target: p.gender_target,
     copyId: copies.get(p.id) ?? null,
   }));
+  const counts = { workout: all.filter((r) => r.kind === "workout").length, plan: all.filter((r) => r.kind === "plan").length };
 
   return (
     <div className="flex flex-col gap-5 max-md:pb-16">
@@ -44,7 +56,7 @@ export default async function TemplateLibraryPage({ params }: { params: Promise<
           <p className="max-w-2xl text-base text-muted-foreground">{t("subtitle")}</p>
         </div>
       </header>
-      <LibraryClient locale={locale} rows={rows} />
+      <LibraryClient key={kind} locale={locale} kind={kind} counts={counts} rows={all.filter((r) => r.kind === kind)} />
     </div>
   );
 }

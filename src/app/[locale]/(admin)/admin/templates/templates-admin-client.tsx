@@ -22,6 +22,9 @@ import { setTemplatePublishedAction, updateTemplateDetailsAction } from "./actio
 export type AdminTemplate = {
   id: string;
   slug: string;
+  kind: "workout" | "plan";
+  duration_weeks: number | null;
+  gender_target: string | null;
   name_ar: string;
   name_en: string;
   description_ar: string | null;
@@ -62,17 +65,22 @@ function EditDialog({
     description_en: template.description_en ?? "",
     level: asPlanLevel(template.level),
     days_per_week: template.days_per_week ? String(template.days_per_week) : "",
+    duration_weeks: template.duration_weeks ? String(template.duration_weeks) : "",
+    gender_target: (template.gender_target as "female" | "male" | "all" | null) ?? null,
     categories: template.categories,
   });
+  const tGender = useTranslations("programs.library.genders");
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   function save() {
     startTransition(async () => {
       const days = form.days_per_week.trim();
+      const weeks = form.duration_weeks.trim();
       const result = await updateTemplateDetailsAction(locale, {
         id: template.id,
         ...form,
         days_per_week: days === "" ? null : Number(days),
+        duration_weeks: weeks === "" ? null : Number(weeks),
       });
       if (result && "error" in result) {
         toast.error(message(result.error));
@@ -138,18 +146,47 @@ function EditDialog({
               })}
             </div>
           </div>
-          <div className="flex w-32 flex-col gap-1.5">
-            <Label htmlFor="tpl-days">{t("editDialog.daysPerWeek")}</Label>
-            <Input
-              id="tpl-days"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={7}
-              value={form.days_per_week}
-              onChange={(e) => set("days_per_week", e.target.value)}
-            />
+          <div className="flex flex-wrap gap-4">
+            <div className="flex w-32 flex-col gap-1.5">
+              <Label htmlFor="tpl-days">{t("editDialog.daysPerWeek")}</Label>
+              <Input
+                id="tpl-days"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={7}
+                value={form.days_per_week}
+                onChange={(e) => set("days_per_week", e.target.value)}
+              />
+            </div>
+            {template.kind === "plan" && (
+              <div className="flex w-32 flex-col gap-1.5">
+                <Label htmlFor="tpl-weeks">{t("editDialog.durationWeeks")}</Label>
+                <Input
+                  id="tpl-weeks"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={52}
+                  value={form.duration_weeks}
+                  onChange={(e) => set("duration_weeks", e.target.value)}
+                />
+              </div>
+            )}
           </div>
+          {template.kind === "plan" && (
+            <div role="group" aria-label={t("editDialog.gender")} className="flex flex-wrap items-center gap-1.5">
+              <span className="me-1 text-sm text-muted-foreground">{t("editDialog.gender")}</span>
+              <button type="button" aria-pressed={form.gender_target === null} onClick={() => set("gender_target", null)} className={chip}>
+                {t("editDialog.noGender")}
+              </button>
+              {(["female", "male", "all"] as const).map((g) => (
+                <button key={g} type="button" aria-pressed={form.gender_target === g} onClick={() => set("gender_target", g)} className={chip}>
+                  {tGender(g)}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button type="button" onClick={save} disabled={pending || !form.name_ar.trim() || !form.name_en.trim()}>
@@ -169,6 +206,9 @@ export function TemplatesAdminClient({ locale, templates }: { locale: AppLocale;
   // optimistic publish state, reverted if the action fails
   const [published, setPublished] = useState<Record<string, boolean>>({});
   const [editing, setEditing] = useState<AdminTemplate | null>(null);
+  const [kindFilter, setKindFilter] = useState<"all" | "workout" | "plan">("all");
+  const tKind = useTranslations("admin.templates.kind");
+  const shown = kindFilter === "all" ? templates : templates.filter((x) => x.kind === kindFilter);
 
   if (templates.length === 0) {
     return (
@@ -193,8 +233,16 @@ export function TemplatesAdminClient({ locale, templates }: { locale: AppLocale;
 
   return (
     <>
+      <div role="group" aria-label={tKind("label")} className="flex flex-wrap items-center gap-1.5">
+        <span className="me-1 text-sm text-muted-foreground">{tKind("label")}</span>
+        {(["all", "workout", "plan"] as const).map((k) => (
+          <button key={k} type="button" aria-pressed={kindFilter === k} onClick={() => setKindFilter(k)} className={chip}>
+            {tKind(k)}
+          </button>
+        ))}
+      </div>
       <ul className="flex flex-col gap-2">
-        {templates.map((tpl) => {
+        {shown.map((tpl) => {
           const level = asPlanLevel(tpl.level);
           const name = pickLocale(tpl, locale, "name");
           const isPublished = published[tpl.id] ?? tpl.published;
@@ -207,6 +255,10 @@ export function TemplatesAdminClient({ locale, templates }: { locale: AppLocale;
                 </span>
               </div>
               <div className="flex items-center gap-2">
+                <Badge variant={tpl.kind === "plan" ? "default" : "secondary"}>
+                  {tKind(tpl.kind)}
+                  {tpl.kind === "plan" && tpl.duration_weeks ? ` · ${formatNumber(tpl.duration_weeks, locale)}` : ""}
+                </Badge>
                 {level && <Badge variant="outline">{tLevels(level)}</Badge>}
                 <span className="text-sm text-muted-foreground">
                   {t("columns.exercises")} {formatNumber(tpl.exercises, locale)}

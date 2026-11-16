@@ -18,7 +18,14 @@ type Row = {
   sets: { duration_seconds: number | null }[] | null;
   match: unknown;
 };
-const workouts: { slug: string; exercises: Row[] }[] = JSON.parse(readFileSync(workoutsPath, "utf8"));
+// Input is either the workouts JSON, or the plans JSON (each plan carries its workouts by slug).
+const input: { slug: string; exercises?: Row[]; workouts?: Record<string, { slug: string; exercises: Row[] }> }[] = JSON.parse(
+  readFileSync(workoutsPath, "utf8")
+);
+const fromPlans = input.some((x) => x.workouts);
+const workouts: { slug: string; exercises: Row[] }[] = input.flatMap((x) =>
+  x.workouts ? Object.values(x.workouts) : [x as { slug: string; exercises: Row[] }]
+);
 
 // site primary-muscle slug -> exercises.muscle_group (see library/taxonomy.ts)
 const MUSCLE: Record<string, string> = {
@@ -33,7 +40,7 @@ const MUSCLE: Record<string, string> = {
 const EQUIPMENT: Record<string, string> = {
   barbell: "barbell", dumbbells: "dumbbell", dumbbell: "dumbbell", cable: "cable", machine: "machine",
   kettlebell: "kettlebell", band: "band", "resistance-band": "band", "medicine-ball": "medicine ball",
-  rope: "rope", "stability-ball": "stability ball", bench: null as unknown as string,
+  rope: "rope", "stability-ball": "stability ball", "exercise-ball": "stability ball", bench: null as unknown as string,
 };
 
 // The site's primary-muscle tag is wrong for these (e.g. a hamstring stretch tagged "calf"); corrected by hand.
@@ -55,6 +62,14 @@ const MUSCLE_OVERRIDE: Record<string, string> = {
   "Arm Leg Raises": "core",
   "Bodyweight Skull Crushers": "triceps",
   "Hindu Push-ups": "chest",
+  // plans batch: the site tags lunges/squats as hips and misses the glute machines
+  "Bodyweight Lunge": "legs",
+  "Plie Dumbbell Squat": "legs",
+  "Decline Bench Dumbbell Lunge": "legs",
+  "Exercise Ball Wall Squat": "legs",
+  "Banded Glute Kickbacks": "glutes",
+  "Glute Kickback Machine": "glutes",
+  "Push Press": "shoulders",
   "Wall Slides": "shoulders",
   "Shoulder Stretch Behind The Back": "shoulders",
   "Across Chest Shoulder Stretch": "shoulders",
@@ -67,6 +82,7 @@ const bySlug = new Map<string, { row: Row; timed: boolean; uses: string[] }>();
 for (const w of workouts)
   for (const r of w.exercises) {
     if (r.match) continue;
+    if (fromPlans && !r.sets) continue; // a row dropped for an unreadable value doesn't need its exercise created
     const e = bySlug.get(r.site_slug) ?? { row: r, timed: false, uses: [] };
     e.timed ||= (r.sets ?? []).some((s) => s.duration_seconds != null);
     e.uses.push(w.slug);
@@ -74,7 +90,7 @@ for (const w of workouts)
   }
 
 const out = [];
-for (const [slug, { row, timed, uses }] of bySlug) {
+for (const [slug, { row, uses }] of bySlug) {
   const file = `${cacheDir}/exercise-${slug}.html`;
   if (!existsSync(file)) {
     out.push({ site_slug: slug, name_en: row.name, error: "page_not_cached", uses });
@@ -107,7 +123,11 @@ for (const [slug, { row, timed, uses }] of bySlug) {
     equipment: equipment[0] ?? (bodyweight ? "body weight" : "none"),
     difficulty: ["beginner", "intermediate", "advanced"].includes(difficulty ?? "") ? difficulty : null,
     measurement_type:
-      TIMED_BY_NATURE.test(row.name) ? "duration" : equipment.length === 0 && bodyweight ? "bodyweight_reps" : "weight_reps",
+      TIMED_BY_NATURE.test(row.name)
+        ? "duration"
+        : (equipment.length === 0 && bodyweight) || equipment[0] === "stability ball"
+          ? "bodyweight_reps"
+          : "weight_reps",
     uses,
   });
 }

@@ -238,3 +238,133 @@ describe("customize: copies never touch the original or each other", () => {
     await adminUser.client.from("programs").update({ published: true }).eq("id", platformId);
   });
 });
+
+// ---------------------------------------------------------------------------------------------
+// Multi-week plans: kind = 'plan' rows are the same platform rows (coach_id/client_id null), so the
+// same policies must hold across ALL their days, empty rest days included.
+// ---------------------------------------------------------------------------------------------
+describe("platform plans", () => {
+  const planSlug = `rls-plan-${Date.now()}`;
+  let planId: string;
+  const dayIds: string[] = [];
+  let planItemId: string;
+
+  beforeAll(async () => {
+    // a 2-week plan, trimmed to 4 days: days 1 and 3 train, days 2 and 4 are empty rest days
+    const plan = await adminUser.client
+      .from("programs")
+      .insert({
+        coach_id: null,
+        client_id: null,
+        slug: planSlug,
+        kind: "plan",
+        duration_weeks: 2,
+        gender_target: "all",
+        published: true,
+        name_ar: "خطة اختبار",
+        name_en: "RLS test plan",
+      })
+      .select("id")
+      .single();
+    if (plan.error) throw plan.error;
+    planId = plan.data.id;
+
+    for (let i = 1; i <= 4; i++) {
+      const day = await adminUser.client
+        .from("program_days")
+        .insert({ coach_id: null, client_id: null, program_id: planId, day_index: i, order_index: i - 1, label_en: i % 2 ? "Workout" : "Rest", label_ar: i % 2 ? "تمرين" : "راحة" })
+        .select("id")
+        .single();
+      if (day.error) throw day.error;
+      dayIds.push(day.data.id);
+      if (i % 2 === 1) {
+        const item = await adminUser.client
+          .from("program_items")
+          .insert({ coach_id: null, client_id: null, program_day_id: day.data.id, exercise_id: exerciseId, sets: 1, reps: "10", order_index: 0 })
+          .select("id")
+          .single();
+        if (item.error) throw item.error;
+        planItemId = item.data.id;
+        const set = await adminUser.client
+          .from("program_item_sets")
+          .insert({ coach_id: null, client_id: null, program_item_id: item.data.id, set_index: 1, reps: 10 });
+        if (set.error) throw set.error;
+      }
+    }
+  }, 90_000);
+
+  afterAll(async () => {
+    await admin.from("programs").delete().eq("id", planId);
+  });
+
+  it("every coach reads the plan and ALL of its days, empty rest days included", async () => {
+    for (const who of [coachA, coachB]) {
+      const program = await who.client.from("programs").select("id, kind, duration_weeks, gender_target").eq("id", planId).single();
+      expect(program.data).toMatchObject({ kind: "plan", duration_weeks: 2, gender_target: "all" });
+      const days = await who.client.from("program_days").select("id").eq("program_id", planId);
+      expect(days.data).toHaveLength(4);
+    }
+  });
+
+  it("a client sees nothing of a plan", async () => {
+    expect((await clientUser.client.from("programs").select("id").eq("id", planId)).data).toEqual([]);
+    expect((await clientUser.client.from("program_days").select("id").eq("program_id", planId)).data).toEqual([]);
+  });
+
+  it("a coach can't UPDATE or DELETE a plan, its days or its items, and nothing changes", async () => {
+    const attempts = [
+      coachA.client.from("programs").update({ duration_weeks: 52, kind: "workout" }).eq("id", planId).select("id"),
+      coachA.client.from("program_days").update({ label_en: "hijacked" }).eq("program_id", planId).select("id"),
+      coachA.client.from("program_items").update({ reps: "99" }).eq("id", planItemId).select("id"),
+      coachA.client.from("program_days").delete().eq("program_id", planId).select("id"),
+      coachA.client.from("programs").delete().eq("id", planId).select("id"),
+    ];
+    for (const result of await Promise.all(attempts)) expect(result.data ?? []).toEqual([]);
+
+    expect((await admin.from("programs").select("kind, duration_weeks").eq("id", planId).single()).data).toEqual({ kind: "plan", duration_weeks: 2 });
+    expect((await admin.from("program_days").select("id").eq("program_id", planId)).data).toHaveLength(4);
+  });
+
+  it("customize deep-copies every day (rest days too) and editing the copy leaves the original and other copies alone", async () => {
+    const a = await new ProgramsService(coachA.client).customizePlatformTemplate(planId, coachA.userId);
+    const b = await new ProgramsService(coachB.client).customizePlatformTemplate(planId, coachB.userId);
+    expect(a && b).toBeTruthy();
+    expect(a).toMatchObject({ coach_id: coachA.userId, kind: "plan", duration_weeks: 2, gender_target: "all", source_template_id: planId });
+
+    const aTree = await new ProgramsService(coachA.client).getTree(a!.id);
+    expect(aTree?.program_days).toHaveLength(4);
+    expect(aTree?.program_days.filter((d) => d.program_items.length === 0)).toHaveLength(2);
+    expect(aTree?.program_days.flatMap((d) => d.program_items)).toHaveLength(2);
+
+    // coach A edits their copy: a day label and an item
+    const dayEdit = await coachA.client.from("program_days").update({ label_en: "A's edit" }).eq("program_id", a!.id).select("id");
+    expect(dayEdit.data).toHaveLength(4);
+    const itemEdit = await coachA.client
+      .from("program_items")
+      .update({ reps: "5" })
+      .in("program_day_id", aTree!.program_days.map((d) => d.id))
+      .select("id");
+    expect(itemEdit.data).toHaveLength(2);
+
+    // the original and coach B's copy are untouched
+    expect((await admin.from("program_days").select("label_en").eq("program_id", planId)).data?.every((d) => d.label_en !== "A's edit")).toBe(true);
+    expect((await admin.from("program_items").select("reps").eq("id", planItemId).single()).data?.reps).toBe("10");
+    expect((await admin.from("program_days").select("label_en").eq("program_id", b!.id)).data?.every((d) => d.label_en !== "A's edit")).toBe(true);
+    const bTree = await new ProgramsService(coachB.client).getTree(b!.id);
+    expect(bTree?.program_days).toHaveLength(4);
+  });
+
+  it("assigning a plan with a start date gives the client every week and an end date duration_weeks later", async () => {
+    const assigned = await new ProgramsService(coachA.client).cloneToClient(planId, clientRowId, false, "2026-12-01");
+    expect(assigned).toMatchObject({ client_id: clientRowId, source_template_id: planId, kind: "plan", start_date: "2026-12-01", end_date: "2026-12-14" });
+    const seen = await clientUser.client.from("program_days").select("id").eq("program_id", assigned!.id);
+    expect(seen.data).toHaveLength(4);
+    // the platform original is still ownerless
+    expect((await admin.from("programs").select("coach_id, client_id").eq("id", planId).single()).data).toEqual({ coach_id: null, client_id: null });
+  });
+
+  it("workout templates are unaffected: still kind 'workout' with no duration", async () => {
+    const w = await coachA.client.from("programs").select("kind, duration_weeks").eq("id", platformId).single();
+    expect(w.data).toEqual({ kind: "workout", duration_weeks: null });
+  });
+});

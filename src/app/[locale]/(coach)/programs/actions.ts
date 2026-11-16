@@ -272,15 +272,20 @@ export async function cloneProgramAction(
   locale: string,
   programId: string,
   clientId: string,
-  replaceActive = false
+  replaceActive = false,
+  startDate?: string
 ): Promise<CreateResult> {
+  // optional start date (a plan's schedule runs from it); a malformed value is rejected, not coerced
+  if (startDate !== undefined && !z.string().regex(/^\d{4}-\d{2}-\d{2}$/).safeParse(startDate).success) {
+    return { error: "invalid_input" };
+  }
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const cloned = await new ProgramsService(supabase).cloneToClient(programId, clientId, replaceActive);
+  const cloned = await new ProgramsService(supabase).cloneToClient(programId, clientId, replaceActive, startDate);
   if (!cloned) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/programs`);
   revalidatePath(`/${locale}/clients/${clientId}`);

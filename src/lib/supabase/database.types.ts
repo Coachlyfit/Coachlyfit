@@ -3769,10 +3769,13 @@ export type Database = {
           days_per_week: number | null
           description_ar: string | null
           description_en: string | null
+          duration_weeks: number | null
           end_date: string | null
           equipment: string[]
+          gender_target: string | null
           goal: string | null
           id: string
+          kind: string
           level: string | null
           name_ar: string
           name_en: string
@@ -3796,10 +3799,13 @@ export type Database = {
           days_per_week?: number | null
           description_ar?: string | null
           description_en?: string | null
+          duration_weeks?: number | null
           end_date?: string | null
           equipment?: string[]
+          gender_target?: string | null
           goal?: string | null
           id?: string
+          kind?: string
           level?: string | null
           name_ar: string
           name_en: string
@@ -3823,10 +3829,13 @@ export type Database = {
           days_per_week?: number | null
           description_ar?: string | null
           description_en?: string | null
+          duration_weeks?: number | null
           end_date?: string | null
           equipment?: string[]
+          gender_target?: string | null
           goal?: string | null
           id?: string
+          kind?: string
           level?: string | null
           name_ar?: string
           name_en?: string

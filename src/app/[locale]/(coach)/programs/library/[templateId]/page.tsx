@@ -7,19 +7,20 @@ import { PageTitle } from "@/components/dashboard/page-title";
 import { Link } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { resolveExerciseMedia } from "@/lib/video-embed";
+import { cn } from "@/lib/utils";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { asPlanGoal, asPlanLevel } from "@/domain/programs/plan-meta";
 import { ProgramsService } from "@/domain/programs/programs.service";
-import { summarizeSets } from "@/domain/programs/platform/library-view";
-import { ExerciseMedia } from "../../../library/exercise-card";
 import { AssignTemplateDialog } from "../../[programId]/assign-template-dialog";
 import { CustomizeButton, ResetCopyButton } from "../copy-actions";
+import { PreviewItem } from "../preview-item";
 
 export default async function TemplatePreviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: AppLocale; templateId: string }>;
+  searchParams: Promise<{ week?: string }>;
 }) {
   const { locale, templateId } = await params;
   const t = await getTranslations("programs.library");
@@ -36,15 +37,23 @@ export default async function TemplatePreviewPage({
   // RLS only lets a coach read published platform templates; anything else is a 404
   if (!tree || tree.coach_id !== null) notFound();
 
+  const isPlan = tree.kind === "plan";
+  const weeks = isPlan ? Math.max(1, tree.duration_weeks ?? Math.ceil(tree.program_days.length / 7)) : 1;
+  // ?week=N picks the week shown; anything out of range falls back rather than erroring
+  const requested = Number((await searchParams).week);
+  const week = Number.isInteger(requested) && requested >= 1 && requested <= weeks ? requested : 1;
+
   const copyId = copies.get(tree.id) ?? null;
   const level = asPlanLevel(tree.level);
   const goal = asPlanGoal(tree.goal);
+  const gender = tree.gender_target === "female" || tree.gender_target === "male" || tree.gender_target === "all" ? tree.gender_target : null;
   const description = pickLocale(tree, locale, "description");
-  const fmt = {
-    num: (n: number) => formatNumber(n, locale),
-    seconds: (n: number) => t("preview.seconds", { value: formatNumber(n, locale) }),
-    minutes: (n: number) => t("preview.minutes", { value: formatNumber(n, locale) }),
-  };
+  const sessionLabel = t("preview.session");
+
+  // a plan shows one week at a time: its 7 days (parent days only), in order
+  const shownDays = isPlan
+    ? tree.program_days.filter((d) => d.parent_day_id == null && Math.ceil(d.day_index / 7) === week)
+    : tree.program_days;
 
   return (
     <div className="flex flex-col gap-6 max-md:pb-16">
@@ -52,7 +61,7 @@ export default async function TemplatePreviewPage({
 
       <header className="flex flex-col gap-3">
         <Link
-          href="/programs/library"
+          href={isPlan ? "/programs/library?kind=plan" : "/programs/library"}
           className={buttonVariants({ variant: "ghost", size: "sm", className: "self-start" })}
         >
           <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
@@ -61,16 +70,17 @@ export default async function TemplatePreviewPage({
         <h1 className="text-3xl leading-9 font-semibold">{pickLocale(tree, locale, "name")}</h1>
         {description && <p className="max-w-2xl text-base text-muted-foreground">{description}</p>}
         <div className="flex flex-wrap gap-1.5">
+          {isPlan && tree.duration_weeks && <Badge variant="outline">{t("card.weeks", { count: tree.duration_weeks })}</Badge>}
           {level && <Badge variant="outline">{tLevels(level)}</Badge>}
           {goal && <Badge variant="outline">{tGoals(goal)}</Badge>}
-          {tree.days_per_week && (
-            <Badge variant="outline">{t("preview.daysPerWeek", { count: tree.days_per_week })}</Badge>
-          )}
-          {tree.categories.map((c) => (
-            <Badge key={c} variant="secondary">
-              {t(`categories.${c}`)}
-            </Badge>
-          ))}
+          {isPlan && gender && <Badge variant="outline">{t(`genders.${gender}`)}</Badge>}
+          {tree.days_per_week && <Badge variant="outline">{t("preview.daysPerWeek", { count: tree.days_per_week })}</Badge>}
+          {!isPlan &&
+            tree.categories.map((c) => (
+              <Badge key={c} variant="secondary">
+                {t(`categories.${c}`)}
+              </Badge>
+            ))}
         </div>
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -89,6 +99,7 @@ export default async function TemplatePreviewPage({
             locale={locale}
             programId={tree.id}
             clients={clients ?? []}
+            withStartDate={isPlan}
             trigger={<button type="button" className={buttonVariants({ variant: "outline" })} disabled={!clients?.length} />}
           >
             {t("preview.assign")}
@@ -102,48 +113,50 @@ export default async function TemplatePreviewPage({
         {t("preview.readOnly")}
       </p>
 
-      {tree.program_days.map((day) => (
-        <section key={day.id} className="flex flex-col gap-3" aria-label={pickLocale(day, locale, "label") || t("preview.session")}>
-          <h2 className="text-xl font-semibold">{pickLocale(day, locale, "label") || t("preview.session")}</h2>
-          <ol className="flex flex-col gap-3">
-            {day.program_items.map((item) => {
-              const ex = item.exercises;
-              const name = pickLocale(ex, locale, "name");
-              const still = (ex as { image_url?: string | null }).image_url;
-              const media = resolveExerciseMedia(ex.video_url ?? still);
-              const summary = summarizeSets(item.program_item_sets, fmt);
-              const note = pickLocale(item, locale, "notes");
-              return (
-                <li key={item.id} className="flex gap-3 rounded-xl bg-card p-3 ring-1 ring-foreground/10 sm:gap-4 sm:p-4">
-                  <div className="w-24 shrink-0 sm:w-32">
-                    <ExerciseMedia media={media} name={name} className="aspect-square rounded-lg" />
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="font-medium">{name}</span>
-                      {item.block === "warmup" && <Badge variant="secondary">{t("preview.warmup")}</Badge>}
-                      {item.group_key && (
-                        <Badge variant="outline">
-                          {t("preview.superset", { key: formatNumber(Number(item.group_key.replace(/\D/g, "")) || 1, locale) })}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                      {summary && (
-                        <span dir="ltr" className="font-mono font-semibold text-foreground tabular-nums">
-                          {summary}
-                        </span>
-                      )}
-                      {item.rest_seconds ? <span>{t("preview.rest", { value: formatNumber(item.rest_seconds, locale) })}</span> : null}
-                    </div>
-                    {note && <p className="text-sm text-muted-foreground">{note}</p>}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-      ))}
+      {isPlan && weeks > 1 && (
+        <nav aria-label={t("preview.weekSelector")} className="flex flex-wrap gap-1.5">
+          {Array.from({ length: weeks }, (_, i) => i + 1).map((w) => (
+            <Link
+              key={w}
+              href={`/programs/library/${tree.id}?week=${w}`}
+              aria-current={w === week ? "page" : undefined}
+              scroll={false}
+              className={cn(
+                "flex h-9 min-w-9 items-center justify-center rounded-full border px-3 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                w === week && "border-transparent bg-primary text-primary-foreground"
+              )}
+            >
+              {t("preview.week", { n: formatNumber(w, locale) })}
+            </Link>
+          ))}
+        </nav>
+      )}
+
+      {shownDays.map((day) => {
+        const label = pickLocale(day, locale, "label");
+        const heading = isPlan
+          ? `${t("preview.dayN", { n: formatNumber(day.day_index - (week - 1) * 7, locale) })}${label ? ` · ${label}` : ""}`
+          : label || sessionLabel;
+        // a plan's rest days are just empty days: one compact row, no exercise list
+        if (isPlan && day.program_items.length === 0) {
+          return (
+            <div key={day.id} className="flex items-center gap-3 rounded-xl border border-dashed px-4 py-3 text-muted-foreground">
+              <span className="font-medium text-foreground">{t("preview.dayN", { n: formatNumber(day.day_index - (week - 1) * 7, locale) })}</span>
+              <span>{t("preview.restDay")}</span>
+            </div>
+          );
+        }
+        return (
+          <section key={day.id} className="flex flex-col gap-3" aria-label={heading}>
+            <h2 className="text-xl font-semibold">{heading}</h2>
+            <ol className="flex flex-col gap-3">
+              {day.program_items.map((item) => (
+                <PreviewItem key={item.id} item={item} locale={locale} />
+              ))}
+            </ol>
+          </section>
+        );
+      })}
 
       {tree.source_url && (
         <p className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
