@@ -49,14 +49,15 @@ export async function GET(request: NextRequest) {
             .single()
         ).data,
       signupsEnabled: async () => (await getPlatformSettings()).platform.signups_enabled,
-      finalize: ({ terms, locale, inviteToken }) =>
-        supabase.rpc("finalize_oauth_signup", {
+      // rpc() returns a thenable builder, not a Promise: await to satisfy the deps types.
+      finalize: async ({ terms, locale, inviteToken }) =>
+        await supabase.rpc("finalize_oauth_signup", {
           p_terms_version: terms,
           p_locale: locale,
           p_invite_token: inviteToken,
           p_ip: ip,
         }),
-      acceptTeamInvite: (token) => supabase.rpc("accept_team_invite", { p_token: token, p_ip: ip }),
+      acceptTeamInvite: async (token) => await supabase.rpc("accept_team_invite", { p_token: token, p_ip: ip }),
       // Auth Admin API only (permitted use of service_role), and only reachable
       // through cleanupFreshUser's just-created / sole-Google-identity guards.
       deleteUser: (id) => createAdminClient().auth.admin.deleteUser(id),
