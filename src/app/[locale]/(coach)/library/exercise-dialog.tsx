@@ -3,13 +3,17 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Plus, X } from "lucide-react";
+import { AlternativesEditor, type AlternativeRef } from "@/components/alternatives/alternatives-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Segmented } from "@/components/ui/segmented";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { listOwnAlternativesAction } from "@/domain/alternatives/alternatives-actions";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import {
   SECTION_FIELDS,
@@ -172,6 +176,8 @@ export function ExerciseDialog({
   const tLibrary = useTranslations("library");
   const tAdmin = useTranslations("admin.library");
   const tErrors = useTranslations("library.errors");
+  const tAlt = useTranslations("alternatives");
+  const queryClient = useQueryClient();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -190,7 +196,25 @@ export function ExerciseDialog({
     defaultValues: toFormValues(item),
   });
   const { handleSubmit, reset, control, formState } = form;
-  const { isDirty, errors } = formState;
+  const { errors } = formState;
+
+  // Alternatives live outside the zod form (a separate table, saved by the
+  // same action via `alternative_ids`). undefined = still loading: nothing is
+  // sent, so a slow load can never wipe the saved list. Admin edits global
+  // exercises, which have no coach-level alternatives.
+  const muscleGroup = useWatch({ control, name: "muscle_group" });
+  const loadsAlternatives = mode === "edit" && !!item && !admin;
+  const altsQuery = useQuery({
+    queryKey: ["alternatives", "library", item?.id],
+    queryFn: () => listOwnAlternativesAction(item!.id),
+    enabled: isOpen && loadsAlternatives,
+  });
+  const [altsDraft, setAltsDraft] = useState<AlternativeRef[] | null>(null);
+  const altsBaseline: AlternativeRef[] | undefined = loadsAlternatives ? altsQuery.data : [];
+  const alts = altsDraft ?? altsBaseline;
+  const altsDirty =
+    !!altsDraft && !!altsBaseline && altsDraft.map((a) => a.id).join() !== altsBaseline.map((a) => a.id).join();
+  const isDirty = formState.isDirty || altsDirty;
 
   useUnsavedChanges(isOpen && isDirty && !pending, tf("discard.description"));
 
@@ -208,6 +232,7 @@ export function ExerciseDialog({
     setLang(locale);
     setFormError(null);
     setFocusReq(null);
+    setAltsDraft(null);
   };
 
   const requestClose = () => {
@@ -220,6 +245,7 @@ export function ExerciseDialog({
     (data) => {
       setFormError(null);
       const formData = toFormData(data, { mode, sourceId: item?.id });
+      if (!admin && alts) formData.set("alternative_ids", JSON.stringify(alts.map((a) => a.id)));
       startTransition(async () => {
         const update = admin?.update ?? updateExerciseAction;
         const create = admin?.create ?? createExerciseAction;
@@ -231,7 +257,11 @@ export function ExerciseDialog({
         }
         // Saved: make the form clean so closing doesn't ask to discard.
         if (mode === "create") resetAll();
-        else reset(data);
+        else {
+          reset(data);
+          setAltsDraft(null);
+        }
+        void queryClient.invalidateQueries({ queryKey: ["alternatives"] });
         setOpen(false);
         onSaved();
       });
@@ -329,6 +359,24 @@ export function ExerciseDialog({
             <SectionNav control={control} errorKeys={Object.keys(errors)} section={section} onSelect={setSection} />
             <div ref={panelRef} className="min-h-0 overflow-y-auto px-4 py-4 md:px-6 md:py-5">
               <Section form={form} lang={lang} idp={idPrefix} admin={!!admin} />
+              {section === "extra" && !admin && (
+                <div className="mt-5 flex flex-col gap-1.5">
+                  <Label>{tAlt("title")}</Label>
+                  <p className="text-sm text-muted-foreground">{tAlt("libraryHint")}</p>
+                  {alts === undefined ? (
+                    <p className="text-sm text-muted-foreground">{tAlt("loading")}</p>
+                  ) : (
+                    <AlternativesEditor
+                      locale={locale}
+                      exerciseId={loadsAlternatives ? item?.id : undefined}
+                      muscleGroup={muscleGroup}
+                      value={alts}
+                      onChange={setAltsDraft}
+                      disabled={pending}
+                    />
+                  )}
+                </div>
+              )}
             </div>
             <ExercisePreview control={control} lang={lang} />
           </div>

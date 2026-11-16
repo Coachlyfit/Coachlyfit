@@ -443,11 +443,44 @@ describe("groupSwapsBySession", () => {
     const grouped = groupSwapsBySession(rows);
 
     expect(grouped.get("s1")).toEqual([
-      { original: { ar: "بنش بار", en: "Barbell Bench Press" }, substitute: { ar: "بنش دمبل", en: "Dumbbell Bench Press" } },
+      {
+        original: { ar: "بنش بار", en: "Barbell Bench Press" },
+        substitute: { ar: "بنش دمبل", en: "Dumbbell Bench Press" },
+        reason: null,
+      },
     ]);
     expect(grouped.get("s2")).toEqual([
-      { original: { ar: "سكوات", en: "Squat" }, substitute: { ar: "لانج", en: "Lunge" } },
+      { original: { ar: "سكوات", en: "Squat" }, substitute: { ar: "لانج", en: "Lunge" }, reason: null },
     ]);
+  });
+
+  it("carries the swap reason, taking the first one recorded across an exercise's sets", () => {
+    const base = {
+      session_id: "s1",
+      program_item_id: "item-1",
+      program_items: { exercises: { name_ar: "سكوات", name_en: "Squat" } },
+      exercises: { name_ar: "لانج", name_en: "Lunge" },
+    };
+    const grouped = groupSwapsBySession([
+      { ...base, swap_reason: null },
+      { ...base, swap_reason: "gym_crowded" },
+      { ...base, swap_reason: "other" },
+    ]);
+    expect(grouped.get("s1")).toHaveLength(1);
+    expect(grouped.get("s1")?.[0].reason).toBe("gym_crowded");
+  });
+
+  it("treats an unknown reason string as no reason", () => {
+    const grouped = groupSwapsBySession([
+      {
+        session_id: "s1",
+        program_item_id: "item-1",
+        program_items: { exercises: { name_ar: "أ", name_en: "A" } },
+        exercises: { name_ar: "ب", name_en: "B" },
+        swap_reason: "bogus",
+      },
+    ]);
+    expect(grouped.get("s1")?.[0].reason).toBeNull();
   });
 
   it("skips a row missing either exercise name (join came back null)", () => {

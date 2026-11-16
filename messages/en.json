@@ -1222,7 +1222,6 @@
       "swap": "Swap",
       "swapTitle": "Swap exercise",
       "useOriginal": "Use original",
-      "insteadOf": "Instead of: {name}",
       "searchExercises": "Search exercises...",
       "searching": "Searching...",
       "noExercisesMatch": "No exercises match.",
@@ -1340,7 +1339,21 @@
         }
       },
       "weekChip": "Week {n} · {name}",
-      "deloadWeek": "Deload"
+      "deloadWeek": "Deload",
+      "swappedFrom": "Swapped from {name}",
+      "swapReasonTitle": "Why are you swapping?",
+      "swapReasonHint": "Optional, it helps your coach. Swapping to {name}.",
+      "swapReason": {
+        "equipment_unavailable": "Equipment not available",
+        "gym_crowded": "Gym is crowded",
+        "injury_or_pain": "Injury or pain",
+        "other": "Other reason"
+      },
+      "swapSkipReason": "Skip",
+      "swapConfirm": "Confirm swap",
+      "swapBack": "Back",
+      "swapCoachPicks": "Your coach's alternatives",
+      "swapSuggestions": "Suggestions (same muscle, different equipment)"
     },
     "checkin": {
       "backTitle": "Weekly check-in",
@@ -5409,5 +5422,29 @@
       "upgrade": "Request upgrade",
       "downgrade": "Request lower plan"
     }
+  },
+  "alternatives": {
+    "title": "Alternatives",
+    "libraryHint": "Exercises a client can swap to when this one isn't available. Order them by preference.",
+    "loading": "Loading…",
+    "empty": "No alternatives yet.",
+    "add": "Add alternative",
+    "limitReached": "Limit reached ({max})",
+    "searchPlaceholder": "Search exercises…",
+    "sameMuscleGroup": "Same muscle group",
+    "searching": "Searching…",
+    "noResults": "No matching exercises.",
+    "dragHandle": "Drag to reorder {name}",
+    "remove": "Remove {name}",
+    "saved": "Alternatives saved",
+    "resetDone": "Alternatives reset to the library list",
+    "saveOverride": "Save for this client",
+    "cancel": "Cancel",
+    "customized": "Customized for this client",
+    "inherited": "Inherited from library",
+    "templateHint": "Per-client alternatives are only available on a client's program.",
+    "saveFirstHint": "Save the exercise first to customize its alternatives.",
+    "customize": "Customize for this client",
+    "resetToLibrary": "Reset to library"
   }
 }

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { computeSessionSummary } from "./summary";
 import { sanitizeExtra } from "./set-measures";
+import { asSwapReason, type SwapReason } from "./swap-reasons";
 import { parseBlockResults, toBlockScoreRows, type BlockResult, type BlockScoreRow } from "./block-result";
 import { isTimedKind } from "@/domain/programs/group-config";
 import { estimateOneRepMax, liftKindFromName, type LiftKind } from "@/domain/progress/prs";
@@ -59,6 +60,8 @@ export type LogSetInput = {
    * from what program_items prescribes. null/omitted = prescribed exercise,
    * same as before this field existed. */
   substituted_exercise_id?: string | null;
+  /** Why the client swapped; only stored together with substituted_exercise_id. */
+  swap_reason?: SwapReason | null;
   rpe?: number | null;
   notes?: string | null;
 };
@@ -99,6 +102,8 @@ export type ExerciseResultInput = {
 export type SwapSummary = {
   original: { ar: string; en: string };
   substitute: { ar: string; en: string };
+  /** Why the client swapped, if they said (null = skipped). */
+  reason: SwapReason | null;
 };
 
 export type RecentSession = WorkoutSession & {
@@ -137,26 +142,36 @@ type SwapRow = {
   program_item_id: string;
   program_items: { exercises: { name_ar: string; name_en: string } | null } | null;
   exercises: { name_ar: string; name_en: string } | null;
+  swap_reason?: string | null;
 };
 
 /** One entry per distinct swapped exercise per session — a swapped exercise
- * usually has several logged sets, this collapses them to one summary line.
+ * usually has several logged sets, this collapses them to one summary line
+ * (carrying the first reason any of its sets recorded).
  * Pure and exported so it's testable without mocking the two-query fetch
  * that produces its input (see fetchSwaps below). */
 export function groupSwapsBySession(rows: SwapRow[]): Map<string, SwapSummary[]> {
-  const seen = new Set<string>();
+  const seen = new Map<string, SwapSummary | null>();
   const bySession = new Map<string, SwapSummary[]>();
   for (const row of rows) {
     const key = `${row.session_id}-${row.program_item_id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (seen.has(key)) {
+      const earlier = seen.get(key);
+      if (earlier && !earlier.reason) earlier.reason = asSwapReason(row.swap_reason);
+      continue;
+    }
     const original = row.program_items?.exercises;
     const substitute = row.exercises;
-    if (!original || !substitute) continue;
+    if (!original || !substitute) {
+      seen.set(key, null);
+      continue;
+    }
     const summary: SwapSummary = {
       original: { ar: original.name_ar, en: original.name_en },
       substitute: { ar: substitute.name_ar, en: substitute.name_en },
+      reason: asSwapReason(row.swap_reason),
     };
+    seen.set(key, summary);
     const list = bySession.get(row.session_id) ?? [];
     list.push(summary);
     bySession.set(row.session_id, list);
@@ -302,7 +317,7 @@ export class WorkoutsService {
     // Offline-logged set: completed_at follows the device clock, clamped to
     // now() so it can't be forward-dated. No client_logged_at (online path, or
     // an edit) leaves completed_at to the column default / existing value.
-    const { client_logged_at, ...rest } = input;
+    const { client_logged_at, swap_reason, ...rest } = input;
     const loggedAt = client_logged_at ? Math.min(Date.parse(client_logged_at), Date.now()) : NaN;
     const offlineFields = Number.isNaN(loggedAt)
       ? {}
@@ -316,6 +331,8 @@ export class WorkoutsService {
           client_id: parent.client_id,
           session_id: sessionId,
           ...rest,
+          // The DB only allows a reason next to a substituted exercise.
+          ...(rest.substituted_exercise_id && swap_reason ? { swap_reason } : {}),
           ...offlineFields,
           prescribed_reps: prescribed?.reps ?? null,
           prescribed_weight: prescribed?.weight ?? null,
@@ -729,7 +746,7 @@ export class WorkoutsService {
     const { data, error } = await this.db
       .from("workout_set_logs")
       .select(
-        "session_id, program_item_id, program_items(exercises(name_ar, name_en)), exercises!workout_set_logs_substituted_exercise_id_fkey(name_ar, name_en)"
+        "session_id, program_item_id, swap_reason, program_items(exercises(name_ar, name_en)), exercises!workout_set_logs_substituted_exercise_id_fkey(name_ar, name_en)"
       )
       .in("session_id", sessionIds)
       .not("substituted_exercise_id", "is", null);
