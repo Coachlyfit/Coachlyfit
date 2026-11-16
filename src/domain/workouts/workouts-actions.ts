@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { WorkoutsService, type LogSetInput, type UpdateSetInput, type ExerciseResultInput } from "./workouts.service";
 import { ActivityLogsService, type LogActivityInput } from "./activity-logs.service";
+import { SWAP_REASONS } from "./swap-reasons";
 
 // Numeric extra metrics a set can carry (EXTRA_KEYS in library/measurement.ts)
 // plus the two per-set tags. Anything else in the object is rejected, so a
@@ -45,6 +46,7 @@ const logSetSchema = z.object({
   program_item_id: z.string().uuid(),
   set_index: z.coerce.number().int().min(0),
   substituted_exercise_id: z.string().uuid().optional().nullable(),
+  swap_reason: z.enum(SWAP_REASONS).optional().nullable(),
   ...setFieldsSchema,
 });
 

@@ -64,6 +64,8 @@ import { isTimedKind, parseGroupConfig } from "@/domain/programs/group-config";
 import { asSetType, loadFromPct } from "@/domain/programs/set-targets";
 import { isDeloadWeek, modifierForWeek, weekLabel, type WeekPlan } from "@/domain/programs/week-plan";
 import type { BlockResult, BlockResults } from "@/domain/workouts/block-result";
+import type { SwapReason } from "@/domain/workouts/swap-reasons";
+import type { RestoredSwap } from "@/domain/workouts/swap-suggestions";
 import { SessionDock, type DockField } from "./session-dock";
 import { SessionSummary } from "./session-summary";
 
@@ -146,6 +148,8 @@ export function WorkoutSessionClient({
   initialItemId,
   adjustedItemReasons,
   initialBlockResults,
+  alternatives,
+  initialSwaps,
 }: {
   locale: AppLocale;
   day: ProgramDay;
@@ -173,6 +177,10 @@ export function WorkoutSessionClient({
   adjustedItemReasons: Record<string, string>;
   /** workout_sessions.block_results — scores already saved for this session's timed groups. */
   initialBlockResults: BlockResults;
+  /** program_item_id -> the coach's alternatives for it (per-client override, else library); empty = suggest. */
+  alternatives: Record<string, SwapExercise[]>;
+  /** program_item_id -> the exercise already being done instead, rebuilt from the logged sets. */
+  initialSwaps: Record<string, RestoredSwap<SwapExercise>>;
 }) {
   const t = useTranslations("client.workout");
   const tm = useTranslations("measure");
@@ -219,7 +227,13 @@ export function WorkoutSessionClient({
   const blockClosed = new Set(items.filter((i) => i.group_key && blockResults[i.group_key]).map((i) => i.id));
   const blockText = useBlockResultText();
   const tKinds = useTranslations("programs.builder.groupFormat.kinds");
-  const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(new Map());
+  const [swaps, setSwaps] = useState<Map<string, SwapExercise>>(
+    () => new Map(Object.entries(initialSwaps).map(([itemId, s]) => [itemId, s.exercise]))
+  );
+  // Why each swap happened (optional); rides along on every set logged on the swapped exercise.
+  const [swapReasons, setSwapReasons] = useState<Map<string, SwapReason | null>>(
+    () => new Map(Object.entries(initialSwaps).map(([itemId, s]) => [itemId, s.reason]))
+  );
   const [elapsedS, setElapsedS] = useState(initialElapsedSeconds);
   const restTimer = useRestTimer();
   const [completed, setCompleted] = useState(alreadyCompleted);
@@ -370,6 +384,7 @@ export function WorkoutSessionClient({
     const prescribedKind = asSetType(projectedByItem.get(item.id)?.[setIndex - 1]?.set_type);
     if (prescribedKind !== "working") measures.extra = { ...(measures.extra ?? {}), set_type: prescribedKind };
     const substituted_exercise_id = swaps.get(item.id)?.id ?? null;
+    const swap_reason = substituted_exercise_id ? (swapReasons.get(item.id) ?? null) : null;
 
     const key = setKey(item.id, setIndex);
     // The id and timestamp are minted here, before anything is saved, so a
@@ -398,6 +413,7 @@ export function WorkoutSessionClient({
       rpe: null,
       notes: null,
       substituted_exercise_id,
+      swap_reason,
       exercise_id: substituted_exercise_id ?? item.exercise_id,
     };
     const nextLogs = new Map(logs).set(key, optimistic);
@@ -447,6 +463,7 @@ export function WorkoutSessionClient({
         rpe: null,
         notes: null,
         substituted_exercise_id,
+        swap_reason,
       },
     }).then((result) => {
       if (result.status !== "error") return;
@@ -770,8 +787,14 @@ export function WorkoutSessionClient({
               </div>
               <h1 className="max-w-full text-xl leading-7 font-semibold break-words">{pickLocale(exercise, locale)}</h1>
               {swaps.has(current.id) && (
-                <p className="max-w-full truncate text-xs text-muted-foreground">
-                  {t("insteadOf", { name: pickLocale(current.exercises, locale) })}
+                <p className="flex max-w-full flex-wrap items-center gap-1.5 text-xs">
+                  <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-warning-tint px-2 py-0.5 font-medium text-warning-tint-foreground">
+                    <ArrowLeftRight className="size-3 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{t("swappedFrom", { name: pickLocale(current.exercises, locale) })}</span>
+                  </span>
+                  {swapReasons.get(current.id) && (
+                    <span className="text-muted-foreground">{t(`swapReason.${swapReasons.get(current.id)}`)}</span>
+                  )}
                 </p>
               )}
               {(current.tempo || current.per_side) && (
@@ -1000,13 +1023,14 @@ export function WorkoutSessionClient({
         locale={locale}
         open={swapItem != null}
         onOpenChange={(open) => !open && setSwapItem(null)}
-        originalExerciseId={swapItem?.exercises.id ?? ""}
+        original={swapItem?.exercises ?? null}
         activeExerciseId={swapItem ? activeExercise(swapItem).id : ""}
-        muscleGroup={swapItem?.exercises.muscle_group ?? null}
-        onSelect={(exercise) => {
+        alternatives={swapItem ? (alternatives[swapItem.id] ?? []) : []}
+        onSelect={(exercise, reason) => {
           if (!swapItem) return;
           const nextSwaps = new Map(swaps).set(swapItem.id, exercise);
           setSwaps(nextSwaps);
+          setSwapReasons(new Map(swapReasons).set(swapItem.id, reason));
           if (swapItem.id === currentItemId) setDraft(seedDraft(swapItem, logs, nextSwaps));
           setSwapItem(null);
         }}
@@ -1015,6 +1039,7 @@ export function WorkoutSessionClient({
           const nextSwaps = new Map(swaps);
           nextSwaps.delete(swapItem.id);
           setSwaps(nextSwaps);
+          setSwapReasons(new Map(swapReasons).set(swapItem.id, null));
           if (swapItem.id === currentItemId) setDraft(seedDraft(swapItem, logs, nextSwaps));
           setSwapItem(null);
         }}

@@ -6,8 +6,11 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { AppLocale } from "@/domain/locale";
 import { ProgramsService } from "@/domain/programs/programs.service";
-import type { LibraryRow, TemplateKind } from "@/domain/programs/platform/library-view";
+import type { LibraryRow } from "@/domain/programs/platform/library-view";
+import { STARTERS } from "@/domain/programs/starters";
+import { KindTabs, type LibraryTab } from "./kind-tabs";
 import { LibraryClient } from "./library-client";
+import { StartersTab } from "./starters-tab";
 
 export default async function TemplateLibraryPage({
   params,
@@ -17,8 +20,9 @@ export default async function TemplateLibraryPage({
   searchParams: Promise<{ kind?: string }>;
 }) {
   const { locale } = await params;
-  // anything but ?kind=plan is the workouts tab (a hand-edited URL falls back, it doesn't error)
-  const kind: TemplateKind = (await searchParams).kind === "plan" ? "plan" : "workout";
+  // anything but ?kind=plan / ?kind=starter is the workouts tab (a hand-edited URL falls back, it doesn't error)
+  const requested = (await searchParams).kind;
+  const tab: LibraryTab = requested === "plan" || requested === "starter" ? requested : "workout";
   const t = await getTranslations("programs.library");
 
   const service = new ProgramsService(await createClient());
@@ -40,8 +44,13 @@ export default async function TemplateLibraryPage({
     duration_weeks: p.duration_weeks,
     gender_target: p.gender_target,
     copyId: copies.get(p.id) ?? null,
+    created_at: p.created_at,
   }));
-  const counts = { workout: all.filter((r) => r.kind === "workout").length, plan: all.filter((r) => r.kind === "plan").length };
+  const counts: Record<LibraryTab, number> = {
+    workout: all.filter((r) => r.kind === "workout").length,
+    plan: all.filter((r) => r.kind === "plan").length,
+    starter: STARTERS.length,
+  };
 
   return (
     <div className="flex flex-col gap-5 max-md:pb-16">
@@ -56,7 +65,12 @@ export default async function TemplateLibraryPage({
           <p className="max-w-2xl text-base text-muted-foreground">{t("subtitle")}</p>
         </div>
       </header>
-      <LibraryClient key={kind} locale={locale} kind={kind} counts={counts} rows={all.filter((r) => r.kind === kind)} />
+      <KindTabs tab={tab} counts={counts} locale={locale} />
+      {tab === "starter" ? (
+        <StartersTab locale={locale} />
+      ) : (
+        <LibraryClient key={tab} locale={locale} kind={tab} rows={all.filter((r) => r.kind === tab)} />
+      )}
     </div>
   );
 }

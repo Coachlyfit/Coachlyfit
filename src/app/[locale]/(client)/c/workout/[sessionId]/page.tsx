@@ -7,6 +7,12 @@ import {
   getLastPerformanceAction,
 } from "@/domain/workouts/workouts-actions";
 import { WorkoutsService } from "@/domain/workouts/workouts.service";
+import { restoreSwaps } from "@/domain/workouts/swap-suggestions";
+import {
+  ALTERNATIVE_EXERCISE_COLUMNS,
+  AlternativesService,
+  type AlternativeExercise,
+} from "@/domain/alternatives/alternatives.service";
 import { workoutEntry } from "@/domain/workouts/session-entry";
 import { weekIndexForDate, startOfWeekSaturday } from "@/domain/programs/program-cycle";
 import { CLIENT_SAFE_ITEM_COLUMNS } from "@/domain/programs/programs.service";
@@ -39,7 +45,7 @@ export default async function WorkoutSessionPage({
       // include coach_note_private (a coach-only prescription annotation)
       // on a route the client's browser directly receives the response
       // for. See CLIENT_SAFE_ITEM_COLUMNS's doc comment.
-      `*, programs(start_date, id, week_plan), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, measurement_type), program_item_sets(*))`
+      `*, programs(start_date, id, week_plan), program_items(${CLIENT_SAFE_ITEM_COLUMNS}, exercises(id, name_ar, name_en, muscle_group, equipment, primary_muscles, video_url, image_url, thumbnail_url, cues_ar, cues_en, steps_ar, steps_en, mistakes_ar, mistakes_en, safety_ar, safety_en, tempo, measurement_type), program_item_sets(*))`
     )
     .eq("id", programDayId)
     .order("order_index", { referencedTable: "program_items" })
@@ -99,11 +105,26 @@ export default async function WorkoutSessionPage({
     );
   }
 
-  const [setLogs, exerciseResults, adjustedItemReasons] = await Promise.all([
+  const [setLogs, exerciseResults, adjustedItemReasons, alternatives] = await Promise.all([
     listSetLogsAction(session.id),
     listExerciseResultsAction(session.id),
     new LedgerService(supabase).listActiveAdjustedItemIds(session.client_id),
+    new AlternativesService(supabase).listForItems(
+      visibleDay.program_items.map((item) => ({ id: item.id, exercise_id: item.exercise_id }))
+    ),
   ]);
+
+  // Sets already logged on a swapped exercise: restore that swap (and its
+  // reason) so a refresh or resume doesn't revert to the planned exercise.
+  const swappedIds = [...new Set(setLogs.map((l) => l.substituted_exercise_id).filter((id): id is string => !!id))];
+  const { data: swappedExercises } = swappedIds.length
+    ? await supabase
+        .from("exercises")
+        .select(ALTERNATIVE_EXERCISE_COLUMNS)
+        .in("id", swappedIds)
+        .returns<AlternativeExercise[]>()
+    : { data: [] as AlternativeExercise[] };
+  const initialSwaps = restoreSwaps(setLogs, swappedExercises ?? []);
   const lastPerformance = await getLastPerformanceAction(
     day.program_items.map((item) => item.exercises.id),
     session.id
@@ -124,6 +145,8 @@ export default async function WorkoutSessionPage({
       initialItemId={session.current_item_id}
       initialBlockResults={parseBlockResults(session.block_results)}
       adjustedItemReasons={Object.fromEntries(adjustedItemReasons)}
+      alternatives={alternatives}
+      initialSwaps={initialSwaps}
     />
   );
 }

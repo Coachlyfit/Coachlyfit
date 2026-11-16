@@ -1,14 +1,32 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { LibraryService } from "@/domain/library/library.service";
 import { libraryErrorKey } from "@/domain/library/errors";
+import { AlternativesService, MAX_ALTERNATIVES } from "@/domain/alternatives/alternatives.service";
 import { createExerciseSchema, createFoodSchema } from "./schemas";
 import { linesToArray } from "./lines-to-array";
 
 type ActionResult = { error: string } | void;
+
+const alternativeIdsSchema = z.array(z.string().uuid()).max(MAX_ALTERNATIVES);
+
+/** `alternative_ids` is a JSON array the dialog sends only once it has the
+ * current list (so a slow load can't wipe it). null = not sent, leave the
+ * alternatives alone; undefined = malformed. */
+function parseAlternativeIds(formData: FormData): string[] | null | undefined {
+  const raw = formData.get("alternative_ids");
+  if (raw === null) return null;
+  try {
+    const parsed = alternativeIdsSchema.safeParse(JSON.parse(String(raw)));
+    return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 // Plain reads moved to src/domain/library/library-actions.ts so a
 // client-facing component can import them without pulling in this route's
@@ -84,6 +102,8 @@ export async function createExerciseAction(locale: string, formData: FormData): 
   });
   if (!parsed.success) return { error: "invalid_input" };
   if (!!parsed.data.skill_group !== (parsed.data.skill_level != null)) return { error: "skill_incomplete" };
+  const alternativeIds = parseAlternativeIds(formData);
+  if (alternativeIds === undefined) return { error: "invalid_input" };
 
   const supabase = await createClient();
   const coachId = await resolveCoachId(supabase);
@@ -105,7 +125,7 @@ export async function createExerciseAction(locale: string, formData: FormData): 
     ...input
   } = parsed.data;
   try {
-    await new LibraryService(supabase).createExercise(coachId, {
+    const created = await new LibraryService(supabase).createExercise(coachId, {
       ...input,
       skill_group: input.skill_group || undefined,
       video_url: video_url || undefined,
@@ -121,6 +141,7 @@ export async function createExerciseAction(locale: string, formData: FormData): 
       primary_muscles: linesToArray(primary_muscles),
       secondary_muscles: linesToArray(secondary_muscles),
     });
+    if (alternativeIds?.length) await new AlternativesService(supabase).setLibrary(coachId, created.id, alternativeIds);
   } catch (error) {
     // 23505 here means the coach already has a clone of this global — see
     // exercises_coach_source_uniq (20260805000001_library_clone.sql).
@@ -203,6 +224,8 @@ export async function updateExerciseAction(
   });
   if (!parsed.success) return { error: "invalid_input" };
   if (!!parsed.data.skill_group !== (parsed.data.skill_level != null)) return { error: "skill_incomplete" };
+  const alternativeIds = parseAlternativeIds(formData);
+  if (alternativeIds === undefined) return { error: "invalid_input" };
 
   const supabase = await createClient();
   const {
@@ -256,6 +279,13 @@ export async function updateExerciseAction(
       secondary_muscles: linesToArray(secondary_muscles) ?? null,
     });
     if (!updated) return { error: "not_found_or_forbidden" };
+    if (alternativeIds) {
+      // updated=true means RLS let this coach edit the row, so it's theirs
+      // (or their team's): alternatives are saved under their tenant id.
+      const coachId = await resolveCoachId(supabase);
+      if (!coachId) return { error: "not_authenticated" };
+      await new AlternativesService(supabase).setLibrary(coachId, id, alternativeIds);
+    }
   } catch (error) {
     return { error: libraryErrorKey(error) };
   }

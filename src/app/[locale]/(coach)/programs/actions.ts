@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { ProgramsService } from "@/domain/programs/programs.service";
+import { AlternativesService, MAX_ALTERNATIVES } from "@/domain/alternatives/alternatives.service";
 import { ReviewService, type StructuredAdjustment } from "@/domain/progress/review.service";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import { adjustmentSchema } from "../review/schemas";
@@ -530,6 +531,7 @@ export async function updateItemAction(
   await programs.snapshotIfAssigned(programId, "update_item");
   const updated = await programs.updateItem(itemId, { ...rest, rehab_phase_id: rehab_phase_id || null });
   if (!updated) return { error: "not_found_or_forbidden" };
+  if (rest.exercise_id) await new AlternativesService(supabase).dropStaleOverrides(itemId, rest.exercise_id);
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
@@ -572,6 +574,40 @@ export async function duplicateItemAction(locale: string, programId: string, ite
   await programs.snapshotIfAssigned(programId, "duplicate_item");
   const duplicated = await programs.duplicateItem(itemId);
   if (!duplicated) return { error: "not_found_or_forbidden" };
+  await new AlternativesService(supabase).copyOverrides(itemId, duplicated.id);
+  revalidatePath(`/${locale}/programs/${programId}`);
+}
+
+const itemAlternativesSchema = z.object({
+  itemId: z.string().uuid(),
+  exerciseId: z.string().uuid(),
+  ids: z.array(z.string().uuid()).max(MAX_ALTERNATIVES),
+});
+
+/** Saves the per-client override of one item's alternatives. An empty list
+ * removes the override (the item inherits the library list again). */
+export async function setItemAlternativesAction(
+  locale: string,
+  programId: string,
+  itemId: string,
+  exerciseId: string,
+  ids: string[]
+): Promise<ActionResult> {
+  const parsed = itemAlternativesSchema.safeParse({ itemId, exerciseId, ids });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const coachId = await resolveCoachId(supabase);
+  if (!coachId) return { error: "not_authenticated" };
+
+  const alternatives = new AlternativesService(supabase);
+  try {
+    if (parsed.data.ids.length === 0) await alternatives.clearItemOverride(itemId);
+    else await alternatives.setItemOverride(coachId, itemId, exerciseId, parsed.data.ids);
+  } catch {
+    // RLS rejects an item the coach can't edit, or an exercise they can't see.
+    return { error: "not_found_or_forbidden" };
+  }
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 
@@ -594,6 +630,7 @@ export async function replaceItemExerciseAction(
   await programs.snapshotIfAssigned(programId, "replace_exercise");
   const replaced = await programs.replaceItemExercise(itemId, parsed.data);
   if (!replaced) return { error: "not_found_or_forbidden" };
+  await new AlternativesService(supabase).dropStaleOverrides(itemId, parsed.data);
   revalidatePath(`/${locale}/programs/${programId}`);
 }
 

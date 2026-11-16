@@ -29,6 +29,7 @@ import { defaultEnteredSet, setToEntered, setToStored, type SetPayload } from "@
 import { itemSchema, type ItemFormInput } from "../schemas";
 import { addItemAction, updateItemAction } from "../actions";
 import { ExercisePicker } from "./exercise-picker";
+import { ItemAlternatives } from "./item-alternatives";
 import { ExerciseHero, useExerciseMeta, type PickedExercise } from "./exercise-media";
 
 type ExistingItemSet = {
@@ -106,6 +107,7 @@ export function ItemDialog({
   initialExercise,
   initialBlock,
   rehabPhases = [],
+  clientProgram = false,
   open,
   onOpenChange,
 }: {
@@ -126,6 +128,8 @@ export function ItemDialog({
    * protocol yet; a rehab item can still be added without a phase (shows
    * on every week, see day-plan.ts's activePhase). */
   rehabPhases?: RehabPhaseOption[];
+  /** True for a client's own program (per-client alternatives override), false for a template. */
+  clientProgram?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -619,6 +623,14 @@ export function ItemDialog({
                     </div>
                   </div>
                 </details>
+
+                <ItemAlternatives
+                  locale={locale}
+                  programId={programId}
+                  item={item}
+                  exercise={selectedExercise}
+                  clientProgram={clientProgram}
+                />
 
                 <details open={notesOpen} className="group rounded-xl bg-muted/40">
                   <summary className="flex h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">

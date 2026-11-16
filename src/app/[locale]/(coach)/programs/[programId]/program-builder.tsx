@@ -365,6 +365,7 @@ function DayCard({
   day,
   week,
   rehabPhases,
+  isTemplate,
   dietVariant,
   onEditDay,
   onDeleteDay,
@@ -375,6 +376,8 @@ function DayCard({
   day: Day;
   week: number;
   rehabPhases: { id: string; name_ar: string; name_en: string }[];
+  /** Templates have no client, so no per-client alternatives override. */
+  isTemplate: boolean;
   /** The variant day.diet_plan_id points at, if any — looked up by the
    * caller (ProgramBuilder has tree.diet_variants, DayCard only has the
    * id) so this component stays a pure prop-in view of its day. */
@@ -898,6 +901,7 @@ function DayCard({
           initialExercise={itemDialog.initialExercise}
           initialBlock={itemDialog.initialBlock}
           rehabPhases={rehabPhases}
+          clientProgram={!isTemplate}
           open={!!itemDialog}
           onOpenChange={(open) => !open && setItemDialog(null)}
         />
@@ -1018,6 +1022,7 @@ export function ProgramBuilder({
           day={day}
           week={week}
           rehabPhases={rehabPhases}
+          isTemplate={isTemplate}
           dietVariant={tree.diet_variants.find((v) => v.id === day.diet_plan_id)}
           onEditDay={() => setDayDialog({ day })}
           onDeleteDay={() => setPendingDeleteDay(day.id)}
@@ -1031,6 +1036,7 @@ export function ProgramBuilder({
               day={session}
               week={week}
               rehabPhases={rehabPhases}
+              isTemplate={isTemplate}
               onEditDay={() => setDayDialog({ day: session })}
               onDeleteDay={() => setPendingDeleteDay(session.id)}
             />

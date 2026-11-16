@@ -1222,7 +1222,6 @@
       "swap": "بدّل",
       "swapTitle": "بدّل التمرين",
       "useOriginal": "استخدم الأصلي",
-      "insteadOf": "بدل: {name}",
       "searchExercises": "دوّر على تمرين...",
       "searching": "بدوّر...",
       "noExercisesMatch": "مفيش تمارين مطابقة.",
@@ -1340,7 +1339,21 @@
         }
       },
       "weekChip": "الأسبوع {n} · {name}",
-      "deloadWeek": "تخفيف"
+      "deloadWeek": "تخفيف",
+      "swappedFrom": "بديل عن {name}",
+      "swapReasonTitle": "ليه بتبدّل التمرين؟",
+      "swapReasonHint": "اختياري، وبيساعد المدرب. هتبدّل لـ {name}.",
+      "swapReason": {
+        "equipment_unavailable": "الجهاز أو الأداة مش متاحة",
+        "gym_crowded": "الجيم زحمة",
+        "injury_or_pain": "إصابة أو ألم",
+        "other": "سبب تاني"
+      },
+      "swapSkipReason": "تخطّي",
+      "swapConfirm": "أكّد التبديل",
+      "swapBack": "رجوع",
+      "swapCoachPicks": "بدائل المدرب",
+      "swapSuggestions": "اقتراحات (نفس العضلة، أداة مختلفة)"
     },
     "checkin": {
       "backTitle": "متابعة الأسبوع",
@@ -2310,8 +2323,6 @@
       "advanced": "متقدم"
     },
     "starters": {
-      "button": "ابدأ من قالب جاهز",
-      "title": "قوالب جاهزة",
       "description": "اختار خطة جاهزة. هتبقى قالب خاص بيك تقدر تعدّله وتديه للعملاء.",
       "days": "{count, plural, one {يوم تمرين} two {يومين تمرين} few {# أيام تمرين} other {# يوم تمرين}}",
       "use": "استخدم",
@@ -2358,8 +2369,25 @@
         "clear": "مسح التصفية",
         "goal": "الهدف",
         "gender": "الفئة",
-        "duration": "المدة"
+        "duration": "المدة",
+        "clearGroup": "مسح",
+        "clearAll": "مسح الكل",
+        "done": "تم",
+        "button": "فلترة",
+        "title": "الفلاتر",
+        "close": "إغلاق",
+        "selected": "مختار",
+        "remove": "إزالة {value}",
+        "showResults": "{count, plural, one {اعرض نتيجة واحدة} two {اعرض نتيجتين} few {اعرض <n>{shown}</n> نتائج} other {اعرض <n>{shown}</n> نتيجة}}"
       },
+      "sort": {
+        "label": "الترتيب",
+        "value": "ترتيب: {value}",
+        "name": "الاسم",
+        "newest": "الأحدث"
+      },
+      "unitWorkout": "{count, plural, one {تمرين} two {تمرينان} few {تمارين} many {تمرينًا} other {تمرين}}",
+      "unitPlan": "{count, plural, one {خطة} two {خطتان} few {خطط} many {خطةً} other {خطة}}",
       "categories": {
         "strength": "القوة",
         "fat_burning": "حرق الدهون",
@@ -2429,7 +2457,8 @@
       "tabs": {
         "label": "نوع القالب",
         "workouts": "التمارين",
-        "plans": "الخطط"
+        "plans": "الخطط",
+        "starters": "قوالب البداية"
       },
       "genders": {
         "female": "للنساء",
@@ -5410,5 +5439,29 @@
       "upgrade": "اطلب ترقية",
       "downgrade": "اطلب باقة أقل"
     }
+  },
+  "alternatives": {
+    "title": "البدائل",
+    "libraryHint": "تمارين بديلة يقدر العميل يبدّل بيها لو التمرين ده مش متاح. رتّبها حسب الأفضلية.",
+    "loading": "بنحمّل…",
+    "empty": "مفيش بدائل لسه.",
+    "add": "ضيف بديل",
+    "limitReached": "وصلت للحد الأقصى ({max})",
+    "searchPlaceholder": "دوّر على تمرين…",
+    "sameMuscleGroup": "نفس مجموعة العضلات",
+    "searching": "بندوّر…",
+    "noResults": "مفيش تمارين مطابقة.",
+    "dragHandle": "اسحب لإعادة ترتيب {name}",
+    "remove": "شيل {name}",
+    "saved": "اتحفظت البدائل",
+    "resetDone": "رجّعنا البدائل لقائمة المكتبة",
+    "saveOverride": "احفظ للعميل ده",
+    "cancel": "إلغاء",
+    "customized": "متخصصة للعميل ده",
+    "inherited": "من المكتبة",
+    "templateHint": "تخصيص البدائل لكل عميل متاح في برامج العملاء بس.",
+    "saveFirstHint": "احفظ التمرين الأول عشان تخصّص بدائله.",
+    "customize": "خصّص للعميل ده",
+    "resetToLibrary": "رجّع لقائمة المكتبة"
   }
 }

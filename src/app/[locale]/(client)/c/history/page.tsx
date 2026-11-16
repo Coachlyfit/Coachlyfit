@@ -20,6 +20,7 @@ export default async function ClientHistoryPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("client.history");
+  const tSwapReason = await getTranslations("client.workout.swapReason");
   const supabase = await createClient();
 
   const {
@@ -78,6 +79,7 @@ export default async function ClientHistoryPage({
                         original: locale === "ar" ? swap.original.ar : swap.original.en,
                         substitute: locale === "ar" ? swap.substitute.ar : swap.substitute.en,
                       })}
+                      {swap.reason && ` · ${tSwapReason(swap.reason)}`}
                     </p>
                   ))}
                 </CardContent>

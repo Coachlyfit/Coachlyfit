@@ -1296,6 +1296,89 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_alternatives: {
+        Row: {
+          alternative_exercise_id: string
+          coach_id: string | null
+          created_at: string
+          created_by: string | null
+          exercise_id: string
+          id: string
+          program_item_id: string | null
+          sort_order: number
+        }
+        Insert: {
+          alternative_exercise_id: string
+          coach_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          exercise_id: string
+          id?: string
+          program_item_id?: string | null
+          sort_order?: number
+        }
+        Update: {
+          alternative_exercise_id?: string
+          coach_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          exercise_id?: string
+          id?: string
+          program_item_id?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_alternatives_alternative_exercise_id_fkey"
+            columns: ["alternative_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_alternatives_alternative_exercise_id_fkey"
+            columns: ["alternative_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_alternatives_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_alternatives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_alternatives_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_alternatives_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_alternatives_program_item_id_fkey"
+            columns: ["program_item_id"]
+            isOneToOne: false
+            referencedRelation: "program_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           archived_at: string | null
@@ -4958,6 +5041,7 @@ export type Database = {
           session_id: string
           set_index: number
           substituted_exercise_id: string | null
+          swap_reason: string | null
           weight: number | null
         }
         Insert: {
@@ -4982,6 +5066,7 @@ export type Database = {
           session_id: string
           set_index: number
           substituted_exercise_id?: string | null
+          swap_reason?: string | null
           weight?: number | null
         }
         Update: {
@@ -5006,6 +5091,7 @@ export type Database = {
           session_id?: string
           set_index?: number
           substituted_exercise_id?: string | null
+          swap_reason?: string | null
           weight?: number | null
         }
         Relationships: [

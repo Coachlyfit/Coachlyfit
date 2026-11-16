@@ -21,6 +21,7 @@ import { formatDate } from "@/lib/format";
 export async function WorkoutSection({ clientId, locale }: { clientId: string; locale: AppLocale }) {
   const t = await getTranslations("clients.workouts");
   const tPrs = await getTranslations("progress.prs");
+  const tSwapReason = await getTranslations("client.workout.swapReason");
   const supabase = await createClient();
   const workouts = new WorkoutsService(supabase);
   const [sessions, logs, blockScores, skillRungs] = await Promise.all([
@@ -86,6 +87,7 @@ export async function WorkoutSection({ clientId, locale }: { clientId: string; l
                         original: pickBilingual(swap.original, locale),
                         substitute: pickBilingual(swap.substitute, locale),
                       })}
+                      {swap.reason && ` · ${tSwapReason(swap.reason)}`}
                     </p>
                   ))}
                 </CardContent>

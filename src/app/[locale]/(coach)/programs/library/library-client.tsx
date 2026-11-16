@@ -1,100 +1,43 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { LibraryBig, Search, SearchX } from "lucide-react";
+import { LibraryBig, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Link } from "@/i18n/navigation";
-import { formatNumber } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import type { AppLocale } from "@/domain/locale";
 import {
   facets,
   filterTemplates,
   NO_FILTERS,
+  parseLibraryFilters,
+  pruneFilters,
+  sortTemplates,
+  writeLibraryFilters,
   type LibraryFilters,
   type LibraryRow,
+  type LibrarySort,
   type TemplateKind,
 } from "@/domain/programs/platform/library-view";
 import { useEquipmentLabel } from "../../library/equipment-filter";
+import { FiltersBar, type FilterGroup } from "./filters-bar";
 import { TemplateCard } from "./template-card";
 
-/** One filter row: an "All" chip plus one per value present in the data. */
-function Chips({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string | null;
-  options: { value: string; label: string }[];
-  onChange: (v: string | null) => void;
-}) {
-  const t = useTranslations("programs.library.filters");
-  if (options.length === 0) return null;
-  const chip =
-    "h-8 rounded-full border px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-pressed:border-transparent aria-pressed:bg-primary aria-pressed:text-primary-foreground";
-  return (
-    <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1.5">
-      <span className="me-1 text-sm text-muted-foreground">{label}</span>
-      <button type="button" aria-pressed={value === null} onClick={() => onChange(null)} className={chip}>
-        {t("all")}
-      </button>
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          aria-pressed={value === o.value}
-          onClick={() => onChange(value === o.value ? null : o.value)}
-          className={chip}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+type ListKey = "category" | "level" | "equipment" | "goal" | "gender";
+type GroupKey = ListKey | "duration";
 
-/** Workouts | Plans. Link-based, so the choice is in the URL and survives a reload. */
-function KindTabs({ kind, counts, locale }: { kind: TemplateKind; counts: Record<TemplateKind, number>; locale: AppLocale }) {
-  const t = useTranslations("programs.library.tabs");
-  const items: { key: TemplateKind; href: string; label: string }[] = [
-    { key: "workout", href: "/programs/library", label: t("workouts") },
-    { key: "plan", href: "/programs/library?kind=plan", label: t("plans") },
-  ];
-  return (
-    <nav aria-label={t("label")} className="flex gap-1 rounded-[11px] bg-muted p-1 max-sm:w-full sm:self-start">
-      {items.map((it) => (
-        <Link
-          key={it.key}
-          href={it.href}
-          aria-current={kind === it.key ? "page" : undefined}
-          className={cn(
-            "flex h-9.5 items-center justify-center gap-1.5 rounded-lg px-3.5 font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50 max-sm:flex-1",
-            kind === it.key && "bg-card shadow-xs"
-          )}
-        >
-          {it.label}
-          <span className="font-mono text-xs text-muted-foreground tabular-nums">{formatNumber(counts[it.key], locale)}</span>
-        </Link>
-      ))}
-    </nav>
-  );
-}
+const SEARCH_DEBOUNCE_MS = 300;
+const toggleIn = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
 export function LibraryClient({
   locale,
   kind,
-  counts,
   rows,
 }: {
   locale: AppLocale;
   kind: TemplateKind;
-  counts: Record<TemplateKind, number>;
   rows: LibraryRow[];
 }) {
   const t = useTranslations("programs.library");
@@ -102,21 +45,93 @@ export function LibraryClient({
   const tLevels = useTranslations("programs.levels");
   const tGoals = useTranslations("programs.goals");
   const equipmentLabel = useEquipmentLabel();
-  const [filters, setFilters] = useState<LibraryFilters>(NO_FILTERS);
 
+  // The URL is the source of truth, so filters survive a refresh and can be shared. Each tab has its own keys.
+  const searchParams = useSearchParams();
   const available = useMemo(() => facets(rows), [rows]);
-  const shown = useMemo(() => filterTemplates(rows, filters), [rows, filters]);
-  const set = (patch: Partial<LibraryFilters>) => setFilters((f) => ({ ...f, ...patch }));
-  const filtering =
-    filters.q.trim() !== "" ||
-    !!(filters.category || filters.level || filters.equipment || filters.goal || filters.gender || filters.duration);
-  const levelOptions = available.levels.map((l) => ({ value: l, label: tLevels(l as "beginner") }));
-  const clear = () => setFilters(NO_FILTERS);
+  const { filters, sort } = useMemo(() => {
+    const parsed = parseLibraryFilters(new URLSearchParams(searchParams.toString()), kind);
+    return { filters: pruneFilters(parsed.filters, available), sort: parsed.sort };
+  }, [searchParams, kind, available]);
+
+  // The input stays local so typing is instant; the URL follows once the coach pauses.
+  const [q, setQ] = useState(filters.q);
+  const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(searchTimer.current), []);
+
+  /** Rewrites this tab's params in place (no server round trip: rows are already here). Reads the live URL
+   * so a debounced or rapid second call can't write back stale filters. */
+  function update(change: (cur: LibraryFilters) => LibraryFilters, nextSort?: LibrarySort) {
+    const live = new URLSearchParams(window.location.search);
+    const cur = parseLibraryFilters(live, kind);
+    const query = writeLibraryFilters(live, kind, change(cur.filters), nextSort ?? cur.sort);
+    window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname);
+  }
+
+  function onQ(value: string) {
+    setQ(value);
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => update((cur) => ({ ...cur, q: value })), SEARCH_DEBOUNCE_MS);
+  }
+
+  function onToggle(group: string, value: string) {
+    update((cur) => {
+      const next = { ...cur };
+      if ((group as GroupKey) === "duration") next.duration = toggleIn(cur.duration, Number(value));
+      else next[group as ListKey] = toggleIn(cur[group as ListKey], value);
+      return next;
+    });
+  }
+
+  function onClearGroup(group: string) {
+    update((cur) => {
+      const next = { ...cur };
+      if ((group as GroupKey) === "duration") next.duration = [];
+      else next[group as ListKey] = [];
+      return next;
+    });
+  }
+
+  function clearAll() {
+    clearTimeout(searchTimer.current);
+    setQ("");
+    update(() => NO_FILTERS);
+  }
+
+  const shown = useMemo(() => sortTemplates(filterTemplates(rows, filters), sort, locale), [rows, filters, sort, locale]);
+
+  /** Results if this option were the only pick in its group (the other groups and the search still apply). */
+  const countFor = (key: GroupKey, value: string) => {
+    const f = { ...filters };
+    if (key === "duration") f.duration = [Number(value)];
+    else f[key] = [value];
+    return filterTemplates(rows, f).length;
+  };
+  const group = (key: GroupKey, values: (string | number)[], label: (v: string) => string): FilterGroup => ({
+    key,
+    label: tFilters(key),
+    selected: filters[key].map(String),
+    options: values.map((v) => ({ value: String(v), label: label(String(v)), count: countFor(key, String(v)) })),
+  });
+
+  const levels = group("level", available.levels, (l) => tLevels(l as "beginner"));
+  const groups: FilterGroup[] = (
+    kind === "plan"
+      ? [
+          group("goal", available.goals, (g) => tGoals(g as "muscle")),
+          group("gender", available.genders, (g) => t(`genders.${g}` as "genders.male")),
+          levels,
+          group("duration", available.durations, (d) => t("card.weeks", { count: Number(d) })),
+        ]
+      : [
+          group("category", available.categories, (c) => t(`categories.${c}` as "categories.core")),
+          levels,
+          group("equipment", available.equipment, (e) => equipmentLabel(e) ?? e),
+        ]
+  ).filter((g) => g.options.length > 0);
 
   return (
     <div className="flex flex-col gap-5">
-      <KindTabs kind={kind} counts={counts} locale={locale} />
-
       {rows.length === 0 ? (
         <Card>
           <EmptyState
@@ -127,69 +142,19 @@ export function LibraryClient({
         </Card>
       ) : (
         <>
-          <div className="flex flex-col gap-3">
-            <div className="relative min-w-0 max-w-md">
-              <Search
-                className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <Input
-                type="search"
-                value={filters.q}
-                onChange={(e) => set({ q: e.target.value })}
-                placeholder={t("searchPlaceholder")}
-                aria-label={t("searchPlaceholder")}
-                className="ps-9"
-              />
-            </div>
-            {kind === "plan" ? (
-              <>
-                <Chips
-                  label={tFilters("goal")}
-                  value={filters.goal}
-                  options={available.goals.map((g) => ({ value: g, label: tGoals(g as "muscle") }))}
-                  onChange={(goal) => set({ goal })}
-                />
-                <Chips
-                  label={tFilters("gender")}
-                  value={filters.gender}
-                  options={available.genders.map((g) => ({ value: g, label: t(`genders.${g}`) }))}
-                  onChange={(gender) => set({ gender })}
-                />
-                <Chips label={tFilters("level")} value={filters.level} options={levelOptions} onChange={(level) => set({ level })} />
-                <Chips
-                  label={tFilters("duration")}
-                  value={filters.duration ? String(filters.duration) : null}
-                  options={available.durations.map((d) => ({ value: String(d), label: t("card.weeks", { count: d }) }))}
-                  onChange={(d) => set({ duration: d ? Number(d) : null })}
-                />
-              </>
-            ) : (
-              <>
-                <Chips
-                  label={tFilters("category")}
-                  value={filters.category}
-                  options={available.categories.map((c) => ({ value: c, label: t(`categories.${c}`) }))}
-                  onChange={(category) => set({ category })}
-                />
-                <Chips label={tFilters("level")} value={filters.level} options={levelOptions} onChange={(level) => set({ level })} />
-                <Chips
-                  label={tFilters("equipment")}
-                  value={filters.equipment}
-                  options={available.equipment.map((e) => ({ value: e, label: equipmentLabel(e) ?? e }))}
-                  onChange={(equipment) => set({ equipment })}
-                />
-              </>
-            )}
-            {filtering && (
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span aria-live="polite">{t("results", { count: shown.length })}</span>
-                <Button type="button" variant="ghost" size="sm" onClick={clear}>
-                  {tFilters("clear")}
-                </Button>
-              </div>
-            )}
-          </div>
+          <FiltersBar
+            locale={locale}
+            kind={kind}
+            groups={groups}
+            q={q}
+            onQ={onQ}
+            sort={sort}
+            onSort={(next) => update((cur) => cur, next)}
+            onToggle={onToggle}
+            onClearGroup={onClearGroup}
+            onClearAll={clearAll}
+            resultCount={shown.length}
+          />
 
           {shown.length === 0 ? (
             <Card>
@@ -198,7 +163,7 @@ export function LibraryClient({
                 title={t("noResults.title")}
                 description={t("noResults.description")}
                 action={
-                  <Button type="button" variant="outline" onClick={clear}>
+                  <Button type="button" variant="outline" onClick={clearAll}>
                     {tFilters("clear")}
                   </Button>
                 }
