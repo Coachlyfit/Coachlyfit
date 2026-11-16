@@ -2369,8 +2369,25 @@
         "clear": "Clear filters",
         "goal": "Goal",
         "gender": "For",
-        "duration": "Duration"
+        "duration": "Duration",
+        "clearGroup": "Clear",
+        "clearAll": "Clear all",
+        "done": "Done",
+        "button": "Filter",
+        "title": "Filters",
+        "close": "Close",
+        "selected": "selected",
+        "remove": "Remove {value}",
+        "showResults": "{count, plural, one {Show <n>{shown}</n> result} other {Show <n>{shown}</n> results}}"
       },
+      "sort": {
+        "label": "Sort",
+        "value": "Sort: {value}",
+        "name": "Name",
+        "newest": "Newest"
+      },
+      "unitWorkout": "{count, plural, one {exercise} other {exercises}}",
+      "unitPlan": "{count, plural, one {plan} other {plans}}",
       "categories": {
         "strength": "Strength",
         "fat_burning": "Fat burning",

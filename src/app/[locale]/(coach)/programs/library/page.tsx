@@ -44,6 +44,7 @@ export default async function TemplateLibraryPage({
     duration_weeks: p.duration_weeks,
     gender_target: p.gender_target,
     copyId: copies.get(p.id) ?? null,
+    created_at: p.created_at,
   }));
   const counts: Record<LibraryTab, number> = {
     workout: all.filter((r) => r.kind === "workout").length,

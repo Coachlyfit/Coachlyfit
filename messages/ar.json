@@ -2369,8 +2369,25 @@
         "clear": "مسح التصفية",
         "goal": "الهدف",
         "gender": "الفئة",
-        "duration": "المدة"
+        "duration": "المدة",
+        "clearGroup": "مسح",
+        "clearAll": "مسح الكل",
+        "done": "تم",
+        "button": "فلترة",
+        "title": "الفلاتر",
+        "close": "إغلاق",
+        "selected": "مختار",
+        "remove": "إزالة {value}",
+        "showResults": "{count, plural, one {اعرض نتيجة واحدة} two {اعرض نتيجتين} few {اعرض <n>{shown}</n> نتائج} other {اعرض <n>{shown}</n> نتيجة}}"
       },
+      "sort": {
+        "label": "الترتيب",
+        "value": "ترتيب: {value}",
+        "name": "الاسم",
+        "newest": "الأحدث"
+      },
+      "unitWorkout": "{count, plural, one {تمرين} two {تمرينان} few {تمارين} many {تمرينًا} other {تمرين}}",
+      "unitPlan": "{count, plural, one {خطة} two {خطتان} few {خطط} many {خطةً} other {خطة}}",
       "categories": {
         "strength": "القوة",
         "fat_burning": "حرق الدهون",
