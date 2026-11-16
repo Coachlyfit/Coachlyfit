@@ -11,6 +11,7 @@ import { formatNumber } from "@/lib/format";
 import { PageTitle } from "@/components/dashboard/page-title";
 import { ImportDialog } from "@/components/import/import-dialog";
 import { InviteClientDialog } from "./invite-client-dialog";
+import { DeletedClientsButton } from "./deleted-clients-button";
 import { ClientsTable, type ClientRow } from "./clients-table";
 import { STATUS_FILTERS, type StatusFilter } from "./schemas";
 import { getAuthUser, getRequestCoachId } from "@/lib/auth/session";
@@ -95,6 +96,7 @@ export default async function ClientsPage({
           )}
         </div>
         <div className="flex items-center gap-2">
+          <DeletedClientsButton locale={locale} />
           <ImportDialog type="clients" locale={locale} />
           <InviteClientDialog locale={locale} />
         </div>

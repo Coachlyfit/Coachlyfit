@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
+import { daysUntilPermanentDelete } from "./deletion";
+
 type Db = SupabaseClient<Database>;
 
 export type UpdateClientInput = {
@@ -28,6 +30,14 @@ export type RosterClient = {
   subscription: { status: "active" | "frozen" | "canceled"; end_date: string } | null;
   /** UUID of the team member this client is assigned to, or null (unassigned / owner sees all). */
   assignedTo: string | null;
+};
+
+export type DeletedClient = {
+  id: string;
+  displayName: string;
+  email: string | null;
+  deletedAt: string;
+  daysLeft: number;
 };
 
 export class ClientsService {
@@ -80,6 +90,37 @@ export class ClientsService {
       .select("id");
     if (error) throw error;
     return data?.length ?? 0;
+  }
+
+  /** Soft delete: stamps deleted_at (the row stays for 60 days, see
+   * private.purge_deleted_clients). Goes through an RPC because the coach
+   * SELECT policy hides deleted rows, which a plain UPDATE can't survive. The
+   * RPC re-checks that the caller is the coach (or assigned member) of this
+   * client. */
+  async softDelete(id: string): Promise<boolean> {
+    const { error } = await this.db.rpc("soft_delete_client", { p_client_id: id });
+    return !error;
+  }
+
+  /** Undo softDelete. Throws (not just false) when the seat-cap trigger
+   * rejects the restore, same convention as setArchived. */
+  async restoreDeleted(id: string): Promise<boolean> {
+    const { error } = await this.db.rpc("restore_client", { p_client_id: id });
+    if (!error) return true;
+    if (error.code === "42501") return false;
+    throw error;
+  }
+
+  async listDeleted(now: Date = new Date()): Promise<DeletedClient[]> {
+    const { data, error } = await this.db.rpc("list_deleted_clients");
+    if (error) throw error;
+    return data.map((row) => ({
+      id: row.client_id,
+      displayName: row.display_name,
+      email: row.email,
+      deletedAt: row.deleted_at,
+      daysLeft: daysUntilPermanentDelete(row.deleted_at, now),
+    }));
   }
 
   /** Restoring an invited-but-never-joined client goes back to 'invited';

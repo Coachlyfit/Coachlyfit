@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { MoreVertical, MessageCircle, Pencil, Archive, ArchiveRestore, KeyRound, UserCheck } from "lucide-react";
+import { MoreVertical, MessageCircle, Pencil, Archive, ArchiveRestore, KeyRound, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import type { AppLocale } from "@/domain/locale";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { ObservationDialog } from "./observation-dialog";
 import { EditClientDialog } from "./edit-client-dialog";
+import { DeleteClientDialog } from "../delete-client-dialog";
 import { ClientAccountDialog, type ClientAccountMode } from "./client-account-dialog";
 import type { ClientAccountState } from "@/domain/clients/client-account";
 import { setClientArchivedAction } from "../actions";
@@ -58,6 +59,7 @@ export function ClientHeader({
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [accountMode, setAccountMode] = useState<ClientAccountMode | null>(null);
   const [pending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -169,6 +171,10 @@ export function ClientHeader({
                   {archived ? <ArchiveRestore className="size-4" /> : <Archive className="size-4" />}
                   {archived ? tProfile("restore") : tProfile("archive")}
                 </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => setConfirmDelete(true)}>
+                  <Trash2 className="size-4" />
+                  {t("delete.action")}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -203,6 +209,14 @@ export function ClientHeader({
         confirmLabel={tProfile("archive")}
         onConfirm={toggleArchive}
         pending={pending}
+      />
+
+      <DeleteClientDialog
+        locale={locale}
+        clientId={client.id}
+        clientName={client.display_name}
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
       />
     </div>
   );

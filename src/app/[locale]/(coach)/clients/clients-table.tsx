@@ -2,7 +2,7 @@
 
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { MessageCircle, MoreHorizontal, Search, User } from "lucide-react";
+import { MessageCircle, MoreHorizontal, Search, Trash2, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,6 +25,7 @@ import type { AppLocale } from "@/domain/locale";
 import type { ClientCheckinStatus } from "@/domain/progress/stats";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { RegenerateInviteButton } from "./regenerate-invite-button";
+import { DeleteClientDialog } from "./delete-client-dialog";
 import { AssignClientSelect, type TeamMember } from "./assign-client-select";
 import { STATUS_FILTERS, type StatusFilter } from "./schemas";
 
@@ -104,6 +105,7 @@ export function ClientsTable({
   const [program, setProgram] = useState(ALL_PROGRAMS);
   const [memberFilter, setMemberFilter] = useState(ALL_MEMBERS);
   const [sort, setSort] = useState<Sort>("lastCheckin");
+  const [pendingDelete, setPendingDelete] = useState<ClientRow | null>(null);
 
   function pickStatus(next: StatusFilter) {
     startTransition(() => {
@@ -394,6 +396,10 @@ export function ClientsTable({
                               <RegenerateInviteButton locale={locale} clientId={client.id} />
                             </div>
                           )}
+                          <DropdownMenuItem variant="destructive" onClick={() => setPendingDelete(client)}>
+                            <Trash2 className="size-4" />
+                            {t("delete.action")}
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -419,6 +425,15 @@ export function ClientsTable({
           })}
         </div>
       </Card>
+      {pendingDelete && (
+        <DeleteClientDialog
+          locale={locale}
+          clientId={pendingDelete.id}
+          clientName={pendingDelete.name}
+          open
+          onOpenChange={(open) => !open && setPendingDelete(null)}
+        />
+      )}
     </div>
   );
 }
