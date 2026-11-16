@@ -13,9 +13,9 @@ describe("nextSyncOutcome", () => {
     expect([1, 2, 3, 4].map((n) => delayMs(nextSyncOutcome(n, NOW, err, noJitter)))).toEqual([30_000, 60_000, 120_000, 240_000]);
   });
 
-  it("caps the delay at 6 hours and adds at most 10% jitter", () => {
+  it("tops out at 32 minutes on the last retry, and adds at most 10% jitter", () => {
     const err = new GoogleApiError(503, "backendError");
-    expect(delayMs(nextSyncOutcome(7, NOW, err, noJitter))).toBe(6 * 3_600_000);
+    expect(delayMs(nextSyncOutcome(MAX_SYNC_ATTEMPTS - 1, NOW, err, noJitter))).toBe(32 * 60_000);
     expect(delayMs(nextSyncOutcome(1, NOW, err, () => 1))).toBeCloseTo(33_000, -1);
   });
 

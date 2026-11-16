@@ -2,7 +2,6 @@ import { GoogleApiError } from "@/lib/google/errors";
 
 export const MAX_SYNC_ATTEMPTS = 8;
 const BASE_DELAY_MS = 30_000;
-const MAX_DELAY_MS = 6 * 60 * 60 * 1000;
 
 export type SyncOutcome = { status: "retry"; nextAttemptAt: Date } | { status: "dead" };
 
@@ -15,9 +14,11 @@ function isPermanent(error: unknown): boolean {
 }
 
 /** Retry schedule for a failed sync job, like notification_deliveries but for
- * a flakier, rate-limited API: exponential from 30s up to 6h, +up to 10%
- * jitter so a batch of failures doesn't come back in lockstep, never sooner
- * than Google's Retry-After, and a permanent refusal goes straight to dead. */
+ * a flakier, rate-limited API: exponential from 30s (30s, 1m, 2m ... 32m over
+ * 8 attempts, about an hour in all), +up to 10% jitter so a batch of failures
+ * doesn't come back in lockstep, never sooner than Google's Retry-After, and a
+ * permanent refusal goes straight to dead. No separate cap: the attempt limit
+ * already bounds the delay. */
 export function nextSyncOutcome(
   attemptsAfterThisTry: number,
   now: Date,
@@ -25,7 +26,7 @@ export function nextSyncOutcome(
   random: () => number = Math.random
 ): SyncOutcome {
   if (attemptsAfterThisTry >= MAX_SYNC_ATTEMPTS || isPermanent(error)) return { status: "dead" };
-  const exponential = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * 2 ** (attemptsAfterThisTry - 1));
+  const exponential = BASE_DELAY_MS * 2 ** (attemptsAfterThisTry - 1);
   const withJitter = exponential * (1 + 0.1 * random());
   const retryAfter = error instanceof GoogleApiError ? (error.retryAfterMs ?? 0) : 0;
   return { status: "retry", nextAttemptAt: new Date(now.getTime() + Math.max(withJitter, retryAfter)) };
