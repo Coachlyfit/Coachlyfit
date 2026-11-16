@@ -40,5 +40,20 @@ export const verifyOtpSchema = z.object({
   locale: z.enum(["ar", "en"]),
 });
 
-export type PhoneInput = z.infer<typeof phoneSchema>;
+// Google sign-in. Signup/invite intents must carry an explicit terms tick —
+// the terms version itself is stamped server-side from LEGAL_VERSION, never
+// taken from the client.
+export const googleAuthSchema = z
+  .object({
+    intent: z.enum(["login", "signup", "client_invite", "team_invite"]),
+    locale: z.enum(["ar", "en"]),
+    next: z.string().max(2048).optional(),
+    inviteToken: z.string().min(8).max(256).optional(),
+    termsAccepted: z.boolean().optional(),
+  })
+  .refine((v) => v.intent === "login" || v.termsAccepted === true, { path: ["termsAccepted"] })
+  .refine((v) => !v.intent.endsWith("_invite") || !!v.inviteToken, { path: ["inviteToken"] });
+
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
+export type PhoneInput =z.infer<typeof phoneSchema>;
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;

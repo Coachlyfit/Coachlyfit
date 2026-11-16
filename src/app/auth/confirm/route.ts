@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/auth/safe-next";
 
 // Readable (not httpOnly) so the coach layout's client-side banner can show
 // "you're impersonating" without a round trip — this cookie carries no
@@ -21,7 +22,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/ar/dashboard";
+  // Untrusted query param: same-origin locale-prefixed paths only (open-redirect guard).
+  const next = safeNext(searchParams.get("next")) ?? "/ar/dashboard";
   const code = searchParams.get("code");
   const inviteToken = searchParams.get("invite_token");
   const impersonating = searchParams.get("impersonating") === "1";

@@ -340,7 +340,15 @@
       "otp_expired": "This code has expired. Request a new one.",
       "phone_taken": "An account with this number already exists.",
       "reset_link_expired": "That reset link has expired. Request a new one.",
-      "signups_closed": "New signups are temporarily closed."
+      "signups_closed": "New signups are temporarily closed.",
+      "oauth_cancelled": "Google sign-in was cancelled. You can try again or use your email.",
+      "oauth_failed": "Couldn't sign you in with Google. Please try again or use your email.",
+      "no_account": "No account found for that Google email. Create one below first, then you can sign in with Google."
+    },
+    "google": {
+      "continue": "Continue with Google",
+      "or": "or",
+      "consent": "I agree to the <terms>Terms of Service</terms> and the <privacy>Privacy Policy</privacy>, and confirm I am 18 or older or have a parent's or guardian's consent."
     },
     "maintenance": {
       "title": "Down for maintenance",

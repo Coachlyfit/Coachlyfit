@@ -6,6 +6,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { redirectIfSignedIn } from "@/lib/auth/session";
 import { ConsentLine } from "@/components/legal/consent-line";
+import { GoogleAuthSection } from "@/components/auth/google-auth-section";
 import { SignupForm } from "./signup-form";
 
 export async function generateMetadata({
@@ -25,10 +26,12 @@ export async function generateMetadata({
 
 export default async function SignupPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: AppLocale }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const { locale } = await params;
+  const [{ locale }, { error }] = await Promise.all([params, searchParams]);
   await redirectIfSignedIn(locale);
   const t = await getTranslations("auth.signup");
   const settings = await getPlatformSettings();
@@ -54,6 +57,7 @@ export default async function SignupPage({
         {/* ponytail: phone signup hidden for now; OtpForm (./otp-form) still exists, re-add tabs to restore */}
         <SignupForm locale={locale} />
         <ConsentLine messageKey="auth.signup.consent" />
+        <GoogleAuthSection locale={locale} intent="signup" error={error} />
         <p className="text-center text-sm text-muted-foreground">
           {t("haveAccount")}{" "}
           <Link href="/login" className="font-medium text-foreground underline underline-offset-4">
