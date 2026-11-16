@@ -6006,6 +6006,15 @@ export type Database = {
           set_count: number
         }[]
       }
+      finalize_oauth_signup: {
+        Args: {
+          p_invite_token?: string
+          p_ip?: unknown
+          p_locale: string
+          p_terms_version: string
+        }
+        Returns: Json
+      }
       get_invite_info: { Args: { p_token: string }; Returns: Json }
       get_my_branding: { Args: never; Returns: Json }
       get_my_features: { Args: never; Returns: Json }

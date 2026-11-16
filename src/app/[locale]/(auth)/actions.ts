@@ -6,7 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import { roleHome } from "@/lib/auth/role-home";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { LEGAL_VERSION } from "@/content/legal/constants";
+import { appOrigin } from "@/lib/app-origin";
+import { getRootDomain } from "@/lib/tenant/portal-slug";
+import { safeNext } from "@/lib/auth/safe-next";
+import { OAUTH_COOKIE, OAUTH_COOKIE_MAX_AGE_S, type OAuthIntent } from "@/lib/auth/oauth-callback";
 import {
+  googleAuthSchema,
+  type GoogleAuthInput,
   loginSchema,
   signupCoachSchema,
   phoneSchema,
@@ -136,6 +142,41 @@ export async function verifyOtpAction(locale: string, formData: FormData): Promi
   if (error || !data.user) return { error: "otp_invalid" };
 
   redirect(roleHome(locale, "coach"));
+}
+
+/** Starts Supabase's Google OAuth (PKCE). The intent (login vs signup vs
+ * invite) can't ride in OAuth metadata, so it goes in a short-lived httpOnly
+ * cookie that /auth/callback reads. Terms version is stamped here server-side. */
+export async function startGoogleAuthAction(input: GoogleAuthInput): Promise<ActionResult> {
+  const parsed = googleAuthSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+  const { intent, locale, next, inviteToken, termsAccepted } = parsed.data;
+
+  const cookieValue: OAuthIntent = {
+    intent,
+    locale,
+    // Re-validated in the callback; dropped here if unsafe so it never gets stored.
+    next: safeNext(next) ?? undefined,
+    inviteToken,
+    terms: termsAccepted ? LEGAL_VERSION : undefined,
+  };
+  const rootDomain = getRootDomain();
+  (await cookies()).set(OAUTH_COOKIE, JSON.stringify(cookieValue), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/auth",
+    maxAge: OAUTH_COOKIE_MAX_AGE_S,
+    domain: rootDomain === "localhost" ? undefined : `.${rootDomain}`,
+  });
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${await appOrigin()}/auth/callback` },
+  });
+  if (error || !data.url) return { error: "oauth_failed" };
+  redirect(data.url);
 }
 
 /** Always redirects to the same "check your email" state whether or not the

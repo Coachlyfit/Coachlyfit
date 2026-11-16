@@ -19,11 +19,13 @@ export async function generateMetadata({
 
 export default async function LoginPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const { locale } = await params;
+  const [{ locale }, { error }] = await Promise.all([params, searchParams]);
   await redirectIfSignedIn(locale);
 
-  return <LoginCard locale={locale} />;
+  return <LoginCard locale={locale} google={{ error }} />;
 }
