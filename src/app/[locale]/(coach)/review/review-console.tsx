@@ -3,7 +3,18 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, ChevronLeft, ChevronRight, Moon, Scale, Dumbbell, Gauge, X } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarX2,
+  ChevronLeft,
+  ChevronRight,
+  Moon,
+  Scale,
+  Dumbbell,
+  Gauge,
+  ThumbsUp,
+  X,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -17,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import type { StructuredAdjustment } from "@/domain/progress/review.service";
 import type { Signal } from "@/domain/ledger/signals";
+import type { Insight, InsightKey, InsightSeverity } from "@/domain/progress/insights";
 import { REASON_KEYS, type ReasonKey } from "@/domain/ledger/reasons";
 import { Link } from "@/i18n/navigation";
 import { listActiveProgramItemsAction } from "../programs/actions";
@@ -46,6 +58,9 @@ export type ReviewQueueEntry = {
    * rendered above the decision panel and, once the coach acts, snapshotted
    * onto the ledger record as the rationale for that decision. */
   signals: Signal[];
+  /** Rule-based "at a glance" lines (domain/progress/insights.ts), most
+   * severe first. Keys and numbers only — wording lives in messages. */
+  insights: Insight[];
   suggestedReason: ReasonKey;
 };
 
@@ -55,6 +70,28 @@ type Decision = "keep" | "adjust" | "call";
 
 const ADJUSTMENT_KEYS = ["reduceLoad", "extraWarmup", "removeMovement", "extraRestDay"] as const;
 const REPLY_CHIP_KEYS = ["encouragement", "nextWeek", "call"] as const;
+
+const INSIGHT_MESSAGE: Record<InsightKey, string> = {
+  pain: "pain",
+  adherence_low: "adherenceLow",
+  missed_checkins: "missedCheckins",
+  sleep_drop: "sleepDrop",
+  weight_stalled: "weightStalled",
+  good_week: "goodWeek",
+};
+const INSIGHT_ICON: Record<InsightKey, React.ComponentType<{ className?: string }>> = {
+  pain: AlertTriangle,
+  adherence_low: Gauge,
+  missed_checkins: CalendarX2,
+  sleep_drop: Moon,
+  weight_stalled: Scale,
+  good_week: ThumbsUp,
+};
+const INSIGHT_DOT: Record<InsightSeverity, string> = {
+  warn: "bg-primary",
+  info: "bg-muted-foreground",
+  good: "bg-success",
+};
 const POSES: ReviewPose[] = ["front", "side", "back"];
 const PERCENT_OPTIONS = [10, 15, 20, 25, 30] as const;
 
@@ -300,6 +337,13 @@ function ReviewEntryPanel({
     setReply((prev) => (prev.trim() ? `${prev}\n\n${text}` : text));
   }
 
+  // The top insight's chip leads and is highlighted; chips for the other
+  // insights follow, then the always-there originals. Never auto-fills.
+  const suggestedChip = entry.insights[0]?.replyChip ?? null;
+  const chipKeys = [
+    ...new Set([...entry.insights.flatMap((i) => (i.replyChip ? [i.replyChip] : [])), ...REPLY_CHIP_KEYS]),
+  ];
+
   const removeMovementBlocked = adjustments.has("removeMovement") && removeMovementItemIds.size === 0;
 
   function buildStructuredAdjustments(): StructuredAdjustment[] {
@@ -356,6 +400,8 @@ function ReviewEntryPanel({
             {adherenceOn10 != null && adherenceOn10 < 5 && <Badge variant="warning">{t("flag.needsAttention")}</Badge>}
           </CardContent>
         </Card>
+
+        <InsightsCard insights={entry.insights} />
 
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <StatCard
@@ -664,12 +710,17 @@ function ReviewEntryPanel({
           <CardContent className="flex flex-col gap-3 pt-6">
             <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t("reply.title")}</p>
             <div className="flex flex-wrap gap-1.5">
-              {REPLY_CHIP_KEYS.map((key) => (
+              {chipKeys.map((key) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => appendChip(t(`reply.chips.${key}.text`))}
-                  className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:border-warning-tint-foreground/40 hover:bg-warning-tint hover:text-warning-tint-foreground"
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium",
+                    key === suggestedChip
+                      ? "border-primary bg-accent-tint text-accent-tint-foreground"
+                      : "border-border bg-muted/40 text-muted-foreground hover:border-warning-tint-foreground/40 hover:bg-warning-tint hover:text-warning-tint-foreground"
+                  )}
                 >
                   {t(`reply.chips.${key}.label`)}
                 </button>
@@ -749,6 +800,38 @@ function StatCard({
             {delta}
           </p>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Rule-based "at a glance" lines (domain/progress/insights.ts) above the
+ * stat cards. Renders nothing when there are none — same "no empty box" rule
+ * as EvidenceCard. The dot carries severity visually, the sr-only word
+ * carries it for everyone else. */
+function InsightsCard({ insights }: { insights: Insight[] }) {
+  const t = useTranslations("review.insights");
+  if (insights.length === 0) return null;
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-2 pt-6">
+        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t("title")}</p>
+        <ul className="flex flex-col gap-2">
+          {insights.map((insight) => {
+            const Icon = INSIGHT_ICON[insight.key];
+            return (
+              <li key={insight.key} className="flex items-center gap-2.5 text-sm">
+                <span className={cn("size-2 shrink-0 rounded-full", INSIGHT_DOT[insight.severity])} aria-hidden="true" />
+                <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <span className="text-start">
+                  <span className="sr-only">{t(`severity.${insight.severity}`)}: </span>
+                  {t(`items.${INSIGHT_MESSAGE[insight.key]}`, insight.params)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
       </CardContent>
     </Card>
   );

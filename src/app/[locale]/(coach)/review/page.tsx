@@ -4,6 +4,7 @@ import { ReviewService } from "@/domain/progress/review.service";
 import { ProgressService } from "@/domain/progress/progress.service";
 import { findSimilarNotes } from "@/domain/progress/note-similarity";
 import { weightTrend, adherenceAverage } from "@/domain/progress/stats";
+import { buildInsights, ADHERENCE_BASELINE_LOOKBACK } from "@/domain/progress/insights";
 import { LedgerService } from "@/domain/ledger/ledger.service";
 import { detectPainRepeat, detectMissedReps, repeatedNoteSignal, type Signal } from "@/domain/ledger/signals";
 import { suggestReason } from "@/domain/ledger/reasons";
@@ -17,7 +18,6 @@ type CheckinRow = Database["public"]["Tables"]["checkins"]["Row"];
 type MediaRow = Database["public"]["Tables"]["media"]["Row"];
 
 const WORKOUT_WINDOW_DAYS = 7;
-const ADHERENCE_BASELINE_LOOKBACK = 6;
 const POSES: ReviewPose[] = ["front", "side", "back"];
 
 function isoDaysAgo(days: number): string {
@@ -113,6 +113,13 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
     const noteSignal = repeatedNoteSignal(rawSimilarNotes);
     if (noteSignal) signals.push(noteSignal);
 
+    const insights = buildInsights(
+      item,
+      clientCheckins.filter((c) => c.checkin_date < item.checkin_date),
+      signals,
+      now
+    );
+
     const clientMedia = media.filter(
       (m): m is MediaRow & { pose: ReviewPose } => m.client_id === item.client_id && POSES.includes(m.pose as ReviewPose)
     );
@@ -149,6 +156,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
       similarNotes,
       photos,
       signals,
+      insights,
       suggestedReason: suggestReason(signals),
     };
   });
