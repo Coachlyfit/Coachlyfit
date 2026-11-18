@@ -2,51 +2,14 @@ import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { routing, type AppLocale } from "@/i18n/routing";
+import { getMessages, getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
 import { fontMono, fontSans } from "@/lib/fonts";
 import { Providers } from "@/components/providers/providers";
 import { NavigationProgress } from "@/components/navigation-progress";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
-
-const titleSuffixByLocale: Record<AppLocale, string> = {
-  en: "— Coach your clients your way",
-  ar: "— درّب عملاءك بطريقتك",
-};
-
-const descriptionByLocale: Record<AppLocale, string> = {
-  en: "Forms, programs, check-ins and invoices in one place — built for fitness coaches in Egypt and the region.",
-  ar: "نماذج، برامج تدريبية، متابعات وفواتير في مكان واحد — مبني لمدربي اللياقة في مصر والمنطقة.",
-};
-
-const keywordsByLocale: Record<AppLocale, string[]> = {
-  en: [
-    "fitness coach software",
-    "client management for coaches",
-    "personal trainer app",
-    "workout builder",
-    "fitness forms",
-    "coach invoicing",
-    "client check-ins",
-    "gym management Egypt",
-    "fitness coaching platform",
-    "personal training software",
-  ],
-  ar: [
-    "برنامج مدرب اللياقة",
-    "إدارة عملاء المدربين",
-    "تطبيق المدرب الشخصي",
-    "منشئ التمارين",
-    "نماذج اللياقة",
-    "فواتير المدربين",
-    "متابعة العملاء",
-    "إدارة صالات رياضية مصر",
-    "منصة تدريب اللياقة",
-    "برنامج التدريب الشخصي",
-  ],
-};
 
 export async function generateMetadata({
   params,
@@ -57,14 +20,16 @@ export async function generateMetadata({
   const appLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
   const settings = await getPlatformSettings();
   const appName = appLocale === "ar" ? settings.branding.app_name_ar : settings.branding.app_name_en;
-  const title = `${appName} ${titleSuffixByLocale[appLocale]}`;
-  const description = descriptionByLocale[appLocale];
+  // Site-wide SEO copy lives in messages/*.json under "seo".
+  const t = await getTranslations({ locale: appLocale, namespace: "seo" });
+  const title = `${appName} ${t("titleSuffix")}`;
+  const description = t("description");
 
   return {
     metadataBase: new URL(SITE_URL),
     title: { default: title, template: `%s · ${appName}` },
     description,
-    keywords: keywordsByLocale[appLocale],
+    keywords: t("keywords").split(",").map((k) => k.trim()),
     applicationName: appName,
     creator: "Coachlyfit",
     publisher: "Coachlyfit",

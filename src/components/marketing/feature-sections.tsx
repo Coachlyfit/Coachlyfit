@@ -201,26 +201,29 @@ function InvoiceMock() {
 
 const ROW = "mx-auto grid max-w-[1200px] items-center gap-10 px-4 lg:grid-cols-2 lg:gap-16";
 
-// The mocks are drawn for the three seeded rows, in this order. A fourth row
-// starts the cycle again rather than rendering without a picture.
+// The mocks are drawn for the first three rows (forms, progress, invoices), in
+// this order. A later row renders text only: repeating a mock would show a
+// picture of a feature the row isn't about.
 const MOCKS = [FormsMock, ProgressMock, InvoiceMock];
 
 export function FeatureSections({ content }: { content: SectionContent<"features"> }) {
   return (
     <div className="flex flex-col gap-20 py-20 sm:gap-24 sm:py-24">
       {content.rows.map((row, i) => {
-        const Mock = MOCKS[i % MOCKS.length];
+        const Mock = MOCKS.at(i);
         // Every other row flips on desktop only — on mobile every row stays
         // text-then-mock so the reading order never inverts.
         const flipped = i % 2 === 1;
         return (
-          <section key={i} id={i === 0 ? "features" : undefined} className={ROW}>
-            <div className={cn(flipped && "lg:order-2")}>
+          <section key={i} id={i === 0 ? "features" : undefined} className={cn(ROW, !Mock && "lg:grid-cols-1")}>
+            <div className={cn(flipped && Mock && "lg:order-2", !Mock && "max-w-[68ch]")}>
               <TextColumn row={row} />
             </div>
-            <div className={cn(flipped && "lg:order-1")}>
-              <Mock />
-            </div>
+            {Mock && (
+              <div className={cn(flipped && "lg:order-1")}>
+                <Mock />
+              </div>
+            )}
           </section>
         );
       })}

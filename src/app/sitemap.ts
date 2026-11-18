@@ -18,6 +18,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
       alternates: { languages: languages("") },
     },
+    {
+      url: `${SITE_URL}/${locale}/about`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+      alternates: { languages: languages("/about") },
+    },
     ...LEGAL_SLUGS.map((slug) => ({
       url: `${SITE_URL}/${locale}/legal/${slug}`,
       lastModified: new Date(LEGAL_VERSION),

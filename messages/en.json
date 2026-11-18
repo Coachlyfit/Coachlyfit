@@ -114,18 +114,24 @@
     "empty": "No results found.",
     "trigger": "Search"
   },
+  "seo": {
+    "titleSuffix": "— Coach your clients your way",
+    "description": "Forms, programs, check-ins and invoices in one place — built for fitness coaches in Egypt and the region.",
+    "webPageName": "Coachlyfit — Coach your clients your way",
+    "keywords": "fitness coach software, client management for coaches, personal trainer app, workout builder, fitness forms, coach invoicing, client check-ins, gym management Egypt, fitness coaching platform, personal training software"
+  },
   "marketing": {
     "nav": {
       "features": "Features",
+      "howItWorks": "How it works",
       "pricing": "Pricing",
-      "coaches": "Coaches",
       "faq": "FAQ",
       "login": "Log in",
       "cta": "Start 14 days free"
     },
     "preview": {
       "alt": "A preview of the Coachlyfit dashboard",
-      "url": "app.coachlyfit.com",
+      "url": "coachlyfit.app",
       "sidebar": {
         "dashboard": "Dashboard",
         "clients": "Clients",
@@ -256,24 +262,51 @@
         "product": {
           "title": "Product",
           "features": "Features",
-          "pricing": "Pricing",
-          "demo": "Request a demo"
+          "pricing": "Pricing"
         },
         "company": {
           "title": "Company",
-          "about": "About Coachlyfit",
-          "blog": "Blog",
-          "careers": "Careers"
+          "about": "About Coachlyfit"
         },
         "contact": {
           "title": "Contact",
           "whatsapp": "WhatsApp support",
-          "email": "hello@coachlyfit.com",
           "instagram": "Instagram"
         }
       },
       "location": "Cairo, Egypt",
       "rights": "© {year} Coachlyfit"
+    },
+    "about": {
+      "metaTitle": "About Coachlyfit",
+      "metaDescription": "Coachlyfit is an Arabic-first platform for coaches: clients, check-in forms, training and diet plans, appointments and invoices in one place.",
+      "eyebrow": "About Coachlyfit",
+      "title": "The coach's workspace, built Arabic-first.",
+      "intro": "Coachlyfit is a platform for fitness coaches in Egypt and the region. It brings client management, check-in forms, training and diet plans, appointments and invoices into one place, instead of scattering them across spreadsheets, WhatsApp threads and notebooks.",
+      "whatTitle": "What we build",
+      "whatBody": "A coach runs their business from one dashboard: invite clients with a link, build their programs and diets, send check-in forms and review the answers, and keep track of progress and invoices. Clients use a web portal on their phone that they can install like an app, with nothing to download from a store.",
+      "principlesTitle": "How we think about it",
+      "principles": {
+        "arabic": {
+          "title": "Arabic from the start",
+          "body": "A right-to-left interface, regional currencies, and full English whenever a client prefers it."
+        },
+        "onePlace": {
+          "title": "One place for the whole loop",
+          "body": "From the invite to the review to the invoice, without moving data between tools."
+        },
+        "brand": {
+          "title": "Your identity, not ours",
+          "body": "Your colors, your logo and your own client link, on the plans that include branding."
+        },
+        "money": {
+          "title": "Clear about money",
+          "body": "You record what your clients pay you and issue your own invoices. We don't process your clients' payments and we don't take a cut."
+        }
+      },
+      "ctaTitle": "Try it with your own clients",
+      "ctaBody": "14 days free, no card required.",
+      "cta": "Start the trial"
     }
   },
   "auth": {
@@ -5478,10 +5511,11 @@
     "features": {
       "foodLibrary": "Food library",
       "exerciseLibrary": "Exercise library",
-      "clientPortal": "Client portal / mobile app",
+      "clientPortal": "Client web portal (installable on phone)",
       "teamManagement": "Team management",
-      "rolePermissions": "Role-based permissions",
+      "rolePermissions": "Owner and team-member access",
       "clientAssignment": "Assign clients to team members",
+      "appointments": "Appointments and Google Calendar sync",
       "customBranding": "Custom branding (your visual identity)",
       "prioritySupport": "Priority support"
     },
