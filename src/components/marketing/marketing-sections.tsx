@@ -109,7 +109,7 @@ export function ProblemSection({ content }: { content: SectionContent<"pain_poin
 
 export function HowItWorks({ content }: { content: SectionContent<"how_it_works"> }) {
   return (
-    <section className="py-20 sm:py-22">
+    <section id="how-it-works" className="py-20 sm:py-22">
       <div className="mx-auto max-w-[1200px] px-4">
         <h2 className="max-w-[26ch] text-balance text-2xl font-semibold leading-tight tracking-[-0.025em] md:text-[38px]">
           {content.title}

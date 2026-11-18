@@ -15,17 +15,17 @@ const LEGAL_LINKS = [
  * and muted copy resolve against dark tokens instead of hand-picked opacities.
  */
 const COLUMNS = {
-  product: ["features", "pricing", "demo"],
-  company: ["about", "blog", "careers"],
+  product: ["features", "pricing"],
+  company: ["about"],
   contact: ["whatsapp", "email", "instagram"],
 } as const;
 
 // Product links are home-page anchors (so they also work from /legal/*);
-// contact links are external. The rest are not built yet, so they render as
-// plain text rather than 404ing.
+// contact links are external.
 const HREFS: Record<string, string> = {
   features: "/#features",
   pricing: "/#pricing",
+  about: "/about",
   whatsapp: "https://wa.me/201113284111",
   instagram: "https://www.instagram.com/coachlyfit",
 };
@@ -54,9 +54,6 @@ export function Footer({ supportEmail }: { supportEmail: string }) {
                   const href = link === "email" ? `mailto:${supportEmail}` : HREFS[link];
                   const external = href?.startsWith("http");
                   const label = link === "email" ? supportEmail : t(`columns.${col}.${link}`);
-                  // Only anchors and contact links are real destinations today.
-                  // The rest render as plain text rather than dead links to
-                  // pages that don't exist yet.
                   return href?.startsWith("/") ? (
                     <Link key={link} href={href} className="text-[13px] text-muted-foreground hover:text-foreground">
                       {label}

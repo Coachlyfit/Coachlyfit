@@ -12,7 +12,12 @@ import { cn } from "@/lib/utils";
 // /legal/*), so there's no drawer below md — the
 // links collapse and the CTA, which is the only one that matters on a phone,
 // stays visible.
-const ANCHORS = ["features", "pricing", "coaches", "faq"] as const;
+const ANCHORS = [
+  ["features", "features"],
+  ["howItWorks", "how-it-works"],
+  ["pricing", "pricing"],
+  ["faq", "faq"],
+] as const;
 
 export function Navbar() {
   const t = useTranslations("marketing.nav");
@@ -25,8 +30,8 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
-          {ANCHORS.map((key) => (
-            <Link key={key} href={`/#${key}`} className="text-muted-foreground hover:text-foreground">
+          {ANCHORS.map(([key, id]) => (
+            <Link key={key} href={`/#${id}`} className="text-muted-foreground hover:text-foreground">
               {t(key)}
             </Link>
           ))}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { redirectIfSignedIn } from "@/lib/auth/session";
@@ -25,11 +26,8 @@ export async function generateMetadata({
 
 type FaqItem = { q: string; a: string };
 
-function jsonLd(locale: AppLocale, faq: FaqItem[]) {
-  const isAr = locale === "ar";
-  const description = isAr
-    ? "نماذج، برامج تدريبية، متابعات وفواتير في مكان واحد — مبني لمدربي اللياقة في مصر والمنطقة."
-    : "Forms, programs, check-ins and invoices in one place — built for fitness coaches in Egypt and the region.";
+function jsonLd(locale: AppLocale, faq: FaqItem[], copy: { description: string; webPageName: string }) {
+  const { description } = copy;
 
   return {
     "@context": "https://schema.org",
@@ -55,7 +53,7 @@ function jsonLd(locale: AppLocale, faq: FaqItem[]) {
         "@type": "WebPage",
         "@id": `${siteUrl}/${locale}/#webpage`,
         url: `${siteUrl}/${locale}`,
-        name: "Coachlyfit — Coach your clients your way",
+        name: copy.webPageName,
         isPartOf: { "@id": `${siteUrl}/#website` },
         about: { "@id": `${siteUrl}/#organization` },
         description,
@@ -68,12 +66,6 @@ function jsonLd(locale: AppLocale, faq: FaqItem[]) {
         operatingSystem: "Web",
         url: `${siteUrl}/${locale}`,
         description,
-        offers: {
-          "@type": "Offer",
-          availability: "https://schema.org/InStock",
-          price: "0",
-          priceCurrency: "EGP",
-        },
         publisher: { "@id": `${siteUrl}/#organization` },
       },
       // Built from the published FAQ section, so the structured data can't
@@ -123,6 +115,7 @@ export default async function MarketingHome({
       .order("price_egp_monthly", { ascending: true }),
   ]);
   const sections = published.filter((s) => s.is_visible);
+  const tSeo = await getTranslations({ locale: appLocale, namespace: "seo" });
 
   return (
     <>
@@ -131,7 +124,12 @@ export default async function MarketingHome({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd(appLocale, faqItems(sections, appLocale))).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(
+            jsonLd(appLocale, faqItems(sections, appLocale), {
+              description: tSeo("description"),
+              webPageName: tSeo("webPageName"),
+            })
+          ).replace(/</g, "\\u003c"),
         }}
       />
       {sections.map((section) => (

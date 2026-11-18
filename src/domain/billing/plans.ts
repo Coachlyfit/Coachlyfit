@@ -71,6 +71,7 @@ const ALWAYS = [
 ] as const;
 
 const BY_FLAG = [
+  ["appointments", "appointments"],
   ["custom_branding", "customBranding"],
   ["priority_support", "prioritySupport"],
 ] as const;

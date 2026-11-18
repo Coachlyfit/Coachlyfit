@@ -69,6 +69,11 @@ describe("planBullets", () => {
     ]);
   });
 
+  it("lists appointments only when the flag is on", () => {
+    expect(planBullets({})).not.toContain("appointments");
+    expect(planBullets({ appointments: true })).toContain("appointments");
+  });
+
   it("copes with a null features column", () => {
     expect(planBullets(null)).toHaveLength(6);
   });
