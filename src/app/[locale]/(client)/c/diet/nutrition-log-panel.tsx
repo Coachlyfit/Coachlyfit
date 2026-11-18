@@ -48,6 +48,7 @@ export function NutritionLogPanel({
   coachId,
   clientId,
   serverToday,
+  dietDayIds,
   logs,
   reminder,
   bodyProfile,
@@ -57,6 +58,9 @@ export function NutritionLogPanel({
   coachId: string;
   clientId: string;
   serverToday: string;
+  /** date -> the plan day that date's menu comes from; a log is stamped
+   * with it so its totals are judged against that day's targets. */
+  dietDayIds: Record<string, string>;
   logs: LogView[];
   reminder: { enabled: boolean; remind_at: string; timezone: string } | null;
   bodyProfile: BodyProfileValues | null;
@@ -125,7 +129,13 @@ export function NutritionLogPanel({
           </Badge>
         )}
 
-        <LogForm key={`${selected}-${log?.kcal ?? ""}`} locale={locale} date={selected} log={log} />
+        <LogForm
+          key={`${selected}-${log?.kcal ?? ""}`}
+          locale={locale}
+          date={selected}
+          log={log}
+          dietDayId={dietDayIds[selected] ?? null}
+        />
 
         <OffPlanSheet
           locale={locale}
@@ -140,7 +150,17 @@ export function NutritionLogPanel({
   );
 }
 
-function LogForm({ locale, date, log }: { locale: AppLocale; date: string; log: LogView | null }) {
+function LogForm({
+  locale,
+  date,
+  log,
+  dietDayId,
+}: {
+  locale: AppLocale;
+  date: string;
+  log: LogView | null;
+  dietDayId: string | null;
+}) {
   const t = useTranslations("nutrition");
   const tCommon = useTranslations("common");
   const [pending, startTransition] = useTransition();
@@ -158,7 +178,7 @@ function LogForm({ locale, date, log }: { locale: AppLocale; date: string; log: 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      const result = await logNutritionAction(locale, { log_date: date, ...values });
+      const result = await logNutritionAction(locale, { log_date: date, diet_plan_day_id: dietDayId, ...values });
       if (result?.error) {
         toast.error(t(`errors.${result.error}`));
         return;

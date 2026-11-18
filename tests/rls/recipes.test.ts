@@ -89,9 +89,16 @@ async function assignRecipe(coach: User, toClientId: string, recipe: string) {
     .select("id")
     .single();
   if (planError) throw planError;
+  // A meal belongs to a plan day (meals.diet_plan_day_id is NOT NULL).
+  const { data: day, error: dayError } = await coach.client
+    .from("diet_plan_days")
+    .insert({ coach_id: coach.userId, client_id: toClientId, diet_plan_id: plan.id, name_ar: "يوم", name_en: "Day" })
+    .select("id")
+    .single();
+  if (dayError) throw dayError;
   const { data: meal, error: mealError } = await coach.client
     .from("meals")
-    .insert({ coach_id: coach.userId, client_id: toClientId, diet_plan_id: plan.id })
+    .insert({ coach_id: coach.userId, client_id: toClientId, diet_plan_id: plan.id, diet_plan_day_id: day.id })
     .select("id")
     .single();
   if (mealError) throw mealError;

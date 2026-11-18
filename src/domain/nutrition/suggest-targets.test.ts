@@ -48,6 +48,25 @@ describe("suggestMacroTargets", () => {
     expect(result.ok && result.targets.kcal).toBe(3030);
   });
 
+  it("training and custom days are the baseline", () => {
+    const baseline = suggestMacroTargets(base, today);
+    expect(suggestMacroTargets(base, today, "training")).toEqual(baseline);
+    expect(suggestMacroTargets(base, today, "custom")).toEqual(baseline);
+  });
+
+  it("rest day: 10% fewer kcal, all taken out of carbs (protein and fat unchanged)", () => {
+    const result = suggestMacroTargets(base, today, "rest");
+    // 2760 × 0.9 = 2484 -> 2480; carbs = (2480 − 144·4 − 77·9) / 4
+    expect(result).toMatchObject({ ok: true, targets: { kcal: 2480, protein_g: 144, fat_g: 77, carb_g: 303 } });
+  });
+
+  it("rest day still respects the kcal floor", () => {
+    const small = { ...base, sex: "female" as const, weightKg: 45, heightCm: 150, activityLevel: "sedentary" as const };
+    const result = suggestMacroTargets(small, today, "rest");
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.targets.kcal).toBeGreaterThanOrEqual(1200);
+  });
+
   it("macros add back up to kcal within rounding", () => {
     for (const goal of ["cut", "maintain", "bulk"] as const) {
       const result = suggestMacroTargets({ ...base, goal }, today);

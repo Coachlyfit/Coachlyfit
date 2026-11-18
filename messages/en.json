@@ -1425,6 +1425,7 @@
         "rehab": "Recovery day"
       },
       "noMealsForDay": "No meals planned for this day.",
+      "dayType": "Menu for this day",
       "mealN": "Meal {n}",
       "next": "Next",
       "kcal": "{n} kcal"
@@ -4252,7 +4253,38 @@
       "not_authenticated": "Please log in again.",
       "not_found_or_forbidden": "You can not change this plan.",
       "end_date_before_start_date": "End date can not be before the start date.",
+      "last_day": "A plan needs at least one day.",
       "unknown": "Something went wrong. Please try again."
+    },
+    "days": {
+      "addDay": "Add day",
+      "dayActions": "Day actions",
+      "editDay": "Rename / edit day",
+      "duplicateDay": "Duplicate day",
+      "deleteDay": "Delete day",
+      "confirmDeleteTitle": "Delete \"{name}\"?",
+      "confirmDeleteBody": "The day's meals are deleted with it and any weekday set to it goes back to automatic. This can not be undone.",
+      "kinds": {
+        "training": "Training day",
+        "rest": "Rest day",
+        "custom": "Custom"
+      },
+      "dialog": {
+        "addTitle": "Add a day",
+        "editTitle": "Edit day",
+        "nameAr": "Name (Arabic)",
+        "nameEn": "Name (English)",
+        "kind": "Type",
+        "kindHint": "Days with no weekday set use the first training day. A rest day gets lower macro suggestions.",
+        "notesAr": "Day notes (Arabic)",
+        "notesEn": "Day notes (English)"
+      },
+      "schedule": {
+        "title": "Weekly schedule",
+        "hint": "Pick which day applies on each weekday. Automatic uses the first training day.",
+        "automatic": "Automatic",
+        "saved": "Schedule saved"
+      }
     },
     "copyName": "{name} (copy)",
     "variantOfProgram": "Program nutrition",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { AppLocale } from "@/domain/locale";
 import type { DietPlanTree } from "@/domain/nutrition/diet-plans.service";
+import { dayTargets } from "@/domain/nutrition/diet-days";
 import { addStarterMealsAction, copyMealAction, deleteMealAction, reorderMealsAction } from "../actions";
 import { AddMealDialog } from "./add-meal-dialog";
 import { DaySummary } from "./day-summary";
@@ -24,23 +25,28 @@ function applyChange(meals: Meal[], change: MealChange): Meal[] {
   return change.ids.map((id) => meals.find((m) => m.id === id)).filter((m): m is Meal => !!m);
 }
 
-/** Single-column builder: day summary on top, then meals, each editing its
- * own foods inline (meal-card.tsx). Server data flows in as props and is
- * never copied into state — reorder/delete go through useOptimistic, which
- * falls back to the refreshed props once the action's revalidatePath lands
- * (or reverts on error), so there's no remount key to keep in sync. */
+/** Single-column builder for ONE plan day (the page picks it from `?day=`):
+ * day summary on top, then that day's meals, each editing its own foods
+ * inline (meal-card.tsx). Server data flows in as props and is never copied
+ * into state — reorder/delete go through useOptimistic, which falls back to
+ * the refreshed props once the action's revalidatePath lands (or reverts on
+ * error). The page keys this component by day id, so switching day remounts
+ * it and the targets form starts from the new day's values. */
 export function DietPlanBuilder({
   locale,
   tree,
+  day,
   copyTargets,
 }: {
   locale: AppLocale;
   tree: DietPlanTree;
-  copyTargets: { id: string; name: string }[];
+  day: DietPlanTree["diet_plan_days"][number];
+  copyTargets: { planId: string; dayId: string; name: string }[];
 }) {
   const t = useTranslations("diets.builder");
   const tErrors = useTranslations("diets.errors");
-  const [meals, applyOptimistic] = useOptimistic(tree.meals, applyChange);
+  const dayMeals = useMemo(() => tree.meals.filter((m) => m.diet_plan_day_id === day.id), [tree.meals, day.id]);
+  const [meals, applyOptimistic] = useOptimistic(dayMeals, applyChange);
   const [mealDialog, setMealDialog] = useState<{ meal?: Meal } | null>(null);
   const [pendingDeleteMeal, setPendingDeleteMeal] = useState<string | null>(null);
   const [starterPending, startStarter] = useTransition();
@@ -65,24 +71,30 @@ export function DietPlanBuilder({
     run({ type: "reorder", ids }, () => reorderMealsAction(locale, tree.id, ids));
   }
 
-  function copyMeal(mealId: string, targetId: string, targetName: string) {
+  function copyMeal(mealId: string, targetPlanId: string, targetDayId: string, targetName: string) {
     startTransition(async () => {
-      const result = await copyMealAction(locale, tree.id, mealId, targetId);
+      const result = await copyMealAction(locale, tree.id, mealId, targetPlanId, targetDayId);
       if (result?.error) toast.error(tErrors(result.error));
-      else if (targetId !== tree.id) toast.success(t("copiedTo", { name: targetName }));
+      else if (targetDayId !== day.id) toast.success(t("copiedTo", { name: targetName }));
     });
   }
 
   function addStarterMeals() {
     startStarter(async () => {
-      const result = await addStarterMealsAction(locale, tree.id);
+      const result = await addStarterMealsAction(locale, tree.id, day.id);
       if (result?.error) toast.error(tErrors(result.error));
     });
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <DaySummary locale={locale} dietPlanId={tree.id} meals={meals} targets={tree} />
+      <DaySummary
+        locale={locale}
+        dietPlanId={tree.id}
+        dayId={day.id}
+        meals={meals}
+        targets={dayTargets(day, tree)}
+      />
 
       {meals.length === 0 ? (
         <Card>
@@ -115,7 +127,9 @@ export function DietPlanBuilder({
                     copyTargets={copyTargets}
                     onEdit={() => setMealDialog({ meal })}
                     onDelete={() => setPendingDeleteMeal(meal.id)}
-                    onCopy={(targetId, targetName) => copyMeal(meal.id, targetId, targetName)}
+                    onCopy={(targetPlanId, targetDayId, targetName) =>
+                      copyMeal(meal.id, targetPlanId, targetDayId, targetName)
+                    }
                   />
                 ))}
               </div>
@@ -132,6 +146,7 @@ export function DietPlanBuilder({
         <AddMealDialog
           locale={locale}
           dietPlanId={tree.id}
+          dayId={day.id}
           meal={mealDialog.meal}
           open={!!mealDialog}
           onOpenChange={(open) => !open && setMealDialog(null)}

@@ -224,12 +224,12 @@ export function MealCard({
   locale: AppLocale;
   dietPlanId: string;
   meal: Meal;
-  /** Sibling nutrition variants a meal can be copied into (program-owned
-   * plans only; empty for a standalone plan). */
-  copyTargets: { id: string; name: string }[];
+  /** Where else a meal can be copied: the plan's other days, and the first
+   * day of each sibling nutrition variant (program-owned plans). */
+  copyTargets: { planId: string; dayId: string; name: string }[];
   onEdit: () => void;
   onDelete: () => void;
-  onCopy: (targetPlanId: string, targetName: string) => void;
+  onCopy: (targetPlanId: string, targetDayId: string, targetName: string) => void;
 }) {
   const t = useTranslations("diets.builder");
   const tErrors = useTranslations("diets.errors");
@@ -337,7 +337,7 @@ export function MealCard({
               <Pencil className="size-4" />
               {t("editMeal")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onCopy(dietPlanId, label)}>
+            <DropdownMenuItem onClick={() => onCopy(dietPlanId, meal.diet_plan_day_id, label)}>
               <Copy className="size-4" />
               {t("duplicateMeal")}
             </DropdownMenuItem>
@@ -349,7 +349,10 @@ export function MealCard({
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   {copyTargets.map((target) => (
-                    <DropdownMenuItem key={target.id} onClick={() => onCopy(target.id, target.name)}>
+                    <DropdownMenuItem
+                      key={target.dayId}
+                      onClick={() => onCopy(target.planId, target.dayId, target.name)}
+                    >
                       {target.name}
                     </DropdownMenuItem>
                   ))}

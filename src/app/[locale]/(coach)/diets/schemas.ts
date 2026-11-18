@@ -42,9 +42,28 @@ export const dietTargetsSchema = z.object({
   target_fat_g: optionalCoercedNumber(z.coerce.number().min(0).max(1000).nullable().optional()),
 });
 
-// No day_index — meals table has no such column (a flat ordered list, not
-// day-indexed like program_days), unlike programs/schemas.ts's daySchema.
-// time_of_day is meal timing ("12:30"), never required.
+// A plan day-type: Training / Rest / custom. Names and notes are stored in
+// both languages like the plan's own; targets are edited separately
+// (dietTargetsSchema) from the macro sidebar.
+export const dayKindSchema = z.enum(["training", "rest", "custom"]);
+
+export const daySchema = z.object({
+  name_ar: z.string().trim().min(1).max(60),
+  name_en: z.string().trim().min(1).max(60),
+  kind: dayKindSchema,
+  notes_ar: z.string().max(500).optional().or(z.literal("")),
+  notes_en: z.string().max(500).optional().or(z.literal("")),
+});
+
+// weekday ("0".."6", 0 = Sunday) -> day id, "" / null = not mapped. Keys
+// are strings because that's what an object key is after FormData/JSON.
+export const scheduleSchema = z.record(
+  z.string().regex(/^[0-6]$/),
+  z.string().uuid().nullable().or(z.literal(""))
+);
+
+// Meals live under a plan day (the action receives its id), as a flat
+// ordered list. time_of_day is meal timing ("12:30"), never required.
 export const mealSchema = z.object({
   label_ar: z.string().max(60).optional().or(z.literal("")),
   label_en: z.string().max(60).optional().or(z.literal("")),
@@ -90,6 +109,7 @@ export type CreateDietPlanFormInput = z.input<typeof createDietPlanSchema>;
 export type CreateDietPlanInput = z.output<typeof createDietPlanSchema>;
 export type DietTargetsFormInput = z.input<typeof dietTargetsSchema>;
 export type DietTargetsInput = z.output<typeof dietTargetsSchema>;
+export type DayFormInput = z.input<typeof daySchema>;
 export type MealFormInput = z.input<typeof mealSchema>;
 export type MealItemFormInput = z.input<typeof mealItemSchema>;
 export type MealItemInput = z.output<typeof mealItemSchema>;

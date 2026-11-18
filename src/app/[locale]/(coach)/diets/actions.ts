@@ -8,7 +8,9 @@ import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 import {
   createDietPlanSchema,
+  daySchema,
   dietTargetsSchema,
+  scheduleSchema,
   mealSchema,
   mealItemSchema,
   mealRecipeItemSchema,
@@ -87,12 +89,14 @@ export async function updateDietPlanAction(locale: string, id: string, formData:
   revalidatePath(`/${locale}/diets/${id}`);
 }
 
-// Targets-only update — the macro sidebar's own small form, separate from
-// the full plan-edit dialog so setting a target doesn't require touching
-// name/dates too.
-export async function updateDietTargetsAction(
+// Targets-only update for one plan day — the macro sidebar's own small form,
+// separate from the day/plan edit dialogs so setting a target doesn't require
+// touching names too. The plan's first day also writes through to
+// diet_plans.target_* (see DietPlansService.updateDayTargets).
+export async function updateDayTargetsAction(
   locale: string,
   dietPlanId: string,
+  dayId: string,
   formData: FormData
 ): Promise<ActionResult> {
   const parsed = dietTargetsSchema.safeParse({
@@ -109,13 +113,134 @@ export async function updateDietTargetsAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  // Typed by hand in the builder, so no longer the suggestion's numbers.
-  const updated = await new DietPlansService(supabase).update(dietPlanId, {
-    ...parsed.data,
-    targets_source: "manual",
-    targets_suggestion: null,
+  // A blank field is sent as nothing (undefined); store it as null so
+  // clearing a target clears it, and that day falls back to the plan's.
+  const { target_kcal, target_protein_g, target_carb_g, target_fat_g } = parsed.data;
+  const updated = await new DietPlansService(supabase).updateDayTargets(dayId, {
+    target_kcal: target_kcal ?? null,
+    target_protein_g: target_protein_g ?? null,
+    target_carb_g: target_carb_g ?? null,
+    target_fat_g: target_fat_g ?? null,
   });
   if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+export async function addDayAction(locale: string, dietPlanId: string, formData: FormData): Promise<CreateResult> {
+  const parsed = daySchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+    kind: formData.get("kind"),
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { notes_ar, notes_en, ...rest } = parsed.data;
+  const day = await new DietPlansService(supabase).addDay(dietPlanId, {
+    ...rest,
+    notes_ar: notes_ar || null,
+    notes_en: notes_en || null,
+  });
+  if (!day) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+  return { id: day.id };
+}
+
+export async function updateDayAction(
+  locale: string,
+  dietPlanId: string,
+  dayId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = daySchema.safeParse({
+    name_ar: formData.get("name_ar"),
+    name_en: formData.get("name_en"),
+    kind: formData.get("kind"),
+    notes_ar: formData.get("notes_ar") || "",
+    notes_en: formData.get("notes_en") || "",
+  });
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { notes_ar, notes_en, ...rest } = parsed.data;
+  const updated = await new DietPlansService(supabase).updateDay(dayId, {
+    ...rest,
+    notes_ar: notes_ar || null,
+    notes_en: notes_en || null,
+  });
+  if (!updated) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+export async function deleteDayAction(locale: string, dietPlanId: string, dayId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const result = await new DietPlansService(supabase).removeDay(dayId);
+  if (result === "last_day") return { error: "last_day" };
+  if (result === "not_found") return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+}
+
+// "(copy)" names, like duplicateDietPlanAction. Returns the new day's id so
+// the builder can switch straight to it.
+export async function duplicateDayAction(locale: string, dietPlanId: string, dayId: string): Promise<CreateResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const service = new DietPlansService(supabase);
+  const source = await service.getDay(dayId);
+  if (!source) return { error: "not_found_or_forbidden" };
+
+  const [tAr, tEn] = await Promise.all([
+    getTranslations({ locale: "ar", namespace: "diets" }),
+    getTranslations({ locale: "en", namespace: "diets" }),
+  ]);
+  const copy = await service.duplicateDay(
+    dayId,
+    tAr("copyName", { name: source.name_ar }).slice(0, 60),
+    tEn("copyName", { name: source.name_en }).slice(0, 60)
+  );
+  if (!copy) return { error: "not_found_or_forbidden" };
+  revalidatePath(`/${locale}/diets/${dietPlanId}`);
+  return { id: copy.id };
+}
+
+export async function setScheduleAction(
+  locale: string,
+  dietPlanId: string,
+  schedule: Record<string, string | null>
+): Promise<ActionResult> {
+  const parsed = scheduleSchema.safeParse(schedule);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const entries = Object.entries(parsed.data).map(([weekday, dayId]) => [Number(weekday), dayId || null] as const);
+  const saved = await new DietPlansService(supabase).setSchedule(dietPlanId, Object.fromEntries(entries));
+  if (!saved) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
 }
 
@@ -227,7 +352,12 @@ export async function saveDietPlanAsTemplateAction(
   return { id: saved.id };
 }
 
-export async function addMealAction(locale: string, dietPlanId: string, formData: FormData): Promise<ActionResult> {
+export async function addMealAction(
+  locale: string,
+  dietPlanId: string,
+  dayId: string,
+  formData: FormData
+): Promise<ActionResult> {
   const parsed = mealSchema.safeParse({
     label_ar: formData.get("label_ar") || "",
     label_en: formData.get("label_en") || "",
@@ -241,7 +371,7 @@ export async function addMealAction(locale: string, dietPlanId: string, formData
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const added = await new DietPlansService(supabase).addMeal(dietPlanId, parsed.data);
+  const added = await new DietPlansService(supabase).addMeal(dietPlanId, dayId, parsed.data);
   if (!added) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
 }
@@ -428,15 +558,17 @@ export async function setItemQuantityAction(
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
 }
 
-// Duplicate within the same plan (targetPlanId === dietPlanId) or copy to a
-// sibling variant. RLS decides whether the target is writable.
+// Duplicate within the same day (same plan and day), copy to another day of
+// the plan, or copy to a sibling variant. RLS decides whether the target is
+// writable; the service rejects a day that isn't part of targetPlanId.
 export async function copyMealAction(
   locale: string,
   dietPlanId: string,
   mealId: string,
-  targetPlanId: string
+  targetPlanId: string,
+  targetDayId: string
 ): Promise<ActionResult> {
-  const ids = z.string().uuid().array().length(2).safeParse([mealId, targetPlanId]);
+  const ids = z.string().uuid().array().length(3).safeParse([mealId, targetPlanId, targetDayId]);
   if (!ids.success) return { error: "invalid_input" };
 
   const supabase = await createClient();
@@ -445,7 +577,7 @@ export async function copyMealAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: "not_authenticated" };
 
-  const copied = await new DietPlansService(supabase).copyMeal(mealId, targetPlanId);
+  const copied = await new DietPlansService(supabase).copyMeal(mealId, targetPlanId, targetDayId);
   if (!copied) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
   if (targetPlanId !== dietPlanId) revalidatePath(`/${locale}/diets/${targetPlanId}`);
@@ -460,7 +592,7 @@ const STARTER_MEALS = [
   { key: "dinner", time: "20:00" },
 ] as const;
 
-export async function addStarterMealsAction(locale: string, dietPlanId: string): Promise<ActionResult> {
+export async function addStarterMealsAction(locale: string, dietPlanId: string, dayId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -473,6 +605,7 @@ export async function addStarterMealsAction(locale: string, dietPlanId: string):
   ]);
   const added = await new DietPlansService(supabase).addMeals(
     dietPlanId,
+    dayId,
     STARTER_MEALS.map(({ key, time }) => ({ label_ar: tAr(key), label_en: tEn(key), time_of_day: time }))
   );
   if (!added) return { error: "not_found_or_forbidden" };

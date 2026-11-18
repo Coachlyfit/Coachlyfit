@@ -23,7 +23,8 @@ import { CoachRow } from "@/components/client-home/coach-row";
 import { CoachDecisionCard } from "./coach-decision-card";
 import { CoachInviteCard } from "./coach-invite-card";
 import { NextSession } from "@/components/client-home/next-session";
-import { DEFAULT_TIME_ZONE, isValidTimeZone } from "@/domain/appointments/tz";
+import { DEFAULT_TIME_ZONE, isValidTimeZone, weekdayOf } from "@/domain/appointments/tz";
+import { dayTargets, resolveDietDay } from "@/domain/nutrition/diet-days";
 import { loadNextSession, nextDueForm } from "./home-data";
 
 export default async function ClientHomePage({
@@ -100,12 +101,18 @@ export default async function ClientHomePage({
   const diet = variantDiet ?? standaloneDiet;
 
   const workoutState = session?.completed_at != null ? "done" : session ? "resume" : "new";
+  // The day-type the progress is judged against: the one today's log was
+  // stamped with, else the one the weekly schedule picks for today.
+  const dietDay = diet
+    ? (diet.diet_plan_days.find((d) => d.id === todayLogs[0]?.diet_plan_day_id) ??
+      resolveDietDay(diet.diet_plan_days, diet.diet_plan_schedule, weekdayOf(todayIso)))
+    : null;
   const nutrition: NutritionToday | null = diet
     ? {
-        targetKcal: diet.target_kcal,
+        targetKcal: dayTargets(dietDay, diet).target_kcal,
         eatenKcal: todayLogs[0]?.kcal ?? null,
         meals: diet.meals
-          .filter((m) => m.time_of_day)
+          .filter((m) => m.diet_plan_day_id === dietDay?.id && m.time_of_day)
           .map((m) => ({
             label: m.label_ar || m.label_en ? pickLocale(m, locale, "label") : null,
             time: m.time_of_day!.slice(0, 5),
