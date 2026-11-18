@@ -44,6 +44,7 @@ export const AGE_RANGE_YEARS = [14, 100] as const;
 const GOAL_KCAL_FACTOR: Record<Goal, number> = { cut: 0.8, maintain: 1, bulk: 1.1 };
 const PROTEIN_G_PER_KG: Record<Goal, number> = { cut: 2.2, maintain: 1.8, bulk: 2.0 };
 const FAT_SHARE_OF_KCAL = 0.25;
+const REST_DAY_KCAL_FACTOR = 0.9;
 // Common clinical floor below which an unsupervised deficit isn't advised.
 const KCAL_FLOOR: Record<Sex, number> = { female: 1200, male: 1500 };
 
@@ -67,7 +68,13 @@ export function ageOn(birthDate: string, today: Date): number | null {
  * scaled by goal; protein by bodyweight, fat as a share of kcal, carbs the
  * remainder. Never guesses: any missing or implausible input is reported
  * back by name instead of producing numbers. */
-export function suggestMacroTargets(input: SuggestInput, today: Date): SuggestResult {
+export function suggestMacroTargets(
+  input: SuggestInput,
+  today: Date,
+  /** Day-type of the plan day the targets are for. "rest" eats less (carbs
+   * absorb the difference); "training" and "custom" are the baseline. */
+  dayKind: "training" | "rest" | "custom" = "training"
+): SuggestResult {
   const missing: SuggestField[] = [];
   const invalid: SuggestField[] = [];
 
@@ -112,7 +119,16 @@ export function suggestMacroTargets(input: SuggestInput, today: Date): SuggestRe
   }
 
   const protein_g = Math.round(weightKg * PROTEIN_G_PER_KG[goal]);
+  // Protein and fat come from the baseline day, so a rest day's lower kcal
+  // is taken out of carbs only.
   const fat_g = Math.round((kcal * FAT_SHARE_OF_KCAL) / 9);
+  if (dayKind === "rest") {
+    kcal = Math.round((kcal * REST_DAY_KCAL_FACTOR) / 10) * 10;
+    if (kcal < KCAL_FLOOR[sex]) {
+      kcal = KCAL_FLOOR[sex];
+      if (!warnings.includes("kcal_floor_applied")) warnings.push("kcal_floor_applied");
+    }
+  }
   let carb_g = Math.round((kcal - protein_g * 4 - fat_g * 9) / 4);
   if (carb_g < 0) {
     carb_g = 0;

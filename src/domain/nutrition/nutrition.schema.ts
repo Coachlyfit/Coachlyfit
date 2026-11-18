@@ -35,6 +35,7 @@ export const logIntakeSchema = z.object({
   protein_g: optionalNumber(z.number().min(0).max(2000)),
   carb_g: optionalNumber(z.number().min(0).max(2000)),
   fat_g: optionalNumber(z.number().min(0).max(2000)),
+  diet_plan_day_id: z.preprocess(blankToNull, z.string().uuid().nullable()),
 });
 
 export const offPlanSchema = z.object({

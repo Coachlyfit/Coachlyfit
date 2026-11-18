@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
 import { planMacros } from "@/domain/nutrition/macros";
+import { dayTargets, type DietDayKind } from "@/domain/nutrition/diet-days";
 import { MacroSummary } from "@/components/nutrition/macro-summary";
 import { DietPlansService } from "@/domain/nutrition/diet-plans.service";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
@@ -21,15 +22,21 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
   const t = await getTranslations("clients.profile.nutrition");
   const tNutrition = await getTranslations("nutrition");
   const supabase = await createClient();
-  const [diet, suggestion] = await Promise.all([
-    getActiveDiet(clientId),
-    new NutritionLogsService(supabase).suggestionFor(clientId, new Date()),
-  ]);
+  const diet = await getActiveDiet(clientId);
+  // The card summarises the plan's first day (the whole plan for a
+  // single-day plan); the suggestion is for that same day's kind.
+  const day = diet?.diet_plan_days[0] ?? null;
+  const suggestion = await new NutritionLogsService(supabase).suggestionFor(
+    clientId,
+    new Date(),
+    day?.kind as DietDayKind | undefined
+  );
   const suggestDialog = (
     <SuggestTargetsDialog
       locale={locale}
       clientId={clientId}
       dietPlanId={diet?.id ?? null}
+      dayId={day?.id}
       profile={suggestion.profile}
       weight={suggestion.weight}
       result={suggestion.result}
@@ -68,7 +75,8 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
   }
 
   const templates = await new DietPlansService(supabase).list("templates");
-  const totals = planMacros(diet.meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) }))));
+  const meals = diet.meals.filter((m) => m.diet_plan_day_id === day?.id);
+  const totals = planMacros(meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) }))));
 
   return (
     <Card>
@@ -83,14 +91,14 @@ export async function NutritionCard({ clientId, locale }: { clientId: string; lo
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <MacroSummary totals={totals} targets={diet} />
+        <MacroSummary totals={totals} targets={dayTargets(day, diet)} />
         {diet.targets_source && (
           <Badge variant="outline" className="self-start">
             {tNutrition(`suggest.source.${diet.targets_source as "manual" | "suggested" | "suggested_edited"}`)}
           </Badge>
         )}
 
-        <p className="text-xs text-muted-foreground">{t("mealCount", { count: diet.meals.length })}</p>
+        <p className="text-xs text-muted-foreground">{t("mealCount", { count: meals.length })}</p>
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Button size="sm" nativeButton={false} render={<Link href={`/diets/${diet.id}`} />}>

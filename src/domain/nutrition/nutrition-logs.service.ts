@@ -3,6 +3,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { dueReminderDate, localDateTime } from "./reminders";
 import { suggestMacroTargets, type Goal, type SuggestInput, type SuggestResult } from "./suggest-targets";
 import type { ActivityLevel, Sex } from "./calories";
+import type { DietDayKind as DayKind } from "./diet-days";
 
 type NutritionLog = Database["public"]["Tables"]["nutrition_logs"]["Row"];
 type BodyProfile = Database["public"]["Tables"]["client_body_profiles"]["Row"];
@@ -14,6 +15,8 @@ export type LogIntakeInput = {
   protein_g?: number | null;
   carb_g?: number | null;
   fat_g?: number | null;
+  /** The plan day this intake was measured against; left as-is when omitted. */
+  diet_plan_day_id?: string | null;
 };
 
 export type OffPlanInput = {
@@ -40,6 +43,18 @@ export class NutritionLogsService {
    * an off-plan report already on that day is left alone. Macros are sent
    * as explicit nulls so clearing a field clears it. */
   async logIntake(coachId: string, clientId: string, input: LogIntakeInput): Promise<NutritionLog> {
+    if (input.diet_plan_day_id) {
+      // The FK only proves the day exists. An RLS-scoped read proves this
+      // client can see it, so a log can't be tied to someone else's plan.
+      const { data: day, error: dayError } = await this.db
+        .from("diet_plan_days")
+        .select("id")
+        .eq("id", input.diet_plan_day_id)
+        .maybeSingle();
+      if (dayError) throw dayError;
+      if (!day) throw new Error("diet_day_not_found");
+    }
+
     const { data, error } = await this.db
       .from("nutrition_logs")
       .upsert(
@@ -51,6 +66,7 @@ export class NutritionLogsService {
           protein_g: input.protein_g ?? null,
           carb_g: input.carb_g ?? null,
           fat_g: input.fat_g ?? null,
+          ...(input.diet_plan_day_id ? { diet_plan_day_id: input.diet_plan_day_id } : {}),
         },
         { onConflict: "client_id,log_date" }
       )
@@ -147,7 +163,8 @@ export class NutritionLogsService {
    * whether assigned targets are "suggested" or "suggested_edited". */
   async suggestionFor(
     clientId: string,
-    today: Date
+    today: Date,
+    dayKind?: DayKind
   ): Promise<{ profile: BodyProfile | null; weight: { weight: number; date: string } | null; input: SuggestInput; result: SuggestResult }> {
     const [profile, weight] = await Promise.all([this.getBodyProfile(clientId), this.latestWeight(clientId)]);
     const input: SuggestInput = {
@@ -158,7 +175,7 @@ export class NutritionLogsService {
       activityLevel: (profile?.activity_level as ActivityLevel | null) ?? null,
       goal: (profile?.goal as Goal | null) ?? null,
     };
-    return { profile, weight, input, result: suggestMacroTargets(input, today) };
+    return { profile, weight, input, result: suggestMacroTargets(input, today, dayKind) };
   }
 
   async getReminderSettings(clientId: string): Promise<ReminderSettingsRow | null> {

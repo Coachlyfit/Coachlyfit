@@ -11,7 +11,9 @@ import type { MacroTargets, MacroTotals } from "@/domain/nutrition/macros";
 import type { DayKind } from "@/domain/programs/day-plan";
 import { RecipeSheet, type RecipeView } from "./recipe-sheet";
 
-export type PlanView = {
+/** One day-type of a plan (Training / Rest / …): its own targets, notes and
+ * meals. A plan always has at least one. */
+export type PlanDayView = {
   id: string;
   name: string;
   notes: string | null;
@@ -34,6 +36,14 @@ export type PlanView = {
   }[];
 };
 
+export type PlanView = {
+  id: string;
+  name: string;
+  /** Plan-level notes, shared by every day-type. */
+  notes: string | null;
+  days: PlanDayView[];
+};
+
 export type DayView = {
   date: string;
   weekday: string;
@@ -41,6 +51,8 @@ export type DayView = {
   longLabel: string;
   kind: DayKind | null;
   planId: string | null;
+  /** The plan day the weekly schedule picks for this date. */
+  dietDayId: string | null;
 };
 
 const KIND_ICON = { training: Dumbbell, rest: Moon, cardio: HeartPulse, rehab: Activity } as const;
@@ -48,7 +60,7 @@ const KIND_ICON = { training: Dumbbell, rest: Moon, cardio: HeartPulse, rehab: A
 /** Index of the next meal still ahead today, by the device's clock — read
  * after mount only, so server and first client render agree. Meals without
  * a time can't be "next"; -1 once everything timed has passed. */
-function useNextMealIndex(meals: PlanView["meals"], enabled: boolean) {
+function useNextMealIndex(meals: PlanDayView["meals"], enabled: boolean) {
   const [now, setNow] = useState<string | null>(null);
   useEffect(() => {
     const tick = () => {
@@ -67,10 +79,14 @@ export function DietDays({ days, plans }: { days: DayView[]; plans: Record<strin
   const t = useTranslations("client.diet");
   const tRecipe = useTranslations("recipes.item");
   const [selected, setSelected] = useState(0);
+  // The day-type the client switched to by hand, for the date being viewed;
+  // null = the scheduled one. Reset whenever another date is picked.
+  const [pickedDayId, setPickedDayId] = useState<string | null>(null);
   const [openRecipe, setOpenRecipe] = useState<{ recipe: RecipeView; servings: number } | null>(null);
   const day = days[selected];
   const plan = day.planId ? plans[day.planId] : null;
-  const nextIndex = useNextMealIndex(plan?.meals ?? [], selected === 0);
+  const planDay = plan ? (plan.days.find((d) => d.id === (pickedDayId ?? day.dietDayId)) ?? plan.days[0] ?? null) : null;
+  const nextIndex = useNextMealIndex(planDay?.meals ?? [], selected === 0);
   // Only worth a label when the week actually alternates between plans.
   const variesByDay = new Set(days.map((d) => d.planId)).size > 1;
 
@@ -87,7 +103,10 @@ export function DietDays({ days, plans }: { days: DayView[]; plans: Record<strin
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setSelected(i)}
+                onClick={() => {
+                  setSelected(i);
+                  setPickedDayId(null);
+                }}
                 className={cn(
                   "flex min-w-12 flex-1 flex-col items-center gap-0.5 rounded-xl border px-1 py-2 transition-colors",
                   active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-muted"
@@ -114,23 +133,46 @@ export function DietDays({ days, plans }: { days: DayView[]; plans: Record<strin
           {day.kind && <Badge variant="secondary">{t(`kind.${day.kind}`)}</Badge>}
           {plan && variesByDay && <span className="text-xs text-muted-foreground">{plan.name}</span>}
         </div>
-        {plan ? (
-          <MacroSummary totals={plan.totals} targets={plan.targets} />
+        {plan && plan.days.length > 1 && (
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("dayType")}>
+            {plan.days.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                aria-pressed={d.id === planDay?.id}
+                onClick={() => setPickedDayId(d.id)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  d.id === planDay?.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card hover:bg-muted"
+                )}
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+        )}
+        {planDay ? (
+          <MacroSummary totals={planDay.totals} targets={planDay.targets} />
         ) : (
           <p className="text-sm text-muted-foreground">{t("noMealsForDay")}</p>
         )}
       </Card>
 
-      {plan?.notes && (
-        <div className="flex items-start gap-2 rounded-xl bg-muted/60 px-4 py-3 text-sm">
-          <StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <p className="whitespace-pre-line">{plan.notes}</p>
-        </div>
+      {[plan?.notes, planDay?.notes].map(
+        (note) =>
+          note && (
+            <div key={note} className="flex items-start gap-2 rounded-xl bg-muted/60 px-4 py-3 text-sm">
+              <StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <p className="whitespace-pre-line">{note}</p>
+            </div>
+          )
       )}
 
-      {plan && (
+      {planDay && (
         <ol className="flex flex-col gap-3">
-          {plan.meals.map((meal, i) => {
+          {planDay.meals.map((meal, i) => {
             const isNext = i === nextIndex;
             const past = selected === 0 && nextIndex !== -1 && meal.time != null && i < nextIndex;
             return (

@@ -21,12 +21,14 @@ type ExistingMeal = { id: string; label_ar: string | null; label_en: string | nu
 export function AddMealDialog({
   locale,
   dietPlanId,
+  dayId,
   meal,
   open,
   onOpenChange,
 }: {
   locale: string;
   dietPlanId: string;
+  dayId: string;
   meal?: ExistingMeal;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -59,7 +61,7 @@ export function AddMealDialog({
     startTransition(async () => {
       const result = meal
         ? await updateMealAction(locale, dietPlanId, meal.id, formData)
-        : await addMealAction(locale, dietPlanId, formData);
+        : await addMealAction(locale, dietPlanId, dayId, formData);
       if (result?.error) {
         setFormError(result.error);
         return;

@@ -13,7 +13,7 @@ import { MacroSummary } from "@/components/nutrition/macro-summary";
 import { planMacros, planWarnings, type MacroTargets } from "@/domain/nutrition/macros";
 import type { DietPlanTree } from "@/domain/nutrition/diet-plans.service";
 import { dietTargetsSchema, type DietTargetsFormInput } from "../schemas";
-import { updateDietTargetsAction } from "../actions";
+import { updateDayTargetsAction } from "../actions";
 import { itemMacroFood } from "@/domain/recipes/recipe-nutrition";
 
 const FIELDS = [
@@ -23,7 +23,9 @@ const FIELDS = [
   ["target_fat_g", "fat", 1000],
 ] as const;
 
-/** The builder's always-visible "where is this day at": totals vs targets,
+/** The builder's always-visible "where is this day at" for the selected plan
+ * day: its totals vs ITS targets (a day without its own falls back to the
+ * plan's, resolved by the caller),
  * inline target editing, and the planWarnings checks. Pure derived data
  * from the tree already on the page, same no-fetch rule as the old macro
  * sidebar it replaces. Sticky from sm up so it stays in view while the
@@ -32,11 +34,13 @@ const FIELDS = [
 export function DaySummary({
   locale,
   dietPlanId,
+  dayId,
   meals,
   targets,
 }: {
   locale: string;
   dietPlanId: string;
+  dayId: string;
   meals: DietPlanTree["meals"];
   targets: MacroTargets;
 }) {
@@ -73,7 +77,7 @@ export function DaySummary({
       if (data[name] != null && data[name] !== "") formData.set(name, String(data[name]));
     }
     startTransition(async () => {
-      const result = await updateDietTargetsAction(locale, dietPlanId, formData);
+      const result = await updateDayTargetsAction(locale, dietPlanId, dayId, formData);
       if (result?.error) {
         toast.error(tErrors(result.error));
         return;

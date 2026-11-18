@@ -15,8 +15,13 @@ import { DietDays, type DayView, type PlanView } from "./diet-days";
 import { NutritionLogPanel } from "./nutrition-log-panel";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
 import { addDays } from "@/domain/nutrition/adherence";
+import { dayTargets, resolveDietDay } from "@/domain/nutrition/diet-days";
+import { weekdayOf } from "@/domain/appointments/tz";
 
 const DAYS_AHEAD = 7;
+// How far back a log can still be edited (isLoggableDate); the panel offers
+// these days plus tomorrow, so each needs its plan day for the stamp.
+const LOG_WINDOW_DAYS = 7;
 
 type TreeItem = DietPlanTree["meals"][number]["meal_items"][number];
 
@@ -46,14 +51,40 @@ function toRecipeView(recipe: NonNullable<TreeItem["recipes"]>, locale: AppLocal
 
 /** Flattens a tree into exactly what the client screen renders — localized
  * names, "150g"-style amounts, precomputed totals — so the interactive
- * part (diet-days.tsx) gets small serializable props, not the raw tree. */
+ * part (diet-days.tsx) gets small serializable props, not the raw tree.
+ * Each plan day carries its own meals, notes, totals and targets. */
 function toPlanView(
   tree: DietPlanTree,
   locale: AppLocale,
   imageUrls: Map<string, string>,
   servingsLabel: (count: number) => string
 ): PlanView {
-  const meals = tree.meals.map((meal) => {
+  return {
+    id: tree.id,
+    name: pickLocale(tree, locale),
+    notes: tree.notes_ar || tree.notes_en ? pickLocale(tree, locale, "notes") : null,
+    days: tree.diet_plan_days.map((day) => {
+      const dayMeals = tree.meals.filter((m) => m.diet_plan_day_id === day.id);
+      return {
+        id: day.id,
+        name: pickLocale(day, locale),
+        notes: day.notes_ar || day.notes_en ? pickLocale(day, locale, "notes") : null,
+        // Only the four target fields -- not the tree, which would ship to the browser whole.
+        targets: dayTargets(day, tree),
+        totals: planMacros(dayMeals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) })))),
+        meals: toMealViews(dayMeals, locale, imageUrls, servingsLabel),
+      };
+    }),
+  };
+}
+
+function toMealViews(
+  mealRows: DietPlanTree["meals"],
+  locale: AppLocale,
+  imageUrls: Map<string, string>,
+  servingsLabel: (count: number) => string
+): PlanView["days"][number]["meals"] {
+  return mealRows.map((meal) => {
     const items = meal.meal_items.map((item) => ({ quantity: item.quantity, food: itemMacroFood(item) }));
     return {
       id: meal.id,
@@ -70,26 +101,14 @@ function toPlanView(
       })),
     };
   });
-  return {
-    id: tree.id,
-    name: pickLocale(tree, locale),
-    notes: tree.notes_ar || tree.notes_en ? pickLocale(tree, locale, "notes") : null,
-    // Only the four target fields -- not the tree, which would ship to the browser whole.
-    targets: {
-      target_kcal: tree.target_kcal,
-      target_protein_g: tree.target_protein_g,
-      target_carb_g: tree.target_carb_g,
-      target_fat_g: tree.target_fat_g,
-    },
-    totals: planMacros(tree.meals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) })))),
-    meals,
-  };
 }
 
 /** Each of the next 7 days resolves its own nutrition: the program day's
  * linked variant (day-plan.ts's dietPlanId, e.g. "Training day"), else the
- * client's standalone active plan. Only the handful of distinct plans get
- * fetched, then the client component switches days without a round trip. */
+ * client's standalone active plan; then, inside that plan, the plan day the
+ * weekly schedule maps to that weekday (else its first training day, else
+ * its first day). Only the handful of distinct plans get fetched, then the
+ * client component switches days without a round trip. */
 export default async function ClientDietPage({
   params,
 }: {
@@ -120,19 +139,35 @@ export default async function ClientDietPage({
     nutrition.getBodyProfile(clientRow.id),
   ]);
 
-  const todayMs = new Date(new Date().toISOString().slice(0, 10)).getTime();
-  const resolved = Array.from({ length: programTree ? DAYS_AHEAD : 1 }, (_, i) => {
-    const date = new Date(todayMs + i * 86_400_000).toISOString().slice(0, 10);
-    const plan = programTree ? resolveDayPlan(programTree, date) : null;
-    return { date, kind: plan?.kind ?? null, planId: plan?.dietPlanId ?? standalone?.id ?? null };
-  });
-
+  // The strip (today onward) plus the days a log can still be edited for,
+  // each resolved to its plan, then to its plan day.
   const plans = new Map<string, DietPlanTree>();
   if (standalone) plans.set(standalone.id, standalone);
-  const missing = [...new Set(resolved.map((d) => d.planId))].filter((id): id is string => !!id && !plans.has(id));
+  const resolveDate = (date: string) => {
+    const plan = programTree ? resolveDayPlan(programTree, date) : null;
+    return { date, kind: plan?.kind ?? null, planId: plan?.dietPlanId ?? standalone?.id ?? null };
+  };
+  const dateAt = (offset: number) => addDays(serverToday, offset);
+  const resolved = Array.from({ length: programTree ? DAYS_AHEAD : 1 }, (_, i) => resolveDate(dateAt(i)));
+  const loggable = Array.from({ length: LOG_WINDOW_DAYS + 2 }, (_, i) => resolveDate(dateAt(i - LOG_WINDOW_DAYS)));
+
+  const missing = [...new Set([...resolved, ...loggable].map((d) => d.planId))].filter(
+    (id): id is string => !!id && !plans.has(id)
+  );
   for (const tree of await Promise.all(missing.map((id) => dietPlans.getTree(id)))) {
     if (tree) plans.set(tree.id, tree);
   }
+  const dietDayId = (date: string, planId: string | null) => {
+    const tree = planId ? plans.get(planId) : null;
+    return tree ? (resolveDietDay(tree.diet_plan_days, tree.diet_plan_schedule, weekdayOf(date))?.id ?? null) : null;
+  };
+  // date -> plan day that date's menu comes from; what a log is stamped with.
+  const logDayIds = Object.fromEntries(
+    loggable.flatMap((d) => {
+      const id = dietDayId(d.date, d.planId);
+      return id ? [[d.date, id] as const] : [];
+    })
+  );
 
   const logPanel = (
     <NutritionLogPanel
@@ -140,6 +175,7 @@ export default async function ClientDietPage({
       coachId={clientRow.coach_id}
       clientId={clientRow.id}
       serverToday={serverToday}
+      dietDayIds={logDayIds}
       logs={logs.map((l) => ({
         log_date: l.log_date,
         kcal: l.kcal,
@@ -180,6 +216,7 @@ export default async function ClientDietPage({
     longLabel: formatDate(d.date, locale, { weekday: "long", day: "numeric", month: "short" }),
     kind: d.kind,
     planId: d.planId && plans.has(d.planId) ? d.planId : null,
+    dietDayId: dietDayId(d.date, d.planId),
   }));
   // Recipe photos are in a private bucket; the client's storage policy only
   // signs ones from recipes in their own meal items.

@@ -11,15 +11,21 @@ import { DietPlanBuilder } from "./diet-plan-builder";
 import { EditNameDialog } from "./edit-name-dialog";
 import { PlanToolbar } from "./plan-toolbar";
 import { VariantTabs } from "./variant-tabs";
+import { DayTabs } from "./day-tabs";
+import { SchedulePicker } from "./schedule-picker";
+import type { DietDayKind } from "@/domain/nutrition/diet-days";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
 import { SuggestTargetsDialog } from "../../clients/[clientId]/suggest-targets-dialog";
 
 export default async function DietPlanDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: AppLocale; dietPlanId: string }>;
+  searchParams: Promise<{ day?: string }>;
 }) {
   const { locale, dietPlanId } = await params;
+  const { day: dayParam } = await searchParams;
   const t = await getTranslations("diets");
   const supabase = await createClient();
   const service = new DietPlansService(supabase);
@@ -30,13 +36,32 @@ export default async function DietPlanDetailPage({
   ]);
   if (!tree) notFound();
 
+  // The day being edited: ?day=, else the plan's first. A plan always has
+  // one (the migration backfilled plans that predate days).
+  const days = tree.diet_plan_days;
+  const activeDay = days.find((d) => d.id === dayParam) ?? days[0];
+  if (!activeDay) notFound();
+
   const isTemplate = !tree.client_id;
   const [clonedInstances, siblings, suggestion] = await Promise.all([
     isTemplate && !tree.program_id ? service.listClonedInstances(tree.id) : [],
     tree.program_id ? service.listSiblingVariants(tree.program_id) : [],
-    // Only a client's own plan has someone to suggest targets for.
-    tree.client_id ? new NutritionLogsService(supabase).suggestionFor(tree.client_id, new Date()) : null,
+    // Only a client's own plan has someone to suggest targets for; a rest
+    // day suggests less than a training day.
+    tree.client_id
+      ? new NutritionLogsService(supabase).suggestionFor(tree.client_id, new Date(), activeDay.kind as DietDayKind)
+      : null,
   ]);
+  const copyTargets = [
+    ...days
+      .filter((d) => d.id !== activeDay.id)
+      .map((d) => ({ planId: tree.id, dayId: d.id, name: pickLocale(d, locale) })),
+    ...siblings.flatMap((v) =>
+      v.id !== tree.id && v.first_day_id
+        ? [{ planId: v.id, dayId: v.first_day_id, name: pickLocale(v, locale) }]
+        : []
+    ),
+  ];
   const clientName = clients?.find((c) => c.id === tree.client_id)?.display_name;
   const BackIcon = locale === "ar" ? ChevronRight : ChevronLeft;
 
@@ -79,6 +104,7 @@ export default async function DietPlanDetailPage({
               locale={locale}
               clientId={tree.client_id}
               dietPlanId={tree.id}
+              dayId={activeDay.id}
               profile={suggestion.profile}
               weight={suggestion.weight}
               result={suggestion.result}
@@ -116,11 +142,28 @@ export default async function DietPlanDetailPage({
         </details>
       )}
 
-      <DietPlanBuilder
-        locale={locale}
-        tree={tree}
-        copyTargets={siblings.filter((v) => v.id !== tree.id).map((v) => ({ id: v.id, name: pickLocale(v, locale) }))}
-      />
+      <DayTabs locale={locale} dietPlanId={tree.id} days={days} activeId={activeDay.id} />
+
+      {(activeDay.notes_ar || activeDay.notes_en) && (
+        <div className="flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm">
+          <StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <p className="whitespace-pre-line text-muted-foreground">{pickLocale(activeDay, locale, "notes")}</p>
+        </div>
+      )}
+
+      {days.length >= 2 && (
+        <SchedulePicker
+          // Remount when days or the saved schedule change, so the draft
+          // never holds a deleted day.
+          key={days.map((d) => d.id).join() + JSON.stringify(tree.diet_plan_schedule)}
+          locale={locale}
+          dietPlanId={tree.id}
+          days={days}
+          schedule={tree.diet_plan_schedule}
+        />
+      )}
+
+      <DietPlanBuilder key={activeDay.id} locale={locale} tree={tree} day={activeDay} copyTargets={copyTargets} />
     </div>
   );
 }

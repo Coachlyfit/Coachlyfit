@@ -1325,6 +1325,176 @@ export type Database = {
           },
         ]
       }
+      diet_plan_days: {
+        Row: {
+          client_id: string | null
+          coach_id: string
+          created_at: string
+          created_by: string | null
+          diet_plan_id: string
+          id: string
+          kind: string
+          name_ar: string
+          name_en: string
+          notes_ar: string | null
+          notes_en: string | null
+          order_index: number
+          target_carb_g: number | null
+          target_fat_g: number | null
+          target_kcal: number | null
+          target_protein_g: number | null
+        }
+        Insert: {
+          client_id?: string | null
+          coach_id: string
+          created_at?: string
+          created_by?: string | null
+          diet_plan_id: string
+          id?: string
+          kind?: string
+          name_ar: string
+          name_en: string
+          notes_ar?: string | null
+          notes_en?: string | null
+          order_index?: number
+          target_carb_g?: number | null
+          target_fat_g?: number | null
+          target_kcal?: number | null
+          target_protein_g?: number | null
+        }
+        Update: {
+          client_id?: string | null
+          coach_id?: string
+          created_at?: string
+          created_by?: string | null
+          diet_plan_id?: string
+          id?: string
+          kind?: string
+          name_ar?: string
+          name_en?: string
+          notes_ar?: string | null
+          notes_en?: string | null
+          order_index?: number
+          target_carb_g?: number | null
+          target_fat_g?: number | null
+          target_kcal?: number | null
+          target_protein_g?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_plan_days_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plan_days_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "diet_plan_days_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "diet_plan_days_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plan_days_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plan_days_diet_plan_id_fkey"
+            columns: ["diet_plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diet_plan_schedule: {
+        Row: {
+          client_id: string | null
+          coach_id: string
+          created_at: string
+          diet_plan_day_id: string
+          diet_plan_id: string
+          weekday: number
+        }
+        Insert: {
+          client_id?: string | null
+          coach_id: string
+          created_at?: string
+          diet_plan_day_id: string
+          diet_plan_id: string
+          weekday: number
+        }
+        Update: {
+          client_id?: string | null
+          coach_id?: string
+          created_at?: string
+          diet_plan_day_id?: string
+          diet_plan_id?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_plan_schedule_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plan_schedule_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "diet_plan_schedule_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "diet_plan_schedule_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plan_schedule_diet_plan_day_id_diet_plan_id_fkey"
+            columns: ["diet_plan_day_id", "diet_plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plan_days"
+            referencedColumns: ["id", "diet_plan_id"]
+          },
+          {
+            foreignKeyName: "diet_plan_schedule_diet_plan_id_fkey"
+            columns: ["diet_plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diet_plans: {
         Row: {
           archived_at: string | null
@@ -3092,6 +3262,7 @@ export type Database = {
           client_id: string | null
           coach_id: string
           created_by: string | null
+          diet_plan_day_id: string
           diet_plan_id: string
           id: string
           label_ar: string | null
@@ -3103,6 +3274,7 @@ export type Database = {
           client_id?: string | null
           coach_id: string
           created_by?: string | null
+          diet_plan_day_id: string
           diet_plan_id: string
           id?: string
           label_ar?: string | null
@@ -3114,6 +3286,7 @@ export type Database = {
           client_id?: string | null
           coach_id?: string
           created_by?: string | null
+          diet_plan_day_id?: string
           diet_plan_id?: string
           id?: string
           label_ar?: string | null
@@ -3156,6 +3329,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meals_diet_plan_day_fk"
+            columns: ["diet_plan_day_id", "diet_plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plan_days"
+            referencedColumns: ["id", "diet_plan_id"]
           },
           {
             foreignKeyName: "meals_diet_plan_id_fkey"
@@ -3438,6 +3618,7 @@ export type Database = {
           client_id: string
           coach_id: string
           created_at: string
+          diet_plan_day_id: string | null
           fat_g: number | null
           id: string
           kcal: number | null
@@ -3455,6 +3636,7 @@ export type Database = {
           client_id: string
           coach_id: string
           created_at?: string
+          diet_plan_day_id?: string | null
           fat_g?: number | null
           id?: string
           kcal?: number | null
@@ -3472,6 +3654,7 @@ export type Database = {
           client_id?: string
           coach_id?: string
           created_at?: string
+          diet_plan_day_id?: string | null
           fat_g?: number | null
           id?: string
           kcal?: number | null
@@ -3511,6 +3694,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_logs_diet_plan_day_id_fkey"
+            columns: ["diet_plan_day_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plan_days"
             referencedColumns: ["id"]
           },
           {

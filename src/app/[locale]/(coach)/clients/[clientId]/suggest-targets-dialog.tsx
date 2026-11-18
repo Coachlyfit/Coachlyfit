@@ -32,6 +32,7 @@ export function SuggestTargetsDialog({
   locale,
   clientId,
   dietPlanId,
+  dayId,
   profile,
   weight,
   result,
@@ -39,6 +40,9 @@ export function SuggestTargetsDialog({
   locale: AppLocale;
   clientId: string;
   dietPlanId: string | null;
+  /** The plan day to assign to; `result` must be computed for that day's
+   * kind. Omitted = the plan's first day. */
+  dayId?: string | null;
   profile: BodyProfileValues | null;
   weight: { weight: number; date: string } | null;
   result: SuggestResult;
@@ -80,6 +84,7 @@ export function SuggestTargetsDialog({
             locale={locale}
             clientId={clientId}
             dietPlanId={dietPlanId}
+            dayId={dayId}
             result={result}
             onAssigned={() => setOpen(false)}
           />
@@ -107,12 +112,14 @@ function SuggestionPanel({
   locale,
   clientId,
   dietPlanId,
+  dayId,
   result,
   onAssigned,
 }: {
   locale: AppLocale;
   clientId: string;
   dietPlanId: string | null;
+  dayId?: string | null;
   result: Extract<SuggestResult, { ok: true }>;
   onAssigned: () => void;
 }) {
@@ -138,12 +145,18 @@ function SuggestionPanel({
   function assign() {
     if (!dietPlanId) return;
     startTransition(async () => {
-      const res = await assignClientTargetsAction(locale, clientId, dietPlanId, {
-        target_kcal: values.kcal,
-        target_protein_g: values.protein_g,
-        target_carb_g: values.carb_g,
-        target_fat_g: values.fat_g,
-      });
+      const res = await assignClientTargetsAction(
+        locale,
+        clientId,
+        dietPlanId,
+        {
+          target_kcal: values.kcal,
+          target_protein_g: values.protein_g,
+          target_carb_g: values.carb_g,
+          target_fat_g: values.fat_g,
+        },
+        dayId
+      );
       if (res?.error) {
         toast.error(t(`errors.${res.error}`));
         return;
