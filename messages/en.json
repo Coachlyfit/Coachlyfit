@@ -4042,6 +4042,22 @@
     "flag": {
       "needsAttention": "Needs attention"
     },
+    "insights": {
+      "title": "At a glance",
+      "severity": {
+        "warn": "Needs attention",
+        "info": "Worth a look",
+        "good": "Going well"
+      },
+      "items": {
+        "pain": "{count, plural, one {Pain reported on # exercise recently} other {Pain reported on # exercises recently}}",
+        "adherenceLow": "Adherence {adherence}%",
+        "missedCheckins": "{days} days since the last check-in",
+        "sleepDrop": "Sleep dropped by {drop}h",
+        "weightStalled": "{weeks, plural, one {Weight stalled for # week} other {Weight stalled for # weeks}}",
+        "goodWeek": "Strong week — adherence {adherence}%"
+      }
+    },
     "stats": {
       "weight": "Weight",
       "adherence": "Adherence",
@@ -4115,6 +4131,26 @@
         "call": {
           "label": "Call",
           "text": "Let's talk for 5 minutes, easier than writing. Send me a time that works."
+        },
+        "weightStalled": {
+          "label": "Plateau",
+          "text": "Your weight has held steady for a couple of weeks — let's adjust this week and get things moving again."
+        },
+        "sleepDrop": {
+          "label": "Sleep",
+          "text": "I noticed your sleep dipped this week. Try to protect your bedtime — it makes everything else easier."
+        },
+        "adherenceLow": {
+          "label": "Back on track",
+          "text": "This week was harder to stick to the plan — no stress. Tell me what got in the way and we'll make it easier."
+        },
+        "missedCheckins": {
+          "label": "Missed check-ins",
+          "text": "It's been a while since your last check-in. Everything okay? Even a quick update helps me adjust your plan."
+        },
+        "goodWeek": {
+          "label": "Great week",
+          "text": "Excellent consistency this week — that's exactly what drives results. Keep it up."
         }
       }
     },
