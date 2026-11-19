@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,12 @@ function ColorRow({
   const t = useTranslations("websiteEditor.colors");
   const id = useId();
   const [text, setText] = useState(picked ?? "");
-  useEffect(() => setText(picked ?? ""), [picked]);
+  // Re-sync the field when the pick changes from outside (reset, reset all).
+  const [prevPicked, setPrevPicked] = useState(picked);
+  if (picked !== prevPicked) {
+    setPrevPicked(picked);
+    setText(picked ?? "");
+  }
 
   return (
     <div className="flex flex-col gap-1.5 rounded-xl bg-card p-3 ring-1 ring-foreground/10">

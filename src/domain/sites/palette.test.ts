@@ -37,7 +37,7 @@ describe("themeCss", () => {
 
   it("only ever outputs hex / rgba values", () => {
     const theme = defaultTheme();
-    theme.light = { primary: "#123456", accent: "#654321", background: "#ffffff", text: "#000000", card: "#eeeeee", band: "#111111", cta: "#abcdef" };
+    theme.light = { primary: "#123456", accent: "#654321", background: "#ffffff", text: "#000000", card: "#eeeeee", band: "#111111", cta: "#abcdef", heading: "#222222", footer: "#333333" };
     const values = themeCss(theme, base).match(/--[a-z]+:[^;}]+/g) ?? [];
     expect(values.length).toBeGreaterThan(20);
     for (const v of values) expect(v.split(":")[1]).toMatch(/^(#[0-9a-f]{6}|rgba\([\d., ]+\))$/);
