@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { getMessages, getTranslations } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { fontMono, fontSans } from "@/lib/fonts";
 import { Providers } from "@/components/providers/providers";
@@ -109,6 +109,9 @@ export default async function LocaleLayout({
     notFound();
   }
 
+  // Coach domains skip the next-intl middleware (proxy.ts), so no locale header
+  // is set; without this, messages and useLocale() fall back to Arabic.
+  setRequestLocale(locale);
   const messages = await getMessages();
   const dir = locale === "ar" ? "rtl" : "ltr";
 
