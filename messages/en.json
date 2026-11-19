@@ -88,6 +88,7 @@
     "tasks": "Tasks",
     "emails": "Emails",
     "site": "Site",
+    "website": "My website",
     "leads": "Leads",
     "guides": "Guides",
     "support": "Support",
@@ -5859,6 +5860,497 @@
       "failedLong": "Couldn't sync to Google Calendar",
       "retry": "Try again",
       "retrying": "Queued to sync again"
+    }
+  },
+  "site": {
+    "nav": {
+      "label": "Main",
+      "services": "Services",
+      "results": "Results",
+      "reviews": "Reviews",
+      "contact": "Contact"
+    },
+    "hero": {
+      "eyebrow": "Online fitness coach",
+      "whatsapp": "Message me on WhatsApp",
+      "join": "Join my program",
+      "seeResults": "See results",
+      "whatsappText": "Hi {name}, I'd like to know more about your coaching.",
+      "noPhoto": "No coach photo"
+    },
+    "about": {
+      "title": "About me",
+      "photoAlt": "{name}",
+      "years": "years coaching",
+      "clients": "clients coached"
+    },
+    "services": {
+      "title": "Services",
+      "sub": "Pick the way that fits you.",
+      "contactPrice": "Contact for price",
+      "unitMonth": "EGP / month",
+      "unitOnce": "EGP · one-time"
+    },
+    "results": {
+      "title": "Results",
+      "sub": "Real client results, shared with their consent.",
+      "before": "Before",
+      "after": "After",
+      "open": "Result {n}: {duration}",
+      "close": "Close",
+      "consentLine": "Every photo here is shared with the client's consent, and they can withdraw it at any time.",
+      "weeks": "{n, plural, one {# week} other {# weeks}}",
+      "days": "{n, plural, one {# day} other {# days}}",
+      "kg": "kg"
+    },
+    "reviews": {
+      "title": "Client reviews",
+      "sub": "Each review is written by the client through a private link.",
+      "note": "Reviews come from clients and can't be edited by the coach.",
+      "verified": "Verified client",
+      "stars": "{n} out of 5 stars"
+    },
+    "how": {
+      "title": "How it works",
+      "defaults": {
+        "step1Title": "Message me on WhatsApp",
+        "step1Text": "Tell me your goal, your schedule and any old injuries.",
+        "step2Title": "I write your plan",
+        "step2Text": "Training and nutrition built around your goal and the equipment you have.",
+        "step3Title": "Check in every week",
+        "step3Text": "Send your progress in the app and we adjust the plan together."
+      }
+    },
+    "faq": {
+      "title": "Questions"
+    },
+    "cta": {
+      "defaultTitle": "Ready to start?",
+      "defaultText": "Send a message, tell me about your goal, and we'll pick the right plan together."
+    },
+    "footer": {
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "youtube": "YouTube",
+      "copyright": "© {year} {name}",
+      "powered": "Powered by"
+    },
+    "slider": {
+      "prev": "Previous",
+      "next": "Next",
+      "goTo": "Slide {n} of {total}"
+    },
+    "comingSoon": {
+      "title": "Coming soon",
+      "text": "{name}'s website is on its way. Check back shortly."
+    }
+  },
+  "websiteEditor": {
+    "title": "My website",
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "unpublished": "Unpublished"
+    },
+    "results": {
+      "info": "You can only publish cards the client agreed to share. If a client withdraws, the card is removed from your site automatically.",
+      "count": "{published} of {total} published",
+      "newCard": "New card",
+      "empty": {
+        "title": "No progress cards yet",
+        "text": "Make a before/after card from a client's photos and send a consent request. It will show up here."
+      },
+      "showOnSite": "Show on site",
+      "status": {
+        "agreed": "Client agreed",
+        "pending": "Waiting for consent",
+        "withdrawn": "Client withdrew"
+      },
+      "requestSent": "Consent request sent {when}.",
+      "resend": "Resend",
+      "resent": "Consent request sent.",
+      "withdrewNote": "{name} withdrew consent on {date}. The card was removed from your site and can't be published unless you make a new card and they agree.",
+      "before": "Before",
+      "after": "After",
+      "weeks": "{n, plural, one {# week} other {# weeks}}",
+      "days": "{n, plural, one {# day} other {# days}}",
+      "cardLabel": "{name}, {duration}",
+      "dialog": {
+        "title": "New before/after card",
+        "client": "Client",
+        "pickClient": "Choose a client",
+        "loading": "Loading photos…",
+        "noPhotos": "This client has no progress photos yet.",
+        "pickTwo": "Pick the Before photo, then the After photo.",
+        "beforePhoto": "Before photo",
+        "afterPhoto": "After photo",
+        "photoAlt": "Photo from {date}",
+        "duration": "Duration (days)",
+        "weight": "Weight change (kg)",
+        "weightHint": "Optional. Use a minus sign for weight lost, e.g. -6.",
+        "submit": "Create card and ask for consent",
+        "cancel": "Cancel",
+        "created": "Card created. The consent request was sent."
+      }
+    },
+    "reviews": {
+      "request": {
+        "title": "Ask a client for a review",
+        "client": "Client",
+        "pick": "Choose a client",
+        "card": "Before/after card they can share",
+        "noCard": "No photos",
+        "create": "Create link",
+        "link": "Review request link",
+        "copy": "Copy link",
+        "copied": "Link copied",
+        "whatsapp": "Send on WhatsApp",
+        "whatsappText": "Hi {name}, I'd love your honest review of our coaching. It takes a minute: {url}",
+        "hint": "The link is personal, works once and expires in 14 days."
+      },
+      "lock": {
+        "title": "Reviews can't be edited",
+        "text": "You can approve or hide a review, but the words stay exactly as the client wrote them."
+      },
+      "filter": {
+        "label": "Filter reviews",
+        "pending": "Pending ({n})",
+        "approved": "Approved ({n})",
+        "hidden": "Hidden ({n})"
+      },
+      "readOnly": "Client's words, read-only",
+      "shownAs": "Shown as {name}",
+      "rating": "{n} out of 5 stars",
+      "approve": "Approve",
+      "hide": "Hide",
+      "show": "Show on site",
+      "sharesPhotos": "Agreed to share photos",
+      "empty": {
+        "title": "No reviews yet",
+        "text": "Send your first link to a client. Their review will show up here for you to approve."
+      },
+      "none": "Nothing here right now."
+    },
+    "domain": {
+      "title": "Your domain",
+      "none": "No domain connected",
+      "connected": "Connected",
+      "pending": "Waiting for DNS",
+      "error": "Couldn't verify",
+      "ssl": "SSL active",
+      "label": "Domain",
+      "placeholder": "coachahmed.fit",
+      "hint": "The domain you own, without www. You'll add DNS records next.",
+      "connect": "Connect domain",
+      "change": "Change domain",
+      "check": "Check again",
+      "remove": "Remove domain",
+      "records": "Add these DNS records at your domain provider",
+      "recordType": "Type",
+      "recordName": "Name",
+      "recordValue": "Value",
+      "dnsDelay": "DNS changes can take a few hours to show up.",
+      "fallback": "Until it connects, your site is also at <link>{url}</link>.",
+      "notConfigured": "Custom domains aren't set up on this server yet. Contact support.",
+      "saved": "Domain saved.",
+      "removed": "Domain removed."
+    },
+    "publish": {
+      "title": "Publishing",
+      "live": "Site is live",
+      "liveOn": "Anyone with the link can see your site.",
+      "liveOff": "Your site is hidden. Visitors see a “coming soon” page.",
+      "lastPublished": "Last published: {when}",
+      "neverPublished": "Never published",
+      "draft": "Draft",
+      "discard": "Discard draft",
+      "discardTitle": "Discard your draft?",
+      "discardText": "Your unpublished changes will be lost and the draft goes back to what's live.",
+      "discarded": "Draft discarded.",
+      "toggleFailed": "Couldn't change the site status."
+    },
+    "autosave": {
+      "saving": "Saving…",
+      "saved": "Draft saved",
+      "error": "Couldn't save your last change",
+      "retry": "Retry"
+    },
+    "viewSite": "View site",
+    "publishChanges": "Publish changes",
+    "publishBlocked": "Add your services before you publish.",
+    "publishNeedsWhatsapp": "Add your WhatsApp number in the Hero section, or switch the main button to “Join my program”.",
+    "published": "Your changes are live.",
+    "changes": "{count, plural, one {# unpublished change} other {# unpublished changes}}",
+    "allPublished": "Everything is published",
+    "tabs": {
+      "edit": "Edit",
+      "preview": "Preview",
+      "sections": "Sections",
+      "results": "Results",
+      "reviews": "Reviews",
+      "domain": "Domain & publishing"
+    },
+    "sections": {
+      "hint": "Drag to reorder. Switch any section on or off.",
+      "alwaysOn": "Always on",
+      "drag": "Drag to reorder {name}",
+      "dragHelp": "Press space to pick up, the arrow keys to move, space to drop.",
+      "edit": "Edit",
+      "back": "Sections",
+      "toggle": "Show {name} on the site",
+      "moved": "{name} moved to position {position} of {total}",
+      "names": {
+        "hero": "Hero",
+        "about": "About",
+        "services": "Services",
+        "results": "Results",
+        "reviews": "Testimonials",
+        "how": "How it works",
+        "faq": "FAQ",
+        "cta": "Final call to action",
+        "footer": "Footer"
+      },
+      "summary": {
+        "hero": "Name, title and WhatsApp button",
+        "about": "Photo, bio and certifications",
+        "aboutEmpty": "No photo yet",
+        "services": "{count, plural, =0 {No services yet} one {# service} other {# services}}",
+        "results": "{published} of {total} published",
+        "resultsEmpty": "No cards yet",
+        "reviews": "{count, plural, =0 {No approved reviews} one {# approved review} other {# approved reviews}}",
+        "how": "3 steps",
+        "faq": "{count, plural, =0 {No questions yet} one {# question} other {# questions}}",
+        "cta": "WhatsApp button",
+        "footer": "Social links and Coachly Fit"
+      }
+    },
+    "form": {
+      "counter": "{n}/{max}",
+      "hero": {
+        "title": "One-line title",
+        "intro": "Short intro",
+        "mainButton": "Main button",
+        "optWhatsapp": "Message me on WhatsApp",
+        "optJoin": "Join my program",
+        "whatsapp": "WhatsApp number",
+        "whatsappHint": "International format, e.g. +201001234567",
+        "secondary": "Secondary button text",
+        "secondaryHint": "Leave empty to use “See results”."
+      },
+      "about": {
+        "photo": "Your photo",
+        "upload": "Upload photo",
+        "uploadHint": "JPG or PNG, up to 5 MB. A portrait photo works best.",
+        "replace": "Replace",
+        "remove": "Remove",
+        "uploading": "Uploading…",
+        "bio": "Bio",
+        "certs": "Certifications",
+        "certPlaceholder": "e.g. NASM-CPT",
+        "addCert": "Add certification",
+        "removeCert": "Remove {name}",
+        "years": "Years of experience",
+        "clients": "Clients coached",
+        "realNumbers": "Use real numbers only. Leave empty to hide."
+      },
+      "services": {
+        "name": "Service name",
+        "description": "Description",
+        "price": "Price",
+        "currency": "EGP",
+        "billed": "Billed",
+        "perMonth": "per month",
+        "once": "one-time",
+        "contactForPrice": "Contact for price",
+        "add": "Add service",
+        "remove": "Remove service",
+        "moveUp": "Move service up",
+        "moveDown": "Move service down",
+        "limit": "Up to 4 services, shown in this order.",
+        "item": "Service {n}"
+      },
+      "faq": {
+        "question": "Question",
+        "answer": "Answer",
+        "add": "Add question",
+        "remove": "Remove question",
+        "limit": "Up to 6 questions.",
+        "item": "Question {n}"
+      },
+      "how": {
+        "intro": "Three steps. Leave a step empty to use the standard wording.",
+        "step": "Step {n}",
+        "title": "Title",
+        "text": "Text"
+      },
+      "cta": {
+        "heading": "Heading",
+        "text": "Supporting text",
+        "button": "Button text",
+        "buttonHint": "Leave empty to use “Message me on WhatsApp”."
+      },
+      "footer": {
+        "social": "Social links",
+        "instagram": "Instagram link",
+        "tiktok": "TikTok link",
+        "youtube": "YouTube link",
+        "urlHint": "Full link, starting with https://"
+      }
+    },
+    "preview": {
+      "label": "Live preview",
+      "phone": "Phone",
+      "desktop": "Desktop",
+      "language": "Preview language",
+      "arabic": "AR",
+      "english": "EN"
+    },
+    "colorsAdjusted": "We adjusted your brand colors slightly so text stays readable on your site.",
+    "errors": {
+      "invalid": "Check this field.",
+      "phone": "Use international format, e.g. +201001234567.",
+      "url": "Enter a full link starting with https://",
+      "tooLong": "Too long.",
+      "photoType": "Use a JPG or PNG photo.",
+      "photoSize": "The photo must be 5 MB or smaller.",
+      "uploadFailed": "Couldn't upload the photo. Try again.",
+      "not_authenticated": "Please sign in again.",
+      "invalid_input": "Some fields are invalid.",
+      "save_failed": "Couldn't save your changes.",
+      "publish_blocked": "Finish the required steps before publishing.",
+      "publish_failed": "Couldn't publish. Try again.",
+      "discard_failed": "Couldn't discard the draft.",
+      "not_published": "Publish your site first.",
+      "live_failed": "Couldn't change the site status.",
+      "load_failed": "Couldn't load the photos.",
+      "card_failed": "Couldn't create the card.",
+      "consent_failed": "Couldn't send the consent request.",
+      "consent_required": "The client hasn't agreed to share this card.",
+      "result_failed": "Couldn't update the card.",
+      "request_failed": "Couldn't create the review link.",
+      "review_failed": "Couldn't update the review.",
+      "domain_invalid": "Enter a valid domain, like coachahmed.fit.",
+      "domain_taken": "This domain is already used by another site.",
+      "domain_failed": "Couldn't save the domain.",
+      "domain_not_configured": "Custom domains aren't set up on this server yet.",
+      "generic": "Something went wrong."
+    },
+    "loadError": {
+      "title": "We couldn't load your website settings",
+      "text": "Check your connection and try again. Your saved changes are safe.",
+      "retry": "Retry",
+      "support": "Contact support"
+    },
+    "setup": {
+      "title": "Get your site ready",
+      "text": "Finish these steps before you publish.",
+      "done": "Done",
+      "todo": "To do",
+      "photoBio": "Add your photo and bio",
+      "services": "Add at least 2 services",
+      "domain": "Connect your domain",
+      "review": "Get your first review"
+    }
+  },
+  "photoConsent": {
+    "askTitle": "Share your before/after photos?",
+    "askText": "{coach} would like to show these two photos on their website. Nothing is shown unless you agree, and you can withdraw at any time.",
+    "agreedTitle": "Your photos are shareable",
+    "agreedText": "You agreed to let {coach} show these photos on their website. You can withdraw at any time and they come down right away.",
+    "before": "Before",
+    "after": "After",
+    "agree": "I agree",
+    "decline": "No thanks",
+    "withdraw": "Withdraw consent",
+    "agreed": "Thanks. Your coach can now share this card.",
+    "declined": "Okay. Your photos stay private.",
+    "withdrawn": "Consent withdrawn. Your photos were taken down.",
+    "error": "Something went wrong. Try again."
+  },
+
+  "clientReview": {
+    "title": "How was coaching with {coach}?",
+    "subtitle": "Your review helps other people decide. It takes about a minute.",
+    "rating": {
+      "label": "Your rating",
+      "group": "Your rating out of 5 stars",
+      "star": "{n, plural, one {# star} other {# stars}}",
+      "words": {
+        "1": "Poor",
+        "2": "Fair",
+        "3": "Good",
+        "4": "Very good",
+        "5": "Excellent"
+      }
+    },
+    "text": {
+      "label": "Your review",
+      "placeholder": "What changed for you? What did you like about the coaching?",
+      "hint": "At least 20 characters.",
+      "counter": "{n}/{max}"
+    },
+    "name": {
+      "label": "Your first name",
+      "hint": "Only your first name and last-name initial are shown, like “Sara M.”"
+    },
+    "consent": {
+      "label": "Share my before/after photos",
+      "text": "If you turn this on, {coach} can show your progress photos on their website. If you leave it off, your photos stay private.",
+      "withdraw": "You can withdraw at any time in the app or from the email we send you, and the photos will be removed from the site.",
+      "card": "The card that would be shown",
+      "before": "Before",
+      "after": "After"
+    },
+    "trust": "Your review is published after the coach approves it. Nobody can change your words.",
+    "submit": "Send my review",
+    "sending": "Sending…",
+    "expiry": "This link works until {date}",
+    "errors": {
+      "summary": "A few things are missing:",
+      "rating": "Choose a star rating.",
+      "bodyShort": "Write at least 20 characters.",
+      "bodyLong": "Keep it to 500 characters or fewer.",
+      "name": "Enter your first name.",
+      "failed": "Something went wrong. Please try again.",
+      "rate_limited": "Too many attempts. Please wait a little and try again.",
+      "invalid_link": "This link is no longer valid.",
+      "invalid_input": "Please check your answers and try again."
+    },
+    "thanks": {
+      "title": "Thank you, {name}!",
+      "titleAnonymous": "Thank you!",
+      "text": "Your review reached {coach}. It will appear on their website once they approve it.",
+      "sharedTitle": "You agreed to share your photos",
+      "sharedText": "You can withdraw at any time and the photos will be removed from the site.",
+      "withdraw": "Withdraw consent",
+      "withdrawing": "Withdrawing…",
+      "withdrawn": "Consent withdrawn. Your photos won't appear on the site.",
+      "withdrawFailed": "Couldn't withdraw right now. Please try again.",
+      "privateTitle": "Your photos stay private",
+      "privateText": "You didn't agree to share photos, so they won't appear on the site.",
+      "visit": "Visit {coach}'s website"
+    },
+    "expired": {
+      "title": "This link has expired",
+      "text": "Review links work once and for 14 days. If you still want to leave a review, ask {coach} for a new link.",
+      "askNew": "Ask for a new link on WhatsApp",
+      "askNewText": "Hi {coach}, my review link expired. Could you send me a new one?",
+      "visit": "Visit website"
+    },
+    "withdrawPage": {
+      "title": "Withdraw your photo consent",
+      "text": "{coach} will stop showing your before/after photos on their website, and the photos will be removed.",
+      "confirm": "Withdraw consent",
+      "done": "Done. Your photos won't appear on the site.",
+      "failed": "Couldn't withdraw right now. Please try again.",
+      "nothing": "There's nothing to withdraw: your photos aren't shared."
+    },
+    "email": {
+      "subject": "You agreed to share your photos on {coach}'s website",
+      "greeting": "Hi {name},",
+      "body": "Thank you for your review. You also agreed to let {coach} show your before/after photos on their website.",
+      "withdraw": "You can change your mind at any time. Use this link to withdraw your consent and have the photos removed:",
+      "ignore": "If you're happy to share them, there's nothing to do."
     }
   }
 }

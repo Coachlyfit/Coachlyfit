@@ -22,6 +22,8 @@ import { TodaySection, type NutritionToday, type TodaySession } from "@/componen
 import { CoachRow } from "@/components/client-home/coach-row";
 import { CoachDecisionCard } from "./coach-decision-card";
 import { CoachInviteCard } from "./coach-invite-card";
+import { PhotoConsentCard } from "./photo-consent-card";
+import { loadPhotoConsents } from "./photo-consent-data";
 import { NextSession } from "@/components/client-home/next-session";
 import { DEFAULT_TIME_ZONE, isValidTimeZone, weekdayOf } from "@/domain/appointments/tz";
 import { dayTargets, resolveDietDay } from "@/domain/nutrition/diet-days";
@@ -120,6 +122,8 @@ export default async function ClientHomePage({
       }
     : null;
 
+  const photoConsents = await loadPhotoConsents(supabase);
+
   const weightPoints = history.flatMap((c) => (c.weight != null ? [{ date: c.checkin_date, value: c.weight }] : []));
 
   return (
@@ -140,6 +144,10 @@ export default async function ClientHomePage({
           locale={locale}
           invite={{ id: invite.id, businessName: invite.coaches?.business_name ?? null }}
         />
+      ))}
+
+      {photoConsents.map((request) => (
+        <PhotoConsentCard key={request.cardId} locale={locale} request={request} />
       ))}
 
       <CoachDecisionCard

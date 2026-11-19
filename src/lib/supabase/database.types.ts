@@ -360,6 +360,72 @@ export type Database = {
           },
         ]
       }
+      card_consents: {
+        Row: {
+          card_id: string
+          client_id: string
+          coach_id: string
+          decided_at: string | null
+          requested_at: string
+          status: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          card_id: string
+          client_id: string
+          coach_id: string
+          decided_at?: string | null
+          requested_at?: string
+          status?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          card_id?: string
+          client_id?: string
+          coach_id?: string
+          decided_at?: string | null
+          requested_at?: string
+          status?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_consents_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: true
+            referencedRelation: "progress_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_consents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_consents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "card_consents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "card_consents_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkins: {
         Row: {
           adherence: number | null
@@ -1047,6 +1113,50 @@ export type Database = {
             foreignKeyName: "coach_availability_exceptions_coach_id_fkey"
             columns: ["coach_id"]
             isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_sites: {
+        Row: {
+          coach_id: string
+          domain: string | null
+          domain_status: string
+          draft: Json
+          id: string
+          is_published: boolean
+          published_at: string | null
+          published_content: Json | null
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          domain?: string | null
+          domain_status?: string
+          draft?: Json
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          published_content?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          domain?: string | null
+          domain_status?: string
+          draft?: Json
+          id?: string
+          is_published?: boolean
+          published_at?: string | null
+          published_content?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_sites_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
             referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
@@ -4596,6 +4706,82 @@ export type Database = {
           },
         ]
       }
+      progress_cards: {
+        Row: {
+          after_media_id: string
+          before_media_id: string
+          client_id: string
+          coach_id: string
+          created_at: string
+          duration_days: number
+          id: string
+          weight_delta: number | null
+        }
+        Insert: {
+          after_media_id: string
+          before_media_id: string
+          client_id: string
+          coach_id: string
+          created_at?: string
+          duration_days: number
+          id?: string
+          weight_delta?: number | null
+        }
+        Update: {
+          after_media_id?: string
+          before_media_id?: string
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          duration_days?: number
+          id?: string
+          weight_delta?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_cards_after_media_id_fkey"
+            columns: ["after_media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_cards_before_media_id_fkey"
+            columns: ["before_media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_cards_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_cards_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "progress_cards_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "progress_cards_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -4957,6 +5143,213 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_rate_limits: {
+        Row: {
+          attempts: number
+          key: string
+          window_started_at: string
+        }
+        Insert: {
+          attempts?: number
+          key: string
+          window_started_at?: string
+        }
+        Update: {
+          attempts?: number
+          key?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
+      review_requests: {
+        Row: {
+          card_id: string | null
+          client_id: string
+          coach_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          preview: Json | null
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          card_id?: string | null
+          client_id: string
+          coach_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          preview?: Json | null
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          card_id?: string | null
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          preview?: Json | null
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_requests_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "progress_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "review_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "review_requests_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          body: string
+          client_id: string
+          coach_id: string
+          created_at: string
+          display_name: string
+          id: string
+          rating: number
+          request_id: string
+          share_photos: boolean
+          status: string
+        }
+        Insert: {
+          body: string
+          client_id: string
+          coach_id: string
+          created_at?: string
+          display_name: string
+          id?: string
+          rating: number
+          request_id: string
+          share_photos?: boolean
+          status?: string
+        }
+        Update: {
+          body?: string
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          rating?: number
+          request_id?: string
+          share_photos?: boolean
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "reviews_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "review_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_results: {
+        Row: {
+          after_path: string | null
+          before_path: string | null
+          card_id: string
+          is_published: boolean
+          purge_paths: string[]
+          site_id: string
+        }
+        Insert: {
+          after_path?: string | null
+          before_path?: string | null
+          card_id: string
+          is_published?: boolean
+          purge_paths?: string[]
+          site_id: string
+        }
+        Update: {
+          after_path?: string | null
+          before_path?: string | null
+          card_id?: string
+          is_published?: boolean
+          purge_paths?: string[]
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_results_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "progress_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_results_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "coach_sites"
             referencedColumns: ["id"]
           },
         ]
@@ -6217,6 +6610,11 @@ export type Database = {
         }[]
       }
       get_portal_branding: { Args: { p_slug: string }; Returns: Json }
+      get_public_site: { Args: { p_key: string }; Returns: Json }
+      get_review_request: {
+        Args: { p_ip?: unknown; p_token: string }
+        Returns: Json
+      }
       get_team_directory: {
         Args: never
         Returns: {
@@ -6429,6 +6827,20 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      my_card_consents: {
+        Args: never
+        Returns: {
+          after_path: string
+          before_path: string
+          business_name: string
+          card_id: string
+          decided_at: string
+          duration_days: number
+          requested_at: string
+          status: string
+          weight_delta: number
+        }[]
+      }
       queue_subscription_notice: {
         Args: {
           p_kind: string
@@ -6494,6 +6906,11 @@ export type Database = {
         Args: { p_item_id: string; p_legacy?: Json; p_sets: Json }
         Returns: boolean
       }
+      request_card_consent: { Args: { p_card_id: string }; Returns: undefined }
+      respond_card_consent: {
+        Args: { p_agree: boolean; p_card_id: string }
+        Returns: undefined
+      }
       respond_to_coach_invite: {
         Args: {
           p_accept: boolean
@@ -6546,6 +6963,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      review_email_target: { Args: { p_token: string }; Returns: Json }
       save_recipe: {
         Args: { p_id?: string; p_ingredients: Json; p_recipe: Json }
         Returns: string
@@ -6554,8 +6972,20 @@ export type Database = {
         Args: { p_cancel: boolean }
         Returns: undefined
       }
+      site_status: { Args: { p_key: string }; Returns: string }
       snapshot_mrr: { Args: never; Returns: undefined }
       soft_delete_client: { Args: { p_client_id: string }; Returns: undefined }
+      submit_review: {
+        Args: {
+          p_body: string
+          p_first_name: string
+          p_ip?: unknown
+          p_rating: number
+          p_share_photos: boolean
+          p_token: string
+        }
+        Returns: Json
+      }
       support_mark_read: { Args: { p_ticket_id: string }; Returns: undefined }
       support_reopen_ticket: {
         Args: { p_ticket_id: string }
@@ -6577,6 +7007,14 @@ export type Database = {
       voice_notes_to_delete: {
         Args: { p_before: string; p_limit: number; p_orphan_before: string }
         Returns: string[]
+      }
+      withdraw_consent: {
+        Args: { p_ip?: unknown; p_token: string }
+        Returns: number
+      }
+      withdraw_consent_client: {
+        Args: { p_card_id: string }
+        Returns: undefined
       }
     }
     Enums: {

@@ -26,7 +26,7 @@ import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "tasks" | "schedule" | "support" | "guides" | "templates";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "website" | "tasks" | "schedule" | "support" | "guides" | "templates";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge and
    * SupportUnreadBadge. */
@@ -73,6 +73,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/review", labelKey: "review", icon: ClipboardCheck },
   { href: "/library", labelKey: "library", icon: Dumbbell, shortLabelKey: "shortLibrary" },
   { href: "/diets", labelKey: "diets", icon: Salad },
+  { href: "/website", labelKey: "website", icon: Globe },
   { href: "/tasks", labelKey: "tasks", icon: ListTodo, feature: "task_management" },
   { href: "/schedule", labelKey: "schedule", icon: CalendarClock, feature: "appointments" },
   { href: "/finance", labelKey: "finance", icon: Wallet, ownerOnly: true },
@@ -107,7 +108,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 export const COACH_NAV_GROUPS: NavGroup[] = [
   { hrefs: ["/dashboard"] },
   { labelKey: "groupClients", hrefs: ["/clients", "/schedule", "/review", "/messages", "/tasks"] },
-  { labelKey: "groupContent", hrefs: ["/programs", "/forms", "/library", "/diets"] },
+  { labelKey: "groupContent", hrefs: ["/programs", "/forms", "/library", "/diets", "/website"] },
   { labelKey: "groupAccount", hrefs: ["/finance", "/settings", "/guides", "/support"] },
 ];
 

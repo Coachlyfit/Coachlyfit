@@ -1,8 +1,10 @@
 import createMiddleware from "next-intl/middleware";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "@/i18n/routing";
+import { pickSiteLang, servesSite, siteCandidate } from "@/lib/sites/host";
+import { getSiteStatus } from "@/lib/sites/status";
 import { updateSession } from "@/lib/supabase/middleware";
-import { extractPortalSlug } from "@/lib/tenant/portal-slug";
+import { extractPortalSlug, getRootDomain } from "@/lib/tenant/portal-slug";
 
 // Next.js 16 renamed the `middleware.ts` file convention to `proxy.ts`
 // (same location, same default-export-a-function shape) — see
@@ -11,6 +13,26 @@ import { extractPortalSlug } from "@/lib/tenant/portal-slug";
 const intlMiddleware = createMiddleware(routing);
 
 export default async function proxy(request: NextRequest) {
+  const host = request.headers.get("host");
+  const hostname = (host ?? "").split(":")[0].toLowerCase();
+  const slug = extractPortalSlug(host);
+
+  // Coach website: a custom domain (every path), or a published coach's
+  // subdomain root + /review/* links, is rewritten to the public site route.
+  // The site is public and cached, so it skips next-intl and the auth session.
+  const candidate = siteCandidate({
+    hostname,
+    slug,
+    pathname: request.nextUrl.pathname,
+    rootDomain: getRootDomain(),
+  });
+  if (candidate && servesSite(candidate, await getSiteStatus(candidate.key))) {
+    const lang = pickSiteLang(request.nextUrl.searchParams.get("lang"), request.headers.get("accept-language"));
+    const url = request.nextUrl.clone();
+    url.pathname = `/${lang}/sites/${candidate.key}${request.nextUrl.pathname === "/" ? "" : request.nextUrl.pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
   // White-label subdomain (mona-fitness.<root domain>): forward the slug to
   // Server Components via a request header, read downstream with
   // `resolvePortalSlug()` (src/lib/tenant/portal-slug.ts). Mutating
@@ -20,9 +42,9 @@ export default async function proxy(request: NextRequest) {
   // Falls back to a `?coach=` query param when there's no wildcard subdomain
   // set up yet (NEXT_PUBLIC_ROOT_DOMAIN unset / no *.domain DNS), so portal
   // links still work — see resolvePortalSlug().
-  const slug = extractPortalSlug(request.headers.get("host")) ?? request.nextUrl.searchParams.get("coach");
-  if (slug) {
-    request.headers.set("x-coach-slug", slug);
+  const portalSlug = slug ?? request.nextUrl.searchParams.get("coach");
+  if (portalSlug) {
+    request.headers.set("x-coach-slug", portalSlug);
   }
   // Layouts aren't given the URL. The coach layout needs it to leave the
   // subscription page reachable for a coach whose subscription has lapsed.
