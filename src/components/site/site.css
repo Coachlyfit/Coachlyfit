@@ -6,7 +6,8 @@
      RTL-first.
    - Responsive via CONTAINER queries on .cs-root, not viewport queries, so the
      editor's 390px / 1280px preview frames lay out like the real thing.
-   - Dark mode follows prefers-color-scheme (visitors get no toggle). */
+   - Dark mode follows prefers-color-scheme by default; the visitor can switch
+     with the toggle in the header (data-scheme on .cs-root). */
 
 .cs-root {
   --p: #c2410c;
@@ -52,8 +53,10 @@
   -webkit-text-size-adjust: 100%;
 }
 
+/* Dark tokens. Applied when the visitor's system prefers dark (unless they
+   chose light) or when they chose dark with the toggle ([data-scheme]). */
 @media (prefers-color-scheme: dark) {
-  .cs-root {
+  .cs-root:not([data-scheme="light"]) {
     --bg: #020617;
     --card: #0f172a;
     --fg: #f8fafc;
@@ -73,6 +76,32 @@
     --errbg: rgba(220, 38, 38, 0.16);
     --errfg: #fca5a5;
   }
+}
+.cs-root[data-scheme="dark"] {
+  --bg: #020617;
+  --card: #0f172a;
+  --fg: #f8fafc;
+  --muted: #cbd5e1;
+  --line: rgba(248, 250, 252, 0.14);
+  --line2: rgba(248, 250, 252, 0.34);
+  --pfill: color-mix(in srgb, var(--p) 62%, #fff);
+  --pfg: #020617;
+  --ptext: color-mix(in srgb, var(--p) 50%, #fff);
+  --tint: color-mix(in srgb, var(--p) 26%, #0f172a);
+  --acc: color-mix(in srgb, var(--a) 72%, #fff);
+  --slate: #1e293b;
+  --silA: #475569;
+  --silB: color-mix(in srgb, var(--p) 55%, #fff);
+  --okbg: rgba(22, 163, 74, 0.2);
+  --okfg: #86efac;
+  --errbg: rgba(220, 38, 38, 0.16);
+  --errfg: #fca5a5;
+}
+.cs-root[data-scheme="light"] {
+  color-scheme: light;
+}
+.cs-root[data-scheme="dark"] {
+  color-scheme: dark;
 }
 
 .cs-root[dir="rtl"] {

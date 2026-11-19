@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import type { AbstractIntlMessages } from "next-intl";
 import { ArrowLeft, ArrowUpRight, Check, Circle } from "lucide-react";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -93,6 +94,10 @@ export function WebsiteEditorShell({
   const [editing, setEditing] = useState<SectionKey | null>(null);
   const [pane, setPane] = useState<"edit" | "preview">("edit");
   const [device, setDevice] = useState<PreviewDevice>("phone");
+  // Starts as the dashboard's own theme; the coach can flip it to check both.
+  const { resolvedTheme } = useTheme();
+  const [schemeChoice, setSchemeChoice] = useState<"light" | "dark" | null>(null);
+  const scheme = schemeChoice ?? (resolvedTheme === "dark" ? "dark" : "light");
   // One language for both: the text the forms edit and the preview shows.
   const [lang, setLang] = useState<Lang>(locale);
   const [publishing, startPublish] = useTransition();
@@ -367,6 +372,21 @@ export function WebsiteEditorShell({
                 </Button>
               ))}
             </div>
+            <div role="group" aria-label={t("preview.scheme")} className="flex gap-1">
+              {(["light", "dark"] as const).map((sc) => (
+                <Button
+                  key={sc}
+                  type="button"
+                  size="sm"
+                  variant={scheme === sc ? "secondary" : "ghost"}
+                  className="min-h-11"
+                  aria-pressed={scheme === sc}
+                  onClick={() => setSchemeChoice(sc)}
+                >
+                  {t(`preview.${sc}`)}
+                </Button>
+              ))}
+            </div>
             {/* ponytail: same `lang` state as the edit-pane toggle; only needed where the edit pane is hidden (< lg) */}
             <div role="group" aria-label={t("preview.language")} className="flex gap-1 lg:hidden">
               {(["ar", "en"] as const).map((l) => (
@@ -385,7 +405,7 @@ export function WebsiteEditorShell({
             </div>
           </div>
           {coach.colors.adjusted && <p className="text-sm text-muted-foreground">{t("colorsAdjusted")}</p>}
-          <SitePreview view={view} device={device} lang={lang} siteMessages={siteMessages} />
+          <SitePreview view={view} device={device} lang={lang} scheme={scheme} siteMessages={siteMessages} />
         </section>
       </div>
     </div>
