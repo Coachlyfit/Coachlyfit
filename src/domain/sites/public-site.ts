@@ -2,6 +2,7 @@
 // reshaped into a view model with resolved image URLs and guarded colors.
 // Pure (no Next / React), so the editor preview and the real site share it.
 import { flatten, parseDraft, type Lang, type SiteContent } from "./site-content";
+import type { SiteTheme } from "./palette";
 import { guardColors, type SiteColors } from "./theme";
 
 /** Shape of get_public_site()'s json. Never contains client ids. */
@@ -10,6 +11,8 @@ export type PublicSiteRow = {
   domain: string | null;
   published_at?: string;
   content?: unknown;
+  /** Only on an unpublished site (no content): the coach's color theme, for the coming-soon page. */
+  theme?: unknown;
   coach: {
     business_name: string;
     slug: string;
@@ -39,6 +42,8 @@ export type SiteView = {
   /** Shown in the footer, e.g. coachahmed.fit. */
   domain: string | null;
   content: SiteContent;
+  /** The coach's own colors (light/dark palettes and mode). */
+  theme: SiteTheme;
   photoUrl: string | null;
   /** Sample / preview data only: draw the silhouette where a photo would be
    * instead of the monogram tile. Real sites never set this. */
@@ -56,13 +61,15 @@ export function publicStorageUrl(supabaseUrl: string, bucket: Bucket, path: stri
 
 /** The published site as one language's plain content, ready to render. */
 export function toSiteView(row: PublicSiteRow, supabaseUrl: string, lang: Lang): SiteView {
-  const content = flatten(parseDraft(row.content), lang);
+  const draft = parseDraft(row.content);
+  const content = flatten(draft, lang);
   return {
     coachName: row.coach.business_name,
     logoUrl: row.coach.logo_path ? publicStorageUrl(supabaseUrl, "coach-logos", row.coach.logo_path) : null,
     colors: guardColors(row.coach.brand_primary, row.coach.brand_accent),
     domain: row.domain,
     content,
+    theme: draft.theme,
     photoUrl: content.about.photoPath ? publicStorageUrl(supabaseUrl, "coach-site", content.about.photoPath) : null,
     results: (row.results ?? []).map((r) => ({
       id: r.id,

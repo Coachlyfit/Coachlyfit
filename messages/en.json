@@ -5863,6 +5863,10 @@
     }
   },
   "site": {
+    "lang": {
+      "toEnglish": "Switch to English",
+      "toArabic": "Switch to Arabic"
+    },
     "theme": {
       "toLight": "Switch to light mode",
       "toDark": "Switch to dark mode"
@@ -6073,6 +6077,37 @@
       "discarded": "Draft discarded.",
       "toggleFailed": "Couldn't change the site status."
     },
+    "colors": {
+      "intro": "Choose the colors of your site, separately for light and dark. Anything left on Automatic follows your brand colors.",
+      "mode": {
+        "label": "Light or dark",
+        "auto": "Follow the visitor's device",
+        "autoHint": "Visitors start from their device setting and can switch with the button in the header.",
+        "light": "Always light",
+        "dark": "Always dark"
+      },
+      "palette": {
+        "label": "Colors for",
+        "light": "Light mode",
+        "dark": "Dark mode"
+      },
+      "fields": {
+        "primary": { "label": "Buttons and highlights", "hint": "The fill of buttons, plus links and small highlights." },
+        "accent": { "label": "Accent", "hint": "Lines and stars drawn on the dark band." },
+        "background": { "label": "Page background" },
+        "text": { "label": "Text", "hint": "Body text." },
+        "heading": { "label": "Headings", "hint": "Section titles and service names. Leave on Automatic to match the text." },
+        "card": { "label": "Cards", "hint": "Review cards and panels." },
+        "band": { "label": "Dark band", "hint": "The top section and the results section." },
+        "cta": { "label": "Final call-to-action block", "hint": "The big block near the bottom." },
+        "footer": { "label": "Footer", "hint": "The strip at the very bottom. Its text adjusts to stay readable." }
+      },
+      "automatic": "Automatic",
+      "pick": "Pick a color for {name}",
+      "reset": "Use automatic",
+      "resetAll": "Reset all {scheme} colors",
+      "adjusted": "We adjusted some colors slightly so text stays readable."
+    },
     "autosave": {
       "saving": "Saving…",
       "saved": "Draft saved",
@@ -6094,6 +6129,7 @@
       "edit": "Edit",
       "preview": "Preview",
       "sections": "Sections",
+      "colors": "Colors",
       "results": "Results",
       "reviews": "Reviews",
       "domain": "Domain & publishing"

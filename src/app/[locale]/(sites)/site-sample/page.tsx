@@ -39,7 +39,7 @@ export default async function SamplePage({
   });
 
   return (
-    <SiteThemeProvider locale={locale} colors={view.colors}>
+    <SiteThemeProvider locale={locale} colors={view.colors} theme={view.theme}>
       <SiteBody view={view} year={new Date().getFullYear()} />
     </SiteThemeProvider>
   );

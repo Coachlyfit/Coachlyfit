@@ -32,7 +32,7 @@ export function SiteFooter({ view, year }: { view: SiteView; year: number }) {
         )}
       </p>
       <p className="cs-fine" style={{ fontSize: 13 }}>
-        {t("powered")} <b style={{ color: "var(--fg)" }}>Coachly Fit</b>
+        {t("powered")} <b style={{ color: "var(--footerfg, var(--fg))" }}>Coachly Fit</b>
       </p>
     </footer>
   );

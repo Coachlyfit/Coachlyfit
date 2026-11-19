@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { publishAction, saveDraftAction } from "@/app/[locale]/(coach)/website/actions";
 import { AutosaveIndicator } from "./autosave-indicator";
 import type { ClientOption } from "./create-card-dialog";
+import { ColorsPanel } from "./colors-panel";
 import { DomainCard, type DomainState } from "./domain-card";
 import { PublishPanel } from "./publish-panel";
 import { ResultsManager } from "./results-manager";
@@ -65,8 +66,8 @@ export type EditorCoach = {
   displayHost: string;
 };
 
-type Tab = "sections" | "results" | "reviews" | "domain";
-const TABS: Tab[] = ["sections", "results", "reviews", "domain"];
+type Tab = "sections" | "colors" | "results" | "reviews" | "domain";
+const TABS: Tab[] = ["sections", "colors", "results", "reviews", "domain"];
 
 export function WebsiteEditorShell({
   initial,
@@ -129,6 +130,7 @@ export function WebsiteEditorShell({
       colors: coach.colors,
       domain: initial.domain,
       content: flatten(draft, lang),
+      theme: draft.theme,
       photoUrl: draft.about.photoPath
         ? publicStorageUrl(process.env.NEXT_PUBLIC_SUPABASE_URL!, "coach-site", draft.about.photoPath)
         : null,
@@ -332,6 +334,15 @@ export function WebsiteEditorShell({
 
           {tab === "results" && <ResultsManager cards={cards} clients={clients} />}
           {tab === "reviews" && <ReviewsManager reviews={reviews} clients={clients} cards={cards} />}
+          {tab === "colors" && (
+            <ColorsPanel
+              theme={draft.theme}
+              base={{ p: coach.colors.primary, a: coach.colors.accent }}
+              scheme={scheme}
+              onSchemeChange={setSchemeChoice}
+              onChange={(theme) => update({ theme })}
+            />
+          )}
           {tab === "domain" && (
             <div className="flex flex-col gap-4">
               <PublishPanel

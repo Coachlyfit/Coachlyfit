@@ -182,6 +182,32 @@ describe("parseDraft", () => {
   });
 });
 
+describe("theme", () => {
+  it("a draft saved before colors existed gets the automatic theme", () => {
+    const d = parseDraft({ hero: { title: both("مرحبا", "Hello") } });
+    expect(d.theme).toEqual(defaultDraft().theme);
+    expect(d.theme.mode).toBe("auto");
+  });
+
+  it("keeps the coach's picks and fills in the rest", () => {
+    const d = parseDraft({ theme: { mode: "dark", dark: { background: "#101820" } } });
+    expect(d.theme.mode).toBe("dark");
+    expect(d.theme.dark.background).toBe("#101820");
+    expect(d.theme.dark.text).toBeNull();
+    expect(d.theme.light.primary).toBeNull();
+  });
+
+  it("only accepts #rrggbb colors", () => {
+    const d = defaultDraft();
+    const color = (v: string) => siteDraftSchema.safeParse({ ...d, theme: { ...d.theme, light: { ...d.theme.light, primary: v } } }).success;
+    expect(color("#a1b2c3")).toBe(true);
+    expect(color("red")).toBe(false);
+    expect(color("#fff")).toBe(false);
+    expect(color("#12345g")).toBe(false);
+    expect(color("url(javascript:alert(1))")).toBe(false);
+  });
+});
+
 describe("publish helpers", () => {
   it("blocks publishing without a named service or a WhatsApp number", () => {
     expect(publishIssues(defaultDraft())).toEqual(["services", "whatsapp"]);

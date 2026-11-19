@@ -3,6 +3,7 @@
 // This is fixture data for development, never shown on a real coach's site.
 import type { SiteView } from "./public-site";
 import { defaultDraft, flatten, type SiteDraft } from "./site-content";
+import { defaultTheme } from "./palette";
 import { guardColors } from "./theme";
 
 type Lang = "ar" | "en";
@@ -125,6 +126,7 @@ export function sampleView(lang: Lang, opts: SampleOptions = {}): SiteView {
     colors: guardColors(opts.primary, opts.accent),
     domain: "coachahmed.fit",
     content: flatten(sampleDraft(opts), lang),
+    theme: defaultTheme(),
     photoUrl: null,
     usePlaceholderPhoto: !opts.noPhoto,
     results: RESULTS.slice(0, opts.results ?? 6).map(([weeks, kg], i) => ({

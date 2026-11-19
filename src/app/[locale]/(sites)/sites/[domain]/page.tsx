@@ -6,6 +6,7 @@ import { ComingSoon } from "@/components/site/coming-soon";
 import { SiteBody } from "@/components/site/site-body";
 import { SiteThemeProvider } from "@/components/site/site-theme-provider";
 import { toSiteView } from "@/domain/sites/public-site";
+import { parseDraft } from "@/domain/sites/site-content";
 import { guardColors } from "@/domain/sites/theme";
 import { routing } from "@/i18n/routing";
 import { siteAlternates } from "@/lib/sites/origin";
@@ -76,7 +77,7 @@ export default async function SitePage({ params }: { params: Params }) {
     const colors = guardColors(site.coach.brand_primary, site.coach.brand_accent);
     const view = toSiteView(site, SUPABASE_URL, locale);
     return (
-      <SiteThemeProvider locale={locale} colors={colors}>
+      <SiteThemeProvider locale={locale} colors={colors} theme={parseDraft({ theme: site.theme }).theme}>
         <ComingSoon coachName={site.coach.business_name} logoUrl={view.logoUrl} />
       </SiteThemeProvider>
     );
@@ -84,7 +85,7 @@ export default async function SitePage({ params }: { params: Params }) {
 
   const view = toSiteView(site, SUPABASE_URL, locale);
   return (
-    <SiteThemeProvider locale={locale} colors={view.colors}>
+    <SiteThemeProvider locale={locale} colors={view.colors} theme={view.theme}>
       <SiteBody view={view} year={new Date().getFullYear()} />
     </SiteThemeProvider>
   );

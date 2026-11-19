@@ -335,12 +335,12 @@
   font-size: 15px;
 }
 .cs-btn--inv {
-  background: var(--pfg);
-  color: var(--pfill);
+  background: var(--ctafg, var(--pfg));
+  color: var(--cta, var(--pfill));
 }
 .cs-btn--outline-inv {
-  border-color: var(--pfg);
-  color: var(--pfg);
+  border-color: var(--ctafg, var(--pfg));
+  color: var(--ctafg, var(--pfg));
   background: transparent;
 }
 .cs-btn--outline {
@@ -349,9 +349,9 @@
   background: transparent;
 }
 .cs-btn--round {
-  width: 44px;
+  min-width: 44px;
   height: 44px;
-  padding: 0;
+  padding: 0 10px;
   border-radius: 22px;
   flex: none;
 }
@@ -372,6 +372,7 @@
   font-size: 34px;
 }
 .cs-h2 {
+  color: var(--heading, var(--fg));
   font-size: 34px;
   line-height: 1.1;
   font-weight: 700;
@@ -537,6 +538,7 @@
   overflow-wrap: anywhere;
 }
 .cs-svc h3 {
+  color: var(--heading, var(--fg));
   font-size: 20px;
   font-weight: 600;
   line-height: 1.35;
@@ -942,6 +944,7 @@
   color: var(--ptext);
 }
 .cs-step h3 {
+  color: var(--heading, var(--fg));
   font-size: 20px;
   font-weight: 700;
   line-height: 1.35;
@@ -977,7 +980,7 @@
   font: inherit;
   font-size: 17px;
   font-weight: 600;
-  color: inherit;
+  color: var(--heading, inherit);
   text-align: start;
 }
 .cs-faq-trigger .cs-v {
@@ -995,9 +998,10 @@
 }
 
 /* CTA + footer */
+/* --cta / --ctafg exist only when the coach picked a CTA color (theme). */
 .cs-cta {
-  background: var(--pfill);
-  color: var(--pfg);
+  background: var(--cta, var(--pfill));
+  color: var(--ctafg, var(--pfg));
 }
 .cs-cta-inner {
   display: flex;
@@ -1009,6 +1013,8 @@
   max-width: 560px;
 }
 .cs-footer {
+  background: var(--footer, transparent);
+  color: var(--footerfg, inherit);
   padding: 32px 20px 40px;
   border-block-start: 1px solid var(--line);
   display: flex;
@@ -1033,6 +1039,14 @@
 .cs-fine {
   font-size: 14px;
   color: var(--muted);
+}
+.cs-footer .cs-fine {
+  color: var(--footermuted, var(--muted));
+}
+/* Headings on the dark band / CTA keep that block's own text color. */
+.cs-ink .cs-h2,
+.cs-ink .cs-svc h3 {
+  color: inherit;
 }
 
 /* Coming soon */

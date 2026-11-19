@@ -5,6 +5,7 @@ import type { SectionKey } from "@/domain/sites/site-content";
 import { waLink } from "@/lib/whatsapp";
 import { ArrowIcon, WhatsAppIcon } from "./icons";
 import { Silhouette } from "./silhouette";
+import { SiteLangToggle } from "./site-lang-toggle";
 import { SiteThemeToggle } from "./site-theme-toggle";
 
 const LONG_NAME = 22;
@@ -54,6 +55,7 @@ export function SiteHero({
             {hasResults && <a href="#results">{t("nav.results")}</a>}
             {hasReviews && <a href="#reviews">{t("nav.reviews")}</a>}
           </div>
+          <SiteLangToggle />
           <SiteThemeToggle />
           {contact && (
             <a href={contact} className="cs-btn cs-btn--ghost cs-btn--sm">
