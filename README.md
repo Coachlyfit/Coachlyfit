@@ -35,8 +35,9 @@ See [.env.example](.env.example):
 
 Vercel Hobby only allows cron jobs that run **once per day**. The daily jobs
 (`billing-lifecycle`, `ledger-outcomes`, `trash-cleanup`, `voice-notes-cleanup`)
-stay in [vercel.json](vercel.json). The two sub-daily jobs
-(`notifications` every 5 min, `nutrition-reminders` every 15 min) are scheduled
+stay in [vercel.json](vercel.json). The sub-daily jobs
+(`notifications` every 5 min, `nutrition-reminders` / `appointment-reminders`
+every 15 min, `google-sync` every 3 min, `site-results-purge` hourly) are scheduled
 from Supabase instead, using pg_cron + pg_net — no plan upgrade needed.
 
 One-time setup per environment: open [supabase/snippets/hobby_cron_schedules.sql](supabase/snippets/hobby_cron_schedules.sql)

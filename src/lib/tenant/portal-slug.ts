@@ -29,5 +29,8 @@ export function extractPortalSlug(host: string | null): string | null {
 
   const slug = hostname.slice(0, -(root.length + 1));
   if (!slug || slug.includes(".")) return null;
+  // ponytail: hardcoded; `preview.` is the develop-branch deployment, not a coach.
+  // A coach can still claim slug "preview" in the DB — add a CHECK if that matters.
+  if (slug === "preview") return null;
   return slug;
 }

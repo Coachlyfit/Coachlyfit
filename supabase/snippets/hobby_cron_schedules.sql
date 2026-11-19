@@ -81,6 +81,23 @@ select cron.schedule(
   $job$
 );
 
+-- Public site result photos: removes storage copies queued after a client
+-- withdraws consent, hourly (was "0 * * * *" in vercel.json, which Hobby rejects).
+select cron.schedule(
+  'coachlyfit-site-results-purge-hourly',
+  '0 * * * *',
+  $job$
+  select net.http_get(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'app_url') || '/api/cron/site-results-purge',
+    headers := jsonb_build_object(
+      'Authorization',
+      'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+    ),
+    timeout_milliseconds := 60000
+  ) as request_id;
+  $job$
+);
+
 -- Google Calendar sync, every 3 minutes: pushes queued appointment changes to
 -- each connected coach's "Coachly Fit" calendar, keeps their Google watch
 -- channel alive, pulls changes they made in Google, and refreshes their Google
