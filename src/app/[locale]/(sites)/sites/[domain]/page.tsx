@@ -11,13 +11,16 @@ import { routing } from "@/i18n/routing";
 import { siteAlternates } from "@/lib/sites/origin";
 import { getPublicSite } from "@/lib/sites/public-site";
 
-// The proxy rewrites a coach's domain to /<lang>/sites/<domain>, so this page
-// needs no request-time APIs: it is generated on first visit, then served
-// from cache until the coach publishes (revalidateTag) or 5 minutes pass.
-export const dynamicParams = true;
-export function generateStaticParams() {
-  return [];
-}
+// The proxy rewrites a coach's domain to /<lang>/sites/<domain>.
+//
+// Rendered per request, NOT as a cached static page: the root [locale] layout
+// reads platform settings through a cookie-based Supabase client, which is a
+// request-time API. A static/ISR render of this route therefore throws
+// DYNAMIC_SERVER_USAGE in production. The expensive part (the database read)
+// is still cached: getPublicSite() uses unstable_cache with tags, refreshed
+// when the coach publishes (revalidateTag), on consent withdrawal, and every
+// 5 minutes.
+export const dynamic = "force-dynamic";
 
 type Params = Promise<{ locale: string; domain: string }>;
 
