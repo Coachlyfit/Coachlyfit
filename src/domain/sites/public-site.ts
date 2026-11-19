@@ -1,6 +1,7 @@
 // What the public site renders from: the get_public_site() RPC result,
 // reshaped into a view model with resolved image URLs and guarded colors.
 // Pure (no Next / React), so the editor preview and the real site share it.
+import { portalLoginUrl } from "@/lib/sites/origin";
 import { flatten, parseDraft, type Lang, type SiteContent } from "./site-content";
 import type { SiteTheme } from "./palette";
 import { guardColors, type SiteColors } from "./theme";
@@ -48,6 +49,8 @@ export type SiteView = {
   /** Sample / preview data only: draw the silhouette where a photo would be
    * instead of the monogram tile. Real sites never set this. */
   usePlaceholderPhoto?: boolean;
+  /** Client sign-in link (the coach's portal); absent on sample pages. */
+  loginUrl?: string;
   results: ResultView[];
   reviews: ReviewView[];
 };
@@ -68,6 +71,7 @@ export function toSiteView(row: PublicSiteRow, supabaseUrl: string, lang: Lang):
     logoUrl: row.coach.logo_path ? publicStorageUrl(supabaseUrl, "coach-logos", row.coach.logo_path) : null,
     colors: guardColors(row.coach.brand_primary, row.coach.brand_accent),
     domain: row.domain,
+    loginUrl: portalLoginUrl(row.coach, lang),
     content,
     theme: draft.theme,
     photoUrl: content.about.photoPath ? publicStorageUrl(supabaseUrl, "coach-site", content.about.photoPath) : null,
