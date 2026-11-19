@@ -34,7 +34,7 @@ export default async function ReviewPage({ params }: { params: Params }) {
   const open = request.state === "open";
 
   return (
-    <SiteThemeProvider locale={locale} colors={data.colors}>
+    <SiteThemeProvider locale={locale} colors={data.colors} theme={data.theme}>
       <div className="cs-rv-page">
         <ReviewHeader
           coachName={coachName}

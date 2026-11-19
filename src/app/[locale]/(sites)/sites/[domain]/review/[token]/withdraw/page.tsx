@@ -33,7 +33,7 @@ export default async function WithdrawPage({ params }: { params: Params }) {
   const known = data.request.state !== "invalid";
 
   return (
-    <SiteThemeProvider locale={locale} colors={data.colors}>
+    <SiteThemeProvider locale={locale} colors={data.colors} theme={data.theme}>
       <div className="cs-rv-page">
         <ReviewHeader coachName={data.coachName} logoUrl={data.logoUrl} />
         {known ? (

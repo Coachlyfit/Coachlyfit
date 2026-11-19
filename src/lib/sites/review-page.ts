@@ -2,6 +2,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { parseReviewRequest, type ReviewRequestView } from "@/domain/sites/review-request";
 import { publicStorageUrl } from "@/domain/sites/public-site";
+import type { SiteTheme } from "@/domain/sites/palette";
 import { parseDraft } from "@/domain/sites/site-content";
 import { guardColors, type SiteColors } from "@/domain/sites/theme";
 import { createAnonClient } from "@/lib/supabase/anon";
@@ -18,6 +19,8 @@ export type ReviewPageData = {
   colors: SiteColors;
   /** The coach's WhatsApp number from their published site, if any. */
   whatsapp: string | null;
+  /** The coach's own colors, so the review page matches their site. */
+  theme: SiteTheme | undefined;
 };
 
 /** Everything the review pages need, or null when there's no coach to brand
@@ -39,6 +42,7 @@ export async function loadReviewPage(domain: string, token: string): Promise<Rev
     logoUrl: coach.logoPath ? publicStorageUrl(supabaseUrl, "coach-logos", coach.logoPath) : null,
     colors: guardColors(coach.primary, coach.accent),
     whatsapp,
+    theme: site?.is_published ? parseDraft(site.content).theme : undefined,
   };
 }
 

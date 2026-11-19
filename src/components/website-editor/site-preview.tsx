@@ -40,7 +40,7 @@ export function SitePreview({
       >
         <div style={isDesktop ? { width: DESKTOP_WIDTH, zoom: DESKTOP_ZOOM } : undefined}>
           <NextIntlClientProvider locale={lang} messages={{ site: siteMessages[lang] }}>
-            <SiteThemeProvider locale={lang} colors={view.colors} scheme={scheme}>
+            <SiteThemeProvider locale={lang} colors={view.colors} theme={view.theme} scheme={scheme}>
               <SiteBody view={view} year={new Date().getFullYear()} />
             </SiteThemeProvider>
           </NextIntlClientProvider>

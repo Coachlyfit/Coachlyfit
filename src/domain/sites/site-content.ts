@@ -12,6 +12,7 @@
 // renderer falls back to localized defaults from messages. Nothing here
 // invents stats, prices or testimonials.
 import { z } from "zod";
+import { defaultTheme } from "./palette";
 
 export const SECTION_KEYS = ["hero", "about", "services", "results", "reviews", "how", "faq", "cta", "footer"] as const;
 export type SectionKey = (typeof SECTION_KEYS)[number];
@@ -80,6 +81,23 @@ export type SiteServiceDraft = z.infer<typeof serviceSchema>;
 const stepSchema = z.object({ title: bilingual(MAX.stepTitle), text: bilingual(MAX.stepText) });
 const certList = z.array(z.string().min(1).max(MAX.cert)).max(MAX.certs);
 
+const hexColor = z
+  .string()
+  .regex(/^#[0-9a-fA-F]{6}$/)
+  .nullable();
+const paletteSchema = z.object({
+  primary: hexColor,
+  accent: hexColor,
+  background: hexColor,
+  text: hexColor,
+  heading: hexColor,
+  card: hexColor,
+  band: hexColor,
+  cta: hexColor,
+  footer: hexColor,
+});
+const themeSchema = z.object({ mode: z.enum(["auto", "light", "dark"]), light: paletteSchema, dark: paletteSchema });
+
 export const siteDraftSchema = z.object({
   sections: z.array(sectionSchema).refine(sectionsAreValid, { message: "sections" }),
   hero: z.object({
@@ -106,6 +124,7 @@ export const siteDraftSchema = z.object({
     button: bilingual(MAX.button),
   }),
   socials: z.object({ instagram: url, tiktok: url, youtube: url }),
+  theme: themeSchema,
 });
 
 export type SiteDraft = z.infer<typeof siteDraftSchema>;
@@ -146,6 +165,7 @@ export function defaultDraft(): SiteDraft {
     faq: [],
     cta: { title: blank(), text: blank(), button: blank() },
     socials: { instagram: "", tiktok: "", youtube: "" },
+    theme: defaultTheme(),
   };
 }
 
@@ -279,6 +299,11 @@ export function parseDraft(raw: unknown): SiteDraft {
     }),
     cta: { ...d.cta, ...cta, title: asBilingual(cta.title), text: asBilingual(cta.text), button: asBilingual(cta.button) },
     socials: { ...d.socials, ...(isObj(r.socials) ? r.socials : {}) },
+    theme: {
+      mode: isObj(r.theme) ? (r.theme.mode ?? d.theme.mode) : d.theme.mode,
+      light: { ...d.theme.light, ...(isObj(r.theme) && isObj(r.theme.light) ? r.theme.light : {}) },
+      dark: { ...d.theme.dark, ...(isObj(r.theme) && isObj(r.theme.dark) ? r.theme.dark : {}) },
+    },
   };
 
   const parsed = siteDraftSchema.safeParse(merged);
