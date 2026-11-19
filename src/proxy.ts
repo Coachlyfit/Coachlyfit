@@ -30,7 +30,13 @@ export default async function proxy(request: NextRequest) {
     const lang = pickSiteLang(request.nextUrl.searchParams.get("lang"), request.headers.get("accept-language"));
     const url = request.nextUrl.clone();
     url.pathname = `/${lang}/sites/${candidate.key}${request.nextUrl.pathname === "/" ? "" : request.nextUrl.pathname}`;
-    return NextResponse.rewrite(url);
+    const rewrite = NextResponse.rewrite(url);
+    // Stay public and cheap for anonymous visitors, but if a client's auth
+    // cookie is present keep it fresh: otherwise an expired access token
+    // sits unrefreshed while they browse the site and they land on /login
+    // when they open the portal.
+    const hasSession = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
+    return hasSession ? updateSession(request, rewrite) : rewrite;
   }
 
   // White-label subdomain (mona-fitness.<root domain>): forward the slug to
