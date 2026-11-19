@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Runs hourly via Vercel Cron (see vercel.json). When a client withdraws
+// Runs hourly via Supabase Cron (supabase/snippets/hobby_cron_schedules.sql;
+// Vercel Hobby only allows daily crons). When a client withdraws
 // consent, the database unpublishes their result at once and queues the public
 // photo copies in site_results.purge_paths; the client can't delete storage
 // objects themselves, so this job does. Admin client: a trusted internal job
