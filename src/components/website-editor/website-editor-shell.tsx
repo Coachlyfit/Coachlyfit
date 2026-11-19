@@ -367,7 +367,8 @@ export function WebsiteEditorShell({
                 </Button>
               ))}
             </div>
-            <div role="group" aria-label={t("preview.language")} className="flex gap-1">
+            {/* ponytail: same `lang` state as the edit-pane toggle; only needed where the edit pane is hidden (< lg) */}
+            <div role="group" aria-label={t("preview.language")} className="flex gap-1 lg:hidden">
               {(["ar", "en"] as const).map((l) => (
                 <Button
                   key={l}

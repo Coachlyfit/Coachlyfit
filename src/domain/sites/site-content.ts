@@ -154,7 +154,9 @@ export function defaultDraft(): SiteDraft {
 /** This language's text; if it's empty, the other language's, so a page never
  * shows a blank where the coach wrote something in only one language. */
 export function pick(text: Bilingual, lang: Lang): string {
-  return text[lang].trim() !== "" ? text[lang] : text[otherLang(lang)];
+  if (text[lang].trim() !== "") return text[lang];
+  const other = text[otherLang(lang)];
+  return other.trim() !== "" ? other : "";
 }
 
 /** Does the coach have text in at least one language? */
