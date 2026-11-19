@@ -10,7 +10,7 @@ import { guardColors } from "@/domain/sites/theme";
 import { routing } from "@/i18n/routing";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { getBranding } from "@/lib/branding";
-import { siteOrigin } from "@/lib/sites/origin";
+import { siteUrl } from "@/lib/sites/origin";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function WebsitePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -45,8 +45,8 @@ export default async function WebsitePage({ params }: { params: Promise<{ locale
   if (clients.error) throw clients.error;
 
   const slug = coach.data.slug;
-  const origin = siteOrigin({ domain: site.domain, coach: { slug } });
-  const fallbackOrigin = siteOrigin({ domain: null, coach: { slug } });
+  const url = siteUrl({ domain: site.domain, coach: { slug } }, { lang: locale });
+  const fallbackUrl = siteUrl({ domain: null, coach: { slug } }, { lang: locale });
 
   return (
     <>
@@ -66,9 +66,9 @@ export default async function WebsitePage({ params }: { params: Promise<{ locale
           name: coach.data.business_name,
           logoUrl: branding?.logoUrl ?? null,
           colors: guardColors(branding?.primary, branding?.accent),
-          siteUrl: `${origin}/`,
-          fallbackUrl: `${fallbackOrigin}/`,
-          displayHost: new URL(origin).host,
+          siteUrl: url,
+          fallbackUrl,
+          displayHost: new URL(url).host,
         }}
         cards={cards}
         reviews={reviews}

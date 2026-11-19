@@ -45,7 +45,7 @@ function fakeSupabase(initial?: Row) {
 
 const readyDraft = () => {
   const d = defaultDraft();
-  d.services[0].title = "1:1 coaching";
+  d.services[0].title = { ar: "", en: "1:1 coaching" };
   d.hero.whatsapp = "+201001234567";
   return d;
 };
@@ -80,7 +80,7 @@ describe("SitesService", () => {
     const { db, state } = fakeSupabase(site({ draft: readyDraft() }));
     const rec = await new SitesService(db).publish("c1");
     expect(rec.isPublished).toBe(true);
-    expect(rec.published?.services[0].title).toBe("1:1 coaching");
+    expect(rec.published?.services[0].title.en).toBe("1:1 coaching");
     expect(state.site?.published_at).toBeTruthy();
   });
 
@@ -93,10 +93,10 @@ describe("SitesService", () => {
   it("discard resets the draft to what's live", async () => {
     const live = readyDraft();
     const edited = readyDraft();
-    edited.hero.title = "unsaved idea";
+    edited.hero.title = { ar: "", en: "unsaved idea" };
     const { db, state } = fakeSupabase(site({ draft: edited, published_content: live, published_at: "x" }));
     await new SitesService(db).discardDraft("c1");
-    expect((state.site?.draft as { hero: { title: string } }).hero.title).toBe("");
+    expect((state.site?.draft as { hero: { title: { en: string } } }).hero.title.en).toBe("");
   });
 
   it("can't go live before the first publish", async () => {

@@ -1,7 +1,7 @@
 // What the public site renders from: the get_public_site() RPC result,
 // reshaped into a view model with resolved image URLs and guarded colors.
 // Pure (no Next / React), so the editor preview and the real site share it.
-import { parseContent, type SiteContent } from "./site-content";
+import { flatten, parseDraft, type Lang, type SiteContent } from "./site-content";
 import { guardColors, type SiteColors } from "./theme";
 
 /** Shape of get_public_site()'s json. Never contains client ids. */
@@ -54,8 +54,9 @@ export function publicStorageUrl(supabaseUrl: string, bucket: Bucket, path: stri
   return `${supabaseUrl.replace(/\/$/, "")}/storage/v1/object/public/${bucket}/${encoded}`;
 }
 
-export function toSiteView(row: PublicSiteRow, supabaseUrl: string): SiteView {
-  const content = parseContent(row.content);
+/** The published site as one language's plain content, ready to render. */
+export function toSiteView(row: PublicSiteRow, supabaseUrl: string, lang: Lang): SiteView {
+  const content = flatten(parseDraft(row.content), lang);
   return {
     coachName: row.coach.business_name,
     logoUrl: row.coach.logo_path ? publicStorageUrl(supabaseUrl, "coach-logos", row.coach.logo_path) : null,

@@ -7,23 +7,25 @@ import type { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MAX, siteContentSchema, type SiteContent } from "@/domain/sites/site-content";
+import { MAX, siteDraftSchema, type Lang, type SiteDraft } from "@/domain/sites/site-content";
 import { describedBy, Field, useFieldError, useSectionForm } from "./form-kit";
 import { PhotoField } from "./photo-field";
 
-const schema = siteContentSchema.shape.about;
+const schema = siteDraftSchema.shape.about;
 type About = z.infer<typeof schema>;
 
 const toNumberOrNull = (v: unknown) => (v === "" || v == null ? null : Number(v));
 
 export function SectionFormAbout({
   content,
+  lang,
   coachId,
   onChange,
 }: {
-  content: SiteContent;
+  content: SiteDraft;
+  lang: Lang;
   coachId: string;
-  onChange: (patch: Partial<SiteContent>) => void;
+  onChange: (patch: Partial<SiteDraft>) => void;
 }) {
   const t = useTranslations("websiteEditor.form.about");
   const err = useFieldError();
@@ -37,12 +39,13 @@ export function SectionFormAbout({
     formState: { errors },
   } = form;
   const id = (name: string) => `${uid}-${name}`;
-  const certs = watch("certs");
+  const certs = watch(`certs.${lang}`);
+  const dir = lang === "ar" ? "rtl" : "ltr";
 
   function addCert() {
     const value = newCert.trim().slice(0, MAX.cert);
     if (!value || certs.includes(value) || certs.length >= MAX.certs) return;
-    setValue("certs", [...certs, value], { shouldDirty: true });
+    setValue(`certs.${lang}`, [...certs, value], { shouldDirty: true });
     setNewCert("");
   }
 
@@ -54,8 +57,8 @@ export function SectionFormAbout({
         onChange={(path) => setValue("photoPath", path, { shouldDirty: true })}
       />
 
-      <Field id={id("bio")} label={t("bio")} count={watch("bio").length} max={MAX.bio} error={err(errors.bio)}>
-        <Textarea id={id("bio")} rows={5} {...register("bio")} aria-invalid={!!errors.bio} aria-describedby={describedBy(id("bio"), false, !!errors.bio)} />
+      <Field id={id("bio")} label={t("bio")} count={watch(`bio.${lang}`).length} max={MAX.bio} error={err(errors.bio?.[lang])}>
+        <Textarea id={id("bio")} rows={5} lang={lang} dir={dir} {...register(`bio.${lang}`)} aria-invalid={!!errors.bio?.[lang]} aria-describedby={describedBy(id("bio"), false, !!errors.bio?.[lang])} />
       </Field>
 
       <div className="flex flex-col gap-2">
@@ -72,7 +75,7 @@ export function SectionFormAbout({
                   aria-label={t("removeCert", { name: cert })}
                   onClick={() =>
                     setValue(
-                      "certs",
+                      `certs.${lang}`,
                       certs.filter((c) => c !== cert),
                       { shouldDirty: true }
                     )
@@ -89,6 +92,8 @@ export function SectionFormAbout({
           <Input
             id={id("cert")}
             value={newCert}
+            lang={lang}
+            dir={dir}
             maxLength={MAX.cert}
             placeholder={t("certPlaceholder")}
             disabled={certs.length >= MAX.certs}

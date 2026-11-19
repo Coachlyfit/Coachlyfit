@@ -1,21 +1,45 @@
-import { getRootDomain } from "@/lib/tenant/portal-slug";
+type SiteRef = { domain: string | null; coach: { slug: string } };
+type Lang = "ar" | "en";
 
-/** Public origin of a coach site: its custom domain, else the white-label
- * `<slug>.<root domain>` address. */
-export function siteOrigin(site: { domain: string | null; coach: { slug: string } }): string {
-  if (site.domain) return `https://${site.domain}`;
-  const root = getRootDomain();
-  const local = root === "localhost";
-  return `${local ? "http" : "https"}://${site.coach.slug}.${root}`;
+/** The app's own public URL (production: coachlyfit.vercel.app), no trailing slash. */
+function appUrl(): string {
+  return (process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000").replace(/\/+$/, "");
 }
 
-/** Canonical + hreflang links for the one-page site. The language is chosen
- * with `?lang=en`; Arabic (the default) has no query. */
-export function siteAlternates(origin: string, locale: "ar" | "en") {
-  const ar = `${origin}/`;
-  const en = `${origin}/?lang=en`;
-  return {
-    canonical: locale === "en" ? en : ar,
-    languages: { ar, en, "x-default": ar },
-  };
+/** Where a coach's site lives, as a full URL.
+ *
+ * 1. Custom domain: https://coachahmed.fit/
+ * 2. Wildcard white-label subdomain, only when NEXT_PUBLIC_ROOT_DOMAIN is a
+ *    real domain: https://<slug>.<root>/
+ * 3. Otherwise (e.g. on *.vercel.app, which has no wildcard subdomains): the
+ *    site route on the app's own URL: <app>/<lang>/sites/<slug>. It works
+ *    everywhere with no DNS, and shows "coming soon" until published.
+ *
+ * `path` is a sub-path such as "/review/<token>". In cases 1 and 2 the
+ * language rides on `?lang=`; in case 3 it's the path's locale segment. */
+export function siteUrl(site: SiteRef, opts: { path?: string; lang?: Lang } = {}): string {
+  const path = opts.path ?? "";
+  const lang = opts.lang ?? "ar";
+  const query = lang === "en" ? "?lang=en" : "";
+
+  if (site.domain) return `https://${site.domain}${path || "/"}${query}`;
+
+  const root = process.env.NEXT_PUBLIC_ROOT_DOMAIN?.trim().split(":")[0].toLowerCase();
+  if (root) {
+    if (root === "localhost") {
+      // Local wildcard testing: <slug>.localhost on the dev server's port.
+      const port = new URL(appUrl()).port || "3000";
+      return `http://${site.coach.slug}.localhost:${port}${path || "/"}${query}`;
+    }
+    return `https://${site.coach.slug}.${root}${path || "/"}${query}`;
+  }
+
+  return `${appUrl()}/${lang}/sites/${site.coach.slug}${path}`;
+}
+
+/** Canonical + hreflang links for the one-page site. */
+export function siteAlternates(site: SiteRef, locale: Lang) {
+  const ar = siteUrl(site, { lang: "ar" });
+  const en = siteUrl(site, { lang: "en" });
+  return { canonical: locale === "en" ? en : ar, languages: { ar, en, "x-default": ar } };
 }

@@ -1,15 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/supabase/database.types";
-import { defaultDraft, parseContent, publishIssues, type PublishIssue, type SiteContent } from "./site-content";
+import { defaultDraft, parseDraft, publishIssues, type PublishIssue, type SiteDraft } from "./site-content";
 
 export type SiteRecord = {
   id: string;
   domain: string | null;
   domainStatus: "none" | "pending" | "connected" | "error";
   isPublished: boolean;
-  draft: SiteContent;
+  draft: SiteDraft;
   /** What visitors see. null until the first publish. */
-  published: SiteContent | null;
+  published: SiteDraft | null;
   publishedAt: string | null;
   updatedAt: string;
 };
@@ -42,13 +42,13 @@ const toRecord = (row: SiteRow): SiteRecord => ({
   domain: row.domain,
   domainStatus: row.domain_status as SiteRecord["domainStatus"],
   isPublished: row.is_published,
-  draft: parseContent(row.draft),
-  published: row.published_content === null ? null : parseContent(row.published_content),
+  draft: parseDraft(row.draft),
+  published: row.published_content === null ? null : parseDraft(row.published_content),
   publishedAt: row.published_at,
   updatedAt: row.updated_at,
 });
 
-const asJson = (c: SiteContent) => c as unknown as Json;
+const asJson = (c: SiteDraft) => c as unknown as Json;
 
 export class SitesService {
   constructor(private db: SupabaseClient<Database>) {}
@@ -70,7 +70,7 @@ export class SitesService {
     return toRecord(again.data);
   }
 
-  async saveDraft(coachId: string, content: SiteContent): Promise<void> {
+  async saveDraft(coachId: string, content: SiteDraft): Promise<void> {
     await this.getOrCreate(coachId);
     const { error } = await this.db.from("coach_sites").update({ draft: asJson(content) }).eq("coach_id", coachId);
     if (error) throw error;

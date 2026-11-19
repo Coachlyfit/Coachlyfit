@@ -5,13 +5,22 @@ import { useTranslations } from "next-intl";
 import type { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MAX, siteContentSchema, type SiteContent } from "@/domain/sites/site-content";
+import { MAX, siteDraftSchema, type Lang, type SiteDraft } from "@/domain/sites/site-content";
 import { describedBy, Field, selectClass, useFieldError, useSectionForm } from "./form-kit";
 
-const schema = siteContentSchema.shape.hero;
+const schema = siteDraftSchema.shape.hero;
 type Hero = z.infer<typeof schema>;
 
-export function SectionFormHero({ content, onChange }: { content: SiteContent; onChange: (patch: Partial<SiteContent>) => void }) {
+export function SectionFormHero({
+  content,
+  lang,
+  onChange,
+}: {
+  content: SiteDraft;
+  /** Which language's text this form is editing. */
+  lang: Lang;
+  onChange: (patch: Partial<SiteDraft>) => void;
+}) {
   const t = useTranslations("websiteEditor.form.hero");
   const err = useFieldError();
   const uid = useId();
@@ -22,25 +31,30 @@ export function SectionFormHero({ content, onChange }: { content: SiteContent; o
     formState: { errors },
   } = form;
   const id = (name: string) => `${uid}-${name}`;
+  const rtl = lang === "ar";
 
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()} noValidate>
-      <Field id={id("title")} label={t("title")} count={watch("title").length} max={MAX.heroTitle} error={err(errors.title)}>
+      <Field id={id("title")} label={t("title")} count={watch(`title.${lang}`).length} max={MAX.heroTitle} error={err(errors.title?.[lang])}>
         <Input
           id={id("title")}
-          {...register("title")}
-          aria-invalid={!!errors.title}
-          aria-describedby={describedBy(id("title"), false, !!errors.title)}
+          lang={lang}
+          dir={rtl ? "rtl" : "ltr"}
+          {...register(`title.${lang}`)}
+          aria-invalid={!!errors.title?.[lang]}
+          aria-describedby={describedBy(id("title"), false, !!errors.title?.[lang])}
         />
       </Field>
 
-      <Field id={id("intro")} label={t("intro")} count={watch("intro").length} max={MAX.heroIntro} error={err(errors.intro)}>
+      <Field id={id("intro")} label={t("intro")} count={watch(`intro.${lang}`).length} max={MAX.heroIntro} error={err(errors.intro?.[lang])}>
         <Textarea
           id={id("intro")}
           rows={3}
-          {...register("intro")}
-          aria-invalid={!!errors.intro}
-          aria-describedby={describedBy(id("intro"), false, !!errors.intro)}
+          lang={lang}
+          dir={rtl ? "rtl" : "ltr"}
+          {...register(`intro.${lang}`)}
+          aria-invalid={!!errors.intro?.[lang]}
+          aria-describedby={describedBy(id("intro"), false, !!errors.intro?.[lang])}
         />
       </Field>
 
@@ -66,12 +80,21 @@ export function SectionFormHero({ content, onChange }: { content: SiteContent; o
         />
       </Field>
 
-      <Field id={id("second")} label={t("secondary")} hint={t("secondaryHint")} count={watch("secondaryLabel").length} max={MAX.button} error={err(errors.secondaryLabel)}>
+      <Field
+        id={id("second")}
+        label={t("secondary")}
+        hint={t("secondaryHint")}
+        count={watch(`secondaryLabel.${lang}`).length}
+        max={MAX.button}
+        error={err(errors.secondaryLabel?.[lang])}
+      >
         <Input
           id={id("second")}
-          {...register("secondaryLabel")}
-          aria-invalid={!!errors.secondaryLabel}
-          aria-describedby={describedBy(id("second"), true, !!errors.secondaryLabel)}
+          lang={lang}
+          dir={rtl ? "rtl" : "ltr"}
+          {...register(`secondaryLabel.${lang}`)}
+          aria-invalid={!!errors.secondaryLabel?.[lang]}
+          aria-describedby={describedBy(id("second"), true, !!errors.secondaryLabel?.[lang])}
         />
       </Field>
     </form>

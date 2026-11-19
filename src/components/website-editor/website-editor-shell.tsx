@@ -14,9 +14,12 @@ import {
   checklist,
   countChanges,
   defaultDraft,
+  flatten,
+  hasText,
   publishIssues,
+  type Lang,
   type SectionKey,
-  type SiteContent,
+  type SiteDraft,
   type SiteSection,
 } from "@/domain/sites/site-content";
 import type { SiteColors } from "@/domain/sites/theme";
@@ -40,8 +43,8 @@ import { SitePreview, type PreviewDevice, type PreviewLang } from "./site-previe
 import { useAutosave } from "./use-autosave";
 
 export type EditorInitial = {
-  draft: SiteContent;
-  published: SiteContent | null;
+  draft: SiteDraft;
+  published: SiteDraft | null;
   publishedAt: string | null;
   isLive: boolean;
   domain: string | null;
@@ -90,13 +93,14 @@ export function WebsiteEditorShell({
   const [editing, setEditing] = useState<SectionKey | null>(null);
   const [pane, setPane] = useState<"edit" | "preview">("edit");
   const [device, setDevice] = useState<PreviewDevice>("phone");
-  const [previewLang, setPreviewLang] = useState<PreviewLang>(locale);
+  // One language for both: the text the forms edit and the preview shows.
+  const [lang, setLang] = useState<Lang>(locale);
   const [publishing, startPublish] = useTransition();
   const autosave = useAutosave(saveDraftAction);
 
   // Every edit lands here: applied locally first (preview and forms read local
   // state), then autosaved.
-  function update(patch: Partial<SiteContent>) {
+  function update(patch: Partial<SiteDraft>) {
     const next = { ...draft, ...patch };
     setDraft(next);
     autosave.schedule(next);
@@ -119,7 +123,7 @@ export function WebsiteEditorShell({
       logoUrl: coach.logoUrl,
       colors: coach.colors,
       domain: initial.domain,
-      content: draft,
+      content: flatten(draft, lang),
       photoUrl: draft.about.photoPath
         ? publicStorageUrl(process.env.NEXT_PUBLIC_SUPABASE_URL!, "coach-site", draft.about.photoPath)
         : null,
@@ -129,20 +133,20 @@ export function WebsiteEditorShell({
         .map((c) => ({ id: c.id, beforeUrl: c.beforeUrl, afterUrl: c.afterUrl, durationDays: c.durationDays, weightDelta: c.weightDelta })),
       reviews: reviews.filter((r) => r.status === "approved").map((r) => ({ id: r.id, name: r.displayName, rating: r.rating, text: r.body })),
     }),
-    [coach, draft, initial.domain, cards, reviews]
+    [coach, draft, lang, initial.domain, cards, reviews]
   );
 
   const summaries = {
     hero: t("sections.summary.hero"),
     about: draft.about.photoPath ? t("sections.summary.about") : t("sections.summary.aboutEmpty"),
-    services: t("sections.summary.services", { count: draft.services.filter((s) => s.title.trim()).length }),
+    services: t("sections.summary.services", { count: draft.services.filter((s) => hasText(s.title)).length }),
     results:
       cards.length > 0
         ? t("sections.summary.results", { published: publishedCards, total: cards.length })
         : t("sections.summary.resultsEmpty"),
     reviews: t("sections.summary.reviews", { count: approvedReviews }),
     how: t("sections.summary.how"),
-    faq: t("sections.summary.faq", { count: draft.faq.filter((f) => f.q.trim()).length }),
+    faq: t("sections.summary.faq", { count: draft.faq.filter((f) => hasText(f.q)).length }),
     cta: t("sections.summary.cta"),
     footer: t("sections.summary.footer"),
   } satisfies Record<SectionKey, string>;
@@ -181,13 +185,16 @@ export function WebsiteEditorShell({
         {t("sections.back")}
       </Button>
       <h2 className="text-lg font-semibold">{t(`sections.names.${editing}`)}</h2>
-      {editing === "hero" && <SectionFormHero content={draft} onChange={update} />}
-      {editing === "about" && <SectionFormAbout content={draft} coachId={coach.id} onChange={update} />}
-      {editing === "services" && <SectionFormServices content={draft} onChange={update} />}
-      {editing === "how" && <SectionFormHow content={draft} onChange={update} />}
-      {editing === "faq" && <SectionFormFaq content={draft} onChange={update} />}
-      {editing === "cta" && <SectionFormCta content={draft} onChange={update} />}
-      {editing === "footer" && <SectionFormFooter content={draft} onChange={update} />}
+      {/* key: switching language remounts the form so it edits that language's text. */}
+      <div key={`${editing}-${lang}`}>
+        {editing === "hero" && <SectionFormHero content={draft} lang={lang} onChange={update} />}
+        {editing === "about" && <SectionFormAbout content={draft} lang={lang} coachId={coach.id} onChange={update} />}
+        {editing === "services" && <SectionFormServices content={draft} lang={lang} onChange={update} />}
+        {editing === "how" && <SectionFormHow content={draft} lang={lang} onChange={update} />}
+        {editing === "faq" && <SectionFormFaq content={draft} lang={lang} onChange={update} />}
+        {editing === "cta" && <SectionFormCta content={draft} lang={lang} onChange={update} />}
+        {editing === "footer" && <SectionFormFooter content={draft} onChange={update} />}
+      </div>
     </div>
   );
 
@@ -245,6 +252,30 @@ export function WebsiteEditorShell({
 
       <div className="grid items-start gap-6 lg:grid-cols-[520px_minmax(0,1fr)]">
         <section aria-label={t("tabs.edit")} className={cn("flex min-w-0 flex-col gap-4", pane !== "edit" && "max-lg:hidden")}>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span id="website-lang-label" className="text-sm font-medium">
+                {t("language.label")}
+              </span>
+              <div role="group" aria-labelledby="website-lang-label" className="flex gap-1">
+                {(["ar", "en"] as const).map((l) => (
+                  <Button
+                    key={l}
+                    type="button"
+                    size="sm"
+                    variant={lang === l ? "secondary" : "ghost"}
+                    className="min-h-11 font-mono"
+                    aria-pressed={lang === l}
+                    onClick={() => setLang(l)}
+                  >
+                    {t(l === "ar" ? "preview.arabic" : "preview.english")}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">{t("language.hint")}</p>
+          </div>
+
           <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
             <TabsList className="w-full">
               {TABS.map((id) => (
@@ -342,10 +373,10 @@ export function WebsiteEditorShell({
                   key={l}
                   type="button"
                   size="sm"
-                  variant={previewLang === l ? "secondary" : "ghost"}
+                  variant={lang === l ? "secondary" : "ghost"}
                   className="min-h-11 font-mono"
-                  aria-pressed={previewLang === l}
-                  onClick={() => setPreviewLang(l)}
+                  aria-pressed={lang === l}
+                  onClick={() => setLang(l)}
                 >
                   {t(l === "ar" ? "preview.arabic" : "preview.english")}
                 </Button>
@@ -353,7 +384,7 @@ export function WebsiteEditorShell({
             </div>
           </div>
           {coach.colors.adjusted && <p className="text-sm text-muted-foreground">{t("colorsAdjusted")}</p>}
-          <SitePreview view={view} device={device} lang={previewLang} siteMessages={siteMessages} />
+          <SitePreview view={view} device={device} lang={lang} siteMessages={siteMessages} />
         </section>
       </div>
     </div>

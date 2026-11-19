@@ -9,15 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { emptyService, MAX, siteContentSchema, type SiteContent } from "@/domain/sites/site-content";
+import { emptyService, MAX, siteDraftSchema, type Lang, type SiteDraft } from "@/domain/sites/site-content";
 import { describedBy, Field, selectClass, useFieldError, useSectionForm } from "./form-kit";
 
-const schema = z.object({ services: siteContentSchema.shape.services });
+const schema = z.object({ services: siteDraftSchema.shape.services });
 type Values = z.infer<typeof schema>;
 
 /** 1–4 services as reorderable cards. Reordering uses up/down buttons: they
  * work by keyboard and screen reader as well as by touch. */
-export function SectionFormServices({ content, onChange }: { content: SiteContent; onChange: (patch: Partial<SiteContent>) => void }) {
+export function SectionFormServices({ content, lang, onChange }: { content: SiteDraft; lang: Lang; onChange: (patch: Partial<SiteDraft>) => void }) {
   const t = useTranslations("websiteEditor.form.services");
   const err = useFieldError();
   const uid = useId();
@@ -30,6 +30,7 @@ export function SectionFormServices({ content, onChange }: { content: SiteConten
     formState: { errors },
   } = form;
   const { fields, append, remove, move } = useFieldArray({ control, name: "services" });
+  const dir = lang === "ar" ? "rtl" : "ltr";
 
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()} noValidate>
@@ -41,28 +42,32 @@ export function SectionFormServices({ content, onChange }: { content: SiteConten
           <fieldset key={field.id} className="flex flex-col gap-3 rounded-xl p-3 ring-1 ring-foreground/10">
             <legend className="px-1 font-mono text-sm font-semibold">{t("item", { n: i + 1 })}</legend>
 
-            <Field id={`${base}-title`} label={t("name")} count={watch(`services.${i}.title`).length} max={MAX.serviceTitle} error={err(e?.title)}>
+            <Field id={`${base}-title`} label={t("name")} count={watch(`services.${i}.title.${lang}`).length} max={MAX.serviceTitle} error={err(e?.title?.[lang])}>
               <Input
                 id={`${base}-title`}
-                {...register(`services.${i}.title`)}
-                aria-invalid={!!e?.title}
-                aria-describedby={describedBy(`${base}-title`, false, !!e?.title)}
+                lang={lang}
+                dir={dir}
+                {...register(`services.${i}.title.${lang}`)}
+                aria-invalid={!!e?.title?.[lang]}
+                aria-describedby={describedBy(`${base}-title`, false, !!e?.title?.[lang])}
               />
             </Field>
 
             <Field
               id={`${base}-desc`}
               label={t("description")}
-              count={watch(`services.${i}.description`).length}
+              count={watch(`services.${i}.description.${lang}`).length}
               max={MAX.serviceDescription}
-              error={err(e?.description)}
+              error={err(e?.description?.[lang])}
             >
               <Textarea
                 id={`${base}-desc`}
                 rows={2}
-                {...register(`services.${i}.description`)}
-                aria-invalid={!!e?.description}
-                aria-describedby={describedBy(`${base}-desc`, false, !!e?.description)}
+                lang={lang}
+                dir={dir}
+                {...register(`services.${i}.description.${lang}`)}
+                aria-invalid={!!e?.description?.[lang]}
+                aria-describedby={describedBy(`${base}-desc`, false, !!e?.description?.[lang])}
               />
             </Field>
 

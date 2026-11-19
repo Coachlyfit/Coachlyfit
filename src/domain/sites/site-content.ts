@@ -1,9 +1,15 @@
-// The coach website's content: ONE zod schema shared by the editor (client)
-// and the save/publish actions (server). `draft` and `published_content` in
-// coach_sites both have this shape.
+// The coach website's content.
 //
-// Copy the coach hasn't written stays "" here; the renderer falls back to the
-// localized default from messages (site.defaults.*). Nothing in this file
+// Two shapes:
+//  - SiteDraft: what is STORED (coach_sites.draft / published_content) and
+//    edited. Every piece of text the coach writes holds BOTH languages
+//    ({ ar, en }); numbers, prices, links and the photo are shared.
+//  - SiteContent: what the site RENDERS for ONE language: plain strings,
+//    produced by flatten(draft, lang). The site components only see this.
+//
+// One zod schema (siteDraftSchema) is shared by the editor (client) and the
+// save action (server). Copy the coach hasn't written stays "" and the
+// renderer falls back to localized defaults from messages. Nothing here
 // invents stats, prices or testimonials.
 import { z } from "zod";
 
@@ -12,6 +18,10 @@ export type SectionKey = (typeof SECTION_KEYS)[number];
 
 /** Hero and footer are always on and pinned first / last. */
 export const LOCKED_SECTIONS: readonly SectionKey[] = ["hero", "footer"];
+
+export const LANGS = ["ar", "en"] as const;
+export type Lang = (typeof LANGS)[number];
+const otherLang = (lang: Lang): Lang => (lang === "ar" ? "en" : "ar");
 
 export const MAX = {
   heroTitle: 60,
@@ -41,6 +51,10 @@ const url = z
   .max(MAX.url)
   .refine((v) => v === "" || /^https?:\/\/[^\s]+$/i.test(v), { message: "url" });
 
+/** A text in both languages, each up to `max` characters. */
+const bilingual = (max: number) => z.object({ ar: z.string().max(max), en: z.string().max(max) });
+export type Bilingual = { ar: string; en: string };
+
 const sectionSchema = z.object({ key: z.enum(SECTION_KEYS), enabled: z.boolean() });
 
 export type SiteSection = z.infer<typeof sectionSchema>;
@@ -55,70 +69,125 @@ export function sectionsAreValid(sections: SiteSection[]): boolean {
 }
 
 export const serviceSchema = z.object({
-  title: z.string().max(MAX.serviceTitle),
-  description: z.string().max(MAX.serviceDescription),
+  title: bilingual(MAX.serviceTitle),
+  description: bilingual(MAX.serviceDescription),
   price: z.number().min(0).max(1_000_000).nullable(),
   unit: z.enum(["month", "once"]),
   contactForPrice: z.boolean(),
 });
-export type SiteService = z.infer<typeof serviceSchema>;
+export type SiteServiceDraft = z.infer<typeof serviceSchema>;
 
-const stepSchema = z.object({ title: z.string().max(MAX.stepTitle), text: z.string().max(MAX.stepText) });
+const stepSchema = z.object({ title: bilingual(MAX.stepTitle), text: bilingual(MAX.stepText) });
+const certList = z.array(z.string().min(1).max(MAX.cert)).max(MAX.certs);
 
-export const siteContentSchema = z.object({
+export const siteDraftSchema = z.object({
   sections: z.array(sectionSchema).refine(sectionsAreValid, { message: "sections" }),
   hero: z.object({
-    title: z.string().max(MAX.heroTitle),
-    intro: z.string().max(MAX.heroIntro),
+    title: bilingual(MAX.heroTitle),
+    intro: bilingual(MAX.heroIntro),
     mainButton: z.enum(["whatsapp", "join"]),
     // "" until the coach adds a number.
     whatsapp: z.union([z.literal(""), z.string().regex(E164)]),
-    secondaryLabel: z.string().max(MAX.button),
+    secondaryLabel: bilingual(MAX.button),
   }),
   about: z.object({
     photoPath: z.string().max(300).nullable(),
-    bio: z.string().max(MAX.bio),
-    certs: z.array(z.string().min(1).max(MAX.cert)).max(MAX.certs),
+    bio: bilingual(MAX.bio),
+    certs: z.object({ ar: certList, en: certList }),
     years: z.number().int().min(0).max(80).nullable(),
     clients: z.number().int().min(0).max(1_000_000).nullable(),
   }),
   services: z.array(serviceSchema).min(1).max(MAX.services),
   how: z.array(stepSchema).length(3),
-  faq: z.array(z.object({ q: z.string().max(MAX.faqQ), a: z.string().max(MAX.faqA) })).max(MAX.faq),
+  faq: z.array(z.object({ q: bilingual(MAX.faqQ), a: bilingual(MAX.faqA) })).max(MAX.faq),
   cta: z.object({
-    title: z.string().max(MAX.ctaTitle),
-    text: z.string().max(MAX.ctaText),
-    button: z.string().max(MAX.button),
+    title: bilingual(MAX.ctaTitle),
+    text: bilingual(MAX.ctaText),
+    button: bilingual(MAX.button),
   }),
   socials: z.object({ instagram: url, tiktok: url, youtube: url }),
 });
 
-export type SiteContent = z.infer<typeof siteContentSchema>;
+export type SiteDraft = z.infer<typeof siteDraftSchema>;
 
-export function emptyService(): SiteService {
-  return { title: "", description: "", price: null, unit: "month", contactForPrice: false };
+/** The site in ONE language: what the components render. */
+export type SiteContent = {
+  sections: SiteSection[];
+  hero: { title: string; intro: string; mainButton: "whatsapp" | "join"; whatsapp: string; secondaryLabel: string };
+  about: { photoPath: string | null; bio: string; certs: string[]; years: number | null; clients: number | null };
+  services: { title: string; description: string; price: number | null; unit: "month" | "once"; contactForPrice: boolean }[];
+  how: { title: string; text: string }[];
+  faq: { q: string; a: string }[];
+  cta: { title: string; text: string; button: string };
+  socials: { instagram: string; tiktok: string; youtube: string };
+};
+
+const blank = (): Bilingual => ({ ar: "", en: "" });
+
+export function emptyService(): SiteServiceDraft {
+  return { title: blank(), description: blank(), price: null, unit: "month", contactForPrice: false };
 }
 
 export function defaultSections(): SiteSection[] {
   return SECTION_KEYS.map((key) => ({ key, enabled: true }));
 }
 
-export function defaultDraft(): SiteContent {
+export function defaultDraft(): SiteDraft {
   return {
     sections: defaultSections(),
-    hero: { title: "", intro: "", mainButton: "whatsapp", whatsapp: "", secondaryLabel: "" },
-    about: { photoPath: null, bio: "", certs: [], years: null, clients: null },
+    hero: { title: blank(), intro: blank(), mainButton: "whatsapp", whatsapp: "", secondaryLabel: blank() },
+    about: { photoPath: null, bio: blank(), certs: { ar: [], en: [] }, years: null, clients: null },
     services: [emptyService()],
     how: [
-      { title: "", text: "" },
-      { title: "", text: "" },
-      { title: "", text: "" },
+      { title: blank(), text: blank() },
+      { title: blank(), text: blank() },
+      { title: blank(), text: blank() },
     ],
     faq: [],
-    cta: { title: "", text: "", button: "" },
+    cta: { title: blank(), text: blank(), button: blank() },
     socials: { instagram: "", tiktok: "", youtube: "" },
   };
 }
+
+// ---------------------------------------------------------------- language
+
+/** This language's text; if it's empty, the other language's, so a page never
+ * shows a blank where the coach wrote something in only one language. */
+export function pick(text: Bilingual, lang: Lang): string {
+  return text[lang].trim() !== "" ? text[lang] : text[otherLang(lang)];
+}
+
+/** Does the coach have text in at least one language? */
+export const hasText = (text: Bilingual) => text.ar.trim() !== "" || text.en.trim() !== "";
+
+/** The draft as one language's plain content, for rendering. */
+export function flatten(draft: SiteDraft, lang: Lang): SiteContent {
+  const certs = draft.about.certs[lang].length > 0 ? draft.about.certs[lang] : draft.about.certs[otherLang(lang)];
+  return {
+    sections: draft.sections,
+    hero: {
+      title: pick(draft.hero.title, lang),
+      intro: pick(draft.hero.intro, lang),
+      mainButton: draft.hero.mainButton,
+      whatsapp: draft.hero.whatsapp,
+      secondaryLabel: pick(draft.hero.secondaryLabel, lang),
+    },
+    about: { photoPath: draft.about.photoPath, bio: pick(draft.about.bio, lang), certs, years: draft.about.years, clients: draft.about.clients },
+    services: draft.services.map((s) => ({
+      title: pick(s.title, lang),
+      description: pick(s.description, lang),
+      price: s.price,
+      unit: s.unit,
+      contactForPrice: s.contactForPrice,
+    })),
+    how: draft.how.map((s) => ({ title: pick(s.title, lang), text: pick(s.text, lang) })),
+    faq: draft.faq.map((f) => ({ q: pick(f.q, lang), a: pick(f.a, lang) })),
+    cta: { title: pick(draft.cta.title, lang), text: pick(draft.cta.text, lang), button: pick(draft.cta.button, lang) },
+    socials: draft.socials,
+  };
+}
+
+// ---------------------------------------------------------------- sections
 
 /** Repairs any section list: drops unknown/duplicate keys, adds missing ones,
  * pins hero first and footer last, forces both on. */
@@ -146,47 +215,90 @@ export function orderSections(sections: readonly SiteSection[] | undefined): Sec
     .map((s) => s.key);
 }
 
+// ----------------------------------------------------------------- parsing
+
 type Loose = Record<string, unknown>;
 const isObj = (v: unknown): v is Loose => typeof v === "object" && v !== null && !Array.isArray(v);
+const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
-/** Reads whatever is in the jsonb column (possibly `{}`, possibly from an older
- * shape) into a valid SiteContent. Missing parts come from defaultDraft(); a
- * value that still fails validation is replaced by its default rather than
- * breaking the page. */
-export function parseContent(raw: unknown): SiteContent {
+const ARABIC = /[؀-ۿ]/;
+/** Text saved before the site had two languages: put it in the language it's
+ * written in. */
+const fromLegacy = (v: unknown): Bilingual => {
+  const s = typeof v === "string" ? v : "";
+  return ARABIC.test(s) ? { ar: s, en: "" } : { ar: "", en: s };
+};
+const isBilingual = (v: unknown) => isObj(v) && typeof v.ar === "string" && typeof v.en === "string";
+/** Already bilingual: keep. Plain string: migrate. Anything else: blank. */
+const asBilingual = (v: unknown): Bilingual => (isBilingual(v) ? (v as Bilingual) : fromLegacy(v));
+
+/** Reads any stored shape (a bilingual draft, a pre-bilingual one, or `{}`)
+ * into a valid SiteDraft. Missing parts come from defaultDraft(); a part that
+ * still fails validation is replaced by its default rather than breaking the page. */
+export function parseDraft(raw: unknown): SiteDraft {
   const d = defaultDraft();
   const r: Loose = isObj(raw) ? raw : {};
-  const obj = (k: keyof SiteContent) => ({ ...(d[k] as object), ...(isObj(r[k]) ? (r[k] as Loose) : {}) });
+  const hero = isObj(r.hero) ? r.hero : {};
+  const about = isObj(r.about) ? r.about : {};
+  const cta = isObj(r.cta) ? r.cta : {};
+
+  const legacyCerts = Array.isArray(about.certs) ? (about.certs as unknown[]) : null;
+  const certs = isObj(about.certs)
+    ? { ar: arr(about.certs.ar), en: arr(about.certs.en) }
+    : { ar: (legacyCerts ?? []).filter((c) => typeof c === "string" && ARABIC.test(c)), en: (legacyCerts ?? []).filter((c) => typeof c === "string" && !ARABIC.test(c)) };
 
   const merged = {
     sections: normalizeSections(Array.isArray(r.sections) ? (r.sections as SiteSection[]) : undefined),
-    hero: obj("hero"),
-    about: obj("about"),
-    services: Array.isArray(r.services) && r.services.length > 0 ? r.services : d.services,
-    how: Array.isArray(r.how) && r.how.length === 3 ? r.how : d.how,
-    faq: Array.isArray(r.faq) ? r.faq : d.faq,
-    cta: obj("cta"),
-    socials: obj("socials"),
+    hero: {
+      ...d.hero,
+      ...hero,
+      title: asBilingual(hero.title),
+      intro: asBilingual(hero.intro),
+      secondaryLabel: asBilingual(hero.secondaryLabel),
+    },
+    about: { ...d.about, ...about, bio: asBilingual(about.bio), certs },
+    services:
+      arr(r.services).length > 0
+        ? arr(r.services).map((s) => {
+            const o = isObj(s) ? s : {};
+            return { ...emptyService(), ...o, title: asBilingual(o.title), description: asBilingual(o.description) };
+          })
+        : d.services,
+    how:
+      arr(r.how).length === 3
+        ? arr(r.how).map((s) => {
+            const o = isObj(s) ? s : {};
+            return { title: asBilingual(o.title), text: asBilingual(o.text) };
+          })
+        : d.how,
+    faq: arr(r.faq).map((f) => {
+      const o = isObj(f) ? f : {};
+      return { q: asBilingual(o.q), a: asBilingual(o.a) };
+    }),
+    cta: { ...d.cta, ...cta, title: asBilingual(cta.title), text: asBilingual(cta.text), button: asBilingual(cta.button) },
+    socials: { ...d.socials, ...(isObj(r.socials) ? r.socials : {}) },
   };
 
-  const parsed = siteContentSchema.safeParse(merged);
+  const parsed = siteDraftSchema.safeParse(merged);
   if (parsed.success) return parsed.data;
 
   // Salvage section by section so one bad field doesn't wipe the whole site.
   const out: Loose = { ...d };
-  for (const key of Object.keys(d) as (keyof SiteContent)[]) {
-    const part = siteContentSchema.shape[key].safeParse(merged[key]);
+  for (const key of Object.keys(d) as (keyof SiteDraft)[]) {
+    const part = siteDraftSchema.shape[key].safeParse(merged[key]);
     if (part.success) out[key] = part.data;
   }
-  return out as SiteContent;
+  return out as SiteDraft;
 }
+
+// -------------------------------------------------------------- publishing
 
 export type PublishIssue = "services" | "whatsapp";
 
 /** What blocks publishing. Drafts save freely; publishing needs these. */
-export function publishIssues(c: SiteContent): PublishIssue[] {
+export function publishIssues(c: SiteDraft): PublishIssue[] {
   const issues: PublishIssue[] = [];
-  if (!c.services.some((s) => s.title.trim() !== "")) issues.push("services");
+  if (!c.services.some((s) => hasText(s.title))) issues.push("services");
   if (c.hero.mainButton === "whatsapp" && !E164.test(c.hero.whatsapp)) issues.push("whatsapp");
   return issues;
 }
@@ -194,10 +306,10 @@ export function publishIssues(c: SiteContent): PublishIssue[] {
 export type ChecklistItem = "photoBio" | "services" | "domain" | "review";
 
 /** "Get your site ready" for a new coach. Returns each item's done state. */
-export function checklist(c: SiteContent, ctx: { hasDomain: boolean; hasReview: boolean }): Record<ChecklistItem, boolean> {
+export function checklist(c: SiteDraft, ctx: { hasDomain: boolean; hasReview: boolean }): Record<ChecklistItem, boolean> {
   return {
-    photoBio: !!c.about.photoPath && c.about.bio.trim() !== "",
-    services: c.services.filter((s) => s.title.trim() !== "").length >= 2,
+    photoBio: !!c.about.photoPath && hasText(c.about.bio),
+    services: c.services.filter((s) => hasText(s.title)).length >= 2,
     domain: ctx.hasDomain,
     review: ctx.hasReview,
   };
@@ -205,10 +317,10 @@ export function checklist(c: SiteContent, ctx: { hasDomain: boolean; hasReview: 
 
 /** How many parts of the draft differ from what's live ("N unpublished
  * changes"). Counts top-level parts, not individual fields. */
-export function countChanges(draft: SiteContent, published: SiteContent | null): number {
+export function countChanges(draft: SiteDraft, published: SiteDraft | null): number {
   if (!published) return Object.keys(draft).length;
   let n = 0;
-  for (const key of Object.keys(draft) as (keyof SiteContent)[]) {
+  for (const key of Object.keys(draft) as (keyof SiteDraft)[]) {
     if (JSON.stringify(draft[key]) !== JSON.stringify(published[key])) n++;
   }
   return n;

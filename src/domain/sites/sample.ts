@@ -2,7 +2,7 @@
 // Arabic and English. Used by the dev-only preview route and by tests.
 // This is fixture data for development, never shown on a real coach's site.
 import type { SiteView } from "./public-site";
-import { defaultDraft, type SiteContent } from "./site-content";
+import { defaultDraft, flatten, type SiteDraft } from "./site-content";
 import { guardColors } from "./theme";
 
 type Lang = "ar" | "en";
@@ -92,14 +92,22 @@ export type SampleOptions = {
   accent?: string;
 };
 
-export function sampleContent(lang: Lang, opts: SampleOptions = {}): SiteContent {
-  const c = COPY[lang];
+/** The sample as a stored draft: every text in both languages, like a real coach's. */
+export function sampleDraft(opts: SampleOptions = {}): SiteDraft {
+  const { ar, en } = COPY;
+  const both = (a: string, e: string) => ({ ar: a, en: e });
   const d = defaultDraft();
-  d.hero = { title: c.title, intro: c.intro, mainButton: "whatsapp", whatsapp: "+201001234567", secondaryLabel: "" };
-  d.about = { photoPath: null, bio: c.bio, certs: c.certs, years: 7, clients: 120 };
-  d.services = c.services.slice(0, Math.max(1, Math.min(4, opts.services ?? 3)));
-  d.how = c.how;
-  d.faq = c.faq;
+  d.hero = { title: both(ar.title, en.title), intro: both(ar.intro, en.intro), mainButton: "whatsapp", whatsapp: "+201001234567", secondaryLabel: both("", "") };
+  d.about = { photoPath: null, bio: both(ar.bio, en.bio), certs: { ar: [...ar.certs], en: [...en.certs] }, years: 7, clients: 120 };
+  d.services = ar.services.slice(0, Math.max(1, Math.min(4, opts.services ?? 3))).map((s, i) => ({
+    title: both(s.title, en.services[i].title),
+    description: both(s.description, en.services[i].description),
+    price: s.price,
+    unit: s.unit,
+    contactForPrice: s.contactForPrice,
+  }));
+  d.how = ar.how.map((s, i) => ({ title: both(s.title, en.how[i].title), text: both(s.text, en.how[i].text) }));
+  d.faq = ar.faq.map((f, i) => ({ q: both(f.q, en.faq[i].q), a: both(f.a, en.faq[i].a) }));
   d.socials = { instagram: "https://instagram.com/", tiktok: "https://tiktok.com/", youtube: "https://youtube.com/" };
   return d;
 }
@@ -116,7 +124,7 @@ export function sampleView(lang: Lang, opts: SampleOptions = {}): SiteView {
     logoUrl: null,
     colors: guardColors(opts.primary, opts.accent),
     domain: "coachahmed.fit",
-    content: sampleContent(lang, opts),
+    content: flatten(sampleDraft(opts), lang),
     photoUrl: null,
     usePlaceholderPhoto: !opts.noPhoto,
     results: RESULTS.slice(0, opts.results ?? 6).map(([weeks, kg], i) => ({

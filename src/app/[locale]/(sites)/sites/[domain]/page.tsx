@@ -8,7 +8,7 @@ import { SiteThemeProvider } from "@/components/site/site-theme-provider";
 import { toSiteView } from "@/domain/sites/public-site";
 import { guardColors } from "@/domain/sites/theme";
 import { routing } from "@/i18n/routing";
-import { siteAlternates, siteOrigin } from "@/lib/sites/origin";
+import { siteAlternates } from "@/lib/sites/origin";
 import { getPublicSite } from "@/lib/sites/public-site";
 
 // The proxy rewrites a coach's domain to /<lang>/sites/<domain>, so this page
@@ -35,12 +35,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     return { title: { absolute: name }, applicationName: name, robots: { index: false, follow: false } };
   }
 
-  const view = toSiteView(site, SUPABASE_URL);
+  const view = toSiteView(site, SUPABASE_URL, locale);
   const t = await getTranslations({ locale, namespace: "site.hero" });
   const eyebrow = view.content.hero.title.trim();
   const title = eyebrow ? `${name} | ${eyebrow}` : name;
   const description = view.content.hero.intro.trim() || t("eyebrow");
-  const alternates = siteAlternates(siteOrigin(site), locale);
+  const alternates = siteAlternates(site, locale);
 
   return {
     title: { absolute: title },
@@ -71,7 +71,7 @@ export default async function SitePage({ params }: { params: Params }) {
 
   if (!site.is_published) {
     const colors = guardColors(site.coach.brand_primary, site.coach.brand_accent);
-    const view = toSiteView(site, SUPABASE_URL);
+    const view = toSiteView(site, SUPABASE_URL, locale);
     return (
       <SiteThemeProvider locale={locale} colors={colors}>
         <ComingSoon coachName={site.coach.business_name} logoUrl={view.logoUrl} />
@@ -79,7 +79,7 @@ export default async function SitePage({ params }: { params: Params }) {
     );
   }
 
-  const view = toSiteView(site, SUPABASE_URL);
+  const view = toSiteView(site, SUPABASE_URL, locale);
   return (
     <SiteThemeProvider locale={locale} colors={view.colors}>
       <SiteBody view={view} year={new Date().getFullYear()} />

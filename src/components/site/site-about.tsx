@@ -1,31 +1,18 @@
 import { useLocale, useTranslations } from "next-intl";
-import { initialOf } from "@/domain/sites/display-name";
-import type { SiteView } from "@/domain/sites/public-site";
 import type { AppLocale } from "@/domain/locale";
+import type { SiteView } from "@/domain/sites/public-site";
 import { formatNumber } from "@/lib/format";
-import { Silhouette } from "./silhouette";
 
+/** Bio, certifications and stats. The coach photo lives in the hero only:
+ * showing the same picture again here read as a duplicate. */
 export function SiteAbout({ view }: { view: SiteView }) {
   const t = useTranslations("site.about");
-  const tHero = useTranslations("site.hero");
   const locale = useLocale() as AppLocale;
   const { about } = view.content;
 
   return (
-    <section id="about" className="cs-sec cs-about">
-      <div className="cs-about-photo cs-reveal">
-        {view.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- remote Supabase URL, no next/image config
-          <img src={view.photoUrl} alt={t("photoAlt", { name: view.coachName })} loading="lazy" />
-        ) : view.usePlaceholderPhoto ? (
-          <Silhouette width="62%" />
-        ) : (
-          <div className="cs-mono-tile" role="img" aria-label={tHero("noPhoto")}>
-            {initialOf(view.coachName)}
-          </div>
-        )}
-      </div>
-      <div className="cs-about-copy cs-reveal">
+    <section id="about" className="cs-sec">
+      <div className="cs-about-copy cs-about-solo cs-reveal">
         <h2 className="cs-h2">{t("title")}</h2>
         {about.bio.trim() && <p className="cs-lead">{about.bio}</p>}
         {about.certs.length > 0 && (

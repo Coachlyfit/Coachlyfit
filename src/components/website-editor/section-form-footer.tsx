@@ -4,14 +4,15 @@ import { useId } from "react";
 import { useTranslations } from "next-intl";
 import type { z } from "zod";
 import { Input } from "@/components/ui/input";
-import { siteContentSchema, type SiteContent } from "@/domain/sites/site-content";
+import { siteDraftSchema, type SiteDraft } from "@/domain/sites/site-content";
 import { describedBy, Field, useFieldError, useSectionForm } from "./form-kit";
 
-const schema = siteContentSchema.shape.socials;
+const schema = siteDraftSchema.shape.socials;
 type Socials = z.infer<typeof schema>;
 const FIELDS = ["instagram", "tiktok", "youtube"] as const;
 
-export function SectionFormFooter({ content, onChange }: { content: SiteContent; onChange: (patch: Partial<SiteContent>) => void }) {
+/** Social links are the same in both languages. */
+export function SectionFormFooter({ content, onChange }: { content: SiteDraft; onChange: (patch: Partial<SiteDraft>) => void }) {
   const t = useTranslations("websiteEditor.form.footer");
   const err = useFieldError();
   const uid = useId();

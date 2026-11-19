@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { SiteContent } from "@/domain/sites/site-content";
+import type { SiteDraft } from "@/domain/sites/site-content";
 
 export type SaveState = "saved" | "saving" | "error";
 
@@ -13,16 +13,16 @@ export const AUTOSAVE_DELAY_MS = 800;
  * construction: `schedule()` only tells the server later. A failed save leaves
  * the local draft untouched and `retry()` sends the latest version again.
  * Edits made while a save is in flight are sent right after it settles. */
-export function useAutosave(save: (content: SiteContent) => Promise<{ error: string } | void>) {
+export function useAutosave(save: (content: SiteDraft) => Promise<{ error: string } | void>) {
   const [state, setState] = useState<SaveState>("saved");
-  const latest = useRef<SiteContent | null>(null);
-  const sent = useRef<SiteContent | null>(null);
+  const latest = useRef<SiteDraft | null>(null);
+  const sent = useRef<SiteDraft | null>(null);
   const inflight = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flushRef = useRef<() => void>(() => {});
 
   const mutation = useMutation({
-    mutationFn: async (content: SiteContent) => {
+    mutationFn: async (content: SiteDraft) => {
       const result = await save(content);
       if (result && "error" in result) throw new Error(result.error);
     },
@@ -48,7 +48,7 @@ export function useAutosave(save: (content: SiteContent) => Promise<{ error: str
     };
   }, [mutate]);
 
-  function schedule(content: SiteContent) {
+  function schedule(content: SiteDraft) {
     latest.current = content;
     setState("saving");
     if (timer.current) clearTimeout(timer.current);

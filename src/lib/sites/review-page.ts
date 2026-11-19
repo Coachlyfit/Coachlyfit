@@ -2,7 +2,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { parseReviewRequest, type ReviewRequestView } from "@/domain/sites/review-request";
 import { publicStorageUrl } from "@/domain/sites/public-site";
-import { parseContent } from "@/domain/sites/site-content";
+import { parseDraft } from "@/domain/sites/site-content";
 import { guardColors, type SiteColors } from "@/domain/sites/theme";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { waLink } from "@/lib/whatsapp";
@@ -31,7 +31,7 @@ export async function loadReviewPage(domain: string, token: string): Promise<Rev
   if (!coach) return null;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const whatsapp = site?.is_published ? parseContent(site.content).hero.whatsapp || null : null;
+  const whatsapp = site?.is_published ? parseDraft(site.content).hero.whatsapp || null : null;
 
   return {
     request,

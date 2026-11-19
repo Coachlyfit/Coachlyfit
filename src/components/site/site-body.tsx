@@ -17,7 +17,8 @@ import { SiteTestimonials } from "./site-testimonials";
 export function visibleSections(view: SiteView): Set<SectionKey> {
   const { about, faq } = view.content;
   const has: Partial<Record<SectionKey, boolean>> = {
-    about: !!(view.photoUrl || about.bio.trim() || about.certs.length || about.years !== null || about.clients !== null),
+    // The photo shows in the hero, so About needs real text or stats of its own.
+    about: !!(about.bio.trim() || about.certs.length || about.years !== null || about.clients !== null),
     services: namedServices(view).length > 0,
     results: view.results.length > 0,
     reviews: view.reviews.length > 0,

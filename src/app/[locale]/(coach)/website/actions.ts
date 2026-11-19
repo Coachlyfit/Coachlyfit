@@ -4,11 +4,11 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { ConsentRequiredError, ResultsService, type ClientPhoto } from "@/domain/sites/results.service";
 import { ReviewsService } from "@/domain/sites/reviews.service";
-import { siteContentSchema, type SiteContent } from "@/domain/sites/site-content";
+import { siteDraftSchema, type SiteDraft } from "@/domain/sites/site-content";
 import { DomainTakenError, NotPublishedError, PublishBlockedError, SitesService } from "@/domain/sites/sites.service";
 import { normalizeDomain, VercelDomains, type DomainStatus } from "@/domain/sites/vercel-domains";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
-import { siteOrigin } from "@/lib/sites/origin";
+import { siteUrl } from "@/lib/sites/origin";
 import { siteTag } from "@/lib/sites/public-site";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,8 +32,8 @@ const refresh = () => revalidatePath("/[locale]/website", "page");
 // ------------------------------------------------------------------ draft
 
 /** Autosave. Saves the draft only: nothing public changes. */
-export async function saveDraftAction(input: SiteContent): Promise<ActionResult> {
-  const parsed = siteContentSchema.safeParse(input);
+export async function saveDraftAction(input: SiteDraft): Promise<ActionResult> {
+  const parsed = siteDraftSchema.safeParse(input);
   if (!parsed.success) return { error: "invalid_input" };
   const ctx = await context();
   if (!ctx) return { error: "not_authenticated" };
@@ -161,12 +161,12 @@ export async function createReviewRequestAction(
     ]);
     if (coach.error) throw coach.error;
     // A custom domain only once it's actually connected; until then the
-    // white-label subdomain serves the same page.
-    const origin = siteOrigin({
-      domain: site.domainStatus === "connected" ? site.domain : null,
-      coach: { slug: coach.data.slug },
-    });
-    return { url: `${origin}/review/${token}`, expiresAt: expiresAt.toISOString() };
+    // white-label / app URL serves the same page.
+    const url = siteUrl(
+      { domain: site.domainStatus === "connected" ? site.domain : null, coach: { slug: coach.data.slug } },
+      { path: `/review/${token}` }
+    );
+    return { url, expiresAt: expiresAt.toISOString() };
   } catch {
     return { error: "request_failed" };
   }

@@ -11,7 +11,7 @@ const row: PublicSiteRow = {
 };
 
 describe("toSiteView", () => {
-  const v = toSiteView(row, "https://x.supabase.co/");
+  const v = toSiteView(row, "https://x.supabase.co/", "en");
 
   it("resolves public image URLs", () => {
     expect(v.logoUrl).toBe("https://x.supabase.co/storage/v1/object/public/coach-logos/c1/logo.png");
@@ -46,5 +46,26 @@ describe("helpers", () => {
     expect(signedKg(-2.5)).toBe("−2.5");
     expect(signedKg(0)).toBeNull();
     expect(signedKg(null)).toBeNull();
+  });
+});
+
+describe("toSiteView: one site, two languages", () => {
+  const bilingual: PublicSiteRow = {
+    ...row,
+    content: {
+      hero: { title: { ar: "مدرب لياقة", en: "Fitness coach" }, intro: { ar: "", en: "I help you" }, mainButton: "whatsapp", whatsapp: "", secondaryLabel: { ar: "", en: "" } },
+      services: [{ title: { ar: "تدريب", en: "Coaching" }, description: { ar: "", en: "" }, price: 1500, unit: "month", contactForPrice: false }],
+    },
+  };
+
+  it("shows each language's own text", () => {
+    expect(toSiteView(bilingual, "https://x.co", "ar").content.hero.title).toBe("مدرب لياقة");
+    expect(toSiteView(bilingual, "https://x.co", "en").content.hero.title).toBe("Fitness coach");
+    expect(toSiteView(bilingual, "https://x.co", "ar").content.services[0].title).toBe("تدريب");
+    expect(toSiteView(bilingual, "https://x.co", "en").content.services[0].title).toBe("Coaching");
+  });
+
+  it("falls back to the other language only where one is empty", () => {
+    expect(toSiteView(bilingual, "https://x.co", "ar").content.hero.intro).toBe("I help you");
   });
 });
