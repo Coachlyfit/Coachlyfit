@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCoachId } from "@/lib/auth/resolve-coach-id";
 import { getAuthUser } from "@/lib/auth/session";
+import { getBranding } from "@/lib/branding";
+import type { CardCoach } from "@/components/progress/share/progress-share-card";
 import { AVATARS_BUCKET } from "@/domain/avatars/avatar.service";
 import { parseRange } from "@/domain/progress/stats";
 import type { AppLocale } from "@/domain/locale";
@@ -66,6 +68,21 @@ export default async function ClientDetailPage({
   const { profile_id, assigned_to, ...headerClient } = client;
   const account = await getClientAccountState(profile_id);
 
+  // Identity for the share-progress card. Raw brand colors and the logo only
+  // come back when the plan includes custom branding (getBranding is null
+  // otherwise), which is also what gates the "Coach colors" card theme.
+  const [{ data: coachRow }, branding] = await Promise.all([
+    supabase.from("coaches").select("business_name, slug").eq("id", coachId).maybeSingle(),
+    getBranding(),
+  ]);
+  const shareCoach: CardCoach = {
+    name: coachRow?.business_name ?? branding?.businessName ?? "",
+    handle: coachRow?.slug ? `@${coachRow.slug}` : "",
+    logoUrl: branding?.logoUrl ?? null,
+    primary: branding?.primary ?? null,
+    accent: branding?.accent ?? null,
+  };
+
   // Team directory for the assign select (owner only).
   let team: { id: string; name: string; isOwner: boolean }[] = [];
   if (isOwner) {
@@ -89,6 +106,7 @@ export default async function ClientDetailPage({
         isOwner={isOwner}
         assignedTo={assigned_to ?? null}
         team={team}
+        shareCoach={shareCoach}
       />
 
       <Suspense fallback={<AttentionSkeleton />}>

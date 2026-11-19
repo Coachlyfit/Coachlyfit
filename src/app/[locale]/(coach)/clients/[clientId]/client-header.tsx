@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { MoreVertical, MessageCircle, Pencil, Archive, ArchiveRestore, KeyRound, Trash2, UserCheck } from "lucide-react";
+import { MoreVertical, MessageCircle, Pencil, Archive, ArchiveRestore, KeyRound, Share2, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,8 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { formatDate } from "@/lib/format";
 import type { AppLocale } from "@/domain/locale";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { ShareProgressDialog } from "@/components/progress/share/share-progress-dialog";
+import type { CardCoach } from "@/components/progress/share/progress-share-card";
 import { ObservationDialog } from "./observation-dialog";
 import { EditClientDialog } from "./edit-client-dialog";
 import { DeleteClientDialog } from "../delete-client-dialog";
@@ -44,6 +46,7 @@ export function ClientHeader({
   isOwner = false,
   assignedTo = null,
   team = [],
+  shareCoach,
 }: {
   locale: AppLocale;
   coachId: string;
@@ -52,8 +55,11 @@ export function ClientHeader({
   isOwner?: boolean;
   assignedTo?: string | null;
   team?: TeamMember[];
+  shareCoach: CardCoach;
 }) {
   const t = useTranslations("clients");
+  const tShare = useTranslations("progress.share");
+  const [shareOpen, setShareOpen] = useState(false);
   const tProfile = useTranslations("clients.profile");
   const tErrors = useTranslations("clients.errors");
   const router = useRouter();
@@ -130,6 +136,10 @@ export function ClientHeader({
               </Button>
             )}
             {!archived && <ObservationDialog locale={locale} clientId={client.id} coachId={coachId} />}
+            <Button type="button" variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+              <Share2 className="size-4" />
+              {tShare("trigger")}
+            </Button>
             {isOwner && (
               <AssignClientSelect
                 locale={locale}
@@ -185,6 +195,15 @@ export function ClientHeader({
           </CardContent>
         )}
       </Card>
+
+      <ShareProgressDialog
+        clientId={client.id}
+        clientName={client.display_name}
+        coach={shareCoach}
+        locale={locale}
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+      />
 
       <EditClientDialog locale={locale} clientId={client.id} client={client} open={editOpen} onOpenChange={setEditOpen} />
 
