@@ -16,6 +16,7 @@ export function SiteLangToggle() {
   const [href, setHref] = useState(`?lang=${other}`);
   const [locked, setLocked] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- reads window.location / the DOM, which the server can't know; must run after mount to stay hydration-safe */
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(".cs-root");
     if (root?.hasAttribute("data-locked")) setLocked(true);
@@ -30,6 +31,7 @@ export function SiteLangToggle() {
       setHref(`${pathname}?${params.toString()}${hash}`);
     }
   }, [other]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (locked) return null;
 
