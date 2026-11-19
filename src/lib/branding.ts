@@ -8,6 +8,10 @@ export type Branding = {
   css: string;
   logoUrl: string | null;
   businessName: string;
+  /** Raw brand colors (#rrggbb as stored), for surfaces that need the values
+   * rather than the CSS overrides, e.g. the share-progress card. */
+  primary: string | null;
+  accent: string | null;
   /** The coach picked a sidebar color/text; the coach nav then wears the
    * --sidebar tokens instead of its stock light card. */
   sidebarThemed: boolean;
@@ -43,6 +47,8 @@ export const getBranding = cache(async (): Promise<Branding | null> => {
       ? supabase.storage.from(COACH_LOGOS_BUCKET).getPublicUrl(row.logo_path).data.publicUrl
       : null,
     businessName: row.business_name,
+    primary: row.primary,
+    accent: row.accent,
     sidebarThemed: Boolean(row.sidebar || row.sidebar_text),
   };
 });
