@@ -37,6 +37,22 @@ export function siteUrl(site: SiteRef, opts: { path?: string; lang?: Lang } = {}
   return `${appUrl()}/${lang}/sites/${site.coach.slug}${path}`;
 }
 
+/** Where this coach's clients sign in. Always the platform's portal for the
+ * coach (never the site itself, which owns "/" on the subdomain and every
+ * path on a custom domain): https://<slug>.<root>/<lang>/login, or the app's
+ * own URL with ?coach=<slug> when there is no wildcard domain. */
+export function portalLoginUrl(coach: { slug: string }, lang: Lang): string {
+  const root = process.env.NEXT_PUBLIC_ROOT_DOMAIN?.trim().split(":")[0].toLowerCase();
+  if (root) {
+    if (root === "localhost") {
+      const port = new URL(appUrl()).port || "3000";
+      return `http://${coach.slug}.localhost:${port}/${lang}/login`;
+    }
+    return `https://${coach.slug}.${root}/${lang}/login`;
+  }
+  return `${appUrl()}/${lang}/login?coach=${encodeURIComponent(coach.slug)}`;
+}
+
 /** Canonical + hreflang links for the one-page site. */
 export function siteAlternates(site: SiteRef, locale: Lang) {
   const ar = siteUrl(site, { lang: "ar" });

@@ -57,6 +57,11 @@ export function SiteHero({
           </div>
           <SiteLangToggle />
           <SiteThemeToggle />
+          {view.loginUrl && (
+            <a href={view.loginUrl} className="cs-btn cs-btn--ghost cs-btn--sm">
+              {t("nav.login")}
+            </a>
+          )}
           {contact && (
             <a href={contact} className="cs-btn cs-btn--ghost cs-btn--sm">
               {t("nav.contact")}

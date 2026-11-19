@@ -5876,7 +5876,8 @@
       "services": "Services",
       "results": "Results",
       "reviews": "Reviews",
-      "contact": "Contact"
+      "contact": "Contact",
+      "login": "Client login"
     },
     "hero": {
       "eyebrow": "Online fitness coach",
