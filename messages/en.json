@@ -5863,6 +5863,10 @@
     }
   },
   "site": {
+    "theme": {
+      "toLight": "Switch to light mode",
+      "toDark": "Switch to dark mode"
+    },
     "nav": {
       "label": "Main",
       "services": "Services",
@@ -6206,6 +6210,9 @@
       "phone": "Phone",
       "desktop": "Desktop",
       "language": "Preview language",
+      "scheme": "Preview colors",
+      "light": "Light",
+      "dark": "Dark",
       "arabic": "AR",
       "english": "EN"
     },

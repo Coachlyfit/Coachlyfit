@@ -21,11 +21,14 @@ export function SitePreview({
   view,
   device,
   lang,
+  scheme,
   siteMessages,
 }: {
   view: SiteView;
   device: PreviewDevice;
   lang: PreviewLang;
+  /** Light or dark, so the coach can check both (visitors follow their system). */
+  scheme: "light" | "dark";
   siteMessages: Record<PreviewLang, AbstractIntlMessages>;
 }) {
   const isDesktop = device === "desktop";
@@ -37,7 +40,7 @@ export function SitePreview({
       >
         <div style={isDesktop ? { width: DESKTOP_WIDTH, zoom: DESKTOP_ZOOM } : undefined}>
           <NextIntlClientProvider locale={lang} messages={{ site: siteMessages[lang] }}>
-            <SiteThemeProvider locale={lang} colors={view.colors}>
+            <SiteThemeProvider locale={lang} colors={view.colors} scheme={scheme}>
               <SiteBody view={view} year={new Date().getFullYear()} />
             </SiteThemeProvider>
           </NextIntlClientProvider>
