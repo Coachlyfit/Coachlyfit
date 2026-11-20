@@ -1243,6 +1243,59 @@ export type Database = {
           },
         ]
       }
+      coaching_applications: {
+        Row: {
+          activity_level: string
+          coach_id: string
+          coach_notes: string | null
+          created_at: string
+          email: string
+          goal: string
+          id: string
+          message: string | null
+          name: string
+          phone: string
+          source: string | null
+          status: string
+        }
+        Insert: {
+          activity_level: string
+          coach_id: string
+          coach_notes?: string | null
+          created_at?: string
+          email: string
+          goal: string
+          id?: string
+          message?: string | null
+          name: string
+          phone: string
+          source?: string | null
+          status?: string
+        }
+        Update: {
+          activity_level?: string
+          coach_id?: string
+          coach_notes?: string | null
+          created_at?: string
+          email?: string
+          goal?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string
+          source?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_applications_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coaching_decisions: {
         Row: {
           adjustments: Json
@@ -6514,6 +6567,7 @@ export type Database = {
         Args: { p_full_name: string; p_phone: string; p_user_id: string }
         Returns: undefined
       }
+      application_notify_target: { Args: { p_id: string }; Returns: Json }
       appointment_sync_status: {
         Args: { p_ids: string[] }
         Returns: {
@@ -6975,6 +7029,20 @@ export type Database = {
       site_status: { Args: { p_key: string }; Returns: string }
       snapshot_mrr: { Args: never; Returns: undefined }
       soft_delete_client: { Args: { p_client_id: string }; Returns: undefined }
+      submit_coaching_application: {
+        Args: {
+          p_activity_level: string
+          p_email: string
+          p_goal: string
+          p_ip?: unknown
+          p_key: string
+          p_message?: string
+          p_name: string
+          p_phone: string
+          p_source?: string
+        }
+        Returns: Json
+      }
       submit_review: {
         Args: {
           p_body: string

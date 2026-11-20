@@ -106,7 +106,8 @@
       "shortLeads": "Leads"
     },
     "templates": "Program templates",
-    "schedule": "Schedule"
+    "schedule": "Schedule",
+    "applications": "Applications"
   },
   "palette": {
     "navigation": "Navigation",
@@ -5863,6 +5864,32 @@
     }
   },
   "site": {
+    "apply": {
+      "button": "Apply for Coaching",
+      "title": "Apply for online coaching",
+      "intro": "Tell me a bit about yourself and I'll get back to you.",
+      "phone": "Phone (WhatsApp)",
+      "choose": "Choose…",
+      "source": "How did you hear about me? (optional)",
+      "submit": "Send application",
+      "sending": "Sending…",
+      "close": "Close",
+      "successTitle": "Application sent",
+      "successBody": "We'll be in touch soon.",
+      "errors": {
+        "name": "Enter your name",
+        "email": "Enter a valid email address",
+        "phone": "Enter a valid phone number",
+        "goal": "Choose a goal",
+        "activityLevel": "Choose your activity level",
+        "source": "That's too long",
+        "message": "That's too long",
+        "invalid_input": "Please check the form and try again.",
+        "rate_limited": "Too many attempts. Please try again later.",
+        "not_found": "This website isn't accepting applications right now.",
+        "failed": "Something went wrong. Please try again."
+      }
+    },
     "lang": {
       "toEnglish": "Switch to English",
       "toArabic": "Switch to Arabic"
@@ -6316,6 +6343,92 @@
     "error": "Something went wrong. Try again."
   },
 
+  "applications": {
+    "title": "Applications",
+    "heading": "Coaching applications",
+    "subtitle": "People who applied from your website.",
+    "back": "← All applications",
+    "saved": "Saved",
+    "filters": {
+      "label": "Filter by status",
+      "all": "All"
+    },
+    "status": {
+      "new": "New",
+      "reviewing": "Reviewing",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "goal": "Goal",
+      "activityLevel": "Current activity level",
+      "source": "How they heard about you",
+      "message": "Message"
+    },
+    "goals": {
+      "lose_fat": "Lose fat",
+      "build_muscle": "Build muscle",
+      "general_fitness": "General fitness",
+      "other": "Other"
+    },
+    "activity": {
+      "sedentary": "Sedentary (little or no exercise)",
+      "light": "Lightly active (1–2 days a week)",
+      "moderate": "Moderately active (3–4 days a week)",
+      "active": "Very active (5–6 days a week)",
+      "very_active": "Extremely active (daily or a physical job)"
+    },
+    "table": {
+      "submitted": "Submitted",
+      "status": "Status"
+    },
+    "empty": {
+      "title": "No applications yet",
+      "description": "When someone applies from your website, it shows up here.",
+      "filtered": "No applications with this status."
+    },
+    "triage": {
+      "status": "Status",
+      "notes": "Your notes",
+      "notesHint": "Optional",
+      "notesPrivate": "Only you can see these notes.",
+      "save": "Save"
+    },
+    "accept": {
+      "withEmail": "Accept & send welcome email",
+      "manual": "Accept (I'll invite them myself)",
+      "doneEmailed": "Accepted. Welcome email sent.",
+      "doneNoEmail": "Accepted. The email couldn't be sent: copy the link below.",
+      "doneLinked": "Accepted. This person already has an account and can accept from their app.",
+      "doneManual": "Accepted.",
+      "linkLabel": "Sign-up link for the applicant"
+    },
+    "reject": {
+      "button": "Reject",
+      "note": "Rejecting never emails the applicant."
+    },
+    "errors": {
+      "failed": "Something went wrong. Try again.",
+      "invalid_input": "Please check the details and try again.",
+      "not_authenticated": "Please sign in again.",
+      "not_found": "Application not found.",
+      "client_limit_reached": "You've reached your client limit.",
+      "subscription_inactive": "Your subscription is inactive.",
+      "already_your_client": "This person is already your client."
+    },
+    "email": {
+      "newSubject": "New coaching application from {name}",
+      "newIntro": "{name} applied for coaching on your website.",
+      "open": "Review the application:",
+      "welcomeSubject": "Welcome to {coach}",
+      "welcomeGreeting": "Hi {name},",
+      "welcomeBody": "Good news: {coach} accepted your coaching application. Create your client account to get started.",
+      "welcomeJoin": "Create your account:"
+    }
+  },
   "clientReview": {
     "title": "How was coaching with {coach}?",
     "subtitle": "Your review helps other people decide. It takes about a minute.",

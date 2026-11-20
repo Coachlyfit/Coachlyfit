@@ -86,7 +86,7 @@ export default async function SitePage({ params }: { params: Params }) {
   const view = toSiteView(site, SUPABASE_URL, locale);
   return (
     <SiteThemeProvider locale={locale} colors={view.colors} theme={view.theme}>
-      <SiteBody view={view} year={new Date().getFullYear()} />
+      <SiteBody view={view} year={new Date().getFullYear()} siteKey={decodeURIComponent(domain)} />
     </SiteThemeProvider>
   );
 }
