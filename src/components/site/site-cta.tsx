@@ -1,9 +1,10 @@
 import { useTranslations } from "next-intl";
 import type { SiteView } from "@/domain/sites/public-site";
 import { waLink } from "@/lib/whatsapp";
+import { ApplyButton } from "./apply/apply-button";
 import { ArrowIcon, WhatsAppIcon } from "./icons";
 
-export function SiteCta({ view }: { view: SiteView }) {
+export function SiteCta({ view, siteKey }: { view: SiteView; siteKey?: string }) {
   const t = useTranslations("site");
   const { cta, hero } = view.content;
   const wa = hero.whatsapp ? waLink(hero.whatsapp, t("hero.whatsappText", { name: view.coachName })) : null;
@@ -16,8 +17,9 @@ export function SiteCta({ view }: { view: SiteView }) {
         </h2>
         <p className="cs-lead">{cta.text.trim() || t("cta.defaultText")}</p>
         <div className="cs-actions">
+          <ApplyButton siteKey={siteKey} className="cs-btn cs-btn--inv" />
           {wa && (
-            <a href={wa} className="cs-btn cs-btn--inv">
+            <a href={wa} className="cs-btn cs-btn--outline-inv">
               <WhatsAppIcon />
               {cta.button.trim() || t("hero.whatsapp")}
             </a>

@@ -1,6 +1,7 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { SiteView } from "@/domain/sites/public-site";
+import { sectionCss } from "@/domain/sites/section-style";
 import { orderSections, type SectionKey } from "@/domain/sites/site-content";
 import { SiteAbout } from "./site-about";
 import { SiteCta } from "./site-cta";
@@ -30,7 +31,19 @@ export function visibleSections(view: SiteView): Set<SectionKey> {
 /** The whole one-page site, rendered from a SiteView. Used by the real site
  * and by the editor's live preview (so they can't drift). Wrap in
  * <SiteThemeProvider>. */
-export function SiteBody({ view, year }: { view: SiteView; year: number }) {
+export function SiteBody({
+  view,
+  year,
+  siteKey,
+  wrap,
+}: {
+  view: SiteView;
+  year: number;
+  siteKey?: string;
+  /** The editor preview wraps each section to make it click-selectable. The
+   * public site doesn't pass it. */
+  wrap?: (key: SectionKey, node: ReactNode) => ReactNode;
+}) {
   const t = useTranslations("site.hero");
   const visible = visibleSections(view);
   const order = orderSections(view.content.sections).filter((k) => visible.has(k));
@@ -39,7 +52,7 @@ export function SiteBody({ view, year }: { view: SiteView; year: number }) {
   const render = (key: SectionKey) => {
     switch (key) {
       case "hero":
-        return <SiteHero view={view} visible={visible} hasResults={visible.has("results")} hasReviews={visible.has("reviews")} />;
+        return <SiteHero view={view} visible={visible} hasResults={visible.has("results")} hasReviews={visible.has("reviews")} siteKey={siteKey} />;
       case "about":
         return <SiteAbout view={view} />;
       case "services":
@@ -53,22 +66,36 @@ export function SiteBody({ view, year }: { view: SiteView; year: number }) {
       case "faq":
         return <SiteFaq view={view} />;
       case "cta":
-        return <SiteCta view={view} />;
+        return <SiteCta view={view} siteKey={siteKey} />;
       case "footer":
         return <SiteFooter view={view} year={year} />;
     }
   };
 
+  // display: contents keeps the layout identical; the slot only gives the
+  // coach's per-section styles (sectionCss) something to target.
+  const slot = (key: SectionKey) => {
+    const node = (
+      <div className="cs-slot" data-slot={key}>
+        {render(key)}
+      </div>
+    );
+    return wrap ? wrap(key, node) : node;
+  };
+  const css = sectionCss(view.content.styles);
+
   // Landmarks: everything but the footer is <main>; the footer is contentinfo.
   const body = order.filter((k) => k !== "footer");
   return (
     <>
+      {/* Built from schema-validated hex / integer values only (section-style.ts). */}
+      {css && <style>{css}</style>}
       <main>
         {body.map((key) => (
-          <Fragment key={key}>{render(key)}</Fragment>
+          <Fragment key={key}>{slot(key)}</Fragment>
         ))}
       </main>
-      {order.includes("footer") && render("footer")}
+      {order.includes("footer") && slot("footer")}
     </>
   );
 }

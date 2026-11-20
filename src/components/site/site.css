@@ -358,6 +358,11 @@
 
 /* ---------------------------------------------------------------- layout */
 
+/* Wraps each section so per-section styles have a hook; adds no box. */
+.cs-slot {
+  display: contents;
+}
+
 .cs-sec {
   padding: 56px 20px;
 }
@@ -1397,4 +1402,17 @@ textarea.cs-input {
 .cs-rv-foot {
   padding: 0 20px 32px;
   text-align: center;
+}
+
+/* Apply for coaching dialog */
+.cs-apply {
+  max-width: 520px;
+}
+.cs-apply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cs-apply textarea.cs-input {
+  min-height: 110px;
 }

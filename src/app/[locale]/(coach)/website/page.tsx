@@ -46,7 +46,6 @@ export default async function WebsitePage({ params }: { params: Promise<{ locale
 
   const slug = coach.data.slug;
   const url = siteUrl({ domain: site.domain, coach: { slug } }, { lang: locale });
-  const fallbackUrl = siteUrl({ domain: null, coach: { slug } }, { lang: locale });
 
   return (
     <>
@@ -59,7 +58,6 @@ export default async function WebsitePage({ params }: { params: Promise<{ locale
           publishedAt: site.publishedAt,
           isLive: site.isPublished,
           domain: site.domain,
-          domainState: site.domain ? site.domainStatus : "none",
         }}
         coach={{
           id: coachId,
@@ -67,7 +65,6 @@ export default async function WebsitePage({ params }: { params: Promise<{ locale
           logoUrl: branding?.logoUrl ?? null,
           colors: guardColors(branding?.primary, branding?.accent),
           siteUrl: url,
-          fallbackUrl,
           displayHost: new URL(url).host,
         }}
         cards={cards}
