@@ -26,7 +26,7 @@ import type { PlanFeature } from "@/lib/features";
 
 export type NavItem = {
   href: string;
-  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "website" | "tasks" | "schedule" | "support" | "guides" | "templates";
+  labelKey: "dashboard" | "clients" | "programs" | "diets" | "forms" | "review" | "library" | "finance" | "settings" | "admin" | "inbox" | "feedback" | "online" | "requests" | "emails" | "leads" | "site" | "website" | "tasks" | "schedule" | "applications" | "support" | "guides" | "templates";
   icon: LucideIcon;
   /** Live count shown next to the label -- see UnreadMessagesBadge and
    * SupportUnreadBadge. */
@@ -71,6 +71,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/programs", labelKey: "programs", icon: ClipboardList },
   { href: "/forms", labelKey: "forms", icon: FileText },
   { href: "/review", labelKey: "review", icon: ClipboardCheck },
+  { href: "/applications", labelKey: "applications", icon: UserPlus },
   { href: "/library", labelKey: "library", icon: Dumbbell, shortLabelKey: "shortLibrary" },
   { href: "/diets", labelKey: "diets", icon: Salad },
   { href: "/website", labelKey: "website", icon: Globe },
@@ -107,7 +108,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 // the sidebar shows; NAV_ITEMS order still drives the bottom nav and palette.
 export const COACH_NAV_GROUPS: NavGroup[] = [
   { hrefs: ["/dashboard"] },
-  { labelKey: "groupClients", hrefs: ["/clients", "/schedule", "/review", "/messages", "/tasks"] },
+  { labelKey: "groupClients", hrefs: ["/clients", "/applications", "/schedule", "/review", "/messages", "/tasks"] },
   { labelKey: "groupContent", hrefs: ["/programs", "/forms", "/library", "/diets", "/website"] },
   { labelKey: "groupAccount", hrefs: ["/finance", "/settings", "/guides", "/support"] },
 ];

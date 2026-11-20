@@ -30,7 +30,7 @@ export function visibleSections(view: SiteView): Set<SectionKey> {
 /** The whole one-page site, rendered from a SiteView. Used by the real site
  * and by the editor's live preview (so they can't drift). Wrap in
  * <SiteThemeProvider>. */
-export function SiteBody({ view, year }: { view: SiteView; year: number }) {
+export function SiteBody({ view, year, siteKey }: { view: SiteView; year: number; siteKey?: string }) {
   const t = useTranslations("site.hero");
   const visible = visibleSections(view);
   const order = orderSections(view.content.sections).filter((k) => visible.has(k));
@@ -39,7 +39,7 @@ export function SiteBody({ view, year }: { view: SiteView; year: number }) {
   const render = (key: SectionKey) => {
     switch (key) {
       case "hero":
-        return <SiteHero view={view} visible={visible} hasResults={visible.has("results")} hasReviews={visible.has("reviews")} />;
+        return <SiteHero view={view} visible={visible} hasResults={visible.has("results")} hasReviews={visible.has("reviews")} siteKey={siteKey} />;
       case "about":
         return <SiteAbout view={view} />;
       case "services":
@@ -53,7 +53,7 @@ export function SiteBody({ view, year }: { view: SiteView; year: number }) {
       case "faq":
         return <SiteFaq view={view} />;
       case "cta":
-        return <SiteCta view={view} />;
+        return <SiteCta view={view} siteKey={siteKey} />;
       case "footer":
         return <SiteFooter view={view} year={year} />;
     }
