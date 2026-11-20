@@ -17,6 +17,17 @@ export default async function proxy(request: NextRequest) {
   const hostname = (host ?? "").split(":")[0].toLowerCase();
   const slug = extractPortalSlug(host);
 
+  // www.<root> is served by the *.<root> wildcard domain, so without this it
+  // renders a full duplicate of the site for crawlers. Send it to the apex.
+  const rootDomain = getRootDomain();
+  if (hostname === `www.${rootDomain}`) {
+    const url = request.nextUrl.clone();
+    url.protocol = "https";
+    url.hostname = rootDomain;
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
+
   // Coach website: a custom domain (every path), or a published coach's
   // subdomain root + /review/* links, is rewritten to the public site route.
   // The site is public and cached, so it skips next-intl and the auth session.
