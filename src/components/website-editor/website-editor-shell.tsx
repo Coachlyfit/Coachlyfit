@@ -31,7 +31,6 @@ import { publishAction, saveDraftAction } from "@/app/[locale]/(coach)/website/a
 import { AutosaveIndicator } from "./autosave-indicator";
 import type { ClientOption } from "./create-card-dialog";
 import { ColorsPanel } from "./colors-panel";
-import { DomainCard, type DomainState } from "./domain-card";
 import { PublishPanel } from "./publish-panel";
 import { ResultsManager } from "./results-manager";
 import { ReviewsManager } from "./reviews-manager";
@@ -53,7 +52,6 @@ export type EditorInitial = {
   publishedAt: string | null;
   isLive: boolean;
   domain: string | null;
-  domainState: DomainState;
 };
 
 export type EditorCoach = {
@@ -63,8 +61,6 @@ export type EditorCoach = {
   colors: SiteColors;
   /** Public address of the site, for "View site". */
   siteUrl: string;
-  /** White-label address that works before a custom domain connects. */
-  fallbackUrl: string;
   /** Host shown next to the title, e.g. coachahmed.fit. */
   displayHost: string;
 };
@@ -400,7 +396,6 @@ export function WebsiteEditorShell({
                 onLiveChange={setIsLive}
                 onDiscarded={discarded}
               />
-              <DomainCard domain={initial.domain} state={initial.domainState} fallbackUrl={coach.fallbackUrl} />
             </div>
           )}
         </section>
