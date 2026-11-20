@@ -6280,6 +6280,36 @@
       "arabic": "AR",
       "english": "EN"
     },
+    "style": {
+      "tabs": {
+        "content": "Content",
+        "style": "Style"
+      },
+      "intro": "Change how this section looks. Anything left on Default keeps the site's own look.",
+      "scheme": "You're editing the {scheme} colors. Switch the preview to edit the other set.",
+      "colors": {
+        "title": "Colors",
+        "bg": "Background",
+        "text": "Text",
+        "heading": "Headings"
+      },
+      "sizes": {
+        "title": "Size and spacing",
+        "headingSize": "Heading size",
+        "bodySize": "Text size",
+        "paddingTop": "Space above",
+        "paddingBottom": "Space below"
+      },
+      "opacity": "Opacity",
+      "pick": "Pick a color for {name}",
+      "default": "Default",
+      "px": "px",
+      "reset": "Reset",
+      "resetAll": "Reset this section's style",
+      "lowContrast": "This text color is hard to read on this background. Pick colors that are further apart.",
+      "managedElsewhere": "The photos and text in {name} are managed in their own tab.",
+      "openTab": "Open {name}"
+    },
     "colorsAdjusted": "We adjusted your brand colors slightly so text stays readable on your site.",
     "errors": {
       "invalid": "Check this field.",

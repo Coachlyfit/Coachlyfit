@@ -358,6 +358,11 @@
 
 /* ---------------------------------------------------------------- layout */
 
+/* Wraps each section so per-section styles have a hook; adds no box. */
+.cs-slot {
+  display: contents;
+}
+
 .cs-sec {
   padding: 56px 20px;
 }

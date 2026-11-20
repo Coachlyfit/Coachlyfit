@@ -19,10 +19,12 @@ import {
   hasText,
   publishIssues,
   type Lang,
+  SECTION_KEYS,
   type SectionKey,
   type SiteDraft,
   type SiteSection,
 } from "@/domain/sites/site-content";
+import { isStyled, type SectionStyle } from "@/domain/sites/section-style";
 import type { SiteColors } from "@/domain/sites/theme";
 import { cn } from "@/lib/utils";
 import { publishAction, saveDraftAction } from "@/app/[locale]/(coach)/website/actions";
@@ -41,6 +43,7 @@ import { SectionFormHero } from "./section-form-hero";
 import { SectionFormHow } from "./section-form-how";
 import { SectionFormServices } from "./section-form-services";
 import { SectionList } from "./section-list";
+import { SectionStyleForm } from "./section-style-form";
 import { SitePreview, type PreviewDevice, type PreviewLang } from "./site-preview";
 import { useAutosave } from "./use-autosave";
 
@@ -93,6 +96,7 @@ export function WebsiteEditorShell({
   const [isLive, setIsLive] = useState(initial.isLive);
   const [tab, setTab] = useState<Tab>("sections");
   const [editing, setEditing] = useState<SectionKey | null>(null);
+  const [inspectorTab, setInspectorTab] = useState<"content" | "style">("content");
   const [pane, setPane] = useState<"edit" | "preview">("edit");
   const [device, setDevice] = useState<PreviewDevice>("phone");
   // Starts as the dashboard's own theme; the coach can flip it to check both.
@@ -159,11 +163,27 @@ export function WebsiteEditorShell({
   } satisfies Record<SectionKey, string>;
 
   function edit(key: SectionKey) {
-    // Results and testimonials are managed in their own tabs.
-    if (key === "results") setTab("results");
-    else if (key === "reviews") setTab("reviews");
-    else setEditing(key);
+    setInspectorTab("content");
+    setEditing(key);
   }
+
+  // A click on a section in the preview opens it here. Keeps the Content/Style
+  // tab you were on, so you can click through sections while styling.
+  function selectFromPreview(key: SectionKey) {
+    setTab("sections");
+    setEditing(key);
+    setPane("edit");
+  }
+
+  // An all-default style is the same as none: don't store it.
+  function setStyle(key: SectionKey, style: SectionStyle) {
+    const styles = { ...draft.styles };
+    if (isStyled(style)) styles[key] = style;
+    else delete styles[key];
+    update({ styles });
+  }
+
+  const sectionNames = Object.fromEntries(SECTION_KEYS.map((k) => [k, t(`sections.names.${k}`)])) as Record<SectionKey, string>;
 
   function publish() {
     startPublish(async () => {
@@ -192,8 +212,29 @@ export function WebsiteEditorShell({
         {t("sections.back")}
       </Button>
       <h2 className="text-lg font-semibold">{t(`sections.names.${editing}`)}</h2>
+      <Tabs value={inspectorTab} onValueChange={(v) => setInspectorTab(v as "content" | "style")}>
+        <TabsList className="w-full">
+          {(["content", "style"] as const).map((id) => (
+            <TabsTrigger key={id} value={id} className="min-h-11 flex-1">
+              {t(`style.tabs.${id}`)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+      {inspectorTab === "style" && (
+        <SectionStyleForm key={editing} style={draft.styles[editing]} scheme={scheme} onChange={(style) => setStyle(editing, style)} />
+      )}
       {/* key: switching language remounts the form so it edits that language's text. */}
+      {inspectorTab === "content" && (
       <div key={`${editing}-${lang}`}>
+        {(editing === "results" || editing === "reviews") && (
+          <div className="flex flex-col items-start gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+            <p className="text-sm text-muted-foreground">{t("style.managedElsewhere", { name: t(`sections.names.${editing}`) })}</p>
+            <Button type="button" variant="outline" className="min-h-11" onClick={() => setTab(editing)}>
+              {t("style.openTab", { name: t(`tabs.${editing}`) })}
+            </Button>
+          </div>
+        )}
         {editing === "hero" && <SectionFormHero content={draft} lang={lang} onChange={update} />}
         {editing === "about" && <SectionFormAbout content={draft} lang={lang} coachId={coach.id} onChange={update} />}
         {editing === "services" && <SectionFormServices content={draft} lang={lang} onChange={update} />}
@@ -202,6 +243,7 @@ export function WebsiteEditorShell({
         {editing === "cta" && <SectionFormCta content={draft} lang={lang} onChange={update} />}
         {editing === "footer" && <SectionFormFooter content={draft} onChange={update} />}
       </div>
+      )}
     </div>
   );
 
@@ -416,7 +458,16 @@ export function WebsiteEditorShell({
             </div>
           </div>
           {coach.colors.adjusted && <p className="text-sm text-muted-foreground">{t("colorsAdjusted")}</p>}
-          <SitePreview view={view} device={device} lang={lang} scheme={scheme} siteMessages={siteMessages} />
+          <SitePreview
+            view={view}
+            device={device}
+            lang={lang}
+            scheme={scheme}
+            siteMessages={siteMessages}
+            selected={tab === "sections" ? editing : null}
+            onSelect={selectFromPreview}
+            sectionNames={sectionNames}
+          />
         </section>
       </div>
     </div>

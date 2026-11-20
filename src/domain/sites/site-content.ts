@@ -13,6 +13,7 @@
 // invents stats, prices or testimonials.
 import { z } from "zod";
 import { defaultTheme } from "./palette";
+import { sectionStyleSchema } from "./section-style";
 
 export const SECTION_KEYS = ["hero", "about", "services", "results", "reviews", "how", "faq", "cta", "footer"] as const;
 export type SectionKey = (typeof SECTION_KEYS)[number];
@@ -125,6 +126,8 @@ export const siteDraftSchema = z.object({
   }),
   socials: z.object({ instagram: url, tiktok: url, youtube: url }),
   theme: themeSchema,
+  // Per-section look; a section with no entry (or null fields) keeps its default.
+  styles: z.partialRecord(z.enum(SECTION_KEYS), sectionStyleSchema),
 });
 
 export type SiteDraft = z.infer<typeof siteDraftSchema>;
@@ -139,6 +142,7 @@ export type SiteContent = {
   faq: { q: string; a: string }[];
   cta: { title: string; text: string; button: string };
   socials: { instagram: string; tiktok: string; youtube: string };
+  styles: SiteDraft["styles"];
 };
 
 const blank = (): Bilingual => ({ ar: "", en: "" });
@@ -166,6 +170,7 @@ export function defaultDraft(): SiteDraft {
     cta: { title: blank(), text: blank(), button: blank() },
     socials: { instagram: "", tiktok: "", youtube: "" },
     theme: defaultTheme(),
+    styles: {},
   };
 }
 
@@ -206,6 +211,7 @@ export function flatten(draft: SiteDraft, lang: Lang): SiteContent {
     faq: draft.faq.map((f) => ({ q: pick(f.q, lang), a: pick(f.a, lang) })),
     cta: { title: pick(draft.cta.title, lang), text: pick(draft.cta.text, lang), button: pick(draft.cta.button, lang) },
     socials: draft.socials,
+    styles: draft.styles,
   };
 }
 
@@ -253,6 +259,18 @@ const fromLegacy = (v: unknown): Bilingual => {
 const isBilingual = (v: unknown) => isObj(v) && typeof v.ar === "string" && typeof v.en === "string";
 /** Already bilingual: keep. Plain string: migrate. Anything else: blank. */
 const asBilingual = (v: unknown): Bilingual => (isBilingual(v) ? (v as Bilingual) : fromLegacy(v));
+
+/** Keeps each valid per-section style and drops the rest one by one, so a bad
+ * entry never wipes the others. */
+function parseStyles(raw: unknown): SiteDraft["styles"] {
+  const out: SiteDraft["styles"] = {};
+  if (!isObj(raw)) return out;
+  for (const key of SECTION_KEYS) {
+    const parsed = sectionStyleSchema.safeParse(raw[key]);
+    if (parsed.success) out[key] = parsed.data;
+  }
+  return out;
+}
 
 /** Reads any stored shape (a bilingual draft, a pre-bilingual one, or `{}`)
  * into a valid SiteDraft. Missing parts come from defaultDraft(); a part that
@@ -304,6 +322,7 @@ export function parseDraft(raw: unknown): SiteDraft {
       light: { ...d.theme.light, ...(isObj(r.theme) && isObj(r.theme.light) ? r.theme.light : {}) },
       dark: { ...d.theme.dark, ...(isObj(r.theme) && isObj(r.theme.dark) ? r.theme.dark : {}) },
     },
+    styles: parseStyles(r.styles),
   };
 
   const parsed = siteDraftSchema.safeParse(merged);
