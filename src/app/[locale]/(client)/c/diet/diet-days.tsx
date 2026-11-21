@@ -100,11 +100,14 @@ export function DietDays({
   days,
   plans,
   todayLog,
+  logPanel,
 }: {
   locale: AppLocale;
   days: DayView[];
   plans: Record<string, PlanView>;
   todayLog: TodayLog;
+  /** The manual intake log, shown under the meals and water. */
+  logPanel: React.ReactNode;
 }) {
   const t = useTranslations("client.diet");
   const tLog = useTranslations("client.diet.log");
@@ -275,6 +278,8 @@ export function DietDays({
           onCups={(cups) => patchLog({ type: "water", cups })}
         />
       )}
+
+      {logPanel}
 
       {openRecipe && (
         <RecipeSheet

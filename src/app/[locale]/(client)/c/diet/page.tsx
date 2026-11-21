@@ -188,6 +188,8 @@ export default async function ClientDietPage({
       clientId={clientRow.id}
       serverToday={serverToday}
       dietDayIds={logDayIds}
+      // With no plan this is the only thing on the page, so it starts open.
+      defaultOpen={plans.size === 0}
       logs={logs.map((l) => ({
         log_date: l.log_date,
         kcal: l.kcal,
@@ -244,8 +246,7 @@ export default async function ClientDietPage({
   return (
     <div className="flex flex-col gap-5">
       <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-      {logPanel}
-      <DietDays locale={locale} days={days} plans={planViews} todayLog={todayLog} />
+      <DietDays locale={locale} days={days} plans={planViews} todayLog={todayLog} logPanel={logPanel} />
     </div>
   );
 }

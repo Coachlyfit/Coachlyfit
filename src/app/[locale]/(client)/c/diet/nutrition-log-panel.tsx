@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useId, useState, useSyncExternalStore, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { BellRing, Ruler } from "lucide-react";
+import { BellRing, ChevronDown, Ruler } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -42,7 +41,9 @@ function deviceToday(): string {
 /** Daily intake logging on the client's diet screen: pick one of the last
  * 7 days (by the device's own calendar), log kcal (+ optional macros),
  * report the day off-plan, and manage the logging reminder and the body
- * data behind the coach's target suggestion. */
+ * data behind the coach's target suggestion. Collapsed by default (the meal
+ * cards above it already feed today's totals); the reminder and body-profile
+ * icons stay reachable either way. */
 export function NutritionLogPanel({
   locale,
   coachId,
@@ -53,6 +54,7 @@ export function NutritionLogPanel({
   reminder,
   bodyProfile,
   mealLabels,
+  defaultOpen = false,
 }: {
   locale: AppLocale;
   coachId: string;
@@ -65,8 +67,11 @@ export function NutritionLogPanel({
   reminder: { enabled: boolean; remind_at: string; timezone: string } | null;
   bodyProfile: BodyProfileValues | null;
   mealLabels: string[];
+  defaultOpen?: boolean;
 }) {
   const t = useTranslations("nutrition");
+  const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
   // The server only knows UTC; the device's own date takes over once
   // hydrated (server snapshot keeps the first client render in agreement).
   const today = useSyncExternalStore(noSubscribe, deviceToday, () => serverToday);
@@ -84,15 +89,36 @@ export function NutritionLogPanel({
         : formatDate(date, locale, { weekday: "short", timeZone: "UTC" });
 
   return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{t("log.title")}</CardTitle>
+    <section className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="flex items-center justify-between gap-2 ps-4 pe-2">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((v) => !v)}
+          className="flex min-h-14 flex-1 items-center gap-2 text-start text-base font-semibold focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {t("log.title")}
+          <ChevronDown
+            className={cn("size-3.5 text-muted-foreground transition-transform duration-300", open && "rotate-180")}
+            aria-hidden
+          />
+        </button>
         <div className="flex gap-1">
           <ReminderSheet locale={locale} reminder={reminder} />
           <BodyProfileSheet locale={locale} profile={bodyProfile} />
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+      </div>
+      <div
+        id={panelId}
+        inert={!open}
+        className={cn(
+          "grid transition-[grid-template-rows] duration-300 ease-out",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="flex flex-col gap-4 border-t border-border p-4">
         <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 no-scrollbar" role="group" aria-label={t("log.pickDay")}>
           {days.map((date) => {
             const dayLog = byDate.get(date);
@@ -103,8 +129,8 @@ export function NutritionLogPanel({
                 aria-pressed={date === selected}
                 onClick={() => setSelected(date)}
                 className={cn(
-                  "flex min-w-14 shrink-0 flex-col items-center gap-0.5 rounded-lg border px-2 py-1.5 text-xs",
-                  date === selected ? "border-primary bg-primary/10 font-medium" : "border-border",
+                  "flex min-w-14 shrink-0 flex-col items-center gap-0.5 rounded-xl border px-2 py-1.5 text-xs transition-colors",
+                  date === selected ? "border-nutri-orange bg-nutri-orange/10 font-medium" : "border-border hover:bg-muted",
                   dayLog?.off_plan && "ring-1 ring-amber-500/60"
                 )}
               >
@@ -113,7 +139,7 @@ export function NutritionLogPanel({
                 <span
                   className={cn(
                     "size-1.5 rounded-full",
-                    dayLog?.off_plan ? "bg-amber-500" : dayLog?.kcal != null ? "bg-primary" : "bg-transparent"
+                    dayLog?.off_plan ? "bg-amber-500" : dayLog?.kcal != null ? "bg-nutri-orange" : "bg-transparent"
                   )}
                   aria-hidden="true"
                 />
@@ -145,8 +171,10 @@ export function NutritionLogPanel({
           dateLabel={formatDate(selected, locale, { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" })}
           mealLabels={mealLabels}
         />
-      </CardContent>
-    </Card>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -206,7 +234,11 @@ function LogForm({
       {log?.kcal != null && (
         <p className="text-xs text-muted-foreground">{t("log.loggedAs", { kcal: formatNumber(log.kcal, locale) })}</p>
       )}
-      <Button type="submit" disabled={pending || values.kcal === ""}>
+      <Button
+        type="submit"
+        disabled={pending || values.kcal === ""}
+        className="min-h-11 bg-nutri-orange font-semibold text-[#1a0f05] hover:bg-nutri-orange/90"
+      >
         {pending ? tCommon("pending") : t("log.save")}
       </Button>
     </form>
