@@ -3,10 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
+import { MealLoggingService } from "@/domain/nutrition/meal-logging.service";
+import { WATER_CUP_ML } from "@/domain/nutrition/meal-logging";
 import {
+  addWaterSchema,
   bodyProfileSchema,
+  clearMealSchema,
   isLoggableDate,
+  isRecentDate,
   logIntakeSchema,
+  mealStatusSchema,
   offPlanSchema,
   reminderSettingsSchema,
 } from "@/domain/nutrition/nutrition.schema";
@@ -45,6 +51,53 @@ export async function logNutritionAction(locale: string, input: unknown): Promis
   const result = await attempt(() =>
     new NutritionLogsService(supabase).logIntake(client.coach_id, client.id, parsed.data)
   );
+  revalidatePath(`/${locale}/c/diet`);
+  return result;
+}
+
+/** Marks one meal eaten or skipped (with an optional note) for today. */
+export async function setMealStatusAction(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = mealStatusSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+  if (!isRecentDate(parsed.data.log_date, new Date())) return { error: "date_out_of_range" };
+
+  const supabase = await createClient();
+  const client = await currentClientRow(supabase);
+  if (!client) return { error: "not_linked" };
+
+  const { meal_id, log_date, status, note } = parsed.data;
+  const result = await attempt(() => new MealLoggingService(supabase).setMealStatus(client.id, meal_id, log_date, status, note));
+  revalidatePath(`/${locale}/c/diet`);
+  return result;
+}
+
+export async function clearMealAction(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = clearMealSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+  if (!isRecentDate(parsed.data.log_date, new Date())) return { error: "date_out_of_range" };
+
+  const supabase = await createClient();
+  const client = await currentClientRow(supabase);
+  if (!client) return { error: "not_linked" };
+
+  const result = await attempt(() =>
+    new MealLoggingService(supabase).clearMeal(client.id, parsed.data.meal_id, parsed.data.log_date)
+  );
+  revalidatePath(`/${locale}/c/diet`);
+  return result;
+}
+
+/** One tap = one cup. The amount is fixed server-side, never taken from the client. */
+export async function addWaterAction(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = addWaterSchema.safeParse(input);
+  if (!parsed.success) return { error: "invalid_input" };
+  if (!isRecentDate(parsed.data.log_date, new Date())) return { error: "date_out_of_range" };
+
+  const supabase = await createClient();
+  const client = await currentClientRow(supabase);
+  if (!client) return { error: "not_linked" };
+
+  const result = await attempt(() => new MealLoggingService(supabase).addWater(client.id, parsed.data.log_date, WATER_CUP_ML));
   revalidatePath(`/${locale}/c/diet`);
   return result;
 }

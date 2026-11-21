@@ -9,7 +9,9 @@ import { MacroLine, MacroSummary } from "@/components/nutrition/macro-summary";
 import { cn } from "@/lib/utils";
 import type { MacroTargets, MacroTotals } from "@/domain/nutrition/macros";
 import type { DayKind } from "@/domain/programs/day-plan";
+import type { AppLocale } from "@/domain/locale";
 import { RecipeSheet, type RecipeView } from "./recipe-sheet";
+import { MealLogControls, TodaySummary, type MealMark } from "./meal-logging-ui";
 
 /** One day-type of a plan (Training / Rest / …): its own targets, notes and
  * meals. A plan always has at least one. */
@@ -19,6 +21,8 @@ export type PlanDayView = {
   notes: string | null;
   targets: MacroTargets;
   totals: MacroTotals;
+  /** Daily water goal in ml (the coach's, else the app default). */
+  waterTargetMl: number;
   meals: {
     id: string;
     label: string | null;
@@ -75,7 +79,21 @@ function useNextMealIndex(meals: PlanDayView["meals"], enabled: boolean) {
   return meals.findIndex((m) => m.time != null && m.time >= now);
 }
 
-export function DietDays({ days, plans }: { days: DayView[]; plans: Record<string, PlanView> }) {
+/** What the client has logged for the first day (today): per-meal marks and
+ * water taken so far. */
+export type TodayLog = { meals: Record<string, MealMark>; waterMl: number };
+
+export function DietDays({
+  locale,
+  days,
+  plans,
+  todayLog,
+}: {
+  locale: AppLocale;
+  days: DayView[];
+  plans: Record<string, PlanView>;
+  todayLog: TodayLog;
+}) {
   const t = useTranslations("client.diet");
   const tRecipe = useTranslations("recipes.item");
   const [selected, setSelected] = useState(0);
@@ -89,9 +107,22 @@ export function DietDays({ days, plans }: { days: DayView[]; plans: Record<strin
   const nextIndex = useNextMealIndex(planDay?.meals ?? [], selected === 0);
   // Only worth a label when the week actually alternates between plans.
   const variesByDay = new Set(days.map((d) => d.planId)).size > 1;
+  // Logging is for today only (the first day of the strip).
+  const isToday = selected === 0;
 
   return (
     <div className="flex flex-col gap-4">
+      {isToday && planDay && (
+        <TodaySummary
+          locale={locale}
+          date={day.date}
+          done={planDay.meals.filter((m) => todayLog.meals[m.id]?.status === "eaten").length}
+          total={planDay.meals.length}
+          waterMl={todayLog.waterMl}
+          waterTargetMl={planDay.waterTargetMl}
+        />
+      )}
+
       {days.length > 1 && (
         <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" role="tablist">
           {days.map((d, i) => {
@@ -231,6 +262,16 @@ export function DietDays({ days, plans }: { days: DayView[]; plans: Record<strin
                         )
                       )}
                     </ul>
+                  )}
+                  {isToday && (
+                    <MealLogControls
+                      // Remount when the saved mark changes so the note box resets to it.
+                      key={`${meal.id}:${todayLog.meals[meal.id]?.status ?? ""}:${todayLog.meals[meal.id]?.note ?? ""}`}
+                      locale={locale}
+                      date={day.date}
+                      mealId={meal.id}
+                      mark={todayLog.meals[meal.id] ?? null}
+                    />
                   )}
                 </Card>
               </li>

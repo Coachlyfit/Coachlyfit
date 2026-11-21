@@ -1463,7 +1463,20 @@
       "dayType": "Menu for this day",
       "mealN": "Meal {n}",
       "next": "Next",
-      "kcal": "{n} kcal"
+      "kcal": "{n} kcal",
+      "log": {
+        "summary": "{done}/{total} meals completed",
+        "water": "{current} L / {target} L water",
+        "addCup": "Add a glass of water",
+        "mealsProgress": "Meals completed",
+        "waterProgress": "Water intake",
+        "done": "Done",
+        "skip": "Skip",
+        "note": "Note",
+        "notePlaceholder": "e.g. ate half the portion",
+        "saveNote": "Save note",
+        "error": "Could not save. Try again."
+      }
     },
     "history": {
       "title": "Workout history",
@@ -4110,6 +4123,11 @@
     "flag": {
       "needsAttention": "Needs attention"
     },
+    "nutrition": {
+      "title": "Meals & water, last 7 days",
+      "meals": "{eaten} eaten · {skipped} skipped",
+      "water": "avg {liters} L/day"
+    },
     "insights": {
       "title": "At a glance",
       "severity": {
@@ -4376,6 +4394,7 @@
       "carbs": "Carbs",
       "fat": "Fat",
       "saveTargets": "Save targets",
+      "waterTarget": "Water goal (ml/day)",
       "editTargets": "Edit targets",
       "setTargets": "Set targets",
       "gramsOf": "{macro} (g)",

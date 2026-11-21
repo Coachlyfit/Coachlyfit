@@ -40,6 +40,8 @@ export const dietTargetsSchema = z.object({
   target_protein_g: optionalCoercedNumber(z.coerce.number().min(0).max(1000).nullable().optional()),
   target_carb_g: optionalCoercedNumber(z.coerce.number().min(0).max(1000).nullable().optional()),
   target_fat_g: optionalCoercedNumber(z.coerce.number().min(0).max(1000).nullable().optional()),
+  // Daily water goal in ml; blank = the app default.
+  water_target_ml: optionalCoercedNumber(z.coerce.number().int().min(1).max(10000).nullable().optional()),
 });
 
 // A plan day-type: Training / Rest / custom. Names and notes are stored in

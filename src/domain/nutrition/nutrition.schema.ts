@@ -29,6 +29,24 @@ export const bodyProfileSchema = z.object({
 });
 export type BodyProfileFormInput = z.input<typeof bodyProfileSchema>;
 
+/** Meals and water are only logged for today: the server's date plus a day
+ * of slack either side for the client's timezone (matches the DB's check). */
+export function isRecentDate(date: string, now: Date): boolean {
+  const today = now.toISOString().slice(0, 10);
+  return date >= addDays(today, -1) && date <= addDays(today, 1);
+}
+
+export const mealStatusSchema = z.object({
+  meal_id: z.string().uuid(),
+  log_date: isoDate,
+  status: z.enum(["eaten", "skipped"]),
+  note: optionalText(300),
+});
+
+export const clearMealSchema = z.object({ meal_id: z.string().uuid(), log_date: isoDate });
+
+export const addWaterSchema = z.object({ log_date: isoDate });
+
 export const logIntakeSchema = z.object({
   log_date: isoDate,
   kcal: z.coerce.number().int().min(1).max(20000),

@@ -94,6 +94,7 @@ export function DietPlanBuilder({
         dayId={day.id}
         meals={meals}
         targets={dayTargets(day, tree)}
+        waterTargetMl={day.water_target_ml}
       />
 
       {meals.length === 0 ? (

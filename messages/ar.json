@@ -1463,7 +1463,20 @@
       "dayType": "قائمة هذا اليوم",
       "mealN": "الوجبة {n}",
       "next": "التالية",
-      "kcal": "{n} سعرة"
+      "kcal": "{n} سعرة",
+      "log": {
+        "summary": "{done}/{total} وجبات اتمت",
+        "water": "{current} لتر / {target} لتر ماء",
+        "addCup": "أضف كوب ماء",
+        "mealsProgress": "الوجبات المكتملة",
+        "waterProgress": "شرب الماء",
+        "done": "تم",
+        "skip": "تخطي",
+        "note": "ملاحظة",
+        "notePlaceholder": "مثلًا: أكلت نص الكمية",
+        "saveNote": "حفظ الملاحظة",
+        "error": "تعذر الحفظ. حاول تاني."
+      }
     },
     "history": {
       "title": "سجل التمارين",
@@ -4110,6 +4123,11 @@
     "flag": {
       "needsAttention": "محتاجة انتباه"
     },
+    "nutrition": {
+      "title": "الوجبات والماء، آخر 7 أيام",
+      "meals": "{eaten} وجبات اتاكلت · {skipped} اتخطت",
+      "water": "متوسط {liters} لتر/يوم"
+    },
     "insights": {
       "title": "نظرة سريعة",
       "severity": {
@@ -4376,6 +4394,7 @@
       "carbs": "كربوهيدرات",
       "fat": "دهون",
       "saveTargets": "احفظ الأهداف",
+      "waterTarget": "هدف الماء (مل/يوم)",
       "editTargets": "تعديل الأهداف",
       "setTargets": "تحديد الأهداف",
       "gramsOf": "{macro} (غ)",

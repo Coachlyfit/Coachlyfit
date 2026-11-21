@@ -22,6 +22,7 @@ const FIELDS = [
   ["target_carb_g", "carbs", 1000],
   ["target_fat_g", "fat", 1000],
 ] as const;
+const WATER_FIELD = "water_target_ml";
 
 /** The builder's always-visible "where is this day at" for the selected plan
  * day: its totals vs ITS targets (a day without its own falls back to the
@@ -37,12 +38,15 @@ export function DaySummary({
   dayId,
   meals,
   targets,
+  waterTargetMl,
 }: {
   locale: string;
   dietPlanId: string;
   dayId: string;
   meals: DietPlanTree["meals"];
   targets: MacroTargets;
+  /** The day's own water goal (ml); null = the clients' app default. */
+  waterTargetMl: number | null;
 }) {
   const t = useTranslations("diets.macros");
   const tWarn = useTranslations("diets.warnings");
@@ -64,6 +68,7 @@ export function DaySummary({
       target_protein_g: targets.target_protein_g ?? undefined,
       target_carb_g: targets.target_carb_g ?? undefined,
       target_fat_g: targets.target_fat_g ?? undefined,
+      water_target_ml: waterTargetMl ?? undefined,
     },
   });
   const [p, c, f] = useWatch({ control, name: ["target_protein_g", "target_carb_g", "target_fat_g"] }).map(
@@ -73,7 +78,7 @@ export function DaySummary({
 
   const onSubmit = handleSubmit((data) => {
     const formData = new FormData();
-    for (const [name] of FIELDS) {
+    for (const name of [...FIELDS.map(([n]) => n), WATER_FIELD] as const) {
       if (data[name] != null && data[name] !== "") formData.set(name, String(data[name]));
     }
     startTransition(async () => {
@@ -117,6 +122,12 @@ export function DaySummary({
                 <Input id={name} type="number" inputMode="numeric" min={0} max={max} {...register(name)} />
               </div>
             ))}
+          </div>
+          <div className="flex max-w-48 flex-col gap-1">
+            <Label htmlFor={WATER_FIELD} className="text-xs">
+              {t("waterTarget")}
+            </Label>
+            <Input id={WATER_FIELD} type="number" inputMode="numeric" min={0} max={10000} step={250} {...register(WATER_FIELD)} />
           </div>
           {macroKcal > 0 && (
             <p className="text-xs text-muted-foreground">{t("macrosAddUpTo", { kcal: macroKcal })}</p>

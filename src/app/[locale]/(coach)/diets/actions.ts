@@ -104,6 +104,7 @@ export async function updateDayTargetsAction(
     target_protein_g: formData.get("target_protein_g") || "",
     target_carb_g: formData.get("target_carb_g") || "",
     target_fat_g: formData.get("target_fat_g") || "",
+    water_target_ml: formData.get("water_target_ml") || "",
   });
   if (!parsed.success) return { error: "invalid_input" };
 
@@ -115,12 +116,13 @@ export async function updateDayTargetsAction(
 
   // A blank field is sent as nothing (undefined); store it as null so
   // clearing a target clears it, and that day falls back to the plan's.
-  const { target_kcal, target_protein_g, target_carb_g, target_fat_g } = parsed.data;
+  const { target_kcal, target_protein_g, target_carb_g, target_fat_g, water_target_ml } = parsed.data;
   const updated = await new DietPlansService(supabase).updateDayTargets(dayId, {
     target_kcal: target_kcal ?? null,
     target_protein_g: target_protein_g ?? null,
     target_carb_g: target_carb_g ?? null,
     target_fat_g: target_fat_g ?? null,
+    water_target_ml: water_target_ml ?? null,
   });
   if (!updated) return { error: "not_found_or_forbidden" };
   revalidatePath(`/${locale}/diets/${dietPlanId}`);
