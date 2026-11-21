@@ -4,9 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
 import { MealLoggingService } from "@/domain/nutrition/meal-logging.service";
-import { WATER_CUP_ML } from "@/domain/nutrition/meal-logging";
 import {
-  addWaterSchema,
   bodyProfileSchema,
   clearMealSchema,
   isLoggableDate,
@@ -15,6 +13,7 @@ import {
   mealStatusSchema,
   offPlanSchema,
   reminderSettingsSchema,
+  setWaterSchema,
 } from "@/domain/nutrition/nutrition.schema";
 
 type ActionResult = { error: string } | void;
@@ -87,9 +86,10 @@ export async function clearMealAction(locale: string, input: unknown): Promise<A
   return result;
 }
 
-/** One tap = one cup. The amount is fixed server-side, never taken from the client. */
-export async function addWaterAction(locale: string, input: unknown): Promise<ActionResult> {
-  const parsed = addWaterSchema.safeParse(input);
+/** Sets the day's water to N cups (add a cup, undo, or tap a glass). The cup
+ * size is fixed server-side, never taken from the client. */
+export async function setWaterCupsAction(locale: string, input: unknown): Promise<ActionResult> {
+  const parsed = setWaterSchema.safeParse(input);
   if (!parsed.success) return { error: "invalid_input" };
   if (!isRecentDate(parsed.data.log_date, new Date())) return { error: "date_out_of_range" };
 
@@ -97,7 +97,7 @@ export async function addWaterAction(locale: string, input: unknown): Promise<Ac
   const client = await currentClientRow(supabase);
   if (!client) return { error: "not_linked" };
 
-  const result = await attempt(() => new MealLoggingService(supabase).addWater(client.id, parsed.data.log_date, WATER_CUP_ML));
+  const result = await attempt(() => new MealLoggingService(supabase).setWaterCups(client.id, parsed.data.log_date, parsed.data.cups));
   revalidatePath(`/${locale}/c/diet`);
   return result;
 }

@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useOptimistic, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Dumbbell, HeartPulse, Moon, StickyNote, Activity, ChefHat, ChevronRight } from "lucide-react";
+import { Dumbbell, HeartPulse, Moon, StickyNote, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MacroLine, MacroSummary } from "@/components/nutrition/macro-summary";
 import { cn } from "@/lib/utils";
 import type { MacroTargets, MacroTotals } from "@/domain/nutrition/macros";
 import type { DayKind } from "@/domain/programs/day-plan";
 import type { AppLocale } from "@/domain/locale";
+import { WATER_CUP_ML } from "@/domain/nutrition/meal-logging";
 import { RecipeSheet, type RecipeView } from "./recipe-sheet";
-import { MealLogControls, TodaySummary, type MealMark } from "./meal-logging-ui";
+import { ProgressStrip, WaterCard, type MealMark } from "./meal-logging-ui";
+import { DailyHeader } from "./daily-header";
+import { MealCard } from "./meal-card";
 
 /** One day-type of a plan (Training / Rest / …): its own targets, notes and
  * meals. A plan always has at least one. */
@@ -83,6 +85,16 @@ function useNextMealIndex(meals: PlanDayView["meals"], enabled: boolean) {
  * water taken so far. */
 export type TodayLog = { meals: Record<string, MealMark>; waterMl: number };
 
+type LogPatch = { type: "meal"; id: string; mark: MealMark | null } | { type: "water"; cups: number };
+
+function applyPatch(state: TodayLog, patch: LogPatch): TodayLog {
+  if (patch.type === "water") return { ...state, waterMl: patch.cups * WATER_CUP_ML };
+  const meals = { ...state.meals };
+  if (patch.mark) meals[patch.id] = patch.mark;
+  else delete meals[patch.id];
+  return { ...state, meals };
+}
+
 export function DietDays({
   locale,
   days,
@@ -95,12 +107,15 @@ export function DietDays({
   todayLog: TodayLog;
 }) {
   const t = useTranslations("client.diet");
-  const tRecipe = useTranslations("recipes.item");
+  const tLog = useTranslations("client.diet.log");
   const [selected, setSelected] = useState(0);
   // The day-type the client switched to by hand, for the date being viewed;
   // null = the scheduled one. Reset whenever another date is picked.
   const [pickedDayId, setPickedDayId] = useState<string | null>(null);
   const [openRecipe, setOpenRecipe] = useState<{ recipe: RecipeView; servings: number } | null>(null);
+  // Marks and water show at once and settle to the server's data when the
+  // action finishes (or snap back if it failed).
+  const [log, patchLog] = useOptimistic(todayLog, applyPatch);
   const day = days[selected];
   const plan = day.planId ? plans[day.planId] : null;
   const planDay = plan ? (plan.days.find((d) => d.id === (pickedDayId ?? day.dietDayId)) ?? plan.days[0] ?? null) : null;
@@ -110,15 +125,41 @@ export function DietDays({
   // Logging is for today only (the first day of the strip).
   const isToday = selected === 0;
 
+  // Today shows what's been eaten so far; any other day shows the plan's totals.
+  const shownTotals: MacroTotals | null = planDay
+    ? isToday
+      ? planDay.meals
+          .filter((m) => log.meals[m.id]?.status === "eaten")
+          .reduce<MacroTotals>(
+            (sum, m) => ({
+              kcal: sum.kcal + m.totals.kcal,
+              protein_g: sum.protein_g + m.totals.protein_g,
+              carb_g: sum.carb_g + m.totals.carb_g,
+              fat_g: sum.fat_g + m.totals.fat_g,
+            }),
+            { kcal: 0, protein_g: 0, carb_g: 0, fat_g: 0 }
+          )
+      : planDay.totals
+    : null;
+
   return (
     <div className="flex flex-col gap-4">
-      {isToday && planDay && (
-        <TodaySummary
+      {planDay && shownTotals && (
+        <DailyHeader
           locale={locale}
-          date={day.date}
-          done={planDay.meals.filter((m) => todayLog.meals[m.id]?.status === "eaten").length}
+          dateLabel={day.longLabel}
+          isToday={isToday}
+          totals={shownTotals}
+          targets={planDay.targets}
+        />
+      )}
+
+      {isToday && planDay && (
+        <ProgressStrip
+          locale={locale}
+          done={planDay.meals.filter((m) => log.meals[m.id]?.status === "eaten").length}
           total={planDay.meals.length}
-          waterMl={todayLog.waterMl}
+          waterMl={log.waterMl}
           waterTargetMl={planDay.waterTargetMl}
         />
       )}
@@ -158,38 +199,36 @@ export function DietDays({
         </div>
       )}
 
-      <Card className="gap-3 px-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold">{selected === 0 ? t("today") : day.longLabel}</p>
-          {day.kind && <Badge variant="secondary">{t(`kind.${day.kind}`)}</Badge>}
-          {plan && variesByDay && <span className="text-xs text-muted-foreground">{plan.name}</span>}
-        </div>
-        {plan && plan.days.length > 1 && (
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("dayType")}>
-            {plan.days.map((d) => (
-              <button
-                key={d.id}
-                type="button"
-                aria-pressed={d.id === planDay?.id}
-                onClick={() => setPickedDayId(d.id)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                  d.id === planDay?.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card hover:bg-muted"
-                )}
-              >
-                {d.name}
-              </button>
-            ))}
+      {(day.kind || (plan && variesByDay) || (plan && plan.days.length > 1) || !planDay) && (
+        <Card className="gap-3 px-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold">{selected === 0 ? t("today") : day.longLabel}</p>
+            {day.kind && <Badge variant="secondary">{t(`kind.${day.kind}`)}</Badge>}
+            {plan && variesByDay && <span className="text-xs text-muted-foreground">{plan.name}</span>}
           </div>
-        )}
-        {planDay ? (
-          <MacroSummary totals={planDay.totals} targets={planDay.targets} />
-        ) : (
-          <p className="text-sm text-muted-foreground">{t("noMealsForDay")}</p>
-        )}
-      </Card>
+          {plan && plan.days.length > 1 && (
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("dayType")}>
+              {plan.days.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  aria-pressed={d.id === planDay?.id}
+                  onClick={() => setPickedDayId(d.id)}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                    d.id === planDay?.id
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card hover:bg-muted"
+                  )}
+                >
+                  {d.name}
+                </button>
+              ))}
+            </div>
+          )}
+          {!planDay && <p className="text-sm text-muted-foreground">{t("noMealsForDay")}</p>}
+        </Card>
+      )}
 
       {[plan?.notes, planDay?.notes].map(
         (note) =>
@@ -202,82 +241,39 @@ export function DietDays({
       )}
 
       {planDay && (
-        <ol className="flex flex-col gap-3">
-          {planDay.meals.map((meal, i) => {
-            const isNext = i === nextIndex;
-            const past = selected === 0 && nextIndex !== -1 && meal.time != null && i < nextIndex;
-            return (
+        <section className="flex flex-col gap-3" aria-labelledby="meals-heading">
+          <h2 id="meals-heading" className="pt-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {tLog("mealsHeading")}
+          </h2>
+          <ol className="flex flex-col gap-3">
+            {planDay.meals.map((meal, i) => (
               <li key={meal.id}>
-                <Card className={cn("gap-2 px-4", isNext && "ring-2 ring-primary", past && "opacity-60")}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h2 className="truncate font-semibold">{meal.label ?? t("mealN", { n: i + 1 })}</h2>
-                        {isNext && <Badge>{t("next")}</Badge>}
-                      </div>
-                      <MacroLine totals={meal.totals} />
-                    </div>
-                    {meal.time && (
-                      <span className="shrink-0 font-mono text-sm font-semibold tabular-nums">{meal.time}</span>
-                    )}
-                  </div>
-                  {meal.items.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">—</p>
-                  ) : (
-                    <ul className="flex flex-col divide-y divide-border">
-                      {meal.items.map((item) =>
-                        item.recipe ? (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onClick={() => item.recipe && setOpenRecipe({ recipe: item.recipe, servings: item.quantity })}
-                              className="flex w-full items-center gap-3 rounded-md py-2 text-start text-sm hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring"
-                            >
-                              <span className="w-20 shrink-0 break-words font-mono text-sm font-semibold tabular-nums">
-                                {item.amount}
-                              </span>
-                              <span className="flex min-w-0 flex-1 flex-col">
-                                <span className="flex items-center gap-1.5">
-                                  <ChefHat className="size-4 shrink-0 text-primary" aria-label={tRecipe("recipe")} />
-                                  <span className="min-w-0">{item.name}</span>
-                                </span>
-                                <span className="text-xs text-primary">{tRecipe("view")}</span>
-                              </span>
-                              <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                                {t("kcal", { n: item.kcal })}
-                              </span>
-                              <ChevronRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" aria-hidden="true" />
-                            </button>
-                          </li>
-                        ) : (
-                          <li key={item.id} className="flex items-center gap-3 py-2 text-sm">
-                            <span className="w-20 shrink-0 break-words font-mono text-sm font-semibold tabular-nums">
-                              {item.amount}
-                            </span>
-                            <span className="min-w-0 flex-1">{item.name}</span>
-                            <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                              {t("kcal", { n: item.kcal })}
-                            </span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  )}
-                  {isToday && (
-                    <MealLogControls
-                      // Remount when the saved mark changes so the note box resets to it.
-                      key={`${meal.id}:${todayLog.meals[meal.id]?.status ?? ""}:${todayLog.meals[meal.id]?.note ?? ""}`}
-                      locale={locale}
-                      date={day.date}
-                      mealId={meal.id}
-                      mark={todayLog.meals[meal.id] ?? null}
-                    />
-                  )}
-                </Card>
+                <MealCard
+                  locale={locale}
+                  date={day.date}
+                  index={i}
+                  meal={meal}
+                  isToday={isToday}
+                  mark={log.meals[meal.id] ?? null}
+                  isNext={i === nextIndex}
+                  past={isToday && nextIndex !== -1 && meal.time != null && i < nextIndex}
+                  onMark={(mark) => patchLog({ type: "meal", id: meal.id, mark })}
+                  onOpenRecipe={(recipe, servings) => setOpenRecipe({ recipe, servings })}
+                />
               </li>
-            );
-          })}
-        </ol>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {isToday && planDay && (
+        <WaterCard
+          locale={locale}
+          date={day.date}
+          waterMl={log.waterMl}
+          waterTargetMl={planDay.waterTargetMl}
+          onCups={(cups) => patchLog({ type: "water", cups })}
+        />
       )}
 
       {openRecipe && (

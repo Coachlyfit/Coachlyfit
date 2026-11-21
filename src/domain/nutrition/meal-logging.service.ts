@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
-import type { MealStatus } from "./meal-logging";
+import { WATER_CUP_ML, type MealStatus } from "./meal-logging";
 
 type MealCompletion = Database["public"]["Tables"]["meal_completions"]["Row"];
 type WaterLog = Database["public"]["Tables"]["daily_water_logs"]["Row"];
@@ -54,10 +54,42 @@ export class MealLoggingService {
     return data;
   }
 
-  async addWater(clientId: string, date: string, amountMl: number): Promise<void> {
-    const { error } = await this.db
+  /** Sets the day's water to `cups` cups: adds cup rows to get there, or
+   * removes the newest rows. Every row is one cup (the app fixes the amount),
+   * so a cup count maps straight to rows. */
+  async setWaterCups(clientId: string, date: string, cups: number): Promise<void> {
+    const { data, error } = await this.db
       .from("daily_water_logs")
-      .insert({ client_id: clientId, log_date: date, amount_ml: amountMl });
+      .select("id, amount_ml")
+      .eq("client_id", clientId)
+      .eq("log_date", date)
+      .order("logged_at", { ascending: false });
     if (error) throw error;
+
+    const total = data.reduce((sum, row) => sum + row.amount_ml, 0);
+    const wanted = cups * WATER_CUP_ML;
+
+    if (wanted > total) {
+      const rows = Array.from({ length: Math.ceil((wanted - total) / WATER_CUP_ML) }, () => ({
+        client_id: clientId,
+        log_date: date,
+        amount_ml: WATER_CUP_ML,
+      }));
+      const { error: insertError } = await this.db.from("daily_water_logs").insert(rows);
+      if (insertError) throw insertError;
+      return;
+    }
+
+    // Newest first: drop rows until the total is at or under what's wanted.
+    const ids: string[] = [];
+    let remaining = total;
+    for (const row of data) {
+      if (remaining <= wanted) break;
+      ids.push(row.id);
+      remaining -= row.amount_ml;
+    }
+    if (ids.length === 0) return;
+    const { error: deleteError } = await this.db.from("daily_water_logs").delete().in("id", ids);
+    if (deleteError) throw deleteError;
   }
 }

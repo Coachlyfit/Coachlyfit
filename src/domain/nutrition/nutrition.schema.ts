@@ -45,7 +45,8 @@ export const mealStatusSchema = z.object({
 
 export const clearMealSchema = z.object({ meal_id: z.string().uuid(), log_date: isoDate });
 
-export const addWaterSchema = z.object({ log_date: isoDate });
+/** The day's water as a cup count (0 clears it); 40 cups = 10 L is plenty. */
+export const setWaterSchema = z.object({ log_date: isoDate, cups: z.number().int().min(0).max(40) });
 
 export const logIntakeSchema = z.object({
   log_date: isoDate,
