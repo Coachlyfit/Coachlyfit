@@ -4116,6 +4116,59 @@ export type Database = {
           },
         ]
       }
+      pending_coach_notifications: {
+        Row: {
+          client_id: string
+          coach_id: string
+          email_sent: boolean
+          email_sent_at: string | null
+          first_unread_at: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          email_sent?: boolean
+          email_sent_at?: string | null
+          first_unread_at: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          email_sent?: boolean
+          email_sent_at?: string | null
+          first_unread_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_coach_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_coach_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "pending_coach_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "pending_coach_notifications_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           key: string
@@ -4154,6 +4207,7 @@ export type Database = {
           id: string
           last_seen_at: string | null
           locale: string
+          message_nudge_minutes: number | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           suspended_at: string | null
@@ -4169,6 +4223,7 @@ export type Database = {
           id: string
           last_seen_at?: string | null
           locale?: string
+          message_nudge_minutes?: number | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           suspended_at?: string | null
@@ -4184,6 +4239,7 @@ export type Database = {
           id?: string
           last_seen_at?: string | null
           locale?: string
+          message_nudge_minutes?: number | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           suspended_at?: string | null

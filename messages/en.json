@@ -655,6 +655,12 @@
       "shareQr": "Share QR"
     },
     "emailNotifications": "Email notifications",
+    "messageNudge": {
+      "label": "Unread message reminder",
+      "help": "One email if a client's message goes unanswered this long. Needs email notifications on.",
+      "off": "Off",
+      "minutes": "{minutes, plural, =60 {1 hour} =120 {2 hours} other {# minutes}}"
+    },
     "businessProfile": {
       "title": "Business profile",
       "hint": "Shown in the header of every invoice you issue.",
@@ -6375,6 +6381,14 @@
       "domain": "Connect your domain",
       "review": "Get your first review"
     }
+  },
+  "messageNudge": {
+    "subject": "💬 Unread message from {name} — CoachlyFit",
+    "intro": "{name} sent you a message and it is still waiting for your reply.",
+    "client": "Client",
+    "since": "First unread message",
+    "button": "View Message",
+    "footer": "You get at most one of these per conversation until you reply. Change the delay or turn it off in Settings > Account."
   },
   "photoConsent": {
     "askTitle": "Share your before/after photos?",

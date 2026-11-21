@@ -9,6 +9,7 @@ import { PageTitle } from "@/components/dashboard/page-title";
 import { TeamCard } from "@/components/settings/team-card";
 import { SettingsTabsBar } from "@/components/settings/settings-tabs-bar";
 import { EmailNotificationsToggle } from "@/components/settings/email-notifications-toggle";
+import { MessageNudgeSelect } from "@/components/settings/message-nudge-select";
 import { ChangeEmailForm } from "@/components/settings/change-email-form";
 import { TeamService } from "@/domain/team/team.service";
 
@@ -29,7 +30,7 @@ export default async function AccountSettingsPage({
 
   const team = new TeamService(supabase);
   const [{ data: profile }, teamMembers, seats] = await Promise.all([
-    supabase.from("profiles").select("email_notifications").eq("id", user.id).single(),
+    supabase.from("profiles").select("email_notifications, message_nudge_minutes").eq("id", user.id).single(),
     team.list(coachId),
     team.seats(),
   ]);
@@ -48,6 +49,7 @@ export default async function AccountSettingsPage({
           <CardContent className="flex flex-col gap-4">
             <ChangeEmailForm currentEmail={user.email ?? ""} />
             <EmailNotificationsToggle locale={locale} enabled={profile?.email_notifications ?? true} />
+            <MessageNudgeSelect locale={locale} minutes={profile ? profile.message_nudge_minutes : 60} />
             <form action={signOutAction.bind(null, locale)}>
               <Button type="submit" variant="outline" className="w-full">
                 {t("signOut")}

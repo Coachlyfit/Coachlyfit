@@ -63,6 +63,25 @@ select cron.schedule(
   $job$
 );
 
+-- Unread-message nudge: emails a coach once when a client's message has gone
+-- unanswered past the coach's chosen delay (30 min / 1 h / 2 h), every 15
+-- minutes. The route claims each window with an UPDATE, so overlapping or
+-- repeated runs never email twice.
+select cron.schedule(
+  'coachlyfit-message-nudges-every-15-min',
+  '*/15 * * * *',
+  $job$
+  select net.http_get(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'app_url') || '/api/cron/message-nudges',
+    headers := jsonb_build_object(
+      'Authorization',
+      'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+    ),
+    timeout_milliseconds := 60000
+  ) as request_id;
+  $job$
+);
+
 -- Appointment reminders (24h and 1h before a confirmed session), every 15
 -- minutes. The route claims each reminder with an UPDATE, so overlapping or
 -- repeated runs never notify twice.
