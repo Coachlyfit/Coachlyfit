@@ -11,9 +11,11 @@ import { RecipesService } from "@/domain/recipes/recipes.service";
 import type { RecipeView } from "./recipe-sheet";
 import { pickLocale, type AppLocale } from "@/domain/locale";
 import { formatDate } from "@/lib/format";
-import { DietDays, type DayView, type PlanView } from "./diet-days";
+import { DietDays, type DayView, type PlanView, type TodayLog } from "./diet-days";
 import { NutritionLogPanel } from "./nutrition-log-panel";
 import { NutritionLogsService } from "@/domain/nutrition/nutrition-logs.service";
+import { MealLoggingService } from "@/domain/nutrition/meal-logging.service";
+import { DEFAULT_WATER_TARGET_ML, type MealStatus } from "@/domain/nutrition/meal-logging";
 import { addDays } from "@/domain/nutrition/adherence";
 import { dayTargets, resolveDietDay } from "@/domain/nutrition/diet-days";
 import { weekdayOf } from "@/domain/appointments/tz";
@@ -72,6 +74,7 @@ function toPlanView(
         // Only the four target fields -- not the tree, which would ship to the browser whole.
         targets: dayTargets(day, tree),
         totals: planMacros(dayMeals.map((m) => m.meal_items.map((i) => ({ quantity: i.quantity, food: itemMacroFood(i) })))),
+        waterTargetMl: day.water_target_ml ?? DEFAULT_WATER_TARGET_ML,
         meals: toMealViews(dayMeals, locale, imageUrls, servingsLabel),
       };
     }),
@@ -130,14 +133,23 @@ export default async function ClientDietPage({
   const dietPlans = new DietPlansService(supabase);
   const nutrition = new NutritionLogsService(supabase);
   const serverToday = new Date().toISOString().slice(0, 10);
-  const [programTree, standalone, logs, reminder, bodyProfile] = await Promise.all([
+  const mealLogging = new MealLoggingService(supabase);
+  const [programTree, standalone, logs, reminder, bodyProfile, todayCompletions, todayWater] = await Promise.all([
     new ProgramsService(supabase).getActiveTreeForClient(clientRow.id),
     dietPlans.getActiveTreeForClient(clientRow.id),
     // A day either side of the 7-day window: the device's date can differ from UTC's.
     nutrition.listLogs(clientRow.id, addDays(serverToday, -8), addDays(serverToday, 1)),
     nutrition.getReminderSettings(clientRow.id),
     nutrition.getBodyProfile(clientRow.id),
+    mealLogging.listCompletions([clientRow.id], serverToday, serverToday),
+    mealLogging.listWater([clientRow.id], serverToday, serverToday),
   ]);
+  const todayLog: TodayLog = {
+    meals: Object.fromEntries(
+      todayCompletions.map((c) => [c.meal_id, { status: c.status as MealStatus, note: c.note }] as const)
+    ),
+    waterMl: todayWater.reduce((sum, w) => sum + w.amount_ml, 0),
+  };
 
   // The strip (today onward) plus the days a log can still be edited for,
   // each resolved to its plan, then to its plan day.
@@ -176,6 +188,8 @@ export default async function ClientDietPage({
       clientId={clientRow.id}
       serverToday={serverToday}
       dietDayIds={logDayIds}
+      // With no plan this is the only thing on the page, so it starts open.
+      defaultOpen={plans.size === 0}
       logs={logs.map((l) => ({
         log_date: l.log_date,
         kcal: l.kcal,
@@ -232,8 +246,7 @@ export default async function ClientDietPage({
   return (
     <div className="flex flex-col gap-5">
       <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-      {logPanel}
-      <DietDays days={days} plans={planViews} />
+      <DietDays locale={locale} days={days} plans={planViews} todayLog={todayLog} logPanel={logPanel} />
     </div>
   );
 }

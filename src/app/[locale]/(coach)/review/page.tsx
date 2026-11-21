@@ -6,6 +6,8 @@ import { findSimilarNotes } from "@/domain/progress/note-similarity";
 import { weightTrend, adherenceAverage } from "@/domain/progress/stats";
 import { buildInsights, ADHERENCE_BASELINE_LOOKBACK } from "@/domain/progress/insights";
 import { LedgerService } from "@/domain/ledger/ledger.service";
+import { MealLoggingService } from "@/domain/nutrition/meal-logging.service";
+import { weekSummary } from "@/domain/nutrition/meal-logging";
 import { detectPainRepeat, detectMissedReps, repeatedNoteSignal, type Signal } from "@/domain/ledger/signals";
 import { suggestReason } from "@/domain/ledger/reasons";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -18,6 +20,7 @@ type CheckinRow = Database["public"]["Tables"]["checkins"]["Row"];
 type MediaRow = Database["public"]["Tables"]["media"]["Row"];
 
 const WORKOUT_WINDOW_DAYS = 7;
+const NUTRITION_WINDOW_DAYS = 7;
 const POSES: ReviewPose[] = ["front", "side", "back"];
 
 function isoDaysAgo(days: number): string {
@@ -54,7 +57,10 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
   const clientIds = [...new Set(queue.map((c) => c.client_id))];
   const now = new Date();
 
-  const [{ data: allCheckins }, { data: allMedia }, { data: allSessions }, signalInputs] = await Promise.all([
+  const mealLogging = new MealLoggingService(supabase);
+  const weekFrom = isoDaysAgo(NUTRITION_WINDOW_DAYS - 1).slice(0, 10);
+  const weekTo = now.toISOString().slice(0, 10);
+  const [{ data: allCheckins }, { data: allMedia }, { data: allSessions }, signalInputs, allCompletions, allWater] = await Promise.all([
     supabase
       .from("checkins")
       .select("*")
@@ -74,6 +80,8 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
       .not("completed_at", "is", null)
       .gte("completed_at", isoDaysAgo(WORKOUT_WINDOW_DAYS)),
     new LedgerService(supabase).loadSignalInputs(clientIds),
+    mealLogging.listCompletions(clientIds, weekFrom, weekTo),
+    mealLogging.listWater(clientIds, weekFrom, weekTo),
   ]);
 
   const checkins = allCheckins ?? [];
@@ -157,6 +165,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ locale:
       photos,
       signals,
       insights,
+      nutrition: weekSummary(
+        allCompletions.filter((c) => c.client_id === item.client_id),
+        allWater.filter((w) => w.client_id === item.client_id),
+        NUTRITION_WINDOW_DAYS
+      ),
       suggestedReason: suggestReason(signals),
     };
   });

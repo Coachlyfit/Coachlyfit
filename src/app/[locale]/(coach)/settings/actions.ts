@@ -73,6 +73,26 @@ export async function updateEmailNotificationsAction(locale: string, enabled: bo
   revalidatePath(`/${locale}/settings/account`);
 }
 
+const nudgeMinutesSchema = z.union([z.literal(30), z.literal(60), z.literal(120), z.null()]);
+
+/** Delay before an unanswered client message is emailed to the coach; null
+ * turns the nudge off. Same own-profile-row update as the toggle above. */
+export async function updateMessageNudgeAction(locale: string, minutes: number | null): Promise<ActionResult> {
+  const parsed = nudgeMinutesSchema.safeParse(minutes);
+  if (!parsed.success) return { error: "invalid_input" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "not_authenticated" };
+
+  const { error } = await supabase.from("profiles").update({ message_nudge_minutes: parsed.data }).eq("id", user.id);
+  if (error) return { error: "update_failed" };
+
+  revalidatePath(`/${locale}/settings/account`);
+}
+
 const emailSchema = z.string().email();
 
 /** Doesn't change the session email immediately — Supabase sends a

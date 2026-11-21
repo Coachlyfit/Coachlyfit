@@ -40,6 +40,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Daily nutrition log accents (client diet page): macro bars/tags, water,
+     done state. Fixed brand-ish hues that read on both light and dark. */
+  --color-nutri-orange: #f07b2e;
+  --color-nutri-blue: #4a9eff;
+  --color-nutri-purple: #a78bfa;
+  --color-nutri-green: #3ecf8e;
   /* Semantic status colors, kept separate from shadcn's accent/destructive
      so charts and badges never fall back to raw hex in components. */
   --color-success: var(--success);

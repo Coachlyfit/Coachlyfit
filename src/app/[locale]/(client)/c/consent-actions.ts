@@ -16,6 +16,7 @@ export async function respondToCardConsentAction(locale: string, input: { cardId
   const { error } = await supabase.rpc("respond_card_consent", { p_card_id: input.cardId, p_agree: input.agree });
   if (error) return { error: "failed" };
   revalidatePath(`/${locale}/c`);
+  revalidatePath(`/${locale}/c/progress`);
 }
 
 /** Client withdraws consent, any time. The database unpublishes the card
@@ -29,4 +30,5 @@ export async function withdrawCardConsentAction(locale: string, input: { cardId:
   if (error) return { error: "failed" };
   revalidateTag(SITES_TAG, "max");
   revalidatePath(`/${locale}/c`);
+  revalidatePath(`/${locale}/c/progress`);
 }

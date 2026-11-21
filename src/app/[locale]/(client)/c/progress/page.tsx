@@ -25,6 +25,8 @@ import { CheckinHero } from "./checkin-hero";
 import { MetricSwitcher } from "./metric-switcher";
 import { AddMetricDialog } from "./add-metric-dialog";
 import { PhotoUpload } from "./photo-upload";
+import { PhotoConsentCard } from "../photo-consent-card";
+import { loadPhotoConsents } from "../photo-consent-data";
 
 export default async function ClientProgressPage({
   params,
@@ -57,12 +59,13 @@ export default async function ClientProgressPage({
   const today = new Date();
   const todayIso = today.toISOString().slice(0, 10);
   const progress = new ProgressService(supabase);
-  const [existing, history, grouped, media, customMetrics] = await Promise.all([
+  const [existing, history, grouped, media, customMetrics, photoConsents] = await Promise.all([
     progress.getCheckin(client!.id, todayIso),
     progress.listCheckins(client!.id),
     progress.listBodyMetricsGrouped(client!.id),
     progress.listMedia(client!.id, "photo"),
     new MetricDefinitionsService(supabase).list(client!.coach_id),
+    loadPhotoConsents(supabase),
   ]);
 
   const planStoryDecisions = await new LedgerService(supabase).listForClient(client!.id);
@@ -196,6 +199,12 @@ export default async function ClientProgressPage({
 
       <BlockScores rows={blockScores} locale={locale} />
       <SkillLadders ladders={skillLadders} locale={locale} />
+
+      {photoConsents
+        .filter((r) => r.status === "agreed")
+        .map((request) => (
+          <PhotoConsentCard key={request.cardId} locale={locale} request={request} />
+        ))}
 
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-tight">{tPhotos("title")}</h2>

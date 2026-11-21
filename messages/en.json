@@ -655,6 +655,12 @@
       "shareQr": "Share QR"
     },
     "emailNotifications": "Email notifications",
+    "messageNudge": {
+      "label": "Unread message reminder",
+      "help": "One email if a client's message goes unanswered this long. Needs email notifications on.",
+      "off": "Off",
+      "minutes": "{minutes, plural, =60 {1 hour} =120 {2 hours} other {# minutes}}"
+    },
     "businessProfile": {
       "title": "Business profile",
       "hint": "Shown in the header of every invoice you issue.",
@@ -1463,7 +1469,33 @@
       "dayType": "Menu for this day",
       "mealN": "Meal {n}",
       "next": "Next",
-      "kcal": "{n} kcal"
+      "kcal": "{n} kcal",
+      "log": {
+        "dailyPlan": "Daily plan",
+        "plannedDay": "Planned day",
+        "mealsHeading": "Meals",
+        "summary": "{done} / {total} meals",
+        "water": "{current} L / {target} L",
+        "waterTitle": "Water",
+        "waterTarget": "Daily goal {target} L",
+        "liter": "L",
+        "glass": "Glass {n} of {total}",
+        "addCup": "+ Add a glass ({ml} ml)",
+        "undoCup": "Remove the last glass",
+        "grams": "{n} g",
+        "mealsProgress": "Meals completed",
+        "waterProgress": "Water intake",
+        "done": "Done",
+        "skip": "Skip",
+        "note": "Note",
+        "noteTitle": "Note on {meal}",
+        "noteHelp": "Only your coach sees this.",
+        "noteNeedsStatus": "Mark the meal done or skipped first to add a note",
+        "notePlaceholder": "e.g. ate half the portion",
+        "saveNote": "Save note",
+        "cancel": "Cancel",
+        "error": "Could not save. Try again."
+      }
     },
     "history": {
       "title": "Workout history",
@@ -4110,6 +4142,11 @@
     "flag": {
       "needsAttention": "Needs attention"
     },
+    "nutrition": {
+      "title": "Meals & water, last 7 days",
+      "meals": "{eaten} eaten · {skipped} skipped",
+      "water": "avg {liters} L/day"
+    },
     "insights": {
       "title": "At a glance",
       "severity": {
@@ -4376,6 +4413,7 @@
       "carbs": "Carbs",
       "fat": "Fat",
       "saveTargets": "Save targets",
+      "waterTarget": "Water goal (ml/day)",
       "editTargets": "Edit targets",
       "setTargets": "Set targets",
       "gramsOf": "{macro} (g)",
@@ -6357,6 +6395,14 @@
       "review": "Get your first review"
     }
   },
+  "messageNudge": {
+    "subject": "💬 Unread message from {name} — CoachlyFit",
+    "intro": "{name} sent you a message and it is still waiting for your reply.",
+    "client": "Client",
+    "since": "First unread message",
+    "button": "View Message",
+    "footer": "You get at most one of these per conversation until you reply. Change the delay or turn it off in Settings > Account."
+  },
   "photoConsent": {
     "askTitle": "Share your before/after photos?",
     "askText": "{coach} would like to show these two photos on their website. Nothing is shown unless you agree, and you can withdraw at any time.",
@@ -6370,6 +6416,9 @@
     "agreed": "Thanks. Your coach can now share this card.",
     "declined": "Okay. Your photos stay private.",
     "withdrawn": "Consent withdrawn. Your photos were taken down.",
+    "bannerText": "Your before/after photos are shareable. Manage them in Progress.",
+    "bannerView": "View",
+    "bannerDismiss": "Dismiss",
     "error": "Something went wrong. Try again."
   },
 

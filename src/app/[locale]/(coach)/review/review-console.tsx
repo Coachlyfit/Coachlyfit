@@ -61,6 +61,8 @@ export type ReviewQueueEntry = {
   /** Rule-based "at a glance" lines (domain/progress/insights.ts), most
    * severe first. Keys and numbers only — wording lives in messages. */
   insights: Insight[];
+  /** Last 7 days of meal marks and water (domain/nutrition/meal-logging.ts). */
+  nutrition: { eaten: number; skipped: number; avgWaterMl: number };
   suggestedReason: ReasonKey;
 };
 
@@ -402,6 +404,7 @@ function ReviewEntryPanel({
         </Card>
 
         <InsightsCard insights={entry.insights} />
+        <MealsWaterCard locale={locale} nutrition={entry.nutrition} />
 
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <StatCard
@@ -832,6 +835,25 @@ function InsightsCard({ insights }: { insights: Insight[] }) {
             );
           })}
         </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The client's last 7 days of meal marks and water. Hidden when they logged
+ * neither, so a client who doesn't use meal logging gets no empty box. */
+function MealsWaterCard({ locale, nutrition }: { locale: AppLocale; nutrition: ReviewQueueEntry["nutrition"] }) {
+  const t = useTranslations("review.nutrition");
+  if (nutrition.eaten + nutrition.skipped === 0 && nutrition.avgWaterMl === 0) return null;
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-2 pt-6">
+        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">{t("title")}</p>
+        <p className="text-sm">
+          {t("meals", { eaten: nutrition.eaten, skipped: nutrition.skipped })} ·{" "}
+          {t("water", { liters: formatNumber(nutrition.avgWaterMl / 1000, locale, { maximumFractionDigits: 1 }) })}
+        </p>
       </CardContent>
     </Card>
   );

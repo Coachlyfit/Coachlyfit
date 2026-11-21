@@ -453,6 +453,7 @@ export class DietPlansService {
           target_protein_g: day.target_protein_g,
           target_carb_g: day.target_carb_g,
           target_fat_g: day.target_fat_g,
+          water_target_ml: day.water_target_ml,
           notes_ar: day.notes_ar,
           notes_en: day.notes_en,
         })
@@ -687,7 +688,10 @@ export class DietPlansService {
    * longer a macro suggestion's numbers. */
   async updateDayTargets(
     dayId: string,
-    targets: Pick<DietPlanDay, "target_kcal" | "target_protein_g" | "target_carb_g" | "target_fat_g">,
+    // water_target_ml belongs to the day only; diet_plans has no such column.
+    { water_target_ml, ...targets }: Pick<DietPlanDay, "target_kcal" | "target_protein_g" | "target_carb_g" | "target_fat_g"> & {
+      water_target_ml?: number | null;
+    },
     provenance: Pick<AssignTargetsInput, "targets_source" | "targets_suggestion"> = {
       targets_source: "manual",
       targets_suggestion: null,
@@ -695,7 +699,7 @@ export class DietPlansService {
   ): Promise<boolean> {
     const { data, error } = await this.db
       .from("diet_plan_days")
-      .update(targets)
+      .update(water_target_ml === undefined ? targets : { ...targets, water_target_ml })
       .eq("id", dayId)
       .select("id, diet_plan_id");
     if (error) throw error;
@@ -758,6 +762,7 @@ export class DietPlansService {
         target_protein_g: source.target_protein_g,
         target_carb_g: source.target_carb_g,
         target_fat_g: source.target_fat_g,
+        water_target_ml: source.water_target_ml,
         notes_ar: source.notes_ar,
         notes_en: source.notes_en,
         name_ar,

@@ -1488,6 +1488,62 @@ export type Database = {
           },
         ]
       }
+      daily_water_logs: {
+        Row: {
+          amount_ml: number
+          client_id: string
+          id: string
+          log_date: string
+          logged_at: string
+          relationship_id: string | null
+        }
+        Insert: {
+          amount_ml: number
+          client_id: string
+          id?: string
+          log_date: string
+          logged_at?: string
+          relationship_id?: string | null
+        }
+        Update: {
+          amount_ml?: number
+          client_id?: string
+          id?: string
+          log_date?: string
+          logged_at?: string
+          relationship_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_water_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_water_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "daily_water_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "daily_water_logs_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diet_plan_days: {
         Row: {
           client_id: string | null
@@ -1506,6 +1562,7 @@ export type Database = {
           target_fat_g: number | null
           target_kcal: number | null
           target_protein_g: number | null
+          water_target_ml: number | null
         }
         Insert: {
           client_id?: string | null
@@ -1524,6 +1581,7 @@ export type Database = {
           target_fat_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
+          water_target_ml?: number | null
         }
         Update: {
           client_id?: string | null
@@ -1542,6 +1600,7 @@ export type Database = {
           target_fat_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
+          water_target_ml?: number | null
         }
         Relationships: [
           {
@@ -3310,6 +3369,75 @@ export type Database = {
           },
         ]
       }
+      meal_completions: {
+        Row: {
+          client_id: string
+          id: string
+          log_date: string
+          logged_at: string
+          meal_id: string
+          note: string | null
+          relationship_id: string | null
+          status: string
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          log_date: string
+          logged_at?: string
+          meal_id: string
+          note?: string | null
+          relationship_id?: string | null
+          status: string
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          log_date?: string
+          logged_at?: string
+          meal_id?: string
+          note?: string | null
+          relationship_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "meal_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "meal_completions_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_completions_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_items: {
         Row: {
           client_id: string | null
@@ -3988,6 +4116,59 @@ export type Database = {
           },
         ]
       }
+      pending_coach_notifications: {
+        Row: {
+          client_id: string
+          coach_id: string
+          email_sent: boolean
+          email_sent_at: string | null
+          first_unread_at: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          email_sent?: boolean
+          email_sent_at?: string | null
+          first_unread_at: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          email_sent?: boolean
+          email_sent_at?: string | null
+          first_unread_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_coach_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_coach_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_client_roster"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "pending_coach_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "coach_inbox_threads"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "pending_coach_notifications_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           key: string
@@ -4026,6 +4207,7 @@ export type Database = {
           id: string
           last_seen_at: string | null
           locale: string
+          message_nudge_minutes: number | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           suspended_at: string | null
@@ -4041,6 +4223,7 @@ export type Database = {
           id: string
           last_seen_at?: string | null
           locale?: string
+          message_nudge_minutes?: number | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           suspended_at?: string | null
@@ -4056,6 +4239,7 @@ export type Database = {
           id?: string
           last_seen_at?: string | null
           locale?: string
+          message_nudge_minutes?: number | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           suspended_at?: string | null
