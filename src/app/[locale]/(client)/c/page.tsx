@@ -23,6 +23,7 @@ import { CoachRow } from "@/components/client-home/coach-row";
 import { CoachDecisionCard } from "./coach-decision-card";
 import { CoachInviteCard } from "./coach-invite-card";
 import { PhotoConsentCard } from "./photo-consent-card";
+import { PhotoConsentBanner } from "./photo-consent-banner";
 import { loadPhotoConsents } from "./photo-consent-data";
 import { NextSession } from "@/components/client-home/next-session";
 import { DEFAULT_TIME_ZONE, isValidTimeZone, weekdayOf } from "@/domain/appointments/tz";
@@ -146,9 +147,10 @@ export default async function ClientHomePage({
         />
       ))}
 
-      {photoConsents.map((request) => (
-        <PhotoConsentCard key={request.cardId} locale={locale} request={request} />
-      ))}
+      {photoConsents.map((request) =>
+        request.status === "pending" ? <PhotoConsentCard key={request.cardId} locale={locale} request={request} /> : null
+      )}
+      {photoConsents.some((r) => r.status === "agreed") && <PhotoConsentBanner />}
 
       <CoachDecisionCard
         decision={

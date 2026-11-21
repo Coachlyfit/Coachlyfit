@@ -6370,6 +6370,9 @@
     "agreed": "Thanks. Your coach can now share this card.",
     "declined": "Okay. Your photos stay private.",
     "withdrawn": "Consent withdrawn. Your photos were taken down.",
+    "bannerText": "Your before/after photos are shareable. Manage them in Progress.",
+    "bannerView": "View",
+    "bannerDismiss": "Dismiss",
     "error": "Something went wrong. Try again."
   },
 
